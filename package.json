@@ -10,7 +10,13 @@
     "build:firefox": "wxt build --browser firefox",
     "zip": "wxt zip",
     "clean": "wxt clean",
-    "typecheck": "wxt prepare && tsc --noEmit"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write ."
   },
   "dependencies": {
     "jszip": "^3.10.1",
@@ -22,6 +28,8 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
+    "@types/node": "^25.6.0",
     "@types/papaparse": "^5.3.15",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
@@ -31,6 +39,7 @@
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.0",
+    "vitest": "^4.1.5",
     "wxt": "^0.20.0"
   }
 }

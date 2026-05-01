@@ -27,3 +27,8 @@ npm-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+.output/
+.wxt/
+
+# Test artifacts
+tests/artifacts/
