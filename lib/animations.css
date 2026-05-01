@@ -1,0 +1,23 @@
+@keyframes ratingDotConfirm {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes ratingBorderConfirm {
+  0% {
+    border-bottom-width: 2px;
+  }
+  40% {
+    border-bottom-width: 5px;
+  }
+  100% {
+    border-bottom-width: 3px;
+  }
+}

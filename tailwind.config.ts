@@ -1,9 +1,75 @@
-import type { Config } from 'tailwindcss';
+import type { Config } from "tailwindcss";
 
 export default {
-  content: ['./entrypoints/**/*.{html,tsx,ts}', './components/**/*.{tsx,ts}'],
+  content: ["./entrypoints/**/*.{html,tsx,ts}", "./components/**/*.{tsx,ts}"],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        "ut-primary": "var(--ut-primary)",
+        "ut-navy": "var(--ut-navy)",
+        "ut-darkblue": "var(--ut-darkblue)",
+        "ut-blue": "var(--ut-blue)",
+        "ut-red": "var(--ut-red)",
+        "ut-green": "var(--ut-green)",
+        "ut-purple": "var(--ut-purple)",
+        "ut-grey": "var(--ut-grey)",
+        "ut-offwhite": "var(--ut-offwhite)",
+        "ut-border": "var(--ut-border)",
+        "ut-text": "var(--ut-text)",
+        "ut-muted": "var(--ut-muted)",
+        "ut-slate": "var(--ut-slate)",
+        "ut-canvas": "var(--ut-canvas)",
+        "ut-panel": "var(--ut-panel-bg)",
+        "ut-white": "var(--ut-white)",
+        tr: "var(--tr)",
+        re: "var(--re)",
+        uc: "var(--uc)",
+        se: "var(--se)",
+        tc: "var(--tc)",
+        "score-0": "var(--score-0)",
+        "score-1": "var(--score-1)",
+        "score-2": "var(--score-2)",
+        "score-3": "var(--score-3)",
+        "state-warning": "var(--state-warning)",
+      },
+      fontFamily: {
+        body: ["var(--ff-body)"],
+        heading: ["var(--ff-heading)"],
+        mono: ["var(--ff-mono)"],
+      },
+      fontSize: {
+        "ut-xs": "var(--text-xs)",
+        "ut-sm": "var(--text-sm)",
+        "ut-md": "var(--text-md)",
+        "ut-body": "var(--text-body)",
+        "ut-heading": "var(--text-heading)",
+      },
+      borderRadius: {
+        none: "0px",
+        "ut-sm": "var(--radius-sm)",
+        DEFAULT: "var(--radius-md)",
+        "ut-lg": "var(--radius-lg)",
+      },
+      borderWidth: {
+        accent: "6px",
+      },
+      spacing: {
+        "ut-1": "var(--space-1)",
+        "ut-2": "var(--space-2)",
+        "ut-3": "var(--space-3)",
+        "ut-4": "var(--space-4)",
+        "ut-5": "var(--space-5)",
+        "ut-6": "var(--space-6)",
+        "ut-8": "var(--space-8)",
+      },
+      letterSpacing: {
+        "ut-heading": "var(--ls-heading)",
+        "ut-label": "var(--ls-label)",
+        "ut-uppercase": "var(--ls-uppercase)",
+        "ut-kicker": "var(--ls-kicker)",
+        "ut-panel-title": "var(--ls-panel-title)",
+      },
+    },
   },
   plugins: [],
 } satisfies Config;

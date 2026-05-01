@@ -1,0 +1,164 @@
+@property --top-accent-color {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #002c5f;
+}
+
+:root {
+  /* Primary colors */
+  --ut-primary: #002c5f;
+  --ut-navy: var(--ut-primary);
+  --ut-darkblue: var(--ut-primary);
+  --ut-blue: #007d9c;
+  --ut-red: #c60c30;
+  --ut-green: #4a8355;
+  --ut-purple: #4f2d7f;
+  --ut-pink: #cf0072;
+  --ut-grey: #eef0f3;
+
+  --ut-offwhite: #f3f4f6;
+  --ut-border: #bfc6cf;
+  --ut-text: #172033;
+  --ut-muted: #576578;
+  --ut-slate: #8b9bb0;
+
+  --ut-panel-bg: #f3f4f6;
+  --ut-white: #fafbfc;
+  --ut-canvas: var(--ut-grey);
+
+  /* TRUST principle tokens */
+  --tr: #2563eb;
+  --re: #16a34a;
+  --uc: #9333ea;
+  --se: #ea580c;
+  --tc: #0d9488;
+  --section-default: #64748b;
+
+  /* Section context families — control */
+  --section-control-accent: var(--ut-darkblue);
+  --section-control-accent-strong: color-mix(in srgb, var(--section-control-accent) 88%, black);
+  --section-control-tint: color-mix(in srgb, var(--section-control-accent) 16%, var(--ut-white));
+  --section-control-border: color-mix(in srgb, var(--section-control-accent) 32%, var(--ut-border));
+  --section-control-on-accent: #ffffff;
+
+  /* Section context families — TRUST principles */
+  --section-tr-accent: var(--tr);
+  --section-tr-accent-strong: color-mix(in srgb, var(--section-tr-accent) 86%, black);
+  --section-tr-tint: color-mix(in srgb, var(--section-tr-accent) 16%, var(--ut-white));
+  --section-tr-border: color-mix(in srgb, var(--section-tr-accent) 32%, var(--ut-border));
+  --section-tr-on-accent: #ffffff;
+
+  --section-re-accent: var(--re);
+  --section-re-accent-strong: color-mix(in srgb, var(--section-re-accent) 86%, black);
+  --section-re-tint: color-mix(in srgb, var(--section-re-accent) 16%, var(--ut-white));
+  --section-re-border: color-mix(in srgb, var(--section-re-accent) 32%, var(--ut-border));
+  --section-re-on-accent: #ffffff;
+
+  --section-uc-accent: var(--uc);
+  --section-uc-accent-strong: color-mix(in srgb, var(--section-uc-accent) 86%, black);
+  --section-uc-tint: color-mix(in srgb, var(--section-uc-accent) 16%, var(--ut-white));
+  --section-uc-border: color-mix(in srgb, var(--section-uc-accent) 32%, var(--ut-border));
+  --section-uc-on-accent: #ffffff;
+
+  --section-se-accent: var(--se);
+  --section-se-accent-strong: color-mix(in srgb, var(--section-se-accent) 86%, black);
+  --section-se-tint: color-mix(in srgb, var(--section-se-accent) 16%, var(--ut-white));
+  --section-se-border: color-mix(in srgb, var(--section-se-accent) 32%, var(--ut-border));
+  --section-se-on-accent: #ffffff;
+
+  --section-tc-accent: var(--tc);
+  --section-tc-accent-strong: color-mix(in srgb, var(--section-tc-accent) 86%, black);
+  --section-tc-tint: color-mix(in srgb, var(--section-tc-accent) 16%, var(--ut-white));
+  --section-tc-border: color-mix(in srgb, var(--section-tc-accent) 32%, var(--ut-border));
+  --section-tc-on-accent: #ffffff;
+
+  /* Score-level semantic colors */
+  --score-0: #c60c30;
+  --score-1: #ea580c;
+  --score-2: #0e7490;
+  --score-3: #4a8355;
+
+  --score-0-tint: color-mix(in srgb, var(--score-0) 10%, var(--ut-white));
+  --score-0-border: color-mix(in srgb, var(--score-0) 24%, var(--ut-border));
+  --score-1-tint: color-mix(in srgb, var(--score-1) 10%, var(--ut-white));
+  --score-1-border: color-mix(in srgb, var(--score-1) 24%, var(--ut-border));
+  --score-2-tint: color-mix(in srgb, var(--score-2) 10%, var(--ut-white));
+  --score-2-border: color-mix(in srgb, var(--score-2) 24%, var(--ut-border));
+  --score-3-tint: color-mix(in srgb, var(--score-3) 10%, var(--ut-white));
+  --score-3-border: color-mix(in srgb, var(--score-3) 24%, var(--ut-border));
+
+  /* Judgment state family */
+  --judgment-pass: var(--ut-green);
+  --judgment-pass-tint: color-mix(in srgb, var(--judgment-pass) 10%, var(--ut-white));
+  --judgment-pass-border: color-mix(in srgb, var(--judgment-pass) 24%, var(--ut-border));
+  --judgment-fail: var(--ut-red);
+  --judgment-fail-tint: color-mix(in srgb, var(--judgment-fail) 10%, var(--ut-white));
+  --judgment-fail-border: color-mix(in srgb, var(--judgment-fail) 24%, var(--ut-border));
+
+  /* Validation / state family */
+  --state-success: var(--ut-green);
+  --state-success-tint: color-mix(in srgb, var(--state-success) 10%, var(--ut-white));
+  --state-warning: #d97706;
+  --state-warning-tint: color-mix(in srgb, var(--state-warning) 10%, var(--ut-white));
+  --state-error: var(--ut-red);
+  --state-error-tint: color-mix(in srgb, var(--state-error) 10%, var(--ut-white));
+
+  /* Type scale */
+  --text-xs: 0.6875rem;
+  --text-sm: 0.75rem;
+  --text-md: 0.875rem;
+  --text-body: 1rem;
+  --text-sub: 1.2rem;
+  --text-heading: 1.563rem;
+
+  /* Line heights */
+  --lh-body: 1.55;
+
+  /* Letter spacing */
+  --ls-heading: 0.03em;
+  --ls-label: 0.02em;
+  --ls-uppercase: 0.04em;
+  --ls-kicker: 0.08em;
+  --ls-panel-title: 0.08em;
+
+  /* Radius — regimented functionalism: 0–2px */
+  --radius-lg: 0px;
+  --radius-md: 2px;
+  --radius-sm: 1px;
+
+  /* Durations */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-accent: 400ms;
+
+  /* Font families */
+  --ff-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --ff-heading: "Arial Narrow", Arial, sans-serif;
+  --ff-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Neutral scale (navy-tinted) */
+  --neutral-50: color-mix(in srgb, var(--ut-navy) 2%, var(--ut-white));
+  --neutral-100: color-mix(in srgb, var(--ut-navy) 4%, var(--ut-white));
+  --neutral-200: color-mix(in srgb, var(--ut-navy) 8%, var(--ut-white));
+  --neutral-400: var(--ut-border);
+  --neutral-500: var(--ut-slate);
+  --neutral-600: var(--ut-muted);
+  --neutral-700: var(--ut-text);
+  --neutral-800: var(--ut-navy);
+
+  /* Focus ring */
+  --focus-ring: var(--ut-blue);
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Border widths */
+  --border-default: 2px;
+  --border-accent: 6px;
+}
