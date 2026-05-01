@@ -1,0 +1,409 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-01T00:00:00Z",
+  "title": "Design System: TRUST Review Extension",
+  "extensions": {
+    "colorMeta": {
+      "navy-primary": {
+        "role": "primary",
+        "displayName": "UT Navy",
+        "canonical": "oklch(23% 0.08 260)",
+        "tonalRamp": [
+          "oklch(12% 0.08 260)",
+          "oklch(17% 0.08 260)",
+          "oklch(23% 0.08 260)",
+          "oklch(30% 0.08 260)",
+          "oklch(40% 0.06 260)",
+          "oklch(55% 0.04 260)",
+          "oklch(75% 0.02 260)",
+          "oklch(93% 0.005 260)"
+        ]
+      },
+      "ut-blue": {
+        "role": "secondary",
+        "displayName": "Teal-Blue",
+        "canonical": "oklch(52% 0.1 200)",
+        "tonalRamp": [
+          "oklch(20% 0.1 200)",
+          "oklch(30% 0.1 200)",
+          "oklch(40% 0.1 200)",
+          "oklch(52% 0.1 200)",
+          "oklch(62% 0.09 200)",
+          "oklch(72% 0.07 200)",
+          "oklch(85% 0.04 200)",
+          "oklch(95% 0.01 200)"
+        ]
+      },
+      "ut-red": {
+        "role": "danger",
+        "displayName": "Signal Red",
+        "canonical": "oklch(50% 0.2 25)",
+        "tonalRamp": [
+          "oklch(20% 0.18 25)",
+          "oklch(30% 0.2 25)",
+          "oklch(40% 0.2 25)",
+          "oklch(50% 0.2 25)",
+          "oklch(60% 0.18 25)",
+          "oklch(72% 0.14 25)",
+          "oklch(85% 0.06 25)",
+          "oklch(95% 0.02 25)"
+        ]
+      },
+      "ut-green": {
+        "role": "success",
+        "displayName": "Institutional Green",
+        "canonical": "oklch(52% 0.1 150)",
+        "tonalRamp": [
+          "oklch(20% 0.1 150)",
+          "oklch(30% 0.1 150)",
+          "oklch(40% 0.1 150)",
+          "oklch(52% 0.1 150)",
+          "oklch(62% 0.09 150)",
+          "oklch(72% 0.07 150)",
+          "oklch(85% 0.04 150)",
+          "oklch(95% 0.01 150)"
+        ]
+      },
+      "trust-blue": {
+        "role": "tertiary",
+        "displayName": "TRUST Transparent Blue",
+        "canonical": "oklch(53% 0.2 265)",
+        "tonalRamp": [
+          "oklch(20% 0.18 265)",
+          "oklch(30% 0.2 265)",
+          "oklch(40% 0.2 265)",
+          "oklch(53% 0.2 265)",
+          "oklch(63% 0.18 265)",
+          "oklch(73% 0.14 265)",
+          "oklch(86% 0.06 265)",
+          "oklch(95% 0.02 265)"
+        ]
+      },
+      "trust-green": {
+        "role": "tertiary",
+        "displayName": "TRUST Reliable Green",
+        "canonical": "oklch(55% 0.18 150)",
+        "tonalRamp": [
+          "oklch(22% 0.16 150)",
+          "oklch(32% 0.18 150)",
+          "oklch(42% 0.18 150)",
+          "oklch(55% 0.18 150)",
+          "oklch(65% 0.16 150)",
+          "oklch(75% 0.12 150)",
+          "oklch(87% 0.05 150)",
+          "oklch(95% 0.02 150)"
+        ]
+      },
+      "trust-violet": {
+        "role": "tertiary",
+        "displayName": "TRUST User-Centric Violet",
+        "canonical": "oklch(48% 0.22 300)",
+        "tonalRamp": [
+          "oklch(18% 0.2 300)",
+          "oklch(28% 0.22 300)",
+          "oklch(38% 0.22 300)",
+          "oklch(48% 0.22 300)",
+          "oklch(58% 0.2 300)",
+          "oklch(68% 0.16 300)",
+          "oklch(82% 0.08 300)",
+          "oklch(94% 0.02 300)"
+        ]
+      },
+      "trust-orange": {
+        "role": "tertiary",
+        "displayName": "TRUST Secure Orange",
+        "canonical": "oklch(60% 0.18 55)",
+        "tonalRamp": [
+          "oklch(25% 0.14 55)",
+          "oklch(35% 0.16 55)",
+          "oklch(47% 0.18 55)",
+          "oklch(60% 0.18 55)",
+          "oklch(70% 0.16 55)",
+          "oklch(80% 0.12 55)",
+          "oklch(90% 0.05 55)",
+          "oklch(96% 0.01 55)"
+        ]
+      },
+      "trust-teal": {
+        "role": "tertiary",
+        "displayName": "TRUST Traceable Teal",
+        "canonical": "oklch(56% 0.12 180)",
+        "tonalRamp": [
+          "oklch(22% 0.1 180)",
+          "oklch(32% 0.12 180)",
+          "oklch(42% 0.12 180)",
+          "oklch(56% 0.12 180)",
+          "oklch(66% 0.1 180)",
+          "oklch(76% 0.08 180)",
+          "oklch(88% 0.04 180)",
+          "oklch(96% 0.01 180)"
+        ]
+      },
+      "neutral-canvas": {
+        "role": "neutral",
+        "displayName": "Canvas Grey",
+        "canonical": "oklch(94% 0.005 260)",
+        "tonalRamp": [
+          "oklch(15% 0.01 260)",
+          "oklch(25% 0.01 260)",
+          "oklch(40% 0.008 260)",
+          "oklch(55% 0.006 260)",
+          "oklch(70% 0.005 260)",
+          "oklch(82% 0.005 260)",
+          "oklch(90% 0.005 260)",
+          "oklch(96% 0.003 260)"
+        ]
+      },
+      "neutral-text": {
+        "role": "neutral",
+        "displayName": "Deep Navy Text",
+        "canonical": "oklch(22% 0.02 260)",
+        "tonalRamp": [
+          "oklch(10% 0.02 260)",
+          "oklch(15% 0.02 260)",
+          "oklch(22% 0.02 260)",
+          "oklch(32% 0.015 260)",
+          "oklch(45% 0.01 260)",
+          "oklch(60% 0.008 260)",
+          "oklch(78% 0.005 260)",
+          "oklch(95% 0.002 260)"
+        ]
+      },
+      "neutral-border": {
+        "role": "neutral",
+        "displayName": "Steel Border",
+        "canonical": "oklch(80% 0.01 260)",
+        "tonalRamp": [
+          "oklch(15% 0.01 260)",
+          "oklch(30% 0.01 260)",
+          "oklch(45% 0.01 260)",
+          "oklch(60% 0.01 260)",
+          "oklch(72% 0.01 260)",
+          "oklch(80% 0.01 260)",
+          "oklch(88% 0.008 260)",
+          "oklch(95% 0.004 260)"
+        ]
+      },
+      "score-fail": {
+        "role": "semantic",
+        "displayName": "Score 0 Fail",
+        "canonical": "oklch(50% 0.2 25)",
+        "tonalRamp": [
+          "oklch(20% 0.18 25)",
+          "oklch(30% 0.2 25)",
+          "oklch(40% 0.2 25)",
+          "oklch(50% 0.2 25)",
+          "oklch(60% 0.18 25)",
+          "oklch(72% 0.14 25)",
+          "oklch(85% 0.06 25)",
+          "oklch(95% 0.02 25)"
+        ]
+      },
+      "score-poor": {
+        "role": "semantic",
+        "displayName": "Score 1 Poor",
+        "canonical": "oklch(60% 0.18 55)",
+        "tonalRamp": [
+          "oklch(25% 0.14 55)",
+          "oklch(35% 0.16 55)",
+          "oklch(47% 0.18 55)",
+          "oklch(60% 0.18 55)",
+          "oklch(70% 0.16 55)",
+          "oklch(80% 0.12 55)",
+          "oklch(90% 0.05 55)",
+          "oklch(96% 0.01 55)"
+        ]
+      },
+      "score-fair": {
+        "role": "semantic",
+        "displayName": "Score 2 Fair",
+        "canonical": "oklch(48% 0.1 210)",
+        "tonalRamp": [
+          "oklch(18% 0.08 210)",
+          "oklch(28% 0.1 210)",
+          "oklch(38% 0.1 210)",
+          "oklch(48% 0.1 210)",
+          "oklch(58% 0.09 210)",
+          "oklch(68% 0.07 210)",
+          "oklch(82% 0.04 210)",
+          "oklch(95% 0.01 210)"
+        ]
+      },
+      "score-good": {
+        "role": "semantic",
+        "displayName": "Score 3 Good",
+        "canonical": "oklch(52% 0.1 150)",
+        "tonalRamp": [
+          "oklch(20% 0.1 150)",
+          "oklch(30% 0.1 150)",
+          "oklch(40% 0.1 150)",
+          "oklch(52% 0.1 150)",
+          "oklch(62% 0.09 150)",
+          "oklch(72% 0.07 150)",
+          "oklch(85% 0.04 150)",
+          "oklch(95% 0.01 150)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "heading": {
+        "displayName": "Heading",
+        "purpose": "Section headers, category labels. Always uppercase in heading font (Arial Narrow)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Prose descriptions, requirements text, notes. Readable at small sizes with generous leading."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Metadata, IDs, technical labels in mono. Always uppercase."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Timestamps, URLs, technical data. Distinguishes data from prose."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "duration-fast",
+        "value": "150ms",
+        "purpose": "Micro-interactions: hover color shifts, border transitions."
+      },
+      {
+        "name": "duration-normal",
+        "value": "200ms",
+        "purpose": "Standard state transitions: button hover, chip toggle."
+      },
+      {
+        "name": "duration-accent",
+        "value": "400ms",
+        "purpose": "Top accent bar color transition between TRUST sections."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sidepanel",
+        "value": "400px",
+        "purpose": "Chrome side panel viewport width. All layouts target this constraint."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Navy CTA button for primary actions (Start Session, Export Report).",
+      "html": "<button class=\"ds-btn-primary\">EXPORT REPORT</button>",
+      "css": ".ds-btn-primary { background: #002c5f; color: #fff; padding: 8px 16px; border: none; border-radius: 2px; font-family: \"Arial Narrow\", Arial, sans-serif; font-weight: 700; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.02em; cursor: pointer; transition: background 200ms; } .ds-btn-primary:hover { background: #001a3a; } .ds-btn-primary:focus-visible { outline: 2px solid #007d9c; outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Red destructive action button (Discard Session).",
+      "html": "<button class=\"ds-btn-danger\">DISCARD</button>",
+      "css": ".ds-btn-danger { background: #c60c30; color: #fff; padding: 8px 16px; border: none; border-radius: 2px; font-family: \"Arial Narrow\", Arial, sans-serif; font-weight: 700; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.02em; cursor: pointer; transition: background 200ms; } .ds-btn-danger:hover { background: #a00a28; } .ds-btn-danger:focus-visible { outline: 2px solid #007d9c; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-text",
+      "description": "Flat input field for metadata entry (tool name, URL, reviewer).",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Tool name\" />",
+      "css": ".ds-input { background: #eef0f3; border: 2px solid #bfc6cf; border-radius: 1px; padding: 6px 8px; font-family: \"Inter\", ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; color: #172033; outline: none; width: 100%; box-sizing: border-box; } .ds-input:focus { border-color: #007d9c; } .ds-input::placeholder { color: #8b9bb0; }"
+    },
+    {
+      "name": "Accent Card",
+      "kind": "card",
+      "refersTo": "accent-card",
+      "description": "Rubric item card with TRUST principle-colored left accent border and tinted background.",
+      "html": "<div class=\"ds-accent-card\" data-accent-key=\"tr\"><p class=\"ds-accent-card-title\">data_source_clarity</p><p class=\"ds-accent-card-desc\">Sources are opaque/proprietary.</p></div>",
+      "css": ".ds-accent-card { background: #f3f4f6; border: 2px solid #bfc6cf; border-left: 6px solid var(--section-tr-accent, #64748b); border-radius: 2px; padding: 12px 16px; } .ds-accent-card[data-accent-key='tr'] { border-left-color: #2563eb; background: color-mix(in srgb, #2563eb 16%, #fafbfc); } .ds-accent-card[data-accent-key='re'] { border-left-color: #16a34a; background: color-mix(in srgb, #16a34a 16%, #fafbfc); } .ds-accent-card[data-accent-key='uc'] { border-left-color: #9333ea; background: color-mix(in srgb, #9333ea 16%, #fafbfc); } .ds-accent-card[data-accent-key='se'] { border-left-color: #ea580c; background: color-mix(in srgb, #ea580c 16%, #fafbfc); } .ds-accent-card[data-accent-key='tc'] { border-left-color: #0d9488; background: color-mix(in srgb, #0d9488 16%, #fafbfc); } .ds-accent-card-title { font-size: 0.6875rem; font-weight: 700; color: #172033; margin: 0 0 4px 0; } .ds-accent-card-desc { font-size: 0.6875rem; color: #576578; margin: 0; line-height: 1.55; }"
+    },
+    {
+      "name": "Rubric Chip",
+      "kind": "chip",
+      "refersTo": "rubric-chip",
+      "description": "Toggleable chip linking a capture to a rubric item. State driven by data-linked attribute.",
+      "html": "<span class=\"ds-rubric-chip\" data-accent-key=\"tr\" data-linked=\"true\">T.data_source_clarity</span>",
+      "css": ".ds-rubric-chip { display: inline-block; padding: 2px 8px; border: 1px solid #bfc6cf; border-radius: 1px; font-family: \"JetBrains Mono\", ui-monospace, monospace; font-size: 0.6875rem; font-weight: 700; color: #576578; cursor: pointer; transition: all 150ms; text-transform: uppercase; letter-spacing: 0.02em; } .ds-rubric-chip[data-linked='true'][data-accent-key='tr'] { background: color-mix(in srgb, #2563eb 16%, #fafbfc); border-color: color-mix(in srgb, #2563eb 32%, #bfc6cf); color: #2563eb; } .ds-rubric-chip[data-linked='true'][data-accent-key='re'] { background: color-mix(in srgb, #16a34a 16%, #fafbfc); border-color: color-mix(in srgb, #16a34a 32%, #bfc6cf); color: #16a34a; }"
+    },
+    {
+      "name": "Rating Scale",
+      "kind": "custom",
+      "refersTo": "rating-scale",
+      "description": "4-column score selector grid for rubric items scored 0-3. Each column colored by score semantic.",
+      "html": "<div class=\"ds-rating-scale\"><label class=\"ds-rating-option\" data-score=\"0\"><input type=\"radio\" name=\"score\" /><span class=\"ds-rating-dot\">0</span></label><label class=\"ds-rating-option\" data-score=\"1\"><input type=\"radio\" name=\"score\" /><span class=\"ds-rating-dot\">1</span></label><label class=\"ds-rating-option\" data-score=\"2\"><input type=\"radio\" name=\"score\" /><span class=\"ds-rating-dot\">2</span></label><label class=\"ds-rating-option\" data-score=\"3\"><input type=\"radio\" name=\"score\" /><span class=\"ds-rating-dot\">3</span></label></div>",
+      "css": ".ds-rating-scale { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; } .ds-rating-option { display: flex; align-items: center; justify-content: center; padding: 8px; border: 2px solid #bfc6cf; border-radius: 2px; cursor: pointer; font-weight: 700; font-size: 0.875rem; transition: all 150ms; position: relative; } .ds-rating-option input { position: absolute; clip: rect(0 0 0 0); } .ds-rating-dot { pointer-events: none; } .ds-rating-option[data-score='0'] { border-left: 3px solid #c60c30; } .ds-rating-option[data-score='1'] { border-left: 4px solid #ea580c; } .ds-rating-option[data-score='2'] { border-left: 4px solid #0e7490; } .ds-rating-option[data-score='3'] { border-left: 5px solid #4a8355; } .ds-rating-option:focus-within { outline: 2px solid #007d9c; outline-offset: 1px; }"
+    },
+    {
+      "name": "Sidebar Tab Bar",
+      "kind": "nav",
+      "refersTo": "button-primary",
+      "description": "Horizontal tab navigation for switching between Captures, Evaluation, and Metadata panels.",
+      "html": "<nav class=\"ds-tab-bar\"><button class=\"ds-tab ds-tab-active\">CAPTURES</button><button class=\"ds-tab\">EVALUATION</button><button class=\"ds-tab\">METADATA</button></nav>",
+      "css": ".ds-tab-bar { display: flex; border-bottom: 2px solid #bfc6cf; } .ds-tab { flex: 1; padding: 10px 8px; border: none; background: none; font-family: \"Arial Narrow\", Arial, sans-serif; font-weight: 700; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: #576578; cursor: pointer; border-bottom: 3px solid transparent; transition: color 200ms; margin-bottom: -2px; } .ds-tab:hover { color: #172033; } .ds-tab-active { color: #002c5f; border-bottom-color: #002c5f; } .ds-tab:focus-visible { outline: 2px solid #007d9c; outline-offset: -2px; }"
+    },
+    {
+      "name": "Judgment Selector",
+      "kind": "custom",
+      "refersTo": "button-primary",
+      "description": "Pass/fail radio group for quality gate items. Visual state driven by data-judgment and data-active attributes.",
+      "html": "<div class=\"ds-judgment-group\"><label class=\"ds-judgment-label\" data-judgment=\"pass\" data-active=\"true\"><input type=\"radio\" name=\"gate-1\" checked />Pass</label><label class=\"ds-judgment-label\" data-judgment=\"fail\" data-active=\"false\"><input type=\"radio\" name=\"gate-1\" />Fail</label></div>",
+      "css": ".ds-judgment-group { display: flex; gap: 8px; } .ds-judgment-label { display: flex; align-items: center; padding: 4px 12px; border: 2px solid #bfc6cf; border-radius: 2px; cursor: pointer; font-size: 0.75rem; font-weight: 700; color: #576578; transition: all 200ms; } .ds-judgment-label input { position: absolute; clip: rect(0 0 0 0); } .ds-judgment-label[data-judgment='pass'][data-active='true'] { background: color-mix(in srgb, #4a8355 10%, #fafbfc); border-color: color-mix(in srgb, #4a8355 24%, #bfc6cf); color: #4a8355; } .ds-judgment-label[data-judgment='fail'][data-active='true'] { background: color-mix(in srgb, #c60c30 10%, #fafbfc); border-color: color-mix(in srgb, #c60c30 24%, #bfc6cf); color: #c60c30; } .ds-judgment-label:focus-within { outline: 2px solid #007d9c; outline-offset: 1px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Review Bench",
+    "overview": "A bench-side evaluation instrument: sharp borders, monospace metadata, evidence pinned directly to observations. The side panel feels like a structured lab notebook open alongside the specimen under review. Not a consumer app, not a dashboard: a focused work surface for methodical scoring.\n\nThe system is flat and dense by design. Shadows are absent; depth comes from background tint differentiation and border weight variation. Border radius is near-zero (0 to 2px), a deliberate rejection of rounded-card aesthetics in favor of regimented functionalism. The University of Twente navy anchor (#002c5f) carries institutional authority without decoration.\n\nFive TRUST principle colors (blue, green, violet, orange, teal) encode rubric categories visually, making review state scannable at a glance. Score-level colors (red through green) encode evaluation outcomes on a 0-3 spectrum. Both systems use data attributes to drive coloring through CSS custom properties, keeping JSX minimal and the visual system declarative.",
+    "keyCharacteristics": [
+      "Flat, no shadows; tonal layering through tinted backgrounds only",
+      "Near-zero border radius (0-2px) across all surfaces",
+      "Dense layout optimized for browser side-panel viewport (320-400px)",
+      "Data-attribute-driven accent coloring per TRUST principle",
+      "Score-level semantic color ramp (red to green) for evaluation state",
+      "Three font families with distinct roles: heading (condensed), body (humanist), mono (technical)"
+    ],
+    "rules": [
+      {
+        "name": "The Principle Accent Rule",
+        "body": "Each TRUST category is assigned exactly one accent color. That color drives the entire visual treatment for that category's rubric section: borders, tints, and text accents. No category borrows another's color.",
+        "section": "colors"
+      },
+      {
+        "name": "The Score Spectrum Rule",
+        "body": "The four score colors form a semantic ramp from red (0) through orange (1) and teal (2) to green (3). This ramp is the only place where color alone encodes evaluation state. Score tints and borders derive automatically via color-mix().",
+        "section": "colors"
+      },
+      {
+        "name": "The Uppercase Header Rule",
+        "body": "Every section header, category kicker, and field label is uppercase in either heading font or mono. Body text and notes are never uppercase. This split makes the scanning layer (headers, labels) visually distinct from the reading layer (descriptions, notes).",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Surface Rule",
+        "body": "No box-shadow anywhere in the system. If an element needs visual prominence, use background tint, border weight, or color saturation, never shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use background tints derived via color-mix() for subtle emphasis. A 10-16% tint on white is enough to distinguish a selected state.",
+      "Do keep all text and labels uppercase when using heading font or mono. The scanning layer is always uppercase.",
+      "Do drive accent colors through data-accent-key attributes so rubric sections inherit their principle color automatically.",
+      "Do use the score semantic ramp (red through green) consistently for all 0-3 evaluation displays.",
+      "Do cap border radius at 2px. This is a deliberate aesthetic, not an oversight.",
+      "Do use Inter for body text at 1rem with 1.55 line-height. The generous leading keeps small text readable in the side panel."
+    ],
+    "donts": [
+      "Don't add box-shadow to any element. The system is flat by doctrine.",
+      "Don't use border-radius greater than 2px. Rounded corners contradict the regimented functionalism.",
+      "Don't apply TRUST principle colors outside their assigned categories.",
+      "Don't use pure black (#000) or pure white (#fff). Neutrals are navy-tinted.",
+      "Don't use body text for headers or heading font for body prose.",
+      "Don't add decorative gradients, glassmorphism, or background-clip text effects.",
+      "Don't introduce new accent colors beyond the five TRUST principles."
+    ]
+  }
+}
