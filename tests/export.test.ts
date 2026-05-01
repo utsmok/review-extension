@@ -1,0 +1,263 @@
+import type { ParseResult } from "papaparse";
+import Papa from "papaparse";
+import { describe, expect, it } from "vitest";
+import { exportSession } from "@/lib/export";
+import type { Capture, Evaluation, SessionMetadata } from "@/lib/types";
+
+type CsvRow = Record<string, string>;
+
+function parseCsv(csv: string): CsvRow[] {
+  return (Papa.parse(csv, { header: true }) as ParseResult<CsvRow>).data;
+}
+
+function makeMetadata(overrides?: Partial<SessionMetadata>): SessionMetadata {
+  return {
+    toolName: "TestSearch",
+    toolUrl: "https://testsearch.example.com",
+    startTime: "2025-06-15T10:00:00.000Z",
+    company: "TestCorp",
+    pricing: "Free",
+    ...overrides,
+  };
+}
+
+// Minimal 1x1 transparent PNG as base64
+const TINY_PNG =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==";
+
+function makeCapture(overrides?: Partial<Capture>): Capture {
+  return {
+    id: crypto.randomUUID(),
+    timestamp: "2025-06-15T10:01:00.000Z",
+    sourceUrl: "https://testsearch.example.com/results?q=test",
+    pageTitle: "Test Page",
+    screenshotBase64: TINY_PNG,
+    htmlContent: "<html><body>Test page</body></html>",
+    notes: "",
+    linkedRubricIds: [],
+    ...overrides,
+  };
+}
+
+async function unzipToFiles(blob: Blob): Promise<Map<string, string | Uint8Array>> {
+  const JSZip = (await import("jszip")).default;
+  const arrayBuffer = await blob.arrayBuffer();
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const files = new Map<string, string | Uint8Array>();
+
+  for (const [path, entry] of Object.entries(zip.files)) {
+    if (entry.dir) continue;
+    if (path.endsWith(".csv") || path.endsWith(".html") || path.endsWith(".json") || path.endsWith(".svg")) {
+      files.set(path, await entry.async("string"));
+    } else {
+      files.set(path, await entry.async("uint8array"));
+    }
+  }
+
+  return files;
+}
+
+describe("exportSession", () => {
+  it("produces a valid zip blob", async () => {
+    const blob = await exportSession(makeMetadata(), [], []);
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob.size).toBeGreaterThan(0);
+    expect(["", "application/zip"]).toContain(blob.type);
+  });
+
+  it("includes session_metadata.csv with tool info", async () => {
+    const blob = await exportSession(makeMetadata({ company: "TestCorp" }), [], []);
+    const files = await unzipToFiles(blob);
+    const csv = files.get("session_metadata.csv") as string;
+    expect(csv).toBeDefined();
+
+    const rows = parseCsv(csv);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].Tool_Name).toBe("TestSearch");
+    expect(rows[0].Tool_URL).toBe("https://testsearch.example.com");
+    expect(rows[0].Company).toBe("TestCorp");
+  });
+
+  it("includes evidence files for each capture", async () => {
+    const c1 = makeCapture({ id: "cap-001" });
+    const c2 = makeCapture({ id: "cap-002" });
+
+    const blob = await exportSession(makeMetadata(), [c1, c2], []);
+    const files = await unzipToFiles(blob);
+
+    expect(files.has("evidence/capture_cap-001.png")).toBe(true);
+    expect(files.has("evidence/capture_cap-001.html")).toBe(true);
+    expect(files.has("evidence/capture_cap-002.png")).toBe(true);
+    expect(files.has("evidence/capture_cap-002.html")).toBe(true);
+
+    const html = files.get("evidence/capture_cap-001.html") as string;
+    expect(html).toContain("<html>");
+  });
+
+  it("includes rubric_scores.csv with evaluations", async () => {
+    const evaluations: Evaluation[] = [
+      {
+        rubricId: "TR.data_source_clarity",
+        score: 2,
+        notes: "Good coverage",
+        explicitEvidenceIds: [],
+      },
+      {
+        rubricId: "privacy_and_security.data_privacy",
+        score: "pass",
+        notes: "",
+        explicitEvidenceIds: [],
+      },
+    ];
+
+    const blob = await exportSession(makeMetadata(), [], evaluations);
+    const files = await unzipToFiles(blob);
+    const csv = files.get("rubric_scores.csv") as string;
+
+    const rows = parseCsv(csv);
+    expect(rows).toHaveLength(2);
+
+    const row1 = rows.find((r) => r.Question_ID === "TR.data_source_clarity");
+    expect(row1!.Score).toBe("2");
+    expect(row1!.Notes).toBe("Good coverage");
+    expect(row1!.Rubric_Category).toBe("TR — Transparent");
+  });
+
+  it("populates Linked_Capture_IDs from explicitEvidenceIds", async () => {
+    const evaluations: Evaluation[] = [
+      {
+        rubricId: "TR.data_source_clarity",
+        score: 3,
+        notes: "",
+        explicitEvidenceIds: ["cap-001", "cap-002"],
+      },
+    ];
+
+    const blob = await exportSession(makeMetadata(), [], evaluations);
+    const files = await unzipToFiles(blob);
+    const csv = files.get("rubric_scores.csv") as string;
+
+    const rows = parseCsv(csv);
+    expect(rows[0].Linked_Capture_IDs).toBe("cap-001; cap-002");
+  });
+
+  it("falls back to capture.linkedRubricIds when explicitEvidenceIds is empty", async () => {
+    const c1 = makeCapture({ id: "cap-001" });
+    const c1Linked = { ...c1, linkedRubricIds: ["TR.data_source_clarity"] };
+
+    const evaluations: Evaluation[] = [
+      {
+        rubricId: "TR.data_source_clarity",
+        score: 2,
+        notes: "",
+        explicitEvidenceIds: [],
+      },
+    ];
+
+    const blob = await exportSession(makeMetadata(), [c1Linked], evaluations);
+    const files = await unzipToFiles(blob);
+    const csv = files.get("rubric_scores.csv") as string;
+
+    const rows = parseCsv(csv);
+    expect(rows[0].Linked_Capture_IDs).toBe("cap-001");
+  });
+
+  it("includes capture_log.csv with capture details", async () => {
+    const c = makeCapture({
+      id: "cap-001",
+      notes: "Homepage screenshot",
+      linkedRubricIds: ["TR.data_source_clarity"],
+    });
+
+    const blob = await exportSession(makeMetadata(), [c], []);
+    const files = await unzipToFiles(blob);
+    const csv = files.get("capture_log.csv") as string;
+
+    const rows = parseCsv(csv);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].Capture_ID).toBe("cap-001");
+    expect(rows[0].User_Notes).toBe("Homepage screenshot");
+    expect(rows[0].Tagged_Rubric_IDs).toBe("TR.data_source_clarity");
+  });
+
+  it("includes a PDF report", async () => {
+    const blob = await exportSession(makeMetadata(), [], []);
+    const files = await unzipToFiles(blob);
+
+    const pdfPath = "Evaluation_Report_TestSearch.pdf";
+    expect(files.has(pdfPath)).toBe(true);
+
+    const pdfData = files.get(pdfPath) as Uint8Array;
+    // PDF files start with %PDF
+    const header = new TextDecoder().decode(pdfData.slice(0, 4));
+    expect(header).toBe("%PDF");
+  });
+
+  it("handles empty session (no captures, no evaluations)", async () => {
+    const blob = await exportSession(makeMetadata(), [], []);
+    const files = await unzipToFiles(blob);
+
+    expect(files.has("session_metadata.csv")).toBe(true);
+    expect(files.has("rubric_scores.csv")).toBe(true);
+    expect(files.has("capture_log.csv")).toBe(true);
+    expect(files.has("Evaluation_Report_TestSearch.pdf")).toBe(true);
+
+    const captureCsv = files.get("capture_log.csv") as string;
+    const rows = parseCsv(captureCsv);
+    expect(rows).toHaveLength(0);
+  });
+
+  it("includes nutrition-label.html in ZIP", async () => {
+    const evaluations: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
+      { rubricId: "privacy_and_security.data_privacy", score: "pass", notes: "", explicitEvidenceIds: [] },
+    ];
+    const blob = await exportSession(makeMetadata(), [], evaluations);
+    const files = await unzipToFiles(blob);
+
+    const html = files.get("nutrition-label.html") as string;
+    expect(html).toBeDefined();
+    expect(html.length).toBeGreaterThan(0);
+    expect(html).toContain("<!DOCTYPE html>");
+    expect(html).toContain("TestSearch");
+  });
+
+  it("includes matrix-badge.svg in ZIP", async () => {
+    const blob = await exportSession(makeMetadata(), [], []);
+    const files = await unzipToFiles(blob);
+
+    const svg = files.get("matrix-badge.svg") as string;
+    expect(svg).toBeDefined();
+    expect(svg.length).toBeGreaterThan(0);
+    expect(svg).toContain("<svg");
+    expect(svg).toContain("</svg>");
+  });
+
+  it("includes matrix-badge.html in ZIP", async () => {
+    const blob = await exportSession(makeMetadata(), [], []);
+    const files = await unzipToFiles(blob);
+
+    const html = files.get("matrix-badge.html") as string;
+    expect(html).toBeDefined();
+    expect(html.length).toBeGreaterThan(0);
+    expect(html).toContain("<!DOCTYPE html>");
+    expect(html).toContain("<svg");
+  });
+
+  it("includes review-summary.json in ZIP", async () => {
+    const evaluations: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
+      { rubricId: "privacy_and_security.data_privacy", score: "pass", notes: "", explicitEvidenceIds: [] },
+    ];
+    const blob = await exportSession(makeMetadata(), [], evaluations);
+    const files = await unzipToFiles(blob);
+
+    const json = files.get("review-summary.json") as string;
+    expect(json).toBeDefined();
+    expect(json.length).toBeGreaterThan(0);
+    const summary = JSON.parse(json);
+    expect(summary.schemaVersion).toBe(1);
+    expect(summary.framework.name).toBe("TRUST - UT Embedded Information Services");
+    expect(summary.session.toolName).toBe("TestSearch");
+  });
+});
