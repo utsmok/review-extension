@@ -1,5 +1,5 @@
-import { v4 as uuidv4 } from 'uuid';
-import type { Capture } from './types';
+import { v4 as uuidv4 } from "uuid";
+import type { Capture } from "./types";
 
 export async function captureActiveTab(): Promise<Capture> {
   const [tab] = await browser.tabs.query({
@@ -7,25 +7,31 @@ export async function captureActiveTab(): Promise<Capture> {
     currentWindow: true,
   });
   if (!tab?.id || !tab.url) {
-    throw new Error('No active tab found');
+    throw new Error("No active tab found");
   }
 
-  const screenshotUri = await browser.tabs.captureVisibleTab(undefined, {
-    format: 'png',
+  const screenshotUri: string = await browser.tabs.captureVisibleTab(tab.windowId, {
+    format: "png",
   });
 
-  const htmlContent = await browser.scripting.executeScript({
+  const [result] = await browser.scripting.executeScript({
     target: { tabId: tab.id },
-    func: () => document.documentElement.outerHTML,
+    func: () => ({
+      html: document.documentElement.outerHTML,
+      title: document.title,
+    }),
   });
+
+  const scriptResult = result?.result as { html: string; title: string } | undefined;
 
   return {
     id: uuidv4(),
     timestamp: new Date().toISOString(),
     sourceUrl: tab.url,
+    pageTitle: scriptResult?.title ?? "",
     screenshotBase64: screenshotUri,
-    htmlContent: htmlContent?.[0]?.result ?? '',
-    notes: '',
+    htmlContent: scriptResult?.html ?? "",
+    notes: "",
     linkedRubricIds: [],
   };
 }
