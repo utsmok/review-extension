@@ -92,8 +92,8 @@ Triggered on "End Session". Background worker compiles state into `.zip`:
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| 1 | Skeleton & state (WXT + React + Zustand) | ✅ Scaffolded |
-| 2 | UI layout (side panel tabs, dynamic rubric rendering) | ✅ Scaffolded |
-| 3 | Capture engine (screenshot + DOM serialization) | 🔲 Basic — needs SingleFile integration |
-| 4 | Workflow binding (bi-directional capture ↔ rubric linking) | ✅ Scaffolded |
-| 5 | Export engine (JSZip + papaparse + PDF) | 🔲 Skeleton — needs PDF polish |
+| 1 | Skeleton & state (WXT + React + Zustand) | ✅ Complete |
+| 2 | UI layout (side panel tabs, dynamic rubric rendering) | ✅ Complete |
+| 3 | Capture engine (screenshot + DOM serialization) | ✅ Functional — basic `outerHTML`; SingleFile integration deferred |
+| 4 | Workflow binding (bi-directional capture ↔ rubric linking) | ✅ Complete — store maintains both `linkedRubricIds` and `explicitEvidenceIds` |
+| 5 | Export engine (JSZip + papaparse + PDF) | ✅ Complete — styled PDF with tables, color-coded scores, evidence thumbnails |
