@@ -1,20 +1,17 @@
-import { useState } from 'react';
-import { useSessionStore } from '@/stores/session';
-import { captureActiveTab } from '@/lib/capture';
-import { getRubricQuestionIds, TRUST_RUBRIC } from '@/lib/rubric';
-import { getCategoryLabel } from '@/lib/rubric';
+import { useState } from "react";
+import { captureActiveTab } from "@/lib/capture";
+import { getAccentKey, getCategoryLabel, getQuestionCode, TRUST_RUBRIC } from "@/lib/rubric";
+import { useSessionStore } from "@/stores/session";
 
 export default function Captures() {
   const captures = useSessionStore((s) => s.captures);
   const addCapture = useSessionStore((s) => s.addCapture);
   const updateCapture = useSessionStore((s) => s.updateCapture);
+  const removeCapture = useSessionStore((s) => s.removeCapture);
   const linkCaptureToRubric = useSessionStore((s) => s.linkCaptureToRubric);
-  const unlinkCaptureFromRubric = useSessionStore(
-    (s) => s.unlinkCaptureFromRubric,
-  );
+  const unlinkCaptureFromRubric = useSessionStore((s) => s.unlinkCaptureFromRubric);
   const [capturing, setCapturing] = useState(false);
-
-  const allRubricIds = getRubricQuestionIds(TRUST_RUBRIC);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   const handleCapture = async () => {
     setCapturing(true);
@@ -22,76 +19,144 @@ export default function Captures() {
       const capture = await captureActiveTab();
       addCapture(capture);
     } catch (err) {
-      console.error('Capture failed:', err);
+      console.error("Capture failed:", err);
     } finally {
       setCapturing(false);
     }
   };
 
   return (
-    <div className="flex flex-col gap-3 p-4">
+    <div className="flex flex-col gap-ut-3 p-ut-4">
       <button
-        className="bg-blue-600 text-white rounded px-4 py-2 text-sm font-medium disabled:opacity-50"
+        type="button"
+        className="bg-ut-darkblue text-white rounded-ut-sm px-ut-4 py-ut-2 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase hover:bg-ut-navy disabled:opacity-50 transition-colors"
         disabled={capturing}
         onClick={handleCapture}
       >
-        {capturing ? 'Capturing...' : 'Quick Capture'}
+        {capturing ? "Capturing..." : "+ Quick Capture"}
       </button>
 
       {captures.length === 0 && (
-        <p className="text-sm text-gray-400">
+        <p className="text-ut-sm text-ut-slate text-center py-ut-4">
           No captures yet. Click above to capture the active tab.
         </p>
       )}
 
-      {captures.map((capture) => (
-        <div key={capture.id} className="border rounded p-2">
+      {[...captures].reverse().map((capture) => (
+        <div key={capture.id} className="border border-ut-border overflow-hidden bg-ut-white">
           <img
-            src={capture.screenshotBase64}
-            alt="Capture"
-            className="w-full rounded border"
-          />
-          <p className="text-xs text-gray-500 mt-1 truncate">
-            {capture.sourceUrl}
-          </p>
-          <p className="text-xs text-gray-400">
-            {new Date(capture.timestamp).toLocaleTimeString()}
-          </p>
-
-          <textarea
-            className="w-full border rounded text-xs p-1 mt-1"
-            rows={2}
-            placeholder="Notes..."
-            value={capture.notes}
-            onChange={(e) =>
-              updateCapture(capture.id, { notes: e.target.value })
-            }
+            src={capture.annotatedScreenshotBase64 ?? capture.screenshotBase64}
+            alt={`Screenshot of ${capture.pageTitle || capture.sourceUrl}`}
+            loading="lazy"
+            className="w-full border-b border-ut-border cursor-pointer"
+            onClick={() => setExpanded(expanded === capture.id ? null : capture.id)}
           />
 
-          <div className="mt-1">
-            <p className="text-xs font-medium">Tagged Rubric Items:</p>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {allRubricIds.map((rubricId) => {
-                const linked = capture.linkedRubricIds.includes(rubricId);
-                return (
-                  <button
-                    key={rubricId}
-                    className={`text-[10px] px-1.5 py-0.5 rounded border ${
-                      linked
-                        ? 'bg-blue-100 border-blue-400 text-blue-700'
-                        : 'bg-gray-50 border-gray-200 text-gray-400'
-                    }`}
-                    onClick={() =>
-                      linked
-                        ? unlinkCaptureFromRubric(capture.id, rubricId)
-                        : linkCaptureToRubric(capture.id, rubricId)
-                    }
-                  >
-                    {rubricId}
-                  </button>
-                );
-              })}
+          <div className="p-ut-2">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-ut-xs text-ut-muted font-mono truncate flex-1 mr-ut-2">
+                {capture.sourceUrl}
+              </p>
+              <button
+                type="button"
+                className="text-ut-xs text-ut-slate hover:text-ut-red shrink-0"
+                onClick={() => removeCapture(capture.id)}
+              >
+                Delete
+              </button>
             </div>
+            {capture.pageTitle && (
+              <p className="text-ut-xs font-bold text-ut-text truncate mb-0.5">
+                {capture.pageTitle}
+              </p>
+            )}
+            <p className="text-ut-xs text-ut-slate">
+              {new Date(capture.timestamp).toLocaleString()} · {capture.linkedRubricIds.length} tag
+              {capture.linkedRubricIds.length !== 1 && "s"}
+            </p>
+
+            <textarea
+              className="w-full border border-ut-border rounded-ut-sm text-ut-xs p-ut-2 mt-ut-2 resize-y bg-ut-grey"
+              rows={2}
+              placeholder="Notes..."
+              value={capture.notes}
+              onChange={(e) => updateCapture(capture.id, { notes: e.target.value })}
+            />
+
+            {/* Rubric tagging */}
+            <details
+              open={expanded === capture.id}
+              className="mt-ut-2"
+              onToggle={(e) =>
+                setExpanded((e.target as HTMLDetailsElement).open ? capture.id : null)
+              }
+            >
+              <summary className="text-ut-xs font-heading font-bold uppercase tracking-ut-kicker text-ut-muted cursor-pointer hover:text-ut-navy">
+                Tag to rubric items ({capture.linkedRubricIds.length})
+              </summary>
+
+              <div className="mt-1 space-y-1.5">
+                {/* Quality Gates */}
+                <div>
+                  <p className="section-kicker mb-1">Quality Gates</p>
+                  {Object.entries(TRUST_RUBRIC.quality_gate).map(([cat, questions]) => (
+                    <div key={cat} className="ml-ut-1 mb-1" data-accent-key="control">
+                      <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
+                      <div className="flex flex-wrap gap-1">
+                        {Object.entries(questions).map(([qId, question], qIdx) => {
+                          const rubricId = `${cat}.${qId}`;
+                          const linked = capture.linkedRubricIds.includes(rubricId);
+                          return (
+                            <button
+                              key={rubricId}
+                              className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"}`}
+                              data-linked={linked ? "true" : "false"}
+                              onClick={() =>
+                                linked
+                                  ? unlinkCaptureFromRubric(capture.id, rubricId)
+                                  : linkCaptureToRubric(capture.id, rubricId)
+                              }
+                            >
+                              {getQuestionCode(cat, qIdx)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Scoring Rubric */}
+                <div>
+                  <p className="section-kicker mb-1">Scoring Rubric</p>
+                  {Object.entries(TRUST_RUBRIC.scoring_rubric).map(([cat, questions]) => (
+                    <div key={cat} className="ml-ut-1 mb-1" data-accent-key={getAccentKey(cat)}>
+                      <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
+                      <div className="flex flex-wrap gap-1">
+                        {Object.entries(questions).map(([qId, question], qIdx) => {
+                          const rubricId = `${cat}.${qId}`;
+                          const linked = capture.linkedRubricIds.includes(rubricId);
+                          return (
+                            <button
+                              key={rubricId}
+                              className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"}`}
+                              data-linked={linked ? "true" : "false"}
+                              onClick={() =>
+                                linked
+                                  ? unlinkCaptureFromRubric(capture.id, rubricId)
+                                  : linkCaptureToRubric(capture.id, rubricId)
+                              }
+                            >
+                              {getQuestionCode(cat, qIdx)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </details>
           </div>
         </div>
       ))}
