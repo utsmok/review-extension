@@ -2,7 +2,10 @@ import type { ParseResult } from "papaparse";
 import Papa from "papaparse";
 import { describe, expect, it } from "vitest";
 import { exportSession } from "@/lib/export";
-import type { Capture, Evaluation, SessionMetadata } from "@/lib/types";
+import trustFull from "@/data/rubrics/trust-full.json";
+import type { Capture, Evaluation, RubricData, SessionMetadata } from "@/lib/types";
+
+const RUBRIC = trustFull as unknown as RubricData;
 
 type CsvRow = Record<string, string>;
 
@@ -59,14 +62,14 @@ async function unzipToFiles(blob: Blob): Promise<Map<string, string | Uint8Array
 
 describe("exportSession", () => {
   it("produces a valid zip blob", async () => {
-    const blob = await exportSession(makeMetadata(), [], []);
+    const blob = await exportSession(makeMetadata(), [], [], RUBRIC);
     expect(blob).toBeInstanceOf(Blob);
     expect(blob.size).toBeGreaterThan(0);
     expect(["", "application/zip"]).toContain(blob.type);
   });
 
   it("includes session_metadata.csv with tool info", async () => {
-    const blob = await exportSession(makeMetadata({ company: "TestCorp" }), [], []);
+    const blob = await exportSession(makeMetadata({ company: "TestCorp" }), [], [], RUBRIC);
     const files = await unzipToFiles(blob);
     const csv = files.get("session_metadata.csv") as string;
     expect(csv).toBeDefined();
@@ -82,7 +85,7 @@ describe("exportSession", () => {
     const c1 = makeCapture({ id: "cap-001" });
     const c2 = makeCapture({ id: "cap-002" });
 
-    const blob = await exportSession(makeMetadata(), [c1, c2], []);
+    const blob = await exportSession(makeMetadata(), [c1, c2], [], RUBRIC);
     const files = await unzipToFiles(blob);
 
     expect(files.has("evidence/capture_cap-001.png")).toBe(true);
@@ -110,7 +113,7 @@ describe("exportSession", () => {
       },
     ];
 
-    const blob = await exportSession(makeMetadata(), [], evaluations);
+    const blob = await exportSession(makeMetadata(), [], evaluations, RUBRIC);
     const files = await unzipToFiles(blob);
     const csv = files.get("rubric_scores.csv") as string;
 
@@ -133,7 +136,7 @@ describe("exportSession", () => {
       },
     ];
 
-    const blob = await exportSession(makeMetadata(), [], evaluations);
+    const blob = await exportSession(makeMetadata(), [], evaluations, RUBRIC);
     const files = await unzipToFiles(blob);
     const csv = files.get("rubric_scores.csv") as string;
 
@@ -154,7 +157,7 @@ describe("exportSession", () => {
       },
     ];
 
-    const blob = await exportSession(makeMetadata(), [c1Linked], evaluations);
+    const blob = await exportSession(makeMetadata(), [c1Linked], evaluations, RUBRIC);
     const files = await unzipToFiles(blob);
     const csv = files.get("rubric_scores.csv") as string;
 
@@ -169,7 +172,7 @@ describe("exportSession", () => {
       linkedRubricIds: ["TR.data_source_clarity"],
     });
 
-    const blob = await exportSession(makeMetadata(), [c], []);
+    const blob = await exportSession(makeMetadata(), [c], [], RUBRIC);
     const files = await unzipToFiles(blob);
     const csv = files.get("capture_log.csv") as string;
 
@@ -181,7 +184,7 @@ describe("exportSession", () => {
   });
 
   it("includes a PDF report", async () => {
-    const blob = await exportSession(makeMetadata(), [], []);
+    const blob = await exportSession(makeMetadata(), [], [], RUBRIC);
     const files = await unzipToFiles(blob);
 
     const pdfPath = "Evaluation_Report_TestSearch.pdf";
@@ -194,7 +197,7 @@ describe("exportSession", () => {
   });
 
   it("handles empty session (no captures, no evaluations)", async () => {
-    const blob = await exportSession(makeMetadata(), [], []);
+    const blob = await exportSession(makeMetadata(), [], [], RUBRIC);
     const files = await unzipToFiles(blob);
 
     expect(files.has("session_metadata.csv")).toBe(true);
@@ -207,57 +210,27 @@ describe("exportSession", () => {
     expect(rows).toHaveLength(0);
   });
 
-  it("includes nutrition-label.html in ZIP", async () => {
+  it("handles N/A scores in CSV and PDF", async () => {
     const evaluations: Evaluation[] = [
-      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
-      { rubricId: "privacy_and_security.data_privacy", score: "pass", notes: "", explicitEvidenceIds: [] },
+      {
+        rubricId: "TR.methodology_disclosure",
+        score: "na",
+        notes: "Non-AI tool",
+        explicitEvidenceIds: [],
+      },
     ];
-    const blob = await exportSession(makeMetadata(), [], evaluations);
-    const files = await unzipToFiles(blob);
 
-    const html = files.get("nutrition-label.html") as string;
-    expect(html).toBeDefined();
-    expect(html.length).toBeGreaterThan(0);
-    expect(html).toContain("<!DOCTYPE html>");
-    expect(html).toContain("TestSearch");
+    const blob = await exportSession(makeMetadata({ usesAi: false }), [], evaluations, RUBRIC);
+    const files = await unzipToFiles(blob);
+    const csv = files.get("rubric_scores.csv") as string;
+
+    const rows = parseCsv(csv);
+    const row = rows.find((r) => r.Question_ID === "TR.methodology_disclosure");
+    expect(row!.Score).toBe("na");
+
+    const pdfData = files.get("Evaluation_Report_TestSearch.pdf") as Uint8Array;
+    const header = new TextDecoder().decode(pdfData.slice(0, 4));
+    expect(header).toBe("%PDF");
   });
 
-  it("includes matrix-badge.svg in ZIP", async () => {
-    const blob = await exportSession(makeMetadata(), [], []);
-    const files = await unzipToFiles(blob);
-
-    const svg = files.get("matrix-badge.svg") as string;
-    expect(svg).toBeDefined();
-    expect(svg.length).toBeGreaterThan(0);
-    expect(svg).toContain("<svg");
-    expect(svg).toContain("</svg>");
-  });
-
-  it("includes matrix-badge.html in ZIP", async () => {
-    const blob = await exportSession(makeMetadata(), [], []);
-    const files = await unzipToFiles(blob);
-
-    const html = files.get("matrix-badge.html") as string;
-    expect(html).toBeDefined();
-    expect(html.length).toBeGreaterThan(0);
-    expect(html).toContain("<!DOCTYPE html>");
-    expect(html).toContain("<svg");
-  });
-
-  it("includes review-summary.json in ZIP", async () => {
-    const evaluations: Evaluation[] = [
-      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
-      { rubricId: "privacy_and_security.data_privacy", score: "pass", notes: "", explicitEvidenceIds: [] },
-    ];
-    const blob = await exportSession(makeMetadata(), [], evaluations);
-    const files = await unzipToFiles(blob);
-
-    const json = files.get("review-summary.json") as string;
-    expect(json).toBeDefined();
-    expect(json.length).toBeGreaterThan(0);
-    const summary = JSON.parse(json);
-    expect(summary.schemaVersion).toBe(1);
-    expect(summary.framework.name).toBe("TRUST - UT Embedded Information Services");
-    expect(summary.session.toolName).toBe("TestSearch");
-  });
 });

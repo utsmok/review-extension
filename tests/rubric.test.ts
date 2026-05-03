@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { getCategoryLabel, getQuestionCode, getRubricQuestionIds, TRUST_RUBRIC } from "@/lib/rubric";
+import { getCategoryLabel, getQuestionCode, getRubricQuestionIds } from "@/lib/rubric";
+import trustFull from "@/data/rubrics/trust-full.json";
+import trustLite from "@/data/rubrics/trust-lite.json";
+import type { RubricData } from "@/lib/types";
 
-describe("TRUST_RUBRIC", () => {
+const TRUST_RUBRIC = trustFull as unknown as RubricData;
+const TRUST_LITE = trustLite as unknown as RubricData;
+
+describe("TRUST_RUBRIC (full)", () => {
   it("has correct framework name and version", () => {
     expect(TRUST_RUBRIC.framework_name).toBe("TRUST - UT Embedded Information Services");
     expect(TRUST_RUBRIC.version).toBe("1.0");
@@ -25,17 +31,18 @@ describe("TRUST_RUBRIC", () => {
     ]);
   });
 
-  it("all quality gate questions have title and requirement", () => {
+  it("all quality gate questions have title, requirement, and basic_requirement", () => {
     for (const questions of Object.values(TRUST_RUBRIC.quality_gate)) {
       for (const q of Object.values(questions)) {
         expect(q.type).toBe("pass_fail");
         expect(q.title.length).toBeGreaterThan(0);
         expect(q.requirement.length).toBeGreaterThan(0);
+        expect(q.basic_requirement.length).toBeGreaterThan(0);
       }
     }
   });
 
-  it("all scoring questions have title and levels 0-3", () => {
+  it("all scoring questions have title, levels 0-3, and basic levels", () => {
     for (const questions of Object.values(TRUST_RUBRIC.scoring_rubric)) {
       for (const [_qId, levels] of Object.entries(questions)) {
         expect(levels.title.length).toBeGreaterThan(0);
@@ -43,6 +50,36 @@ describe("TRUST_RUBRIC", () => {
         expect(levels["1"].length).toBeGreaterThan(0);
         expect(levels["2"].length).toBeGreaterThan(0);
         expect(levels["3"].length).toBeGreaterThan(0);
+        expect((levels as unknown as Record<string, unknown>)["0_basic"]).toBeDefined();
+        expect((levels as unknown as Record<string, unknown>)["1_basic"]).toBeDefined();
+        expect((levels as unknown as Record<string, unknown>)["2_basic"]).toBeDefined();
+        expect((levels as unknown as Record<string, unknown>)["3_basic"]).toBeDefined();
+      }
+    }
+  });
+});
+
+describe("TRUST_LITE (simplified)", () => {
+  it("has correct framework name", () => {
+    expect(TRUST_LITE.framework_name).toContain("TRUST Lite");
+  });
+
+  it("has same quality gate structure as full", () => {
+    const fullCats = Object.keys(TRUST_RUBRIC.quality_gate);
+    const liteCats = Object.keys(TRUST_LITE.quality_gate);
+    expect(liteCats).toEqual(fullCats);
+  });
+
+  it("has same scoring category keys as full", () => {
+    const fullCats = Object.keys(TRUST_RUBRIC.scoring_rubric);
+    const liteCats = Object.keys(TRUST_LITE.scoring_rubric);
+    expect(liteCats).toEqual(fullCats);
+  });
+
+  it("all questions have basic_requirement", () => {
+    for (const questions of Object.values(TRUST_LITE.quality_gate)) {
+      for (const q of Object.values(questions)) {
+        expect(q.basic_requirement.length).toBeGreaterThan(0);
       }
     }
   });
