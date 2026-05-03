@@ -10,38 +10,7 @@ import { useRubric } from "@/lib/rubric-context";
 import type { Capture, RubricScore, ScoringQuestion } from "@/lib/types";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import EvidenceThumbnails from "./EvidenceThumbnails";
-
-type ProgressState = "empty" | "partial" | "complete";
-
-function ProgressCircle({ state }: { state: ProgressState }) {
-  if (state === "empty") {
-    return (
-      <svg width="16" height="16" viewBox="0 0 16 16" className="shrink-0">
-        <circle cx="8" cy="8" r="6" fill="none" stroke="var(--ut-slate)" strokeWidth="2" />
-      </svg>
-    );
-  }
-  if (state === "partial") {
-    return (
-      <svg width="16" height="16" viewBox="0 0 16 16" className="shrink-0">
-        <path d="M8 2a6 6 0 0 1 0 12Z" fill="var(--state-warning)" />
-        <circle cx="8" cy="8" r="6" fill="none" stroke="var(--state-warning)" strokeWidth="2" />
-      </svg>
-    );
-  }
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" className="shrink-0">
-      <circle cx="8" cy="8" r="6" fill="var(--state-success)" stroke="var(--state-success)" strokeWidth="2" />
-    </svg>
-  );
-}
-
-function getProgressState(hasScore: boolean, hasEvidence: boolean, hasNotes: boolean): ProgressState {
-  const hasExtra = hasEvidence || hasNotes;
-  if (hasScore && hasExtra) return "complete";
-  if (hasScore || hasExtra) return "partial";
-  return "empty";
-}
+import { ProgressCircle, getProgressState } from "./ProgressCircle";
 
 function getLevelDesc(
   levels: ScoringQuestion,
@@ -168,7 +137,7 @@ export default function ScoringSection({
                   </div>
 
                   {/* Bundled score rows */}
-                  <div className="my-ut-2">
+                  <div role="radiogroup" className="my-ut-2">
                     {([0, 1, 2, 3] as RubricScore[]).map((val) => {
                       if (val === "") return null;
                       const desc = getLevelDesc(levels, val as number, mode);
@@ -191,19 +160,11 @@ export default function ScoringSection({
                       };
 
                       return (
-                        <label
+                        <div
                           key={val}
                           className={`score-row ${selected ? "is-selected" : ""}`}
                           data-score={val}
                         >
-                          <input
-                            type="radio"
-                            name={rubricId}
-                            checked={selected}
-                            disabled={isAutoNa}
-                            onChange={handleClick}
-                            className="sr-only"
-                          />
                           <span
                             role="radio"
                             aria-checked={selected}
@@ -215,20 +176,20 @@ export default function ScoringSection({
                             {val}
                           </span>
                           <span className="score-desc">{desc}</span>
-                        </label>
+                        </div>
                       );
                     })}
 
                     {/* N/A row */}
-                    <label
+                    <div
                       className={`score-row ${isNa ? "is-selected" : ""}`}
                       data-score="na"
                     >
-                      <input
-                        type="radio"
-                        name={rubricId}
-                        checked={isNa}
-                        onChange={() => {
+                      <span
+                        role="radio"
+                        aria-checked={isNa}
+                        tabIndex={isAutoNa ? -1 : 0}
+                        onClick={() => {
                           if (isAutoNa) return;
                           if (isNa) {
                             setEvaluation(rubricId, { score: "" });
@@ -236,11 +197,23 @@ export default function ScoringSection({
                             setEvaluation(rubricId, { score: "na" });
                           }
                         }}
-                        className="sr-only"
-                      />
-                      <span className="score-badge">—</span>
+                        onKeyDown={(e) => {
+                          if (e.key === " " || e.key === "Enter") {
+                            e.preventDefault();
+                            if (isAutoNa) return;
+                            if (isNa) {
+                              setEvaluation(rubricId, { score: "" });
+                            } else {
+                              setEvaluation(rubricId, { score: "na" });
+                            }
+                          }
+                        }}
+                        className="score-badge cursor-pointer select-none"
+                      >
+                        —
+                      </span>
                       <span className="score-desc">Not applicable</span>
-                    </label>
+                    </div>
                   </div>
 
                   <EvidenceThumbnails

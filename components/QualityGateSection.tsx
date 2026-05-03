@@ -5,38 +5,7 @@ import { useRubric } from "@/lib/rubric-context";
 import type { Capture, PassFailScore } from "@/lib/types";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import EvidenceThumbnails from "./EvidenceThumbnails";
-
-type ProgressState = "empty" | "partial" | "complete";
-
-function ProgressCircle({ state }: { state: ProgressState }) {
-  if (state === "empty") {
-    return (
-      <svg width="16" height="16" viewBox="0 0 16 16" className="shrink-0">
-        <circle cx="8" cy="8" r="6" fill="none" stroke="var(--ut-slate)" strokeWidth="2" />
-      </svg>
-    );
-  }
-  if (state === "partial") {
-    return (
-      <svg width="16" height="16" viewBox="0 0 16 16" className="shrink-0">
-        <path d="M8 2a6 6 0 0 1 0 12Z" fill="var(--state-warning)" />
-        <circle cx="8" cy="8" r="6" fill="none" stroke="var(--state-warning)" strokeWidth="2" />
-      </svg>
-    );
-  }
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" className="shrink-0">
-      <circle cx="8" cy="8" r="6" fill="var(--state-success)" stroke="var(--state-success)" strokeWidth="2" />
-    </svg>
-  );
-}
-
-function getProgressState(hasScore: boolean, hasEvidence: boolean, hasNotes: boolean): ProgressState {
-  const hasExtra = hasEvidence || hasNotes;
-  if (hasScore && hasExtra) return "complete";
-  if (hasScore || hasExtra) return "partial";
-  return "empty";
-}
+import { ProgressCircle, getProgressState } from "./ProgressCircle";
 
 interface QualityGateSectionProps {
   capturingFor: string | null;
@@ -157,7 +126,7 @@ export default function QualityGateSection({
                     </button>
                   </div>
 
-                  <div className="flex gap-ut-2 mb-ut-2">
+                  <div role="radiogroup" className="flex gap-ut-2 mb-ut-2">
                     {(["pass", "fail", "na"] as PassFailScore[]).map((val) => {
                       const isActive =
                         ev?.score === val ||
@@ -181,30 +150,19 @@ export default function QualityGateSection({
                       };
 
                       return (
-                        <label
+                        <span
                           key={val}
-                          className="judgment-label"
+                          role="radio"
+                          aria-checked={isActive}
+                          tabIndex={isDisabled ? -1 : 0}
+                          onClick={handleClick}
+                          onKeyDown={handleKeyDown}
+                          className="judgment-label cursor-pointer select-none"
                           data-judgment={val === "na" ? "fail" : val}
                           data-active={isActive ? "true" : "false"}
                         >
-                          <input
-                            type="radio"
-                            name={rubricId}
-                            checked={isActive}
-                            disabled={isDisabled}
-                            onChange={handleClick}
-                          />
-                          <span
-                            role="radio"
-                            aria-checked={isActive}
-                            tabIndex={isDisabled ? -1 : 0}
-                            onClick={handleClick}
-                            onKeyDown={handleKeyDown}
-                            className="cursor-pointer select-none"
-                          >
-                            {val === "pass" ? "✓ Pass" : val === "fail" ? "✗ Fail" : "— N/A"}
-                          </span>
-                        </label>
+                          {val === "pass" ? "✓ Pass" : val === "fail" ? "✗ Fail" : "— N/A"}
+                        </span>
                       );
                     })}
                   </div>

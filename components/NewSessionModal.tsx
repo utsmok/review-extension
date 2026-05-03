@@ -120,6 +120,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
               Tool URL *
             </span>
             <input
+              type="url"
               className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
               value={toolUrl}
               onChange={(e) => setToolUrl(e.target.value)}
