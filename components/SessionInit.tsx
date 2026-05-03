@@ -1,12 +1,10 @@
 import { type FormEvent, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { RUBRIC_VARIANTS } from "@/data/rubrics";
-import { useSessionStore } from "@/stores/session";
-import { useRegistryStore } from "@/stores/registry";
+import { useActiveSession } from "@/hooks/useActiveSession";
 
 export default function SessionInit() {
-  const loadSession = useSessionStore((s) => s.loadSession);
-  const addSession = useRegistryStore((s) => s.addSession);
+  const { addSession, loadSession } = useActiveSession();
   const [toolName, setToolName] = useState("");
   const [toolUrl, setToolUrl] = useState("");
   const [rubricId, setRubricId] = useState(RUBRIC_VARIANTS[0].id);

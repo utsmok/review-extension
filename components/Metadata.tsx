@@ -1,15 +1,11 @@
 import { useState } from "react";
 import { exportSession } from "@/lib/export";
 import { useRubric } from "@/lib/rubric-context";
-import { useSessionStore } from "@/stores/session";
+import { useActiveSession } from "@/hooks/useActiveSession";
 
 export default function Metadata() {
   const { rubric } = useRubric();
-  const session = useSessionStore((s) => s.session);
-  const updateMetadata = useSessionStore((s) => s.updateMetadata);
-  const clear = useSessionStore((s) => s.clear);
-  const captures = useSessionStore((s) => s.captures);
-  const evaluations = useSessionStore((s) => s.evaluations);
+  const { session, updateMetadata, clear, captures, evaluations } = useActiveSession();
   const [exporting, setExporting] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
 

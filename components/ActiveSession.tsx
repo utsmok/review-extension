@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSessionStore } from "@/stores/session";
+import { useActiveSession } from "@/hooks/useActiveSession";
 import Captures from "./Captures";
 import Evaluation from "./Evaluation";
 import Metadata from "./Metadata";
@@ -15,7 +15,7 @@ const tabIds: Record<Tab, string> = {
 
 export default function ActiveSession() {
   const [activeTab, setActiveTab] = useState<Tab>("Captures");
-  const session = useSessionStore((s) => s.session);
+  const { session } = useActiveSession();
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     const idx = tabs.indexOf(activeTab);

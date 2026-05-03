@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Capture } from "@/lib/types";
-import { useSessionStore } from "@/stores/session";
+import { useActiveSession } from "@/hooks/useActiveSession";
 import { useAutoFocus, useFocusTrap } from "@/lib/hooks";
 
 const PEN_COLORS = [
@@ -17,7 +17,7 @@ interface EvidenceModalProps {
 }
 
 export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) {
-  const updateCapture = useSessionStore((s) => s.updateCapture);
+  const { updateCapture } = useActiveSession();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);

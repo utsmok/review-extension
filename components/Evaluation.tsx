@@ -5,7 +5,7 @@ import EvidenceModal from "@/components/EvidenceModal";
 import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture, getQuestionCode } from "@/lib/rubric";
 import { useRubric } from "@/lib/rubric-context";
 import type { Capture, PassFailScore, RubricScore, ScoringQuestion } from "@/lib/types";
-import { useSessionStore } from "@/stores/session";
+import { useActiveSession } from "@/hooks/useActiveSession";
 
 type ProgressState = "empty" | "partial" | "complete";
 
@@ -116,15 +116,8 @@ function getLevelDesc(
 
 export default function Evaluation() {
   const { rubric, usesAi } = useRubric();
-  const evaluations = useSessionStore((s) => s.evaluations);
-  const captures = useSessionStore((s) => s.captures);
-  const questionModes = useSessionStore((s) => s.questionModes);
-  const setEvaluation = useSessionStore((s) => s.setEvaluation);
-  const setQuestionMode = useSessionStore((s) => s.setQuestionMode);
-  const addCapture = useSessionStore((s) => s.addCapture);
-  const linkCaptureToRubric = useSessionStore((s) => s.linkCaptureToRubric);
-  const unlinkCaptureFromRubric = useSessionStore((s) => s.unlinkCaptureFromRubric);
-  const removeCapture = useSessionStore((s) => s.removeCapture);
+  const { evaluations, captures, questionModes, setEvaluation, setQuestionMode, addCapture, linkCaptureToRubric, unlinkCaptureFromRubric, removeCapture } =
+    useActiveSession();
 
   const [capturingFor, setCapturingFor] = useState<string | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<{ capture: Capture; rubricId: string } | null>(null);

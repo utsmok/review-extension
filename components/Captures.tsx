@@ -2,17 +2,12 @@ import { useMemo, useState } from "react";
 import { captureActiveTab } from "@/lib/capture";
 import { getAccentKey, getCategoryLabel, getQuestionCode, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import { useRubric } from "@/lib/rubric-context";
-import { useSessionStore } from "@/stores/session";
+import { useActiveSession } from "@/hooks/useActiveSession";
 
 export default function Captures() {
   const { rubric, usesAi } = useRubric();
-  const captures = useSessionStore((s) => s.captures);
-  const evaluations = useSessionStore((s) => s.evaluations);
-  const addCapture = useSessionStore((s) => s.addCapture);
-  const updateCapture = useSessionStore((s) => s.updateCapture);
-  const removeCapture = useSessionStore((s) => s.removeCapture);
-  const linkCaptureToRubric = useSessionStore((s) => s.linkCaptureToRubric);
-  const unlinkCaptureFromRubric = useSessionStore((s) => s.unlinkCaptureFromRubric);
+  const { captures, evaluations, addCapture, updateCapture, removeCapture, linkCaptureToRubric, unlinkCaptureFromRubric } =
+    useActiveSession();
   const [capturing, setCapturing] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
 
