@@ -34,3 +34,16 @@ export async function captureActiveTab(): Promise<Capture> {
     notes: "",
   };
 }
+
+export async function captureCurrentPageInfo(): Promise<{
+  url: string;
+  title: string;
+  faviconUrl?: string;
+}> {
+  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+  return {
+    url: tab.url ?? "",
+    title: tab.title ?? "",
+    faviconUrl: tab.favIconUrl,
+  };
+}
