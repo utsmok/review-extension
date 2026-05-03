@@ -343,10 +343,8 @@
   gap: var(--space-2);
   padding: var(--space-1) var(--space-2);
   cursor: pointer;
-  border-left: 3px solid transparent;
   transition:
-    background var(--duration-fast) ease,
-    border-color var(--duration-fast) ease;
+    background var(--duration-fast) ease;
 }
 
 .score-row:hover {
@@ -358,19 +356,19 @@
 }
 
 .score-row[data-score="0"].is-selected {
-  border-left-color: var(--score-0);
+  background: var(--score-0-tint);
   color: var(--score-0);
 }
 .score-row[data-score="1"].is-selected {
-  border-left-color: var(--score-1);
+  background: var(--score-1-tint);
   color: var(--score-1);
 }
 .score-row[data-score="2"].is-selected {
-  border-left-color: var(--score-2);
+  background: var(--score-2-tint);
   color: var(--score-2);
 }
 .score-row[data-score="3"].is-selected {
-  border-left-color: var(--score-3);
+  background: var(--score-3-tint);
   color: var(--score-3);
 }
 
@@ -542,6 +540,13 @@
   border-color: var(--ut-navy);
 }
 
+.toolbar-separator {
+  width: 1px;
+  height: 16px;
+  background: var(--ut-border);
+  margin: 0 2px;
+}
+
 .color-swatch {
   width: 18px;
   height: 18px;
@@ -552,5 +557,6 @@
 
 .color-swatch.is-active {
   border-color: var(--ut-text);
-  box-shadow: 0 0 0 2px var(--ut-white), 0 0 0 4px var(--ut-text);
+  outline: 2px solid var(--ut-text);
+  outline-offset: 2px;
 }
