@@ -2,8 +2,6 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { RUBRIC_VARIANTS } from "@/data/rubrics";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { useRegistryStore } from "@/stores/registry";
-import { saveToIDB } from "@/lib/session-storage";
 import { captureCurrentPageInfo } from "@/lib/capture";
 import { useAutoFocus, useFocusTrap } from "@/lib/hooks";
 
@@ -20,8 +18,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
   const [usesAi, setUsesAi] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const { addSession } = useActiveSession();
-  const registryAddSession = useRegistryStore((s) => s.addSession);
+  const { createSession } = useActiveSession();
 
   useFocusTrap(panelRef);
   useAutoFocus(panelRef, "input");
@@ -69,16 +66,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
     };
 
     try {
-      // 1. Save to IDB first so the hook won't race
-      await saveToIDB(id, {
-        metadata,
-        captures: [],
-        evaluations: [],
-        questionModes: {},
-      });
-      // 2. Then register (which sets activeSessionId)
-      registryAddSession(metadata);
-      // 3. Hook detects change, loads from IDB, populates session store
+      await createSession(metadata);
       onClose();
     } catch (err) {
       console.error("Failed to create session:", err);

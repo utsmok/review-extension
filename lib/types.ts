@@ -41,15 +41,19 @@ export interface Capture {
   notes: string;
 }
 
+export type QualityGateScore = "pass" | "fail" | "na" | "";
+export type ScoringScore = 0 | 1 | 2 | 3 | "na" | "";
+export type EvaluationScore = QualityGateScore | ScoringScore;
+
 export interface Evaluation {
   rubricId: string;
-  score: string | number;
+  score: EvaluationScore;
   notes: string;
   explicitEvidenceIds: string[];
 }
 
-export type PassFailScore = "pass" | "fail" | "na" | "";
-export type RubricScore = 0 | 1 | 2 | 3 | "na" | "";
+export type PassFailScore = QualityGateScore;
+export type RubricScore = ScoringScore;
 
 export interface PassFailQuestion {
   type: "pass_fail";

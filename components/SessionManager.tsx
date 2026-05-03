@@ -1,9 +1,8 @@
 import { useMemo, useState } from "react";
 import { useRegistryStore } from "@/stores/registry";
-import { useSessionStore } from "@/stores/session";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { deleteFromIDB, loadFromIDB } from "@/lib/session-storage";
-import { exportSession } from "@/lib/export";
+import { loadFromIDB } from "@/lib/session-storage";
+import { downloadBlob, exportSession } from "@/lib/export";
 import { getRubricById } from "@/data/rubrics";
 import NewSessionModal from "./NewSessionModal";
 
@@ -33,8 +32,7 @@ export default function SessionManager() {
   const sessionIndex = useRegistryStore((s) => s.sessionIndex);
   const settings = useRegistryStore((s) => s.settings);
   const updateSettings = useRegistryStore((s) => s.updateSettings);
-  const deleteSession = useRegistryStore((s) => s.deleteSession);
-  const { switchToSession } = useActiveSession();
+  const { switchToSession, deleteSession } = useActiveSession();
 
   const sessions = useMemo(
     () => Object.values(sessionIndex).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()),
@@ -49,12 +47,7 @@ export default function SessionManager() {
     const variant = getRubricById(meta.rubricId);
     try {
       const blob = await exportSession(meta, data.captures, data.evaluations, variant.data);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `TRUST_Review_${meta.toolName.replace(/\s+/g, "_")}.zip`;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, `TRUST_Review_${meta.toolName.replace(/\s+/g, "_")}.zip`);
     } catch (err) {
       console.error("Export failed:", err);
     }
@@ -64,13 +57,7 @@ export default function SessionManager() {
     const meta = sessionIndex[id];
     if (!meta) return;
     if (!confirm(`Delete review of "${meta.toolName}"? This cannot be undone.`)) return;
-    // Clear session store FIRST to prevent auto-save from resurrecting the session
-    const registry = useRegistryStore.getState();
-    if (registry.activeSessionId === id) {
-      useSessionStore.getState().clear();
-    }
-    deleteSession(id);
-    await deleteFromIDB(id).catch((err) => console.error("IDB delete failed:", err));
+    await deleteSession(id);
   };
 
   return (

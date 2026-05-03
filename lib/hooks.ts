@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const FOCUSABLE_SELECTOR =
   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -39,6 +39,37 @@ export function useFocusTrap(containerRef: React.RefObject<HTMLElement | null>) 
     container.addEventListener("keydown", handleKeyDown);
     return () => container.removeEventListener("keydown", handleKeyDown);
   }, [containerRef]);
+}
+
+export function useRovingTabIndex<T extends string>(
+  tabs: readonly T[],
+  initialTab: T,
+): {
+  activeTab: T;
+  setActiveTab: (tab: T) => void;
+  handleKeyDown: (e: React.KeyboardEvent) => void;
+} {
+  const [activeTab, setActiveTab] = useState<T>(initialTab);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      const idx = tabs.indexOf(activeTab);
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setActiveTab(tabs[(idx + 1) % tabs.length]);
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveTab(tabs[(idx - 1 + tabs.length) % tabs.length]);
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        setActiveTab(tabs[0]);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        setActiveTab(tabs[tabs.length - 1]);
+      }
+    },
+    [activeTab, tabs],
+  );
+  return { activeTab, setActiveTab, handleKeyDown };
 }
 
 export function useAutoFocus(

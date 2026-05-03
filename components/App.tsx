@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { RUBRIC_VARIANTS, getRubricById } from "@/data/rubrics";
 import { RubricContext } from "@/lib/rubric-context";
-import { migrateLegacySession } from "@/lib/session-storage";
+import { migrateLegacySession } from "@/lib/migration";
 import AppShell from "./AppShell";
 import ActiveSession from "./ActiveSession";
 import SessionManager from "./SessionManager";

@@ -1,38 +1,20 @@
-import { useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { useRovingTabIndex } from "@/lib/hooks";
 import Captures from "./Captures";
 import Evaluation from "./Evaluation";
 import Metadata from "./Metadata";
 
 const tabs = ["Captures", "Evaluation", "Metadata"] as const;
-type Tab = (typeof tabs)[number];
 
-const tabIds: Record<Tab, string> = {
+const tabIds: Record<(typeof tabs)[number], string> = {
   Captures: "panel-captures",
   Evaluation: "panel-evaluation",
   Metadata: "panel-metadata",
 };
 
 export default function ActiveSession() {
-  const [activeTab, setActiveTab] = useState<Tab>("Captures");
+  const { activeTab, setActiveTab, handleKeyDown } = useRovingTabIndex(tabs, "Captures");
   const { session, closeSession } = useActiveSession();
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    const idx = tabs.indexOf(activeTab);
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-      e.preventDefault();
-      setActiveTab(tabs[(idx + 1) % tabs.length]);
-    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-      e.preventDefault();
-      setActiveTab(tabs[(idx - 1 + tabs.length) % tabs.length]);
-    } else if (e.key === "Home") {
-      e.preventDefault();
-      setActiveTab(tabs[0]);
-    } else if (e.key === "End") {
-      e.preventDefault();
-      setActiveTab(tabs[tabs.length - 1]);
-    }
-  };
 
   return (
     <>

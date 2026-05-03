@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useSessionStore } from "@/stores/session";
 import { useRegistryStore } from "@/stores/registry";
-import { loadFromIDB, saveToIDB, saveToIDBFireAndForget } from "@/lib/session-storage";
+import { saveToIDB } from "@/lib/session-storage";
+import * as lifecycle from "@/lib/session-lifecycle";
 
 export function useActiveSession(migrationReady = true) {
   // --- State from both stores (individual selectors for re-render safety) ---
@@ -18,16 +19,11 @@ export function useActiveSession(migrationReady = true) {
   useEffect(() => {
     if (!migrationReady) return;
     if (activeSessionId && status === "empty") {
-      useSessionStore.setState({ status: "loading" });
       const controller = new AbortController();
-      loadFromIDB(activeSessionId).then((data) => {
+      lifecycle.loadSessionById(activeSessionId).then((found) => {
         if (controller.signal.aborted) return;
-        if (data) {
-          useSessionStore.getState().loadSession(data);
-        } else {
-          useSessionStore.setState({ status: "empty" });
-          useRegistryStore.getState().setActiveSessionId(null);
-        }
+        // loadSessionById already handles both success and not-found cases
+        void found;
       });
       return () => controller.abort();
     } else if (!activeSessionId && (status === "active" || status === "loading")) {
@@ -94,19 +90,11 @@ export function useActiveSession(migrationReady = true) {
   const unlinkCaptureFromRubric = useSessionStore((s) => s.unlinkCaptureFromRubric);
   const updateMetadata = useSessionStore((s) => s.updateMetadata);
 
-  // Registry actions
-  const addSession = useRegistryStore((s) => s.addSession);
-  const setActiveSessionId = useRegistryStore((s) => s.setActiveSessionId);
-
-  // Composite actions
-  const closeSession = () => setActiveSessionId(null);
-  const switchToSession = (id: string) => {
-    const { session: s, captures: c, evaluations: e, questionModes: q } = useSessionStore.getState();
-    if (s) {
-      saveToIDBFireAndForget(s.id, { metadata: s, captures: c, evaluations: e, questionModes: q });
-    }
+  // Composite actions (delegate to lifecycle module)
+  const closeSession = () => {
+    lifecycle.saveCurrentSession();
     useSessionStore.getState().clear();
-    setActiveSessionId(id);
+    useRegistryStore.getState().setActiveSessionId(null);
   };
 
   return {
@@ -125,8 +113,10 @@ export function useActiveSession(migrationReady = true) {
     linkCaptureToRubric,
     unlinkCaptureFromRubric,
     updateMetadata,
-    addSession,
     closeSession,
-    switchToSession,
+    switchToSession: lifecycle.switchToSession,
+    createSession: lifecycle.createSession,
+    deleteSession: lifecycle.deleteSession,
+    markDoneAndClose: lifecycle.markDoneAndClose,
   };
 }

@@ -2,6 +2,15 @@ import { getCategoryLabel, getQuestionCode } from "./rubric";
 import { buildPdfSummaryPage } from "./nutrition-label";
 import type { Capture, Evaluation, RubricData, SessionMetadata } from "./types";
 
+export function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export async function exportSession(
   metadata: SessionMetadata,
   captures: Capture[],

@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { exportSession } from "@/lib/export";
+import { downloadBlob, exportSession } from "@/lib/export";
 import { useRubric } from "@/lib/rubric-context";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { useRegistryStore } from "@/stores/registry";
 
 export default function Metadata() {
   const { rubric } = useRubric();
-  const { session, updateMetadata, captures, evaluations, closeSession } = useActiveSession();
+  const { session, updateMetadata, captures, evaluations, markDoneAndClose, deleteSession } = useActiveSession();
   const [exporting, setExporting] = useState(false);
-  const registryStore = useRegistryStore();
 
   if (!session) return null;
 
@@ -16,14 +14,8 @@ export default function Metadata() {
     setExporting(true);
     try {
       const blob = await exportSession(session, captures, evaluations, rubric);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `TRUST_Review_${session.toolName}.zip`;
-      a.click();
-      URL.revokeObjectURL(url);
-      registryStore.markSessionDone(session.id);
-      closeSession();
+      downloadBlob(blob, `TRUST_Review_${session.toolName}.zip`);
+      markDoneAndClose(session.id);
     } catch (err) {
       console.error("Export failed:", err);
     } finally {
@@ -32,8 +24,7 @@ export default function Metadata() {
   };
 
   const handleDiscardSession = () => {
-    registryStore.deleteSession(session.id);
-    closeSession();
+    deleteSession(session.id);
   };
 
   const scoredCount = evaluations.filter((e) => e.score !== "" && e.score !== undefined).length;
