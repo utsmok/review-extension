@@ -2,12 +2,13 @@ import { useState } from "react";
 import { exportSession } from "@/lib/export";
 import { useRubric } from "@/lib/rubric-context";
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { useRegistryStore } from "@/stores/registry";
 
 export default function Metadata() {
   const { rubric } = useRubric();
-  const { session, updateMetadata, clear, captures, evaluations } = useActiveSession();
+  const { session, updateMetadata, captures, evaluations, closeSession } = useActiveSession();
   const [exporting, setExporting] = useState(false);
-  const [confirmClear, setConfirmClear] = useState(false);
+  const registryStore = useRegistryStore();
 
   if (!session) return null;
 
@@ -21,7 +22,8 @@ export default function Metadata() {
       a.download = `TRUST_Review_${session.toolName}.zip`;
       a.click();
       URL.revokeObjectURL(url);
-      clear();
+      registryStore.markSessionDone(session.id);
+      closeSession();
     } catch (err) {
       console.error("Export failed:", err);
     } finally {
@@ -29,14 +31,9 @@ export default function Metadata() {
     }
   };
 
-  const handleClearSession = () => {
-    if (confirmClear) {
-      clear();
-      setConfirmClear(false);
-    } else {
-      setConfirmClear(true);
-      setTimeout(() => setConfirmClear(false), 3000);
-    }
+  const handleDiscardSession = () => {
+    registryStore.deleteSession(session.id);
+    closeSession();
   };
 
   const scoredCount = evaluations.filter((e) => e.score !== "" && e.score !== undefined).length;
@@ -166,13 +163,10 @@ export default function Metadata() {
 
         <button
           type="button"
-          aria-live="polite"
-          className={`w-full mt-ut-2 rounded-ut-sm px-ut-4 py-2 text-ut-sm transition-colors font-heading font-bold uppercase tracking-ut-uppercase ${
-            confirmClear ? "bg-ut-red text-white" : "text-ut-slate hover:text-ut-red"
-          }`}
-          onClick={handleClearSession}
+          className="w-full mt-ut-2 rounded-ut-sm px-ut-4 py-2 text-ut-sm transition-colors font-heading font-bold uppercase tracking-ut-uppercase text-ut-slate hover:text-ut-red"
+          onClick={handleDiscardSession}
         >
-          {confirmClear ? "Click again to discard" : "Discard session"}
+          Discard session
         </button>
       </div>
     </div>
