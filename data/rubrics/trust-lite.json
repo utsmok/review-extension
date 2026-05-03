@@ -1,0 +1,161 @@
+{
+  "id": "trust-lite",
+  "framework_name": "TRUST Lite — Simplified Academic Tool Review",
+  "version": "1.0",
+  "quality_gate": {
+    "privacy_and_security": {
+      "data_privacy": {
+        "type": "pass_fail",
+        "title": "Privacy policy",
+        "requirement": "Does the tool have a clear, publicly available privacy policy?",
+        "basic_requirement": "Can you find a privacy policy on the tool's website? Provide evidence (screenshot or link).",
+        "ai_only": false
+      },
+      "training_policy": {
+        "type": "pass_fail",
+        "title": "Data usage for training",
+        "requirement": "Does the tool explicitly state that user inputs are NOT used to train AI models?",
+        "basic_requirement": "Does the tool say in writing that it won't use your questions or files to train its AI? Look in the privacy policy or terms of service.",
+        "ai_only": true
+      }
+    },
+    "traceability": {
+      "citation_mechanism": {
+        "type": "pass_fail",
+        "title": "Source references",
+        "requirement": "Does the tool show clickable references for the information it provides?",
+        "basic_requirement": "When the tool gives you an answer, does it show links to where that information came from?",
+        "ai_only": true
+      }
+    },
+    "accessibility": {
+      "compliance": {
+        "type": "pass_fail",
+        "title": "Accessibility",
+        "requirement": "Can the tool be used by people with disabilities (screen readers, keyboard-only, text sizing)?",
+        "basic_requirement": "Try using the tool with just a keyboard. Can you resize the text? Does it work with screen readers? Mark yes if you can find evidence of any accessibility features.",
+        "ai_only": false
+      }
+    }
+  },
+  "scoring_rubric": {
+    "TR": {
+      "data_source_clarity": {
+        "title": "Where does the data come from?",
+        "0": "No information about sources.",
+        "1": "The tool mentions what kind of sources it uses but gives no specifics.",
+        "2": "The tool names the specific databases or publishers it searches.",
+        "3": "The tool provides a complete, documented list of all its sources.",
+        "0_basic": "There is no information about where the tool gets its data.",
+        "1_basic": "The tool says it searches 'academic sources' but doesn't say which ones.",
+        "2_basic": "The tool tells you which databases or publishers it uses.",
+        "3_basic": "The tool provides a full list of every source it searches and documentation about them.",
+        "ai_only": false
+      },
+      "methodology_disclosure": {
+        "title": "How does it work?",
+        "0": "No explanation of how the tool works.",
+        "1": "The tool just says it uses 'AI' without details.",
+        "2": "The tool explains what type of AI it uses and how it finds information.",
+        "3": "The tool fully documents its process step by step.",
+        "0_basic": "The tool doesn't explain how it works at all.",
+        "1_basic": "The tool only says 'powered by AI' without explaining what that means.",
+        "2_basic": "The tool explains the type of AI it uses (like a language model) and how it searches for information.",
+        "3_basic": "The tool gives a complete step-by-step explanation of how it processes your question and generates an answer.",
+        "ai_only": true
+      }
+    },
+    "RE": {
+      "accuracy_and_hallucination": {
+        "title": "Is the information correct?",
+        "0": "The tool frequently makes up incorrect facts.",
+        "1": "The tool is mostly correct but sometimes gets things wrong.",
+        "2": "The tool is accurate with only small mistakes.",
+        "3": "The tool consistently provides correct, verified information.",
+        "0_basic": "The tool often gives wrong or made-up information.",
+        "1_basic": "Mostly correct, but you've caught some mistakes.",
+        "2_basic": "Very few errors — mostly small details that don't matter much.",
+        "3_basic": "Everything the tool says checks out as accurate.",
+        "ai_only": true
+      },
+      "variance_consistency": {
+        "title": "Are the results consistent?",
+        "0": "Asking the same question twice gives very different answers.",
+        "1": "Answers vary noticeably between tries.",
+        "2": "Answers are mostly the same with small differences.",
+        "3": "The tool gives the same answer every time you ask the same question.",
+        "0_basic": "Completely different answers each time you ask the same thing.",
+        "1_basic": "Noticeably different results — you need to ask a few times to get a good answer.",
+        "2_basic": "Mostly consistent with minor variations.",
+        "3_basic": "Same question, same answer — every time.",
+        "ai_only": false
+      }
+    },
+    "US": {
+      "workflow_integration": {
+        "title": "Can you export or save results?",
+        "0": "No way to save or export your results.",
+        "1": "You can only copy and paste results manually.",
+        "2": "You can download references in standard formats (BibTeX, RIS).",
+        "3": "The tool connects directly to reference managers like Zotero.",
+        "0_basic": "No save or export option at all.",
+        "1_basic": "You can highlight and copy text, but that's it.",
+        "2_basic": "There's an export button that saves references as files.",
+        "3_basic": "The tool has a direct connection to Zotero, EndNote, or similar tools.",
+        "ai_only": false
+      },
+      "cognitive_guardrails": {
+        "title": "Does the tool help you think critically?",
+        "0": "The tool presents answers as final facts with no warnings.",
+        "1": "There's a generic 'check your sources' disclaimer.",
+        "2": "The tool encourages you to read original sources before trusting the answer.",
+        "3": "The tool actively prompts you to verify claims and compare sources.",
+        "0_basic": "No warnings or prompts — answers look like final facts.",
+        "1_basic": "A small disclaimer says 'always verify your sources'.",
+        "2_basic": "The tool shows original sources and encourages you to read them.",
+        "3_basic": "The tool has built-in features that help you compare sources and check for accuracy.",
+        "ai_only": true
+      }
+    },
+    "SE": {
+      "algorithmic_fairness": {
+        "title": "Is the tool fair and balanced?",
+        "0": "No evidence that the tool considers fairness.",
+        "1": "The tool mentions that bias might exist.",
+        "2": "The tool takes steps to reduce bias in its results.",
+        "3": "The tool reports publicly on its fairness efforts and source diversity.",
+        "0_basic": "Nothing suggests the tool tries to be fair or balanced.",
+        "1_basic": "The tool acknowledges bias could be an issue but doesn't do much about it.",
+        "2_basic": "The tool actively works to include diverse perspectives and sources.",
+        "3_basic": "The tool publishes reports about its fairness efforts and how diverse its sources are.",
+        "ai_only": false
+      }
+    },
+    "TC": {
+      "source_attribution_depth": {
+        "title": "Do the source links work and go deep?",
+        "0": "Sources are missing or links are broken.",
+        "1": "Links go to a journal homepage, not the specific article.",
+        "2": "Links go to the specific article's abstract.",
+        "3": "Links go to the exact part of the source that supports the claim.",
+        "0_basic": "No source links, or clicking them leads nowhere useful.",
+        "1_basic": "Links take you to the journal's website but not the specific article.",
+        "2_basic": "Links take you to the right article.",
+        "3_basic": "Links take you to the exact paragraph or section that supports the claim.",
+        "ai_only": false
+      },
+      "bibliometric_credibility": {
+        "title": "Are the sources trustworthy?",
+        "0": "The tool includes retracted or low-quality sources.",
+        "1": "The tool doesn't filter source quality.",
+        "2": "The tool labels sources as peer-reviewed or preprint.",
+        "3": "The tool shows retraction status, citation counts, and publication type for each source.",
+        "0_basic": "The tool cites sources that have been withdrawn or come from unreliable publishers.",
+        "1_basic": "The tool doesn't tell you if sources are good quality or not.",
+        "2_basic": "The tool labels whether each source is peer-reviewed or a preprint.",
+        "3_basic": "The tool shows detailed info: whether a paper was retracted, how many times it was cited, and what type of publication it is.",
+        "ai_only": false
+      }
+    }
+  }
+}
