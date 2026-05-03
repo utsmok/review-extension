@@ -3,6 +3,7 @@ import { useActiveSession } from "@/hooks/useActiveSession";
 import { getRubricById } from "@/data/rubrics";
 import { RubricContext } from "@/lib/rubric-context";
 import { migrateLegacySession } from "@/lib/session-storage";
+import AppShell from "./AppShell";
 import ActiveSession from "./ActiveSession";
 import SessionInit from "./SessionInit";
 
@@ -15,14 +16,32 @@ export default function App() {
       .finally(() => setMigrationReady(true));
   }, []);
 
-  const { session } = useActiveSession(migrationReady);
+  const { status, session } = useActiveSession(migrationReady);
 
-  if (!session) return <SessionInit />;
+  if (status === "active" && session) {
+    const variant = getRubricById(session.rubricId);
+    return (
+      <AppShell>
+        <RubricContext.Provider value={{ rubric: variant.data, usesAi: session.usesAi ?? true }}>
+          <ActiveSession />
+        </RubricContext.Provider>
+      </AppShell>
+    );
+  }
 
-  const variant = getRubricById(session.rubricId);
+  if (status === "loading") {
+    return (
+      <AppShell>
+        <div className="flex items-center justify-center flex-1 h-full">
+          <p className="text-ut-md text-ut-muted">Loading session...</p>
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
-    <RubricContext.Provider value={{ rubric: variant.data, usesAi: session.usesAi ?? true }}>
-      <ActiveSession />
-    </RubricContext.Provider>
+    <AppShell>
+      <SessionInit />
+    </AppShell>
   );
 }
