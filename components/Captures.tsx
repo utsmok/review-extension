@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { captureActiveTab } from "@/lib/capture";
-import { getAccentKey, getCategoryLabel, getQuestionCode, TRUST_RUBRIC } from "@/lib/rubric";
+import { getAccentKey, getCategoryLabel, getQuestionCode } from "@/lib/rubric";
+import { useRubric } from "@/lib/rubric-context";
 import { useSessionStore } from "@/stores/session";
 
 export default function Captures() {
+  const { rubric, usesAi } = useRubric();
   const captures = useSessionStore((s) => s.captures);
   const addCapture = useSessionStore((s) => s.addCapture);
   const updateCapture = useSessionStore((s) => s.updateCapture);
@@ -99,25 +101,28 @@ export default function Captures() {
                 {/* Quality Gates */}
                 <div>
                   <p className="section-kicker mb-1">Quality Gates</p>
-                  {Object.entries(TRUST_RUBRIC.quality_gate).map(([cat, questions]) => (
+                  {Object.entries(rubric.quality_gate).map(([cat, questions]) => (
                     <div key={cat} className="ml-ut-1 mb-1" data-accent-key="control">
                       <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
                       <div className="flex flex-wrap gap-1">
                         {Object.entries(questions).map(([qId, question], qIdx) => {
                           const rubricId = `${cat}.${qId}`;
                           const linked = capture.linkedRubricIds.includes(rubricId);
+                          const isAutoNa = (question.ai_only ?? false) && !usesAi;
                           return (
                             <button
                               key={rubricId}
-                              className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"}`}
+                              className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"} ${isAutoNa ? "opacity-40" : ""}`}
                               data-linked={linked ? "true" : "false"}
+                              aria-label={`${getQuestionCode(cat, qIdx)} ${question.title} ${linked ? "linked" : "unlinked"}`}
+                              title={isAutoNa ? "Not applicable — non-AI tool" : question.title}
                               onClick={() =>
                                 linked
                                   ? unlinkCaptureFromRubric(capture.id, rubricId)
                                   : linkCaptureToRubric(capture.id, rubricId)
                               }
                             >
-                              {getQuestionCode(cat, qIdx)}
+                              {getQuestionCode(cat, qIdx)}{isAutoNa ? "⁂" : ""}
                             </button>
                           );
                         })}
@@ -129,25 +134,28 @@ export default function Captures() {
                 {/* Scoring Rubric */}
                 <div>
                   <p className="section-kicker mb-1">Scoring Rubric</p>
-                  {Object.entries(TRUST_RUBRIC.scoring_rubric).map(([cat, questions]) => (
+                  {Object.entries(rubric.scoring_rubric).map(([cat, questions]) => (
                     <div key={cat} className="ml-ut-1 mb-1" data-accent-key={getAccentKey(cat)}>
                       <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
                       <div className="flex flex-wrap gap-1">
                         {Object.entries(questions).map(([qId, question], qIdx) => {
                           const rubricId = `${cat}.${qId}`;
                           const linked = capture.linkedRubricIds.includes(rubricId);
+                          const isAutoNa = (question.ai_only ?? false) && !usesAi;
                           return (
                             <button
                               key={rubricId}
-                              className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"}`}
+                              className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"} ${isAutoNa ? "opacity-40" : ""}`}
                               data-linked={linked ? "true" : "false"}
+                              aria-label={`${getQuestionCode(cat, qIdx)} ${question.title} ${linked ? "linked" : "unlinked"}`}
+                              title={isAutoNa ? "Not applicable — non-AI tool" : question.title}
                               onClick={() =>
                                 linked
                                   ? unlinkCaptureFromRubric(capture.id, rubricId)
                                   : linkCaptureToRubric(capture.id, rubricId)
                               }
                             >
-                              {getQuestionCode(cat, qIdx)}
+                              {getQuestionCode(cat, qIdx)}{isAutoNa ? "⁂" : ""}
                             </button>
                           );
                         })}

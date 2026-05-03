@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { exportSession } from "@/lib/export";
+import { useRubric } from "@/lib/rubric-context";
 import { useSessionStore } from "@/stores/session";
 
 export default function Metadata() {
+  const { rubric } = useRubric();
   const session = useSessionStore((s) => s.session);
   const updateMetadata = useSessionStore((s) => s.updateMetadata);
   const endSession = useSessionStore((s) => s.endSession);
@@ -16,7 +18,7 @@ export default function Metadata() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const blob = await exportSession(session, captures, evaluations);
+      const blob = await exportSession(session, captures, evaluations, rubric);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -48,6 +50,23 @@ export default function Metadata() {
       <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-ut-navy">
         Tool Details
       </h2>
+
+      <label className="flex items-center gap-ut-2">
+        <input
+          type="checkbox"
+          checked={session.usesAi ?? true}
+          onChange={(e) => updateMetadata({ usesAi: e.target.checked })}
+          className="w-4 h-4 rounded border-ut-border text-ut-blue focus:ring-ut-blue"
+        />
+        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          Tool uses AI / LLM
+        </span>
+      </label>
+      {!(session.usesAi ?? true) && (
+        <p className="text-ut-xs text-ut-muted">
+          AI-specific questions are marked as not applicable.
+        </p>
+      )}
 
       <label className="flex flex-col gap-1">
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
@@ -151,6 +170,7 @@ export default function Metadata() {
 
         <button
           type="button"
+          aria-live="polite"
           className={`w-full mt-ut-2 rounded-ut-sm px-ut-4 py-2 text-ut-sm transition-colors font-heading font-bold uppercase tracking-ut-uppercase ${
             confirmClear ? "bg-ut-red text-white" : "text-ut-slate hover:text-ut-red"
           }`}

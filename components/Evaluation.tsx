@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { captureActiveTab } from "@/lib/capture";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import EvidenceModal from "@/components/EvidenceModal";
-import { getAccentKey, getCategoryLabel, getQuestionCode, TRUST_RUBRIC } from "@/lib/rubric";
-import type { Capture, PassFailScore, RubricScore } from "@/lib/types";
+import { getAccentKey, getCategoryLabel, getQuestionCode } from "@/lib/rubric";
+import { useRubric } from "@/lib/rubric-context";
+import type { Capture, PassFailScore, RubricScore, ScoringQuestion } from "@/lib/types";
 import { useSessionStore } from "@/stores/session";
 
 type ProgressState = "empty" | "partial" | "complete";
@@ -11,21 +12,21 @@ type ProgressState = "empty" | "partial" | "complete";
 function ProgressCircle({ state }: { state: ProgressState }) {
   if (state === "empty") {
     return (
-      <svg width="16" height="16" viewBox="0 0 16 16" style={{ flexShrink: 0 }}>
+      <svg width="16" height="16" viewBox="0 0 16 16" className="shrink-0">
         <circle cx="8" cy="8" r="6" fill="none" stroke="var(--ut-slate)" strokeWidth="2" />
       </svg>
     );
   }
   if (state === "partial") {
     return (
-      <svg width="16" height="16" viewBox="0 0 16 16" style={{ flexShrink: 0 }}>
+      <svg width="16" height="16" viewBox="0 0 16 16" className="shrink-0">
         <path d="M8 2a6 6 0 0 1 0 12Z" fill="var(--state-warning)" />
         <circle cx="8" cy="8" r="6" fill="none" stroke="var(--state-warning)" strokeWidth="2" />
       </svg>
     );
   }
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" style={{ flexShrink: 0 }}>
+    <svg width="16" height="16" viewBox="0 0 16 16" className="shrink-0">
       <circle cx="8" cy="8" r="6" fill="var(--state-success)" stroke="var(--state-success)" strokeWidth="2" />
     </svg>
   );
@@ -100,10 +101,26 @@ function EvidenceThumbnails({
   );
 }
 
+function getLevelDesc(
+  levels: ScoringQuestion,
+  val: number,
+  mode: "expert" | "basic",
+): string {
+  if (mode === "basic") {
+    const basicKey = `${val}_basic` as keyof ScoringQuestion;
+    const basic = levels[basicKey];
+    if (typeof basic === "string") return basic;
+  }
+  return levels[String(val) as "0" | "1" | "2" | "3"];
+}
+
 export default function Evaluation() {
+  const { rubric, usesAi } = useRubric();
   const evaluations = useSessionStore((s) => s.evaluations);
   const captures = useSessionStore((s) => s.captures);
+  const questionModes = useSessionStore((s) => s.questionModes);
   const setEvaluation = useSessionStore((s) => s.setEvaluation);
+  const setQuestionMode = useSessionStore((s) => s.setQuestionMode);
   const addCapture = useSessionStore((s) => s.addCapture);
   const linkCaptureToRubric = useSessionStore((s) => s.linkCaptureToRubric);
   const unlinkCaptureFromRubric = useSessionStore((s) => s.unlinkCaptureFromRubric);
@@ -113,9 +130,22 @@ export default function Evaluation() {
   const [confirmTarget, setConfirmTarget] = useState<{ capture: Capture; rubricId: string } | null>(null);
   const [viewCapture, setViewCapture] = useState<Capture | null>(null);
 
-  const getEvaluation = (rubricId: string) => evaluations.find((e) => e.rubricId === rubricId);
-  const getLinkedCaptures = (rubricId: string) =>
-    captures.filter((c) => c.linkedRubricIds.includes(rubricId));
+  const evaluationMap = useMemo(
+    () => new Map(evaluations.map((e) => [e.rubricId, e])),
+    [evaluations],
+  );
+
+  const captureMap = useMemo(() => {
+    const map = new Map<string, Capture[]>();
+    for (const c of captures) {
+      for (const rid of c.linkedRubricIds) {
+        const list = map.get(rid);
+        if (list) list.push(c);
+        else map.set(rid, [c]);
+      }
+    }
+    return map;
+  }, [captures]);
 
   const handleCaptureEvidence = async (rubricId: string) => {
     setCapturingFor(rubricId);
@@ -144,46 +174,68 @@ export default function Evaluation() {
         <p className="text-ut-xs text-ut-slate mb-ut-2">
           Mandatory pass/fail thresholds. Any fail halts the review.
         </p>
-        {Object.entries(TRUST_RUBRIC.quality_gate).map(([category, questions]) => (
+        {Object.entries(rubric.quality_gate).map(([category, questions]) => (
           <div key={category} className="mb-ut-3">
             <h3 className="section-kicker mb-1">{getCategoryLabel(category)}</h3>
             {Object.entries(questions).map(([qId, question], qIdx) => {
               const rubricId = `${category}.${qId}`;
               const code = getQuestionCode(category, qIdx);
-              const ev = getEvaluation(rubricId);
-              const evidence = getLinkedCaptures(rubricId);
-              const hasScore = ev?.score === "pass" || ev?.score === "fail";
+              const ev = evaluationMap.get(rubricId);
+              const evidence = captureMap.get(rubricId) ?? [];
+              const mode = questionModes[rubricId] ?? "expert";
+              const isAiOnly = question.ai_only ?? false;
+              const isAutoNa = isAiOnly && !usesAi;
+
+              const hasScore = ev?.score === "pass" || ev?.score === "fail" || ev?.score === "na";
               const hasNotes = !!(ev?.notes && ev.notes.trim());
               const hasEvidence = evidence.length > 0;
               const progress = getProgressState(hasScore, hasEvidence, hasNotes);
+
+              const requirement = mode === "basic" && question.basic_requirement
+                ? question.basic_requirement
+                : question.requirement;
 
               return (
                 <details key={qId} className="question-details" data-accent-key="control">
                   <summary>
                     <ProgressCircle state={progress} />
-                    <span className="font-mono text-ut-slate" style={{ fontSize: "var(--text-xs)" }}>{code}</span>
+                    <span className="font-mono text-ut-slate text-ut-xs">{code}</span>
                     <span>{question.title}</span>
+                    {isAutoNa && (
+                      <span className="text-ut-xs text-ut-muted font-mono ml-1">N/A — non-AI</span>
+                    )}
                   </summary>
                   <div className="question-body">
-                    <p className="text-ut-xs text-ut-muted mb-ut-2 leading-relaxed">
-                      {question.requirement}
-                    </p>
+                    <div className="flex items-center justify-between mb-ut-2">
+                      <p className="text-ut-xs text-ut-muted leading-relaxed flex-1">
+                        {requirement}
+                      </p>
+                      <button
+                        type="button"
+                        className="text-ut-xs text-ut-slate hover:text-ut-text font-mono uppercase tracking-ut-label ml-2 shrink-0"
+                        onClick={() => setQuestionMode(rubricId, mode === "expert" ? "basic" : "expert")}
+                        title={`Switch to ${mode === "expert" ? "basic" : "expert"} wording`}
+                      >
+                        {mode === "expert" ? "Expert" : "Basic"}
+                      </button>
+                    </div>
 
                     <div className="flex gap-ut-2 mb-ut-2">
-                      {(["pass", "fail"] as PassFailScore[]).map((val) => (
+                      {(["pass", "fail", "na"] as PassFailScore[]).map((val) => (
                         <label
                           key={val}
                           className="judgment-label"
-                          data-judgment={val}
-                          data-active={ev?.score === val ? "true" : "false"}
+                          data-judgment={val === "na" ? "fail" : val}
+                          data-active={ev?.score === val || (isAutoNa && val === "na") ? "true" : "false"}
                         >
                           <input
                             type="radio"
                             name={rubricId}
-                            checked={ev?.score === val}
+                            checked={ev?.score === val || (isAutoNa && val === "na" && ev?.score !== "pass" && ev?.score !== "fail")}
+                            disabled={isAutoNa && val !== "na"}
                             onChange={() => setEvaluation(rubricId, { score: val })}
                           />
-                          {val === "pass" ? "✓ Pass" : "✗ Fail"}
+                          {val === "pass" ? "✓ Pass" : val === "fail" ? "✗ Fail" : "— N/A"}
                         </label>
                       ))}
                     </div>
@@ -225,16 +277,21 @@ export default function Evaluation() {
           Scoring Rubric
         </h2>
         <p className="text-ut-xs text-ut-slate mb-ut-2">Score each criterion on a 0–3 scale.</p>
-        {Object.entries(TRUST_RUBRIC.scoring_rubric).map(([category, questions]) => (
+        {Object.entries(rubric.scoring_rubric).map(([category, questions]) => (
           <div key={category} className="mb-ut-3">
             <h3 className="section-kicker mb-1">{getCategoryLabel(category)}</h3>
             {Object.entries(questions).map(([qId, levels], qIdx) => {
               const rubricId = `${category}.${qId}`;
               const code = getQuestionCode(category, qIdx);
-              const ev = getEvaluation(rubricId);
-              const evidence = getLinkedCaptures(rubricId);
+              const ev = evaluationMap.get(rubricId);
+              const evidence = captureMap.get(rubricId) ?? [];
+              const mode = questionModes[rubricId] ?? "expert";
+              const isAiOnly = levels.ai_only ?? false;
+              const isAutoNa = isAiOnly && !usesAi;
+
               const scoreNum = typeof ev?.score === "number" ? (ev.score as number) : -1;
-              const hasScore = scoreNum >= 0;
+              const isNa = ev?.score === "na" || isAutoNa;
+              const hasScore = scoreNum >= 0 || isNa;
               const hasNotes = !!(ev?.notes && ev.notes.trim());
               const hasEvidence = evidence.length > 0;
               const progress = getProgressState(hasScore, hasEvidence, hasNotes);
@@ -243,15 +300,29 @@ export default function Evaluation() {
                 <details key={qId} className="question-details" data-accent-key={getAccentKey(category)}>
                   <summary>
                     <ProgressCircle state={progress} />
-                    <span className="font-mono text-ut-slate" style={{ fontSize: "var(--text-xs)" }}>{code}</span>
+                    <span className="font-mono text-ut-slate text-ut-xs">{code}</span>
                     <span>{levels.title}</span>
+                    {isAutoNa && (
+                      <span className="text-ut-xs text-ut-muted font-mono ml-1">N/A — non-AI</span>
+                    )}
                   </summary>
                   <div className="question-body">
+                    <div className="flex items-center justify-end mb-ut-1">
+                      <button
+                        type="button"
+                        className="text-ut-xs text-ut-slate hover:text-ut-text font-mono uppercase tracking-ut-label shrink-0"
+                        onClick={() => setQuestionMode(rubricId, mode === "expert" ? "basic" : "expert")}
+                        title={`Switch to ${mode === "expert" ? "basic" : "expert"} wording`}
+                      >
+                        {mode === "expert" ? "Expert" : "Basic"}
+                      </button>
+                    </div>
+
                     {/* Bundled score rows */}
                     <div className="my-ut-2">
                       {([0, 1, 2, 3] as RubricScore[]).map((val) => {
                         if (val === "") return null;
-                        const desc = levels[String(val) as "0" | "1" | "2" | "3"];
+                        const desc = getLevelDesc(levels, val as number, mode);
                         const selected = scoreNum === val;
                         return (
                           <label
@@ -263,14 +334,31 @@ export default function Evaluation() {
                               type="radio"
                               name={rubricId}
                               checked={selected}
+                              disabled={isAutoNa}
                               onChange={() => setEvaluation(rubricId, { score: val })}
-                              style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}
+                              className="sr-only"
                             />
                             <span className="score-badge">{val}</span>
                             <span className="score-desc">{desc}</span>
                           </label>
                         );
                       })}
+
+                      {/* N/A row */}
+                      <label
+                        className={`score-row ${isNa ? "is-selected" : ""}`}
+                        data-score="na"
+                      >
+                        <input
+                          type="radio"
+                          name={rubricId}
+                          checked={isNa}
+                          onChange={() => setEvaluation(rubricId, { score: "na" })}
+                          className="sr-only"
+                        />
+                        <span className="score-badge">—</span>
+                        <span className="score-desc">Not applicable</span>
+                      </label>
                     </div>
 
                     <EvidenceThumbnails

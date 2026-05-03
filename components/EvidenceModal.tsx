@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Capture } from "@/lib/types";
 import { useSessionStore } from "@/stores/session";
+import { useAutoFocus, useFocusTrap } from "@/lib/hooks";
 
 const PEN_COLORS = [
   { label: "Black", value: "#172033" },
@@ -19,6 +20,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
   const updateCapture = useSessionStore((s) => s.updateCapture);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const [drawing, setDrawing] = useState(false);
   const [penColor, setPenColor] = useState(PEN_COLORS[0].value);
   const [penSize, setPenSize] = useState(PEN_SIZES[1]);
@@ -27,6 +29,9 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
   const lastPos = useRef<{ x: number; y: number } | null>(null);
 
   const imageSrc = capture.annotatedScreenshotBase64 ?? capture.screenshotBase64;
+
+  useFocusTrap(panelRef);
+  useAutoFocus(panelRef, ".color-swatch");
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -130,8 +135,11 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className="modal-panel"
-        style={{ maxWidth: 720, padding: 0 }}
+        ref={panelRef}
+        className="modal-panel max-w-[720px] p-0"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Evidence viewer and annotation"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Toolbar */}
@@ -149,7 +157,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
               }}
             />
           ))}
-          <span style={{ width: 1, height: 16, background: "var(--ut-border)", margin: "0 2px" }} />
+          <span className="toolbar-separator" />
           {PEN_SIZES.map((s) => (
             <button
               key={s}
@@ -161,7 +169,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
               {s}
             </button>
           ))}
-          <span style={{ width: 1, height: 16, background: "var(--ut-border)", margin: "0 2px" }} />
+          <span className="toolbar-separator" />
           <button
             type="button"
             className={erasing ? "is-active" : ""}
@@ -172,11 +180,10 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
           <button type="button" onClick={clearCanvas}>
             Clear
           </button>
-          <div style={{ flex: 1 }} />
+          <div className="flex-1" />
           <button
             type="button"
-            className="bg-ut-green text-white"
-            style={{ border: "none", padding: "var(--space-1) var(--space-3)", fontSize: "var(--text-xs)", fontFamily: "var(--ff-heading)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "var(--ls-label)", cursor: "pointer" }}
+            className="bg-ut-green text-white border-0 px-ut-3 py-ut-1 text-ut-xs font-heading font-bold uppercase tracking-ut-label cursor-pointer"
             onClick={handleSave}
           >
             Save
@@ -186,13 +193,13 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         {/* Image + canvas */}
         <div
           ref={containerRef}
-          style={{ position: "relative", overflow: "auto", maxHeight: "50vh" }}
+          className="relative overflow-auto max-h-[50vh]"
         >
           <img
             src={imageSrc}
             alt="Evidence"
             onLoad={handleImageLoad}
-            style={{ display: "block", width: "100%" }}
+            className="block w-full"
           />
           <canvas
             ref={canvasRef}
@@ -200,23 +207,17 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
             onMouseMove={draw}
             onMouseUp={stopDrawing}
             onMouseLeave={stopDrawing}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              cursor: erasing ? "cell" : "crosshair",
-            }}
+            className="absolute inset-0 w-full h-full"
+            style={{ cursor: erasing ? "cell" : "crosshair" }}
           />
         </div>
 
         {/* Metadata */}
-        <div style={{ padding: "var(--space-3)" }}>
+        <div className="p-ut-3">
           {capture.pageTitle && (
             <p className="text-ut-xs font-bold text-ut-text mb-1">{capture.pageTitle}</p>
           )}
-          <p className="text-ut-xs font-mono text-ut-muted mb-1" style={{ wordBreak: "break-all" }}>
+          <p className="text-ut-xs font-mono text-ut-muted mb-1 break-all">
             {capture.sourceUrl}
           </p>
           <p className="text-ut-xs text-ut-slate mb-2">
