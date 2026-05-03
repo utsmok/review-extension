@@ -6,6 +6,7 @@ interface SessionState {
   session: SessionMetadata | null;
   captures: Capture[];
   evaluations: Evaluation[];
+  questionModes: Record<string, "expert" | "basic">;
 
   startSession: (metadata: SessionMetadata) => void;
   endSession: () => void;
@@ -16,6 +17,7 @@ interface SessionState {
   removeCapture: (id: string) => void;
 
   setEvaluation: (rubricId: string, patch: Partial<Evaluation>) => void;
+  setQuestionMode: (rubricId: string, mode: "expert" | "basic") => void;
   linkCaptureToRubric: (captureId: string, rubricId: string) => void;
   unlinkCaptureFromRubric: (captureId: string, rubricId: string) => void;
 }
@@ -26,10 +28,13 @@ export const useSessionStore = create<SessionState>()(
       session: null,
       captures: [],
       evaluations: [],
+      questionModes: {},
 
-      startSession: (metadata) => set({ session: metadata, captures: [], evaluations: [] }),
+      startSession: (metadata) =>
+        set({ session: metadata, captures: [], evaluations: [], questionModes: {} }),
 
-      endSession: () => set({ session: null, captures: [], evaluations: [] }),
+      endSession: () =>
+        set({ session: null, captures: [], evaluations: [], questionModes: {} }),
 
       updateMetadata: (patch) =>
         set((s) => ({
@@ -67,6 +72,9 @@ export const useSessionStore = create<SessionState>()(
             ],
           };
         }),
+
+      setQuestionMode: (rubricId, mode) =>
+        set((s) => ({ questionModes: { ...s.questionModes, [rubricId]: mode } })),
 
       linkCaptureToRubric: (captureId, rubricId) =>
         set((s) => {
