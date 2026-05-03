@@ -112,7 +112,7 @@ async function buildPdfReport(
 
   // ── Title ──
   content.push({
-    text: "TRUST Evaluation Report",
+    text: "TRUST Framework Review Report",
     style: "title",
   });
   content.push({
@@ -129,20 +129,20 @@ async function buildPdfReport(
   content.push({
     text: `Evaluated: ${new Date(metadata.startTime).toLocaleString()}`,
     fontSize: 9,
-    color: "#6b7280",
+    color: "#576578",
     margin: [0, 0, 0, 2],
   });
   content.push({
     text: `Rubric: ${rubric.framework_name} v${rubric.version}`,
     fontSize: 9,
-    color: "#6b7280",
+    color: "#576578",
     margin: [0, 0, 0, 2],
   });
   if (!(metadata.usesAi ?? true)) {
     content.push({
       text: "Note: Tool marked as non-AI. AI-specific questions scored N/A.",
       fontSize: 9,
-      color: "#d97706",
+      color: "#ea580c",
       margin: [0, 0, 0, 2],
     });
   }
@@ -150,21 +150,21 @@ async function buildPdfReport(
     content.push({
       text: `Company: ${metadata.company}`,
       fontSize: 9,
-      color: "#6b7280",
+      color: "#576578",
       margin: [0, 0, 0, 2],
     });
   if (metadata.pricing)
     content.push({
       text: `Pricing: ${metadata.pricing}`,
       fontSize: 9,
-      color: "#6b7280",
+      color: "#576578",
       margin: [0, 0, 0, 2],
     });
   if (metadata.notes)
     content.push({
       text: `Notes: ${metadata.notes}`,
       fontSize: 9,
-      color: "#6b7280",
+      color: "#576578",
       margin: [0, 0, 0, 2],
     });
 
@@ -175,7 +175,7 @@ async function buildPdfReport(
   content.push({
     text: "Mandatory pass/fail thresholds. Any fail halts the review.",
     fontSize: 8,
-    color: "#9ca3af",
+    color: "#8b9bb0",
     margin: [0, 0, 0, 6],
   });
 
@@ -194,7 +194,7 @@ async function buildPdfReport(
       const ev = evaluations.find((e) => e.rubricId === `${cat}.${qId}`);
       const score = ev?.score || "—";
       const scoreStr = String(score).toUpperCase();
-      const color = score === "pass" ? "#16a34a" : score === "fail" ? "#dc2626" : "#6b7280";
+      const color = score === "pass" ? "#4a8355" : score === "fail" ? "#c60c30" : "#576578";
       qgBody.push([
         { text: getCategoryLabel(cat), fontSize: 8 },
         { text: q.requirement, fontSize: 8 },
@@ -204,7 +204,7 @@ async function buildPdfReport(
           bold: true,
           color,
         },
-        { text: ev?.notes ?? "", fontSize: 7, color: "#6b7280" },
+        { text: ev?.notes ?? "", fontSize: 7, color: "#576578" },
       ]);
     }
   }
@@ -216,9 +216,9 @@ async function buildPdfReport(
       body: qgBody,
     },
     layout: {
-      hLineColor: () => "#e5e7eb",
+      hLineColor: () => "#bfc6cf",
       hLineWidth: () => 0.5,
-      fillColor: (row: number) => (row === 0 ? "#1e40af" : null),
+      fillColor: (row: number) => (row === 0 ? "#002c5f" : null),
     },
     margin: [0, 0, 0, 10],
   });
@@ -258,11 +258,11 @@ async function buildPdfReport(
           bold: true,
           alignment: "center",
           color:
-            isNa ? "#6b7280" :
-            score >= 2 ? "#16a34a" : score === 1 ? "#d97706" : score === 0 ? "#dc2626" : "#6b7280",
+            isNa ? "#576578" :
+            score >= 2 ? "#4a8355" : score === 1 ? "#ea580c" : score === 0 ? "#c60c30" : "#576578",
         },
-        { text: levelDesc, fontSize: 7, color: "#4b5563" },
-        { text: ev?.notes ?? "", fontSize: 7, color: "#6b7280" },
+        { text: levelDesc, fontSize: 7, color: "#576578" },
+        { text: ev?.notes ?? "", fontSize: 7, color: "#576578" },
       ]);
     }
 
@@ -273,9 +273,9 @@ async function buildPdfReport(
         body,
       },
       layout: {
-        hLineColor: () => "#e5e7eb",
+        hLineColor: () => "#bfc6cf",
         hLineWidth: () => 0.5,
-        fillColor: (row: number) => (row === 0 ? "#1e40af" : null),
+        fillColor: (row: number) => (row === 0 ? "#002c5f" : null),
       },
       margin: [0, 0, 0, 8],
     });
@@ -313,7 +313,7 @@ async function buildPdfReport(
               {
                 text: new Date(capture.timestamp).toLocaleString(),
                 fontSize: 8,
-                color: "#6b7280",
+                color: "#576578",
                 margin: [0, 0, 0, 2],
               },
               ...(capture.notes
@@ -321,7 +321,7 @@ async function buildPdfReport(
                     {
                       text: `Notes: ${capture.notes}`,
                       fontSize: 8,
-                      color: "#6b7280",
+                      color: "#576578",
                     },
                   ]
                 : []),
@@ -330,7 +330,7 @@ async function buildPdfReport(
                     {
                       text: `Tagged: ${capture.linkedRubricIds.join(", ")}`,
                       fontSize: 7,
-                      color: "#9ca3af",
+                      color: "#8b9bb0",
                       margin: [0, 2, 0, 0],
                     },
                   ]
@@ -344,6 +344,34 @@ async function buildPdfReport(
     }
   }
 
+  // ── TRUST / LISA-EIS footer ──
+  content.push({ text: "", margin: [0, 20] });
+  content.push({
+    canvas: [
+      { type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: "#bfc6cf" }, // 595 - 40*2 = 515
+    ],
+    margin: [0, 0, 0, 6],
+  });
+  content.push({
+    columns: [
+      {
+        text: "TRUST Framework",
+        fontSize: 8,
+        bold: true,
+        color: "#8e036c",
+        width: "50%",
+      },
+      {
+        text: "LISA-EIS / University of Twente",
+        fontSize: 7,
+        color: "#8b9bb0",
+        alignment: "right",
+        width: "50%",
+      },
+    ],
+    margin: [0, 0, 0, 0],
+  });
+
   const docDefinition = {
     pageSize: "A4" as const,
     pageMargins: [40, 50, 40, 50],
@@ -352,32 +380,32 @@ async function buildPdfReport(
       title: {
         fontSize: 20,
         bold: true,
-        color: "#1e293b",
+        color: "#8e036c",
         margin: [0, 0, 0, 4] as [number, number, number, number],
       },
       toolName: {
         fontSize: 14,
         bold: true,
-        color: "#1e40af",
+        color: "#8e036c",
         margin: [0, 0, 0, 4] as [number, number, number, number],
       },
       section: {
         fontSize: 13,
         bold: true,
-        color: "#374151",
+        color: "#172033",
         margin: [0, 10, 0, 4] as [number, number, number, number],
       },
       category: {
         fontSize: 10,
         bold: true,
-        color: "#6b7280",
+        color: "#576578",
         margin: [0, 6, 0, 4] as [number, number, number, number],
       },
       th: {
         bold: true,
         fontSize: 8,
         color: "#ffffff",
-        fillColor: "#1e40af",
+        fillColor: "#002c5f",
       },
     },
     defaultStyle: {
