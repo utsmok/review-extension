@@ -1,11 +1,6 @@
-import { getCategoryLabel, getQuestionCode, TRUST_RUBRIC } from "./rubric";
-import { generateMatrixBadgeHtml, generateMatrixBadgeSvg } from "./matrix-badge";
-import {
-  buildPdfSummaryPage,
-  generateNutritionLabelHtml,
-  generateReviewSummary,
-} from "./nutrition-label";
-import type { Capture, Evaluation, SessionMetadata } from "./types";
+import { getCategoryLabel, getQuestionCode } from "./rubric";
+import { buildPdfSummaryPage } from "./nutrition-label";
+import type { Capture, Evaluation, RubricData, SessionMetadata } from "./types";
 
 /** Derive capture IDs linked to a rubric question (both directions). */
 function getLinkedIds(ev: Evaluation, captures: Capture[]): string[] {
@@ -17,6 +12,7 @@ export async function exportSession(
   metadata: SessionMetadata,
   captures: Capture[],
   evaluations: Evaluation[],
+  rubric: RubricData,
 ): Promise<Blob> {
   const JSZip = (await import("jszip")).default;
   const Papa = (await import("papaparse")).default;
@@ -41,6 +37,8 @@ export async function exportSession(
         Tool_Name: metadata.toolName,
         Tool_URL: metadata.toolUrl,
         Start_Time: metadata.startTime,
+        Uses_AI: String(metadata.usesAi ?? true),
+        Rubric_Variant: metadata.rubricId ?? "trust-full",
         Company: metadata.company ?? "",
         Pricing: metadata.pricing ?? "",
         Availability: metadata.availability ?? "",
@@ -84,17 +82,8 @@ export async function exportSession(
   );
 
   // PDF report
-  const pdfBlob = await buildPdfReport(metadata, captures, evaluations);
+  const pdfBlob = await buildPdfReport(metadata, captures, evaluations, rubric);
   zip.file(`Evaluation_Report_${metadata.toolName}.pdf`, pdfBlob);
-
-  // Nutrition label outputs
-  zip.file("nutrition-label.html", generateNutritionLabelHtml(metadata, captures, evaluations));
-  zip.file("matrix-badge.svg", generateMatrixBadgeSvg(evaluations));
-  zip.file("matrix-badge.html", generateMatrixBadgeHtml(metadata, evaluations));
-  zip.file(
-    "review-summary.json",
-    JSON.stringify(generateReviewSummary(metadata, captures, evaluations), null, 2),
-  );
 
   return zip.generateAsync({ type: "blob" });
 }
@@ -103,6 +92,7 @@ async function buildPdfReport(
   metadata: SessionMetadata,
   captures: Capture[],
   evaluations: Evaluation[],
+  rubric: RubricData,
 ): Promise<Uint8Array> {
   const pdfMake = (await import("pdfmake/build/pdfmake")).default;
 
@@ -118,7 +108,7 @@ async function buildPdfReport(
   const content: any[] = [];
 
   // ── Nutrition Label Summary (first page) ──
-  content.push(...buildPdfSummaryPage(metadata, evaluations));
+  content.push(...buildPdfSummaryPage(metadata, evaluations, rubric));
 
   // ── Title ──
   content.push({
@@ -142,6 +132,20 @@ async function buildPdfReport(
     color: "#6b7280",
     margin: [0, 0, 0, 2],
   });
+  content.push({
+    text: `Rubric: ${rubric.framework_name} v${rubric.version}`,
+    fontSize: 9,
+    color: "#6b7280",
+    margin: [0, 0, 0, 2],
+  });
+  if (!(metadata.usesAi ?? true)) {
+    content.push({
+      text: "Note: Tool marked as non-AI. AI-specific questions scored N/A.",
+      fontSize: 9,
+      color: "#d97706",
+      margin: [0, 0, 0, 2],
+    });
+  }
   if (metadata.company)
     content.push({
       text: `Company: ${metadata.company}`,
@@ -185,18 +189,20 @@ async function buildPdfReport(
     ],
   ];
 
-  for (const [cat, questions] of Object.entries(TRUST_RUBRIC.quality_gate)) {
+  for (const [cat, questions] of Object.entries(rubric.quality_gate)) {
     for (const [qId, q] of Object.entries(questions)) {
       const ev = evaluations.find((e) => e.rubricId === `${cat}.${qId}`);
       const score = ev?.score || "—";
+      const scoreStr = String(score).toUpperCase();
+      const color = score === "pass" ? "#16a34a" : score === "fail" ? "#dc2626" : "#6b7280";
       qgBody.push([
         { text: getCategoryLabel(cat), fontSize: 8 },
         { text: q.requirement, fontSize: 8 },
         {
-          text: String(score).toUpperCase(),
+          text: scoreStr,
           fontSize: 9,
           bold: true,
-          color: score === "pass" ? "#16a34a" : score === "fail" ? "#dc2626" : "#6b7280",
+          color,
         },
         { text: ev?.notes ?? "", fontSize: 7, color: "#6b7280" },
       ]);
@@ -220,7 +226,7 @@ async function buildPdfReport(
   // ── Scoring Rubric ──
   content.push({ text: "Scoring Rubric", style: "section" });
 
-  for (const [cat, questions] of Object.entries(TRUST_RUBRIC.scoring_rubric)) {
+  for (const [cat, questions] of Object.entries(rubric.scoring_rubric)) {
     content.push({
       text: getCategoryLabel(cat),
       style: "category",
@@ -239,19 +245,20 @@ async function buildPdfReport(
     for (const [qId, levels] of Object.entries(questions)) {
       const rubricId = `${cat}.${qId}`;
       const ev = evaluations.find((e) => e.rubricId === rubricId);
+      const isNa = ev?.score === "na";
       const score = typeof ev?.score === "number" ? ev.score : -1;
       const qIdx = Object.keys(questions).indexOf(qId);
-      // biome-ignore lint/suspicious/noExplicitAny: rubric level lookup
-      const levelDesc = score >= 0 ? (levels as any)[String(score)] : "—";
+      const levelDesc = isNa ? "N/A" : score >= 0 ? (levels as unknown as Record<string, string>)[String(score)] : "—";
 
       body.push([
         { text: `${getQuestionCode(cat, qIdx)} — ${levels.title}`, fontSize: 8 },
         {
-          text: score >= 0 ? `${score}/3` : "—",
+          text: isNa ? "N/A" : score >= 0 ? `${score}/3` : "—",
           fontSize: 9,
           bold: true,
           alignment: "center",
           color:
+            isNa ? "#6b7280" :
             score >= 2 ? "#16a34a" : score === 1 ? "#d97706" : score === 0 ? "#dc2626" : "#6b7280",
         },
         { text: levelDesc, fontSize: 7, color: "#4b5563" },
