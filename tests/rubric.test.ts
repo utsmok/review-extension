@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { getCategoryLabel, getQuestionCode, getRubricQuestionIds } from "@/lib/rubric";
+import { computeCompletion, getCategoryLabel, getLinkedRubricIdsForCapture, getQuestionCode, getRubricQuestionIds } from "@/lib/rubric";
 import trustFull from "@/data/rubrics/trust-full.json";
 import trustLite from "@/data/rubrics/trust-lite.json";
-import type { RubricData } from "@/lib/types";
+import type { Evaluation, RubricData } from "@/lib/types";
 
 const TRUST_RUBRIC = trustFull as unknown as RubricData;
 const TRUST_LITE = trustLite as unknown as RubricData;
@@ -158,5 +158,64 @@ describe("getQuestionCode", () => {
     expect(getQuestionCode("TR", 0)).toBe("TR1");
     expect(getQuestionCode("TR", 1)).toBe("TR2");
     expect(getQuestionCode("SE", 0)).toBe("SE1");
+  });
+});
+
+describe("computeCompletion", () => {
+  it("returns 0% with no evaluations", () => {
+    expect(computeCompletion([], TRUST_RUBRIC)).toBe(0);
+  });
+
+  it("returns partial percentage with some evaluations scored", () => {
+    const totalQuestions = getRubricQuestionIds(TRUST_RUBRIC).length;
+    const evaluations: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
+      { rubricId: "RE.accuracy_and_hallucination", score: "", notes: "", explicitEvidenceIds: [] },
+      { rubricId: "US.workflow_integration", score: 1, notes: "", explicitEvidenceIds: [] },
+    ];
+
+    const result = computeCompletion(evaluations, TRUST_RUBRIC);
+    // 2 scored out of totalQuestions
+    const expected = Math.round((2 / totalQuestions) * 100);
+    expect(result).toBe(expected);
+  });
+
+  it("returns 100% when all questions are scored", () => {
+    const allIds = getRubricQuestionIds(TRUST_RUBRIC);
+    const evaluations: Evaluation[] = allIds.map((id) => ({
+      rubricId: id,
+      score: 2,
+      notes: "",
+      explicitEvidenceIds: [],
+    }));
+
+    expect(computeCompletion(evaluations, TRUST_RUBRIC)).toBe(100);
+  });
+});
+
+describe("getLinkedRubricIdsForCapture", () => {
+  it("returns rubric IDs where capture is in explicitEvidenceIds", () => {
+    const evaluations: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: ["cap-1", "cap-2"] },
+      { rubricId: "RE.accuracy_and_hallucination", score: 1, notes: "", explicitEvidenceIds: ["cap-1"] },
+      { rubricId: "US.workflow_integration", score: "", notes: "", explicitEvidenceIds: [] },
+    ];
+
+    const result = getLinkedRubricIdsForCapture("cap-1", evaluations);
+    expect(result).toEqual(["TR.data_source_clarity", "RE.accuracy_and_hallucination"]);
+  });
+
+  it("returns empty array for unlinked capture", () => {
+    const evaluations: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: ["cap-2"] },
+    ];
+
+    const result = getLinkedRubricIdsForCapture("cap-1", evaluations);
+    expect(result).toEqual([]);
+  });
+
+  it("returns empty array with no evaluations", () => {
+    const result = getLinkedRubricIdsForCapture("cap-1", []);
+    expect(result).toEqual([]);
   });
 });

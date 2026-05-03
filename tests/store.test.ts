@@ -4,9 +4,11 @@ import { useSessionStore } from "@/stores/session";
 
 function makeMetadata(overrides?: Partial<SessionMetadata>): SessionMetadata {
   return {
+    id: crypto.randomUUID(),
     toolName: "Test Tool",
     toolUrl: "https://example.com",
     startTime: "2025-01-01T00:00:00.000Z",
+    status: "started",
     ...overrides,
   };
 }
@@ -20,7 +22,6 @@ function makeCapture(overrides?: Partial<Capture>): Capture {
     screenshotBase64: "data:image/png;base64,abc123",
     htmlContent: "<html></html>",
     notes: "",
-    linkedRubricIds: [],
     ...overrides,
   };
 }
@@ -28,40 +29,59 @@ function makeCapture(overrides?: Partial<Capture>): Capture {
 describe("session lifecycle", () => {
   beforeEach(() => {
     useSessionStore.setState({
+      status: "empty",
       session: null,
       captures: [],
       evaluations: [],
+      questionModes: {},
     });
   });
 
-  it("starts a session", () => {
+  it("starts a session via loadSession", () => {
     const store = useSessionStore.getState();
-    store.startSession(makeMetadata());
+    store.loadSession({
+      metadata: makeMetadata(),
+      captures: [],
+      evaluations: [],
+      questionModes: {},
+    });
 
     const state = useSessionStore.getState();
     expect(state.session).not.toBeNull();
     expect(state.session?.toolName).toBe("Test Tool");
     expect(state.captures).toEqual([]);
     expect(state.evaluations).toEqual([]);
+    expect(state.status).toBe("active");
   });
 
-  it("ends a session and clears all data", () => {
+  it("clears session and all data", () => {
     const store = useSessionStore.getState();
-    store.startSession(makeMetadata());
+    store.loadSession({
+      metadata: makeMetadata(),
+      captures: [],
+      evaluations: [],
+      questionModes: {},
+    });
     store.addCapture(makeCapture());
     store.setEvaluation("TR.data_source_clarity", { score: 3 });
 
-    store.endSession();
+    store.clear();
 
     const state = useSessionStore.getState();
     expect(state.session).toBeNull();
     expect(state.captures).toEqual([]);
     expect(state.evaluations).toEqual([]);
+    expect(state.status).toBe("empty");
   });
 
   it("updates metadata without replacing the whole session", () => {
     const store = useSessionStore.getState();
-    store.startSession(makeMetadata());
+    store.loadSession({
+      metadata: makeMetadata(),
+      captures: [],
+      evaluations: [],
+      questionModes: {},
+    });
     store.updateMetadata({ company: "Acme Corp", pricing: "Free" });
 
     const state = useSessionStore.getState();
@@ -81,9 +101,11 @@ describe("session lifecycle", () => {
 describe("capture management", () => {
   beforeEach(() => {
     useSessionStore.setState({
+      status: "empty",
       session: null,
       captures: [],
       evaluations: [],
+      questionModes: {},
     });
   });
 
@@ -134,9 +156,11 @@ describe("capture management", () => {
 describe("evaluation management", () => {
   beforeEach(() => {
     useSessionStore.setState({
+      status: "empty",
       session: null,
       captures: [],
       evaluations: [],
+      questionModes: {},
     });
   });
 
@@ -189,23 +213,24 @@ describe("evaluation management", () => {
   });
 });
 
-describe("bi-directional capture ↔ rubric linking", () => {
+describe("capture ↔ rubric linking (single-direction)", () => {
   beforeEach(() => {
     useSessionStore.setState({
+      status: "empty",
       session: null,
       captures: [],
       evaluations: [],
+      questionModes: {},
     });
   });
 
-  it("linkCaptureToRubric updates both capture and evaluation", () => {
+  it("linkCaptureToRubric updates evaluation with capture reference", () => {
     const store = useSessionStore.getState();
     store.addCapture(makeCapture({ id: "cap-1" }));
 
     store.linkCaptureToRubric("cap-1", "TR.data_source_clarity");
 
     const state = useSessionStore.getState();
-    expect(state.captures[0].linkedRubricIds).toContain("TR.data_source_clarity");
 
     const ev = state.evaluations.find((e) => e.rubricId === "TR.data_source_clarity");
     expect(ev).toBeDefined();
@@ -240,11 +265,10 @@ describe("bi-directional capture ↔ rubric linking", () => {
     store.linkCaptureToRubric("cap-1", "TR.data_source_clarity");
 
     const state = useSessionStore.getState();
-    expect(state.captures[0].linkedRubricIds).toHaveLength(1);
     expect(state.evaluations[0].explicitEvidenceIds).toHaveLength(1);
   });
 
-  it("unlinkCaptureFromRubric removes from both sides", () => {
+  it("unlinkCaptureFromRubric removes capture from evaluation", () => {
     const store = useSessionStore.getState();
     store.addCapture(makeCapture({ id: "cap-1" }));
     store.linkCaptureToRubric("cap-1", "TR.data_source_clarity");
@@ -252,7 +276,6 @@ describe("bi-directional capture ↔ rubric linking", () => {
     store.unlinkCaptureFromRubric("cap-1", "TR.data_source_clarity");
 
     const state = useSessionStore.getState();
-    expect(state.captures[0].linkedRubricIds).not.toContain("TR.data_source_clarity");
     expect(state.evaluations[0].explicitEvidenceIds).toHaveLength(0);
   });
 
@@ -264,7 +287,48 @@ describe("bi-directional capture ↔ rubric linking", () => {
     store.linkCaptureToRubric("cap-1", "RE.variance_consistency");
 
     const state = useSessionStore.getState();
-    expect(state.captures[0].linkedRubricIds).toHaveLength(2);
     expect(state.evaluations).toHaveLength(2);
+  });
+});
+
+describe("status and question mode management", () => {
+  beforeEach(() => {
+    useSessionStore.setState({
+      status: "empty",
+      session: null,
+      captures: [],
+      evaluations: [],
+      questionModes: {},
+    });
+  });
+
+  it("setStatus updates status", () => {
+    const store = useSessionStore.getState();
+    expect(store.status).toBe("empty");
+
+    store.setStatus("loading");
+    expect(useSessionStore.getState().status).toBe("loading");
+
+    store.setStatus("active");
+    expect(useSessionStore.getState().status).toBe("active");
+  });
+
+  it("setQuestionMode stores mode per rubricId", () => {
+    const store = useSessionStore.getState();
+    store.setQuestionMode("TR.data_source_clarity", "expert");
+    store.setQuestionMode("RE.accuracy_and_hallucination", "standard");
+
+    const state = useSessionStore.getState();
+    expect(state.questionModes["TR.data_source_clarity"]).toBe("expert");
+    expect(state.questionModes["RE.accuracy_and_hallucination"]).toBe("standard");
+  });
+
+  it("getQuestionMode returns current mode (via state)", () => {
+    const store = useSessionStore.getState();
+    store.setQuestionMode("TR.data_source_clarity", "expert");
+
+    const state = useSessionStore.getState();
+    expect(state.questionModes["TR.data_source_clarity"]).toBe("expert");
+    expect(state.questionModes["RE.accuracy_and_hallucination"]).toBeUndefined();
   });
 });

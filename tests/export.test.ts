@@ -15,11 +15,13 @@ function parseCsv(csv: string): CsvRow[] {
 
 function makeMetadata(overrides?: Partial<SessionMetadata>): SessionMetadata {
   return {
+    id: crypto.randomUUID(),
     toolName: "TestSearch",
     toolUrl: "https://testsearch.example.com",
     startTime: "2025-06-15T10:00:00.000Z",
     company: "TestCorp",
     pricing: "Free",
+    status: "started",
     ...overrides,
   };
 }
@@ -37,7 +39,6 @@ function makeCapture(overrides?: Partial<Capture>): Capture {
     screenshotBase64: TINY_PNG,
     htmlContent: "<html><body>Test page</body></html>",
     notes: "",
-    linkedRubricIds: [],
     ...overrides,
   };
 }
@@ -144,20 +145,19 @@ describe("exportSession", () => {
     expect(rows[0].Linked_Capture_IDs).toBe("cap-001; cap-002");
   });
 
-  it("falls back to capture.linkedRubricIds when explicitEvidenceIds is empty", async () => {
+  it("populates Linked_Capture_IDs from explicitEvidenceIds only", async () => {
     const c1 = makeCapture({ id: "cap-001" });
-    const c1Linked = { ...c1, linkedRubricIds: ["TR.data_source_clarity"] };
 
     const evaluations: Evaluation[] = [
       {
         rubricId: "TR.data_source_clarity",
         score: 2,
         notes: "",
-        explicitEvidenceIds: [],
+        explicitEvidenceIds: ["cap-001"],
       },
     ];
 
-    const blob = await exportSession(makeMetadata(), [c1Linked], evaluations, RUBRIC);
+    const blob = await exportSession(makeMetadata(), [c1], evaluations, RUBRIC);
     const files = await unzipToFiles(blob);
     const csv = files.get("rubric_scores.csv") as string;
 
@@ -169,7 +169,6 @@ describe("exportSession", () => {
     const c = makeCapture({
       id: "cap-001",
       notes: "Homepage screenshot",
-      linkedRubricIds: ["TR.data_source_clarity"],
     });
 
     const blob = await exportSession(makeMetadata(), [c], [], RUBRIC);
@@ -180,7 +179,6 @@ describe("exportSession", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].Capture_ID).toBe("cap-001");
     expect(rows[0].User_Notes).toBe("Homepage screenshot");
-    expect(rows[0].Tagged_Rubric_IDs).toBe("TR.data_source_clarity");
   });
 
   it("includes a PDF report", async () => {
