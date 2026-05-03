@@ -5,7 +5,7 @@ import { RubricContext } from "@/lib/rubric-context";
 import { migrateLegacySession } from "@/lib/session-storage";
 import AppShell from "./AppShell";
 import ActiveSession from "./ActiveSession";
-import SessionInit from "./SessionInit";
+import SessionManager from "./SessionManager";
 
 export default function App() {
   const [migrationReady, setMigrationReady] = useState(false);
@@ -33,7 +33,7 @@ export default function App() {
     if (!variant?.data) {
       return (
         <AppShell>
-          <SessionInit />
+          <SessionManager />
         </AppShell>
       );
     }
@@ -48,7 +48,7 @@ export default function App() {
 
   return (
     <AppShell>
-      <SessionInit />
+      <SessionManager />
     </AppShell>
   );
 }
