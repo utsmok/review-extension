@@ -168,7 +168,7 @@ export default function Evaluation() {
     <div className="flex flex-col gap-ut-4 p-ut-4">
       {/* Quality Gates */}
       <section>
-        <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-ut-navy mb-ut-2">
+        <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta mb-ut-2">
           Quality Gates
         </h2>
         <p className="text-ut-xs text-ut-slate mb-ut-2">
@@ -273,7 +273,7 @@ export default function Evaluation() {
 
       {/* Scoring Rubric */}
       <section>
-        <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-ut-navy mb-ut-2">
+        <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta mb-ut-2">
           Scoring Rubric
         </h2>
         <p className="text-ut-xs text-ut-slate mb-ut-2">Score each criterion on a 0–3 scale.</p>

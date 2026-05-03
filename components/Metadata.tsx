@@ -47,7 +47,7 @@ export default function Metadata() {
 
   return (
     <div className="flex flex-col gap-ut-3 p-ut-4">
-      <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-ut-navy">
+      <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta">
         Tool Details
       </h2>
 
@@ -56,7 +56,7 @@ export default function Metadata() {
           type="checkbox"
           checked={session.usesAi ?? true}
           onChange={(e) => updateMetadata({ usesAi: e.target.checked })}
-          className="w-4 h-4 rounded border-ut-border text-ut-blue focus:ring-ut-blue"
+          className="w-4 h-4 rounded-ut-sm border-ut-border text-ut-blue focus:ring-ut-blue"
         />
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
           Tool uses AI / LLM
@@ -161,7 +161,7 @@ export default function Metadata() {
 
         <button
           type="button"
-          className="w-full bg-ut-darkblue text-white rounded-ut-sm px-ut-4 py-ut-3 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase hover:bg-ut-navy disabled:opacity-50 transition-colors"
+          className="w-full bg-trust-magenta text-white rounded-ut-sm px-ut-4 py-ut-3 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase hover:bg-trust-magenta-strong disabled:opacity-50 transition-colors"
           disabled={exporting}
           onClick={handleExport}
         >

@@ -40,7 +40,7 @@ export default function ActiveSession() {
 
       <header className="bg-ut-white border-b-2 border-ut-border px-ut-4 py-ut-2 flex items-center justify-between">
         <div>
-          <h1 className="text-ut-md font-heading font-bold text-ut-navy">{session?.toolName}</h1>
+          <h1 className="text-ut-md font-heading font-bold text-trust-magenta">{session?.toolName}</h1>
           <p className="text-ut-xs text-ut-muted font-mono truncate max-w-60">{session?.toolUrl}</p>
         </div>
       </header>

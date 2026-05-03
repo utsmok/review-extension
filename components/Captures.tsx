@@ -31,7 +31,7 @@ export default function Captures() {
     <div className="flex flex-col gap-ut-3 p-ut-4">
       <button
         type="button"
-        className="bg-ut-darkblue text-white rounded-ut-sm px-ut-4 py-ut-2 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase hover:bg-ut-navy disabled:opacity-50 transition-colors"
+        className="bg-trust-magenta text-white rounded-ut-sm px-ut-4 py-ut-2 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase hover:bg-trust-magenta-strong disabled:opacity-50 transition-colors"
         disabled={capturing}
         onClick={handleCapture}
       >
