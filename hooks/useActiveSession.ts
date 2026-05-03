@@ -3,7 +3,7 @@ import { useSessionStore } from "@/stores/session";
 import { useRegistryStore } from "@/stores/registry";
 import { loadFromIDB, saveToIDB, saveToIDBFireAndForget } from "@/lib/session-storage";
 
-export function useActiveSession() {
+export function useActiveSession(migrationReady = true) {
   // --- State from both stores (individual selectors for re-render safety) ---
   const activeSessionId = useRegistryStore((s) => s.activeSessionId);
   const status = useSessionStore((s) => s.status);
@@ -14,8 +14,9 @@ export function useActiveSession() {
 
   // --- Lifecycle orchestration ---
 
-  // Effect 1: Load/save on activeSessionId change
+  // Effect 1: Load/save on activeSessionId change (gated on migration)
   useEffect(() => {
+    if (!migrationReady) return;
     if (activeSessionId && status === "empty") {
       useSessionStore.setState({ status: "loading" });
       const controller = new AbortController();
@@ -42,11 +43,11 @@ export function useActiveSession() {
       }
       useSessionStore.getState().clear();
     }
-  }, [activeSessionId]);
+  }, [activeSessionId, migrationReady]);
 
   // Effect 2: Debounced auto-save during active review
   useEffect(() => {
-    if (status !== "active" || !activeSessionId) return;
+    if (!migrationReady || status !== "active" || !activeSessionId) return;
 
     const timerRef = { current: undefined as ReturnType<typeof setTimeout> | undefined };
 
@@ -64,7 +65,7 @@ export function useActiveSession() {
       unsub();
       if (timerRef.current !== undefined) clearTimeout(timerRef.current);
     };
-  }, [activeSessionId, status]);
+  }, [activeSessionId, status, migrationReady]);
 
   // Effect 3: Flush on panel close / tab switch
   useEffect(() => {

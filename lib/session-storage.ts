@@ -106,10 +106,10 @@ export async function migrateLegacySession(): Promise<void> {
   }
 
   // Migrate questionModes: "basic" -> "standard"
-  const modes = (state.questionModes ?? {}) as Record<string, string>;
-  for (const key of Object.keys(modes)) {
-    if (modes[key] === "basic") modes[key] = "standard";
-  }
+  const rawModes = (state.questionModes ?? {}) as Record<string, string>;
+  const modes = Object.fromEntries(
+    Object.entries(rawModes).map(([k, v]) => [k, v === "basic" ? "standard" : v]),
+  );
 
   // Strip linkedRubricIds from captures (removed from Capture type)
   const rawCaptures = (state.captures ?? []) as Record<string, unknown>[];
@@ -131,7 +131,12 @@ export async function migrateLegacySession(): Promise<void> {
     questionModes: modes as SessionData["questionModes"],
   });
 
-  useRegistryStore.getState().addSession(metadata);
+  try {
+    useRegistryStore.getState().addSession(metadata);
+  } catch (err) {
+    console.error("Migration: registry write failed, will retry on next launch", err);
+    return;
+  }
 
   localStorage.removeItem("trust-review-session");
   localStorage.setItem("trust-review-migrated", "1");

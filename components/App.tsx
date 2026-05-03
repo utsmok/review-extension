@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { getRubricById } from "@/data/rubrics";
 import { RubricContext } from "@/lib/rubric-context";
@@ -7,11 +7,15 @@ import ActiveSession from "./ActiveSession";
 import SessionInit from "./SessionInit";
 
 export default function App() {
-  const { session } = useActiveSession();
+  const [migrationReady, setMigrationReady] = useState(false);
 
   useEffect(() => {
-    migrateLegacySession();
+    migrateLegacySession()
+      .catch((err) => console.error("Legacy migration failed:", err))
+      .finally(() => setMigrationReady(true));
   }, []);
+
+  const { session } = useActiveSession(migrationReady);
 
   if (!session) return <SessionInit />;
 
