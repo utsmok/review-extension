@@ -7,7 +7,6 @@ import { useRegistryStore } from "@/stores/registry";
 export default function SessionInit() {
   const loadSession = useSessionStore((s) => s.loadSession);
   const addSession = useRegistryStore((s) => s.addSession);
-  const setActiveSessionId = useRegistryStore((s) => s.setActiveSessionId);
   const [toolName, setToolName] = useState("");
   const [toolUrl, setToolUrl] = useState("");
   const [rubricId, setRubricId] = useState(RUBRIC_VARIANTS[0].id);
@@ -27,7 +26,6 @@ export default function SessionInit() {
       status: "started" as const,
     };
     addSession(metadata);
-    setActiveSessionId(id);
     loadSession({
       metadata,
       captures: [],

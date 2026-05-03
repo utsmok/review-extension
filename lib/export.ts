@@ -2,11 +2,6 @@ import { getCategoryLabel, getQuestionCode } from "./rubric";
 import { buildPdfSummaryPage } from "./nutrition-label";
 import type { Capture, Evaluation, RubricData, SessionMetadata } from "./types";
 
-/** Derive capture IDs linked to a rubric question (evaluation-side only). */
-function getLinkedIds(ev: Evaluation): string[] {
-  return ev.explicitEvidenceIds;
-}
-
 export async function exportSession(
   metadata: SessionMetadata,
   captures: Capture[],
@@ -53,7 +48,7 @@ export async function exportSession(
     Papa.unparse(
       evaluations.map((e) => {
         const [category] = e.rubricId.split(".");
-        const linkedIds = getLinkedIds(e);
+        const linkedIds = e.explicitEvidenceIds;
         return {
           Rubric_Category: getCategoryLabel(category),
           Question_ID: e.rubricId,

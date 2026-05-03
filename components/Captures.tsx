@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { captureActiveTab } from "@/lib/capture";
 import { getAccentKey, getCategoryLabel, getQuestionCode, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import { useRubric } from "@/lib/rubric-context";
@@ -15,6 +15,14 @@ export default function Captures() {
   const unlinkCaptureFromRubric = useSessionStore((s) => s.unlinkCaptureFromRubric);
   const [capturing, setCapturing] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+
+  const linkedIdsMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const c of captures) {
+      map.set(c.id, getLinkedRubricIdsForCapture(c.id, evaluations));
+    }
+    return map;
+  }, [captures, evaluations]);
 
   const handleCapture = async () => {
     setCapturing(true);
@@ -46,7 +54,7 @@ export default function Captures() {
       )}
 
       {[...captures].reverse().map((capture) => {
-        const linkedRubricIds = getLinkedRubricIdsForCapture(capture.id, evaluations);
+        const linkedRubricIds = linkedIdsMap.get(capture.id) ?? [];
 
         return (
           <div key={capture.id} className="border border-ut-border overflow-hidden bg-ut-white">

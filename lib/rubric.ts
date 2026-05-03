@@ -1,4 +1,4 @@
-import type { RubricData } from "./types";
+import type { Evaluation, RubricData } from "./types";
 
 export function getRubricQuestionIds(rubric: RubricData): string[] {
   const ids: string[] = [];
@@ -56,8 +56,6 @@ export function getCategoryLabel(categoryId: string): string {
   };
   return labels[categoryId] ?? categoryId;
 }
-
-import type { Evaluation } from "./types";
 
 export function computeCompletion(evaluations: Evaluation[], rubric: RubricData): number {
   const totalQuestions = getRubricQuestionIds(rubric).length;
