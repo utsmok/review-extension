@@ -4,6 +4,51 @@
   "title": "Design System: TRUST Review Extension",
   "extensions": {
     "colorMeta": {
+      "trust-magenta": {
+        "role": "primary",
+        "displayName": "TRUST Magenta",
+        "canonical": "oklch(35% 0.2 330)",
+        "tonalRamp": [
+          "oklch(15% 0.18 330)",
+          "oklch(22% 0.2 330)",
+          "oklch(28% 0.2 330)",
+          "oklch(35% 0.2 330)",
+          "oklch(45% 0.18 330)",
+          "oklch(58% 0.14 330)",
+          "oklch(75% 0.06 330)",
+          "oklch(93% 0.01 330)"
+        ]
+      },
+      "lisa-red": {
+        "role": "organizational",
+        "displayName": "LISA-EIS Red",
+        "canonical": "oklch(42% 0.16 15)",
+        "tonalRamp": [
+          "oklch(18% 0.14 15)",
+          "oklch(26% 0.16 15)",
+          "oklch(34% 0.16 15)",
+          "oklch(42% 0.16 15)",
+          "oklch(52% 0.14 15)",
+          "oklch(65% 0.1 15)",
+          "oklch(80% 0.04 15)",
+          "oklch(95% 0.01 15)"
+        ]
+      },
+      "eis-teal": {
+        "role": "organizational",
+        "displayName": "LISA-EIS Teal",
+        "canonical": "oklch(38% 0.1 180)",
+        "tonalRamp": [
+          "oklch(15% 0.08 180)",
+          "oklch(22% 0.1 180)",
+          "oklch(30% 0.1 180)",
+          "oklch(38% 0.1 180)",
+          "oklch(48% 0.09 180)",
+          "oklch(60% 0.07 180)",
+          "oklch(76% 0.04 180)",
+          "oklch(94% 0.01 180)"
+        ]
+      },
       "navy-primary": {
         "role": "primary",
         "displayName": "UT Navy",
@@ -246,6 +291,10 @@
       }
     },
     "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Brand-visible display contexts: SessionInit hero subtitle, TRUST wordmark adjacent text. Nunito Sans at weight 800-900. Wider proportions require breathing room — not for dense working surfaces."
+      },
       "heading": {
         "displayName": "Heading",
         "purpose": "Section headers, category labels. Always uppercase in heading font (Arial Narrow)."
@@ -294,9 +343,9 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Navy CTA button for primary actions (Start Session, Export Report).",
+      "description": "TRUST Magenta CTA button for primary actions (Start Session, Export Report).",
       "html": "<button class=\"ds-btn-primary\">EXPORT REPORT</button>",
-      "css": ".ds-btn-primary { background: #002c5f; color: #fff; padding: 8px 16px; border: none; border-radius: 2px; font-family: \"Arial Narrow\", Arial, sans-serif; font-weight: 700; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.02em; cursor: pointer; transition: background 200ms; } .ds-btn-primary:hover { background: #001a3a; } .ds-btn-primary:focus-visible { outline: 2px solid #007d9c; outline-offset: 2px; }"
+      "css": ".ds-btn-primary { background: #8e036c; color: #fff; padding: 8px 16px; border: none; border-radius: 2px; font-family: \"Arial Narrow\", Arial, sans-serif; font-weight: 700; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.02em; cursor: pointer; transition: background 200ms; } .ds-btn-primary:hover { background: #6a0254; } .ds-btn-primary:focus-visible { outline: 2px solid #007d9c; outline-offset: 2px; }"
     },
     {
       "name": "Danger Button",
@@ -344,7 +393,7 @@
       "refersTo": "button-primary",
       "description": "Horizontal tab navigation for switching between Captures, Evaluation, and Metadata panels.",
       "html": "<nav class=\"ds-tab-bar\"><button class=\"ds-tab ds-tab-active\">CAPTURES</button><button class=\"ds-tab\">EVALUATION</button><button class=\"ds-tab\">METADATA</button></nav>",
-      "css": ".ds-tab-bar { display: flex; border-bottom: 2px solid #bfc6cf; } .ds-tab { flex: 1; padding: 10px 8px; border: none; background: none; font-family: \"Arial Narrow\", Arial, sans-serif; font-weight: 700; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: #576578; cursor: pointer; border-bottom: 3px solid transparent; transition: color 200ms; margin-bottom: -2px; } .ds-tab:hover { color: #172033; } .ds-tab-active { color: #002c5f; border-bottom-color: #002c5f; } .ds-tab:focus-visible { outline: 2px solid #007d9c; outline-offset: -2px; }"
+      "css": ".ds-tab-bar { display: flex; border-bottom: 2px solid #bfc6cf; } .ds-tab { flex: 1; padding: 10px 8px; border: none; background: none; font-family: \"Arial Narrow\", Arial, sans-serif; font-weight: 700; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: #576578; cursor: pointer; border-bottom: 3px solid transparent; transition: color 200ms; margin-bottom: -2px; } .ds-tab:hover { color: #172033; } .ds-tab-active { color: #8e036c; border-bottom-color: #8e036c; } .ds-tab:focus-visible { outline: 2px solid #007d9c; outline-offset: -2px; }"
     },
     {
       "name": "Judgment Selector",
@@ -357,14 +406,14 @@
   ],
   "narrative": {
     "northStar": "The Review Bench",
-    "overview": "A bench-side evaluation instrument: sharp borders, monospace metadata, evidence pinned directly to observations. The side panel feels like a structured lab notebook open alongside the specimen under review. Not a consumer app, not a dashboard: a focused work surface for methodical scoring.\n\nThe system is flat and dense by design. Shadows are absent; depth comes from background tint differentiation and border weight variation. Border radius is near-zero (0 to 2px), a deliberate rejection of rounded-card aesthetics in favor of regimented functionalism. The University of Twente navy anchor (#002c5f) carries institutional authority without decoration.\n\nFive TRUST principle colors (blue, green, violet, orange, teal) encode rubric categories visually, making review state scannable at a glance. Score-level colors (red through green) encode evaluation outcomes on a 0-3 spectrum. Both systems use data attributes to drive coloring through CSS custom properties, keeping JSX minimal and the visual system declarative.",
+    "overview": "A bench-side evaluation instrument: sharp borders, monospace metadata, evidence pinned directly to observations. The side panel feels like a structured lab notebook open alongside the specimen under review. Not a consumer app, not a dashboard: a focused work surface for methodical scoring.\n\nThe system is flat and dense by design. Shadows are absent; depth comes from background tint differentiation and border weight variation. Border radius is near-zero (0 to 2px), a deliberate rejection of rounded-card aesthetics in favor of regimented functionalism. Navy (#002c5f) carries institutional structure for body text and backgrounds, while TRUST Magenta (#8e036c) serves as the framework identity — primary buttons, top accent bar, section headers, and wordmark.\n\nFive TRUST principle colors (blue, green, violet, orange, teal) encode rubric categories visually, making review state scannable at a glance. Score-level colors (red through green) encode evaluation outcomes on a 0-3 spectrum. Both systems use data attributes to drive coloring through CSS custom properties, keeping JSX minimal and the visual system declarative.",
     "keyCharacteristics": [
       "Flat, no shadows; tonal layering through tinted backgrounds only",
       "Near-zero border radius (0-2px) across all surfaces",
       "Dense layout optimized for browser side-panel viewport (320-400px)",
       "Data-attribute-driven accent coloring per TRUST principle",
       "Score-level semantic color ramp (red to green) for evaluation state",
-      "Three font families with distinct roles: heading (condensed), body (humanist), mono (technical)"
+      "Four font families with distinct roles: display (Nunito Sans, brand-visible), heading (condensed), body (humanist), mono (technical)"
     ],
     "rules": [
       {

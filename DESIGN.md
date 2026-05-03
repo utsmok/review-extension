@@ -2,6 +2,12 @@
 name: TRUST Review Extension
 description: Browser extension for systematic evaluation of academic search tools against the TRUST framework
 colors:
+  trust-magenta: "#8e036c"
+  trust-magenta-strong: "#6a0254"
+  trust-magenta-tint: "#fbeef5"
+  trust-magenta-border: "#c991ab"
+  lisa-red: "#ab2b44"
+  eis-teal: "#005c53"
   navy-primary: "#002c5f"
   ut-blue: "#007d9c"
   ut-red: "#c60c30"
@@ -23,6 +29,10 @@ colors:
   score-fair: "#0e7490"
   score-good: "#4a8355"
 typography:
+  display:
+    fontFamily: "Nunito Sans, Arial Narrow, sans-serif"
+    fontWeight: 800
+    letterSpacing: "0.08em"
   heading:
     fontFamily: "Arial Narrow, Arial, sans-serif"
     fontWeight: 700
@@ -54,12 +64,12 @@ spacing:
   "8": "32px"
 components:
   button-primary:
-    backgroundColor: "{colors.navy-primary}"
+    backgroundColor: "{colors.trust-magenta}"
     textColor: "#ffffff"
     rounded: "{rounded.md}"
     padding: "8px 16px"
   button-primary-hover:
-    backgroundColor: "#001a3a"
+    backgroundColor: "#6a0254"
   button-danger:
     backgroundColor: "{colors.ut-red}"
     textColor: "#ffffff"
@@ -85,7 +95,7 @@ components:
 
 A bench-side evaluation instrument: sharp borders, monospace metadata, evidence pinned directly to observations. The side panel feels like a structured lab notebook open alongside the specimen under review. Not a consumer app, not a dashboard: a focused work surface for methodical scoring.
 
-The system is flat and dense by design. Shadows are absent; depth comes from background tint differentiation and border weight variation. Border radius is near-zero (0 to 2px), a deliberate rejection of rounded-card aesthetics in favor of regimented functionalism. The University of Twente navy anchor (#002c5f) carries institutional authority without decoration.
+The system is flat and dense by design. Shadows are absent; depth comes from background tint differentiation and border weight variation. Border radius is near-zero (0 to 2px), a deliberate rejection of rounded-card aesthetics in favor of regimented functionalism. Navy (#002c5f) carries institutional structure for body text and backgrounds, while TRUST Magenta (#8e036c) serves as the framework identity — primary buttons, top accent bar, section headers, and wordmark.
 
 Five TRUST principle colors (blue, green, violet, orange, teal) encode rubric categories visually, making review state scannable at a glance. Score-level colors (red through green) encode evaluation outcomes on a 0-3 spectrum. Both systems use data attributes (`data-accent-key`, `data-score`) to drive coloring through CSS custom properties, keeping JSX minimal and the visual system declarative.
 
@@ -95,20 +105,26 @@ Five TRUST principle colors (blue, green, violet, orange, teal) encode rubric ca
 - Dense layout optimized for browser side-panel viewport (320-400px)
 - Data-attribute-driven accent coloring per TRUST principle
 - Score-level semantic color ramp (red to green) for evaluation state
-- Three font families with distinct roles: heading (condensed), body (humanist), mono (technical)
+- Four font families with distinct roles: display (Nunito Sans, brand-visible), heading (condensed), body (humanist), mono (technical)
 
 ## 2. Colors
 
 A navy-anchored palette with five categorical accents for TRUST principles and a four-step semantic ramp for score levels. Neutrals are tinted toward the brand navy, not pure gray.
 
 ### Primary
-- **UT Navy** (#002c5f): The institutional anchor. Used for top accent bar, section headers, primary buttons, and the dominant brand presence. Carries the University of Twente identity.
+- **TRUST Magenta** (#8e036c): The framework identity. Used for top accent bar, section headers, primary buttons, wordmark rendering, and the dominant brand presence. The signature that says "this is a TRUST tool."
 
 ### Secondary
-- **Teal-Blue** (#007d9c): Interactive accent. Links, focus rings, and secondary interactive elements. Distinct from navy but within the same cool family to avoid palette fragmentation.
+- **UT Navy** (#002c5f): The institutional anchor. Body text, panel backgrounds, structural borders, input fields, neutral surfaces. Holds the instrument together — readable, professional, recedes to let content breathe.
 
 ### Tertiary
-- **TRUST Transparent Blue** (#2563eb): Accent for T_transparent category rubric items and scoring sections.
+- **Teal-Blue** (#007d9c): Interactive accent. Links, focus rings, and secondary interactive elements.
+
+### Organizational
+- **LISA-EIS Red** (#ab2b44): Organizational secondary. Footer attribution, export credits only.
+- **LISA-EIS Teal** (#005c53): Organizational secondary. Paired with LISA-EIS Red in footer contexts.
+
+### Principle Accents
 - **TRUST Reliable Green** (#16a34a): Accent for R_reliable category.
 - **TRUST User-Centric Violet** (#9333ea): Accent for U_user_centric category.
 - **TRUST Secure Orange** (#ea580c): Accent for S_secure category.
@@ -139,11 +155,14 @@ Each score color also generates tint (10% + white) and border (24% + border gray
 
 ## 3. Typography
 
-**Display/Heading Font:** Arial Narrow (system, condensed sans-serif)
+**Display Font:** Nunito Sans (Google Fonts, humanist sans-serif, weight 800-900)
+**Heading Font:** Arial Narrow (system, condensed sans-serif)
 **Body Font:** Inter (Google Fonts, humanist sans-serif)
 **Label/Mono Font:** JetBrains Mono (Google Fonts, monospace)
 
-**Character:** A three-way split that mirrors the evaluation workflow. Arial Narrow condensed headings pack dense uppercase labels into the side-panel constraint. Inter body text keeps prose descriptions readable at small sizes with generous line height (1.55). JetBrains Mono marks metadata, IDs, and technical labels as machine-readable, distinguishing data from narrative.
+**Character:** A four-way split. Nunito Sans is reserved for brand-visible display contexts — the SessionInit hero subtitle, TRUST wordmark adjacent text — where its wider proportions get breathing room. Arial Narrow condensed headings pack dense uppercase labels into the side-panel constraint for all working surfaces. Inter body text keeps prose descriptions readable at small sizes with generous line height (1.55). JetBrains Mono marks metadata, IDs, and technical labels as machine-readable, distinguishing data from narrative.
+
+Nunito Sans applies only to: SessionInit hero text, any screen where the TRUST wordmark appears adjacent to text. All inline section headers, tab labels, kicker labels, field labels, and button text continue using Arial Narrow.
 
 ### Hierarchy
 - **Heading** (700, 1.563rem, tracking 0.03em, uppercase): Panel section headers ("Quality Gates", "Scoring Rubric"). Always uppercase in heading font. Sets structural rhythm.
@@ -170,8 +189,8 @@ Components are structured but approachable: flat borders, tinted backgrounds, an
 
 ### Buttons
 - **Shape:** Sharp edges (2px radius)
-- **Primary:** Navy (#002c5f) background, white text, uppercase heading font, tracking 0.02em. Padding 8px 16px.
-- **Hover:** Darkens navy via `color-mix(88% + black)`. Transition 200ms.
+- **Primary:** TRUST Magenta (#8e036c) background, white text, uppercase heading font, tracking 0.02em. Padding 8px 16px.
+- **Hover:** Darkens magenta via `color-mix(88% + black)` to #6a0254. Transition 200ms.
 - **Focus:** 2px outline in teal-blue (#007d9c).
 - **Danger:** Red (#c60c30) background, white text. Used for destructive actions (discard session).
 - **Ghost/Link:** Teal-blue text, no background. Uppercase mono, tracking 0.02em. Used for "Capture Evidence" links.
@@ -198,7 +217,7 @@ Components are structured but approachable: flat borders, tinted backgrounds, an
 - **Shape:** Full-width tab buttons in a horizontal bar
 - **Typography:** Uppercase heading font, tracking 0.08em (panel-title spacing)
 - **Default:** Muted text, no border
-- **Active:** Navy text, 3px bottom border in navy
+- **Active:** Magenta text, 3px bottom border in magenta
 - **Hover:** Text darkens
 
 ### Rating Scale (Signature Component)
@@ -218,7 +237,7 @@ A two-option radio group for quality gate items.
 - **Driven by:** `data-judgment="pass|fail"` and `data-active="true|false"` attributes
 
 ### Top Accent Bar
-A sticky 5px bar at the top of the active session panel. Color transitions between TRUST principle accents as the reviewer navigates rubric sections. Uses `@property --top-accent-color` registration for smooth CSS color transitions.
+A sticky 5px bar at the top of the active session panel. Defaults to TRUST Magenta (#8e036c). Color transitions between TRUST principle accents as the reviewer navigates rubric sections. Uses `@property --top-accent-color` registration for smooth CSS color transitions.
 
 ## 6. Do's and Don'ts
 

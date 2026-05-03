@@ -18,6 +18,7 @@ pnpm typecheck        # type check
 - **React 19 + TailwindCSS 3** — side panel UI
 - **Zustand** — persistent session state (`stores/session.ts`)
 - **JSZip + pdfmake + papaparse** — export pipeline (`lib/export.ts`)
+- **Nunito Sans + Inter + Arial Narrow + JetBrains Mono** — 4-font type system (`display`, `heading`, `body`, `mono`)
 
 ## Architecture
 
@@ -30,7 +31,7 @@ entrypoints/
   sidepanel/main.tsx     React bootstrap
 components/
   App.tsx                routes SessionInit ↔ ActiveSession
-  SessionInit.tsx        start session form
+  SessionInit.tsx        start session form (centered hero layout, TRUST wordmark)
   ActiveSession.tsx      tab container (Captures / Evaluation / Metadata)
   Captures.tsx           capture list, notes, rubric tagging
   Evaluation.tsx         quality gates (pass/fail) + scoring rubric (0-3)
@@ -42,7 +43,20 @@ lib/
   rubric.ts              hardcoded TRUST rubric + helpers
   capture.ts             chrome.tabs.captureVisibleTab + DOM serialization
   export.ts              zip/pdf/csv generation pipeline
+public/
+  trust.svg / lisa-eis.svg  brand logos
+  icon-*.png                 extension icons (16–128px)
 ```
+
+## Design Tokens
+
+All colors and typography live in `lib/tokens.css` as CSS custom properties, surfaced through `tailwind.config.ts`. Key brand tokens:
+
+- **TRUST Magenta** (`--trust-magenta` `#8e036c`) — primary accent: buttons, headers, top bar, wordmark
+- **UT Navy** (`--ut-darkblue` `#002c5f`) — structural: body text, backgrounds, borders
+- **LISA-EIS Red/Teal** (`--lisa-red`, `--eis-teal`) — organizational secondary, footer only
+
+Four font families: `display` (Nunito Sans, brand hero), `heading` (Arial Narrow, uppercase labels), `body` (Inter, prose), `mono` (JetBrains Mono, metadata).
 
 ## Data Flow
 
@@ -57,6 +71,7 @@ lib/
 - All data stays local — no server calls
 - Zustand `persist` middleware uses localStorage for session continuity
 - Path alias `@/` maps to project root
+- Extension icons configured in `wxt.config.ts` under `manifest.action.default_icon`
 
 ## Rubric Structure
 
