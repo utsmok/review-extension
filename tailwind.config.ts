@@ -31,11 +31,18 @@ export default {
         "score-2": "var(--score-2)",
         "score-3": "var(--score-3)",
         "state-warning": "var(--state-warning)",
+        "trust-magenta": "var(--trust-magenta)",
+        "trust-magenta-strong": "var(--trust-magenta-strong)",
+        "trust-magenta-tint": "var(--trust-magenta-tint)",
+        "trust-magenta-border": "var(--trust-magenta-border)",
+        "lisa-red": "var(--lisa-red)",
+        "eis-teal": "var(--eis-teal)",
       },
       fontFamily: {
         body: ["var(--ff-body)"],
         heading: ["var(--ff-heading)"],
         mono: ["var(--ff-mono)"],
+        display: ["var(--ff-display)"],
       },
       fontSize: {
         "ut-xs": "var(--text-xs)",

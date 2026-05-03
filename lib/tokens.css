@@ -1,7 +1,7 @@
 @property --top-accent-color {
   syntax: "<color>";
   inherits: true;
-  initial-value: #002c5f;
+  initial-value: #8e036c;
 }
 
 :root {
@@ -13,7 +13,7 @@
   --ut-red: #c60c30;
   --ut-green: #4a8355;
   --ut-purple: #4f2d7f;
-  --ut-pink: #cf0072;
+
   --ut-grey: #eef0f3;
 
   --ut-offwhite: #f3f4f6;
@@ -33,6 +33,16 @@
   --se: #ea580c;
   --tc: #0d9488;
   --section-default: #64748b;
+
+  /* Framework Signature */
+  --trust-magenta: #8e036c;
+  --trust-magenta-strong: #6a0254;
+  --trust-magenta-tint: #fbeef5;
+  --trust-magenta-border: #c991ab;
+
+  /* Organizational Secondary */
+  --lisa-red: #ab2b44;
+  --eis-teal: #005c53;
 
   /* Section context families — control */
   --section-control-accent: var(--ut-darkblue);
@@ -135,6 +145,7 @@
   --ff-body: "Inter", ui-sans-serif, system-ui, sans-serif;
   --ff-heading: "Arial Narrow", Arial, sans-serif;
   --ff-mono: "JetBrains Mono", ui-monospace, monospace;
+  --ff-display: "Nunito Sans", "Inter", sans-serif;
 
   /* Neutral scale (navy-tinted) */
   --neutral-50: color-mix(in srgb, var(--ut-navy) 2%, var(--ut-white));
