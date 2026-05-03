@@ -1,14 +1,33 @@
+export type SessionStatus = "started" | "done";
+export type StoreStatus = "empty" | "loading" | "active";
+
+export interface Settings {
+  reviewerName: string;
+  reviewerEmail: string;
+  preferredRubric: string;
+}
+
 export interface SessionMetadata {
+  id: string;             // uuid
   toolName: string;
   toolUrl: string;
   startTime: string;
   rubricId?: string;
   usesAi?: boolean;
+  status: SessionStatus;
+  faviconUrl?: string;
   company?: string;
   pricing?: string;
   availability?: string;
   termsConditionsUrl?: string;
   notes?: string;
+}
+
+export interface SessionData {
+  metadata: SessionMetadata;
+  captures: Capture[];
+  evaluations: Evaluation[];
+  questionModes: Record<string, "expert" | "standard">;
 }
 
 export interface Capture {
@@ -20,7 +39,6 @@ export interface Capture {
   annotatedScreenshotBase64?: string;
   htmlContent: string;
   notes: string;
-  linkedRubricIds: string[];
 }
 
 export interface Evaluation {

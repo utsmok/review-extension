@@ -32,6 +32,5 @@ export async function captureActiveTab(): Promise<Capture> {
     screenshotBase64: screenshotUri,
     htmlContent: scriptResult?.html ?? "",
     notes: "",
-    linkedRubricIds: [],
   };
 }

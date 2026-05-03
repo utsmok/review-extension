@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { captureActiveTab } from "@/lib/capture";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import EvidenceModal from "@/components/EvidenceModal";
-import { getAccentKey, getCategoryLabel, getQuestionCode } from "@/lib/rubric";
+import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture, getQuestionCode } from "@/lib/rubric";
 import { useRubric } from "@/lib/rubric-context";
 import type { Capture, PassFailScore, RubricScore, ScoringQuestion } from "@/lib/types";
 import { useSessionStore } from "@/stores/session";
@@ -104,9 +104,9 @@ function EvidenceThumbnails({
 function getLevelDesc(
   levels: ScoringQuestion,
   val: number,
-  mode: "expert" | "basic",
+  mode: "expert" | "standard",
 ): string {
-  if (mode === "basic") {
+  if (mode === "standard") {
     const basicKey = `${val}_basic` as keyof ScoringQuestion;
     const basic = levels[basicKey];
     if (typeof basic === "string") return basic;
@@ -138,14 +138,15 @@ export default function Evaluation() {
   const captureMap = useMemo(() => {
     const map = new Map<string, Capture[]>();
     for (const c of captures) {
-      for (const rid of c.linkedRubricIds) {
+      const linkedIds = getLinkedRubricIdsForCapture(c.id, evaluations);
+      for (const rid of linkedIds) {
         const list = map.get(rid);
         if (list) list.push(c);
         else map.set(rid, [c]);
       }
     }
     return map;
-  }, [captures]);
+  }, [captures, evaluations]);
 
   const handleCaptureEvidence = async (rubricId: string) => {
     setCapturingFor(rubricId);
@@ -191,7 +192,7 @@ export default function Evaluation() {
               const hasEvidence = evidence.length > 0;
               const progress = getProgressState(hasScore, hasEvidence, hasNotes);
 
-              const requirement = mode === "basic" && question.basic_requirement
+              const requirement = mode === "standard" && question.basic_requirement
                 ? question.basic_requirement
                 : question.requirement;
 
@@ -213,10 +214,10 @@ export default function Evaluation() {
                       <button
                         type="button"
                         className="text-ut-xs text-ut-slate hover:text-ut-text font-mono uppercase tracking-ut-label ml-2 shrink-0"
-                        onClick={() => setQuestionMode(rubricId, mode === "expert" ? "basic" : "expert")}
-                        title={`Switch to ${mode === "expert" ? "basic" : "expert"} wording`}
+                        onClick={() => setQuestionMode(rubricId, mode === "expert" ? "standard" : "expert")}
+                        title={`Switch to ${mode === "expert" ? "standard" : "expert"} wording`}
                       >
-                        {mode === "expert" ? "Expert" : "Basic"}
+                        {mode === "expert" ? "Expert" : "Standard"}
                       </button>
                     </div>
 
@@ -311,10 +312,10 @@ export default function Evaluation() {
                       <button
                         type="button"
                         className="text-ut-xs text-ut-slate hover:text-ut-text font-mono uppercase tracking-ut-label shrink-0"
-                        onClick={() => setQuestionMode(rubricId, mode === "expert" ? "basic" : "expert")}
-                        title={`Switch to ${mode === "expert" ? "basic" : "expert"} wording`}
+                        onClick={() => setQuestionMode(rubricId, mode === "expert" ? "standard" : "expert")}
+                        title={`Switch to ${mode === "expert" ? "standard" : "expert"} wording`}
                       >
-                        {mode === "expert" ? "Expert" : "Basic"}
+                        {mode === "expert" ? "Expert" : "Standard"}
                       </button>
                     </div>
 

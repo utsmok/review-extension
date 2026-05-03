@@ -56,3 +56,17 @@ export function getCategoryLabel(categoryId: string): string {
   };
   return labels[categoryId] ?? categoryId;
 }
+
+import type { Evaluation } from "./types";
+
+export function computeCompletion(evaluations: Evaluation[], rubric: RubricData): number {
+  const totalQuestions = getRubricQuestionIds(rubric).length;
+  const scored = evaluations.filter((e) => e.score !== "" && e.score !== undefined).length;
+  return totalQuestions > 0 ? Math.round((scored / totalQuestions) * 100) : 0;
+}
+
+export function getLinkedRubricIdsForCapture(captureId: string, evaluations: Evaluation[]): string[] {
+  return evaluations
+    .filter((e) => e.explicitEvidenceIds.includes(captureId))
+    .map((e) => e.rubricId);
+}

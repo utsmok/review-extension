@@ -1,9 +1,13 @@
 import { type FormEvent, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { RUBRIC_VARIANTS } from "@/data/rubrics";
 import { useSessionStore } from "@/stores/session";
+import { useRegistryStore } from "@/stores/registry";
 
 export default function SessionInit() {
-  const startSession = useSessionStore((s) => s.startSession);
+  const loadSession = useSessionStore((s) => s.loadSession);
+  const addSession = useRegistryStore((s) => s.addSession);
+  const setActiveSessionId = useRegistryStore((s) => s.setActiveSessionId);
   const [toolName, setToolName] = useState("");
   const [toolUrl, setToolUrl] = useState("");
   const [rubricId, setRubricId] = useState(RUBRIC_VARIANTS[0].id);
@@ -12,12 +16,23 @@ export default function SessionInit() {
   const handleStart = (e: FormEvent) => {
     e.preventDefault();
     if (!toolName.trim() || !toolUrl.trim()) return;
-    startSession({
+    const id = uuidv4();
+    const metadata = {
+      id,
       toolName: toolName.trim(),
       toolUrl: toolUrl.trim(),
       startTime: new Date().toISOString(),
       rubricId,
       usesAi,
+      status: "started" as const,
+    };
+    addSession(metadata);
+    setActiveSessionId(id);
+    loadSession({
+      metadata,
+      captures: [],
+      evaluations: [],
+      questionModes: {},
     });
   };
 

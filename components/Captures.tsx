@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { captureActiveTab } from "@/lib/capture";
-import { getAccentKey, getCategoryLabel, getQuestionCode } from "@/lib/rubric";
+import { getAccentKey, getCategoryLabel, getQuestionCode, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import { useRubric } from "@/lib/rubric-context";
 import { useSessionStore } from "@/stores/session";
 
 export default function Captures() {
   const { rubric, usesAi } = useRubric();
   const captures = useSessionStore((s) => s.captures);
+  const evaluations = useSessionStore((s) => s.evaluations);
   const addCapture = useSessionStore((s) => s.addCapture);
   const updateCapture = useSessionStore((s) => s.updateCapture);
   const removeCapture = useSessionStore((s) => s.removeCapture);
@@ -44,130 +45,134 @@ export default function Captures() {
         </p>
       )}
 
-      {[...captures].reverse().map((capture) => (
-        <div key={capture.id} className="border border-ut-border overflow-hidden bg-ut-white">
-          <img
-            src={capture.annotatedScreenshotBase64 ?? capture.screenshotBase64}
-            alt={`Screenshot of ${capture.pageTitle || capture.sourceUrl}`}
-            loading="lazy"
-            className="w-full border-b border-ut-border cursor-pointer"
-            onClick={() => setExpanded(expanded === capture.id ? null : capture.id)}
-          />
+      {[...captures].reverse().map((capture) => {
+        const linkedRubricIds = getLinkedRubricIdsForCapture(capture.id, evaluations);
 
-          <div className="p-ut-2">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-ut-xs text-ut-muted font-mono truncate flex-1 mr-ut-2">
-                {capture.sourceUrl}
-              </p>
-              <button
-                type="button"
-                className="text-ut-xs text-ut-slate hover:text-ut-red shrink-0"
-                onClick={() => removeCapture(capture.id)}
-              >
-                Delete
-              </button>
-            </div>
-            {capture.pageTitle && (
-              <p className="text-ut-xs font-bold text-ut-text truncate mb-0.5">
-                {capture.pageTitle}
-              </p>
-            )}
-            <p className="text-ut-xs text-ut-slate">
-              {new Date(capture.timestamp).toLocaleString()} · {capture.linkedRubricIds.length} tag
-              {capture.linkedRubricIds.length !== 1 && "s"}
-            </p>
-
-            <textarea
-              className="w-full border border-ut-border rounded-ut-sm text-ut-xs p-ut-2 mt-ut-2 resize-y bg-ut-grey"
-              rows={2}
-              placeholder="Notes..."
-              value={capture.notes}
-              onChange={(e) => updateCapture(capture.id, { notes: e.target.value })}
+        return (
+          <div key={capture.id} className="border border-ut-border overflow-hidden bg-ut-white">
+            <img
+              src={capture.annotatedScreenshotBase64 ?? capture.screenshotBase64}
+              alt={`Screenshot of ${capture.pageTitle || capture.sourceUrl}`}
+              loading="lazy"
+              className="w-full border-b border-ut-border cursor-pointer"
+              onClick={() => setExpanded(expanded === capture.id ? null : capture.id)}
             />
 
-            {/* Rubric tagging */}
-            <details
-              open={expanded === capture.id}
-              className="mt-ut-2"
-              onToggle={(e) =>
-                setExpanded((e.target as HTMLDetailsElement).open ? capture.id : null)
-              }
-            >
-              <summary className="text-ut-xs font-heading font-bold uppercase tracking-ut-kicker text-ut-muted cursor-pointer hover:text-ut-navy">
-                Tag to rubric items ({capture.linkedRubricIds.length})
-              </summary>
-
-              <div className="mt-1 space-y-1.5">
-                {/* Quality Gates */}
-                <div>
-                  <p className="section-kicker mb-1">Quality Gates</p>
-                  {Object.entries(rubric.quality_gate).map(([cat, questions]) => (
-                    <div key={cat} className="ml-ut-1 mb-1" data-accent-key="control">
-                      <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
-                      <div className="flex flex-wrap gap-1">
-                        {Object.entries(questions).map(([qId, question], qIdx) => {
-                          const rubricId = `${cat}.${qId}`;
-                          const linked = capture.linkedRubricIds.includes(rubricId);
-                          const isAutoNa = (question.ai_only ?? false) && !usesAi;
-                          return (
-                            <button
-                              key={rubricId}
-                              className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"} ${isAutoNa ? "opacity-40" : ""}`}
-                              data-linked={linked ? "true" : "false"}
-                              aria-label={`${getQuestionCode(cat, qIdx)} ${question.title} ${linked ? "linked" : "unlinked"}`}
-                              title={isAutoNa ? "Not applicable — non-AI tool" : question.title}
-                              onClick={() =>
-                                linked
-                                  ? unlinkCaptureFromRubric(capture.id, rubricId)
-                                  : linkCaptureToRubric(capture.id, rubricId)
-                              }
-                            >
-                              {getQuestionCode(cat, qIdx)}{isAutoNa ? "⁂" : ""}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Scoring Rubric */}
-                <div>
-                  <p className="section-kicker mb-1">Scoring Rubric</p>
-                  {Object.entries(rubric.scoring_rubric).map(([cat, questions]) => (
-                    <div key={cat} className="ml-ut-1 mb-1" data-accent-key={getAccentKey(cat)}>
-                      <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
-                      <div className="flex flex-wrap gap-1">
-                        {Object.entries(questions).map(([qId, question], qIdx) => {
-                          const rubricId = `${cat}.${qId}`;
-                          const linked = capture.linkedRubricIds.includes(rubricId);
-                          const isAutoNa = (question.ai_only ?? false) && !usesAi;
-                          return (
-                            <button
-                              key={rubricId}
-                              className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"} ${isAutoNa ? "opacity-40" : ""}`}
-                              data-linked={linked ? "true" : "false"}
-                              aria-label={`${getQuestionCode(cat, qIdx)} ${question.title} ${linked ? "linked" : "unlinked"}`}
-                              title={isAutoNa ? "Not applicable — non-AI tool" : question.title}
-                              onClick={() =>
-                                linked
-                                  ? unlinkCaptureFromRubric(capture.id, rubricId)
-                                  : linkCaptureToRubric(capture.id, rubricId)
-                              }
-                            >
-                              {getQuestionCode(cat, qIdx)}{isAutoNa ? "⁂" : ""}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            <div className="p-ut-2">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-ut-xs text-ut-muted font-mono truncate flex-1 mr-ut-2">
+                  {capture.sourceUrl}
+                </p>
+                <button
+                  type="button"
+                  className="text-ut-xs text-ut-slate hover:text-ut-red shrink-0"
+                  onClick={() => removeCapture(capture.id)}
+                >
+                  Delete
+                </button>
               </div>
-            </details>
+              {capture.pageTitle && (
+                <p className="text-ut-xs font-bold text-ut-text truncate mb-0.5">
+                  {capture.pageTitle}
+                </p>
+              )}
+              <p className="text-ut-xs text-ut-slate">
+                {new Date(capture.timestamp).toLocaleString()} · {linkedRubricIds.length} tag
+                {linkedRubricIds.length !== 1 && "s"}
+              </p>
+
+              <textarea
+                className="w-full border border-ut-border rounded-ut-sm text-ut-xs p-ut-2 mt-ut-2 resize-y bg-ut-grey"
+                rows={2}
+                placeholder="Notes..."
+                value={capture.notes}
+                onChange={(e) => updateCapture(capture.id, { notes: e.target.value })}
+              />
+
+              {/* Rubric tagging */}
+              <details
+                open={expanded === capture.id}
+                className="mt-ut-2"
+                onToggle={(e) =>
+                  setExpanded((e.target as HTMLDetailsElement).open ? capture.id : null)
+                }
+              >
+                <summary className="text-ut-xs font-heading font-bold uppercase tracking-ut-kicker text-ut-muted cursor-pointer hover:text-ut-navy">
+                  Tag to rubric items ({linkedRubricIds.length})
+                </summary>
+
+                <div className="mt-1 space-y-1.5">
+                  {/* Quality Gates */}
+                  <div>
+                    <p className="section-kicker mb-1">Quality Gates</p>
+                    {Object.entries(rubric.quality_gate).map(([cat, questions]) => (
+                      <div key={cat} className="ml-ut-1 mb-1" data-accent-key="control">
+                        <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {Object.entries(questions).map(([qId, question], qIdx) => {
+                            const rubricId = `${cat}.${qId}`;
+                            const linked = linkedRubricIds.includes(rubricId);
+                            const isAutoNa = (question.ai_only ?? false) && !usesAi;
+                            return (
+                              <button
+                                key={rubricId}
+                                className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"} ${isAutoNa ? "opacity-40" : ""}`}
+                                data-linked={linked ? "true" : "false"}
+                                aria-label={`${getQuestionCode(cat, qIdx)} ${question.title} ${linked ? "linked" : "unlinked"}`}
+                                title={isAutoNa ? "Not applicable — non-AI tool" : question.title}
+                                onClick={() =>
+                                  linked
+                                    ? unlinkCaptureFromRubric(capture.id, rubricId)
+                                    : linkCaptureToRubric(capture.id, rubricId)
+                                }
+                              >
+                                {getQuestionCode(cat, qIdx)}{isAutoNa ? "⁂" : ""}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Scoring Rubric */}
+                  <div>
+                    <p className="section-kicker mb-1">Scoring Rubric</p>
+                    {Object.entries(rubric.scoring_rubric).map(([cat, questions]) => (
+                      <div key={cat} className="ml-ut-1 mb-1" data-accent-key={getAccentKey(cat)}>
+                        <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {Object.entries(questions).map(([qId, question], qIdx) => {
+                            const rubricId = `${cat}.${qId}`;
+                            const linked = linkedRubricIds.includes(rubricId);
+                            const isAutoNa = (question.ai_only ?? false) && !usesAi;
+                            return (
+                              <button
+                                key={rubricId}
+                                className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"} ${isAutoNa ? "opacity-40" : ""}`}
+                                data-linked={linked ? "true" : "false"}
+                                aria-label={`${getQuestionCode(cat, qIdx)} ${question.title} ${linked ? "linked" : "unlinked"}`}
+                                title={isAutoNa ? "Not applicable — non-AI tool" : question.title}
+                                onClick={() =>
+                                  linked
+                                    ? unlinkCaptureFromRubric(capture.id, rubricId)
+                                    : linkCaptureToRubric(capture.id, rubricId)
+                                }
+                              >
+                                {getQuestionCode(cat, qIdx)}{isAutoNa ? "⁂" : ""}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </details>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

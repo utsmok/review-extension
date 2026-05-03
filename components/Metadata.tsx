@@ -7,7 +7,7 @@ export default function Metadata() {
   const { rubric } = useRubric();
   const session = useSessionStore((s) => s.session);
   const updateMetadata = useSessionStore((s) => s.updateMetadata);
-  const endSession = useSessionStore((s) => s.endSession);
+  const clear = useSessionStore((s) => s.clear);
   const captures = useSessionStore((s) => s.captures);
   const evaluations = useSessionStore((s) => s.evaluations);
   const [exporting, setExporting] = useState(false);
@@ -25,7 +25,7 @@ export default function Metadata() {
       a.download = `TRUST_Review_${session.toolName}.zip`;
       a.click();
       URL.revokeObjectURL(url);
-      endSession();
+      clear();
     } catch (err) {
       console.error("Export failed:", err);
     } finally {
@@ -35,7 +35,7 @@ export default function Metadata() {
 
   const handleClearSession = () => {
     if (confirmClear) {
-      endSession();
+      clear();
       setConfirmClear(false);
     } else {
       setConfirmClear(true);

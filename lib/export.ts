@@ -2,10 +2,9 @@ import { getCategoryLabel, getQuestionCode } from "./rubric";
 import { buildPdfSummaryPage } from "./nutrition-label";
 import type { Capture, Evaluation, RubricData, SessionMetadata } from "./types";
 
-/** Derive capture IDs linked to a rubric question (both directions). */
-function getLinkedIds(ev: Evaluation, captures: Capture[]): string[] {
-  if (ev.explicitEvidenceIds.length > 0) return ev.explicitEvidenceIds;
-  return captures.filter((c) => c.linkedRubricIds.includes(ev.rubricId)).map((c) => c.id);
+/** Derive capture IDs linked to a rubric question (evaluation-side only). */
+function getLinkedIds(ev: Evaluation): string[] {
+  return ev.explicitEvidenceIds;
 }
 
 export async function exportSession(
@@ -54,7 +53,7 @@ export async function exportSession(
     Papa.unparse(
       evaluations.map((e) => {
         const [category] = e.rubricId.split(".");
-        const linkedIds = getLinkedIds(e, captures);
+        const linkedIds = getLinkedIds(e);
         return {
           Rubric_Category: getCategoryLabel(category),
           Question_ID: e.rubricId,
@@ -76,7 +75,10 @@ export async function exportSession(
         Page_Title: c.pageTitle,
         URL_Captured: c.sourceUrl,
         User_Notes: c.notes,
-        Tagged_Rubric_IDs: c.linkedRubricIds.join("; "),
+        Tagged_Rubric_IDs: evaluations
+          .filter((e) => e.explicitEvidenceIds.includes(c.id))
+          .map((e) => e.rubricId)
+          .join("; "),
       })),
     ),
   );
@@ -325,16 +327,21 @@ async function buildPdfReport(
                     },
                   ]
                 : []),
-              ...(capture.linkedRubricIds.length > 0
-                ? [
-                    {
-                      text: `Tagged: ${capture.linkedRubricIds.join(", ")}`,
-                      fontSize: 7,
-                      color: "#8b9bb0",
-                      margin: [0, 2, 0, 0],
-                    },
-                  ]
-                : []),
+              ...(() => {
+                const tagged = evaluations
+                  .filter((e) => e.explicitEvidenceIds.includes(capture.id))
+                  .map((e) => e.rubricId);
+                return tagged.length > 0
+                  ? [
+                      {
+                        text: `Tagged: ${tagged.join(", ")}`,
+                        fontSize: 7,
+                        color: "#8b9bb0",
+                        margin: [0, 2, 0, 0],
+                      },
+                    ]
+                  : [];
+              })(),
             ],
             width: "*",
           },
