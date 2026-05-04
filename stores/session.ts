@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Capture, Evaluation, SessionData, SessionMetadata, StoreStatus } from "@/lib/types";
+import type { Capture, Evaluation, ReviewFinalization, SessionData, SessionMetadata, StoreStatus } from "@/lib/types";
 
 interface SessionState {
   status: StoreStatus;
@@ -7,6 +7,7 @@ interface SessionState {
   captures: Capture[];
   evaluations: Evaluation[];
   questionModes: Record<string, "expert" | "standard">;
+  finalization: ReviewFinalization | null;
 
   loadSession: (data: SessionData) => void;
   clear: () => void;
@@ -21,6 +22,8 @@ interface SessionState {
   setQuestionMode: (rubricId: string, mode: "expert" | "standard") => void;
   linkCaptureToRubric: (captureId: string, rubricId: string) => void;
   unlinkCaptureFromRubric: (captureId: string, rubricId: string) => void;
+
+  setFinalization: (data: ReviewFinalization | null) => void;
 }
 
 const emptyState = {
@@ -29,6 +32,7 @@ const emptyState = {
   captures: [] as Capture[],
   evaluations: [] as Evaluation[],
   questionModes: {} as Record<string, "expert" | "standard">,
+  finalization: null as ReviewFinalization | null,
 };
 
 export const useSessionStore = create<SessionState>()((set) => ({
@@ -41,6 +45,7 @@ export const useSessionStore = create<SessionState>()((set) => ({
       captures: data.captures,
       evaluations: data.evaluations,
       questionModes: data.questionModes,
+      finalization: data.finalization ?? null,
     }),
 
   clear: () => set(emptyState),
@@ -126,4 +131,6 @@ export const useSessionStore = create<SessionState>()((set) => ({
           : e,
       ),
     })),
+
+  setFinalization: (data) => set({ finalization: data }),
 }));

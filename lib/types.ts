@@ -21,6 +21,7 @@ export interface SessionMetadata {
   availability?: string;
   termsConditionsUrl?: string;
   notes?: string;
+  finalizedAt?: string;
 }
 
 export interface SessionData {
@@ -28,6 +29,7 @@ export interface SessionData {
   captures: Capture[];
   evaluations: Evaluation[];
   questionModes: Record<string, "expert" | "standard">;
+  finalization: ReviewFinalization | null;
 }
 
 export interface Capture {
@@ -50,6 +52,17 @@ export interface Evaluation {
   score: EvaluationScore;
   notes: string;
   explicitEvidenceIds: string[];
+}
+
+export type FinalizationGrade = "pass" | "conditional" | "fail";
+
+export interface ReviewFinalization {
+  conclusion: string;
+  grade: FinalizationGrade;
+  strengths: string[];
+  weaknesses: string[];
+  recommendations: string;
+  finalizedAt: string;
 }
 
 export type PassFailScore = QualityGateScore;
