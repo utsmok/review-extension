@@ -5,9 +5,9 @@ import type { SessionData, SessionMetadata } from "@/lib/types";
 
 /** Snapshot current session store state as SessionData */
 function snapshot(): SessionData | null {
-  const { session, captures, evaluations, questionModes } = useSessionStore.getState();
+  const { session, captures, evaluations, questionModes, finalization } = useSessionStore.getState();
   if (!session) return null;
-  return { metadata: session, captures, evaluations, questionModes };
+  return { metadata: session, captures, evaluations, questionModes, finalization };
 }
 
 /** Load a session from IDB into the session store. Returns true if data was found. */
@@ -36,6 +36,7 @@ export async function createSession(metadata: SessionMetadata): Promise<void> {
     captures: [],
     evaluations: [],
     questionModes: {},
+    finalization: null,
   });
   useRegistryStore.getState().addSession(metadata);
 }

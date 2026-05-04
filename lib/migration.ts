@@ -79,6 +79,7 @@ export async function migrateLegacySession(): Promise<void> {
     captures: captures as unknown as SessionData["captures"],
     evaluations: (state.evaluations ?? []) as SessionData["evaluations"],
     questionModes: modes as SessionData["questionModes"],
+    finalization: null,
   });
 
   try {

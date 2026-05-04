@@ -12,6 +12,7 @@ export function useActiveSession(migrationReady = true) {
   const captures = useSessionStore((s) => s.captures);
   const evaluations = useSessionStore((s) => s.evaluations);
   const questionModes = useSessionStore((s) => s.questionModes);
+  const finalization = useSessionStore((s) => s.finalization);
 
   // --- Lifecycle orchestration ---
 
@@ -27,7 +28,7 @@ export function useActiveSession(migrationReady = true) {
       });
       return () => controller.abort();
     } else if (!activeSessionId && (status === "active" || status === "loading")) {
-      const { session: curSession, captures: curCaptures, evaluations: curEvaluations, questionModes: curQuestionModes } =
+      const { session: curSession, captures: curCaptures, evaluations: curEvaluations, questionModes: curQuestionModes, finalization: curFinalization } =
         useSessionStore.getState();
       if (curSession) {
         saveToIDB(curSession.id, {
@@ -35,6 +36,7 @@ export function useActiveSession(migrationReady = true) {
           captures: curCaptures,
           evaluations: curEvaluations,
           questionModes: curQuestionModes,
+          finalization: curFinalization,
         });
       }
       useSessionStore.getState().clear();
@@ -50,9 +52,9 @@ export function useActiveSession(migrationReady = true) {
     const unsub = useSessionStore.subscribe((state) => {
       if (timerRef.current !== undefined) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
-        const { session: s, captures: c, evaluations: e, questionModes: q } = useSessionStore.getState();
+        const { session: s, captures: c, evaluations: e, questionModes: q, finalization: f } = useSessionStore.getState();
         if (s && activeSessionId) {
-          saveToIDB(activeSessionId, { metadata: s, captures: c, evaluations: e, questionModes: q });
+          saveToIDB(activeSessionId, { metadata: s, captures: c, evaluations: e, questionModes: q, finalization: f });
         }
       }, 300);
     });
@@ -67,9 +69,9 @@ export function useActiveSession(migrationReady = true) {
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "hidden") {
-        const { session: s, captures: c, evaluations: e, questionModes: q } = useSessionStore.getState();
+        const { session: s, captures: c, evaluations: e, questionModes: q, finalization: f } = useSessionStore.getState();
         if (s) {
-          saveToIDB(s.id, { metadata: s, captures: c, evaluations: e, questionModes: q });
+          saveToIDB(s.id, { metadata: s, captures: c, evaluations: e, questionModes: q, finalization: f });
         }
       }
     };
@@ -89,6 +91,7 @@ export function useActiveSession(migrationReady = true) {
   const linkCaptureToRubric = useSessionStore((s) => s.linkCaptureToRubric);
   const unlinkCaptureFromRubric = useSessionStore((s) => s.unlinkCaptureFromRubric);
   const updateMetadata = useSessionStore((s) => s.updateMetadata);
+  const setFinalization = useSessionStore((s) => s.setFinalization);
 
   // Composite actions (delegate to lifecycle module)
   const closeSession = () => {
@@ -103,6 +106,7 @@ export function useActiveSession(migrationReady = true) {
     captures,
     evaluations,
     questionModes,
+    finalization,
     loadSession,
     clear,
     addCapture,
@@ -113,6 +117,7 @@ export function useActiveSession(migrationReady = true) {
     linkCaptureToRubric,
     unlinkCaptureFromRubric,
     updateMetadata,
+    setFinalization,
     closeSession,
     switchToSession: lifecycle.switchToSession,
     createSession: lifecycle.createSession,

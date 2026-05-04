@@ -48,6 +48,7 @@ describe("lifecycle.loadSessionById", () => {
       captures: [],
       evaluations: [{ rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] }],
       questionModes: {},
+      finalization: null,
     };
     await saveToIDB("sess-1", data);
     useRegistryStore.getState().addSession(meta);
@@ -91,7 +92,7 @@ describe("lifecycle.createSession", () => {
 describe("lifecycle.deleteSession", () => {
   it("deletes from registry and IDB", async () => {
     const meta = makeMetadata({ id: "sess-del" });
-    await saveToIDB("sess-del", { metadata: meta, captures: [], evaluations: [], questionModes: {} });
+    await saveToIDB("sess-del", { metadata: meta, captures: [], evaluations: [], questionModes: {}, finalization: null });
     useRegistryStore.getState().addSession(meta);
 
     await lifecycle.deleteSession("sess-del");
@@ -103,7 +104,7 @@ describe("lifecycle.deleteSession", () => {
 
   it("clears session store when deleting the active session", async () => {
     const meta = makeMetadata({ id: "sess-active-del" });
-    const data: SessionData = { metadata: meta, captures: [], evaluations: [], questionModes: {} };
+    const data: SessionData = { metadata: meta, captures: [], evaluations: [], questionModes: {}, finalization: null };
     await saveToIDB("sess-active-del", data);
     useRegistryStore.getState().addSession(meta);
     useSessionStore.getState().loadSession(data);
@@ -121,7 +122,7 @@ describe("lifecycle.switchToSession", () => {
   it("saves current session, clears store, and sets new activeSessionId", async () => {
     const meta1 = makeMetadata({ id: "sess-a" });
     const meta2 = makeMetadata({ id: "sess-b" });
-    await saveToIDB("sess-a", { metadata: meta1, captures: [], evaluations: [], questionModes: {} });
+    await saveToIDB("sess-a", { metadata: meta1, captures: [], evaluations: [], questionModes: {}, finalization: null });
     useRegistryStore.getState().addSession(meta1);
     useSessionStore.getState().loadSession(await loadFromIDB("sess-a") as SessionData);
     useSessionStore.getState().setEvaluation("TR.data_source_clarity", { score: 3, notes: "", explicitEvidenceIds: [] });
@@ -147,6 +148,7 @@ describe("lifecycle.markDoneAndClose", () => {
       captures: [],
       evaluations: [{ rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] }],
       questionModes: {},
+      finalization: null,
     };
     await saveToIDB("sess-done", data);
     useRegistryStore.getState().addSession(meta);
@@ -170,7 +172,7 @@ describe("lifecycle.markDoneAndClose", () => {
 describe("lifecycle.saveCurrentSession", () => {
   it("snapshots and persists session store state to IDB", async () => {
     const meta = makeMetadata({ id: "sess-save" });
-    const data: SessionData = { metadata: meta, captures: [], evaluations: [], questionModes: {} };
+    const data: SessionData = { metadata: meta, captures: [], evaluations: [], questionModes: {}, finalization: null };
     await saveToIDB("sess-save", data);
     useRegistryStore.getState().addSession(meta);
     useSessionStore.getState().loadSession(data);
@@ -196,14 +198,14 @@ describe("lifecycle.saveCurrentSession", () => {
 describe("hook Effect 1 simulation: save on activeSessionId clear", () => {
   it("saves to IDB when activeSessionId is cleared with active session", async () => {
     const meta = makeMetadata({ id: "sess-2" });
-    const data: SessionData = { metadata: meta, captures: [], evaluations: [], questionModes: {} };
+    const data: SessionData = { metadata: meta, captures: [], evaluations: [], questionModes: {}, finalization: null };
     await saveToIDB("sess-2", data);
     useRegistryStore.getState().addSession(meta);
     useSessionStore.getState().loadSession(data);
     useSessionStore.getState().setEvaluation("RE.variance_consistency", { score: 1, notes: "", explicitEvidenceIds: [] });
 
     const { session: s, captures: c, evaluations: e, questionModes: q } = useSessionStore.getState();
-    await saveToIDB(s!.id, { metadata: s!, captures: c, evaluations: e, questionModes: q });
+    await saveToIDB(s!.id, { metadata: s!, captures: c, evaluations: e, questionModes: q, finalization: null });
     useSessionStore.getState().clear();
     useRegistryStore.getState().setActiveSessionId(null);
 
@@ -226,12 +228,13 @@ describe("hook Effect 2 simulation: debounced auto-save", () => {
       captures: [],
       evaluations: [],
       questionModes: {},
+      finalization: null,
     });
 
     useSessionStore.getState().setEvaluation("SE.algorithmic_fairness", { score: 2, notes: "", explicitEvidenceIds: [] });
 
     const { session: s, captures: c, evaluations: e, questionModes: q } = useSessionStore.getState();
-    await saveToIDB(s!.id, { metadata: s!, captures: c, evaluations: e, questionModes: q });
+    await saveToIDB(s!.id, { metadata: s!, captures: c, evaluations: e, questionModes: q, finalization: null });
 
     const saved = await loadFromIDB("sess-d");
     expect(saved!.evaluations).toHaveLength(1);
