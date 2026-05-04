@@ -303,6 +303,67 @@
   line-height: 1.4;
 }
 
+/* ── Mode toggle (Expert / Standard) ──────────────────────── */
+
+.mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mode-toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.mode-toggle-track {
+  position: relative;
+  width: 28px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--ut-border);
+  transition: background var(--duration-fast) ease;
+  flex-shrink: 0;
+}
+
+.mode-toggle-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--ut-white);
+  transition: transform var(--duration-fast) ease;
+}
+
+.mode-toggle input:checked + .mode-toggle-track {
+  background: var(--trust-magenta);
+}
+
+.mode-toggle input:checked + .mode-toggle-track::after {
+  transform: translateX(12px);
+}
+
+.mode-toggle input:focus-visible + .mode-toggle-track {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.mode-toggle-label {
+  font-family: var(--ff-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  color: var(--ut-muted);
+}
+
 /* ── Evidence thumbnail with hover overlay ─────────────────── */
 
 .evidence-thumb-wrap {
@@ -443,6 +504,16 @@
   background: var(--ut-navy);
   color: #fff;
   border-color: var(--ut-navy);
+}
+
+.btn-save {
+  background: var(--ut-green);
+  color: #fff;
+  border: 0;
+}
+
+.btn-save:hover {
+  opacity: 0.85;
 }
 
 .toolbar-separator {

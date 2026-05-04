@@ -1,6 +1,29 @@
 import { getCategoryLabel, getQuestionCode } from "./rubric";
 import { buildPdfSummaryPage } from "./nutrition-label";
+import { PRINCIPLE_COLORS } from "./principles";
+import { scoreIndicatorUrl } from "./pdf-score-indicator";
 import type { Capture, Evaluation, RubricData, SessionMetadata } from "./types";
+
+const PDF_IMAGE_MAX_WIDTH = 500;
+const PDF_IMAGE_JPEG_QUALITY = 0.8;
+
+function downscaleImage(dataUrl: string, maxWidth: number, quality: number): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      if (img.width <= maxWidth) { resolve(dataUrl); return; }
+      const scale = maxWidth / img.width;
+      const canvas = document.createElement("canvas");
+      canvas.width = maxWidth;
+      canvas.height = Math.round(img.height * scale);
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
 
 export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
@@ -32,7 +55,6 @@ export async function exportSession(
     evidenceFolder.file(`capture_${capture.id}.html`, capture.htmlContent);
   }
 
-  // session_metadata.csv
   zip.file(
     "session_metadata.csv",
     Papa.unparse([
@@ -51,25 +73,22 @@ export async function exportSession(
     ]),
   );
 
-  // rubric_scores.csv — derive linked captures from both directions
   zip.file(
     "rubric_scores.csv",
     Papa.unparse(
       evaluations.map((e) => {
         const [category] = e.rubricId.split(".");
-        const linkedIds = e.explicitEvidenceIds;
         return {
           Rubric_Category: getCategoryLabel(category),
           Question_ID: e.rubricId,
           Score: String(e.score),
           Notes: e.notes,
-          Linked_Capture_IDs: linkedIds.join("; "),
+          Linked_Capture_IDs: e.explicitEvidenceIds.join("; "),
         };
       }),
     ),
   );
 
-  // capture_log.csv
   zip.file(
     "capture_log.csv",
     Papa.unparse(
@@ -87,7 +106,6 @@ export async function exportSession(
     ),
   );
 
-  // PDF report
   const pdfBlob = await buildPdfReport(metadata, captures, evaluations, rubric);
   zip.file(`Evaluation_Report_${metadata.toolName}.pdf`, pdfBlob);
 
@@ -110,87 +128,102 @@ async function buildPdfReport(
     // Roboto fonts bundled in pdfmake/build/pdfmake
   }
 
+  const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = await import("./pdf-logos");
+
+  // Downscale capture images for PDF embedding
+  const downscaled = new Map<string, string>();
+  await Promise.all(
+    captures.map(async (c) => {
+      const src = c.annotatedScreenshotBase64 ?? c.screenshotBase64;
+      downscaled.set(c.id, await downscaleImage(src, PDF_IMAGE_MAX_WIDTH, PDF_IMAGE_JPEG_QUALITY));
+    }),
+  );
+
   // biome-ignore lint/suspicious/noExplicitAny: pdfmake doc defs are untyped
   const content: any[] = [];
 
   // ── Nutrition Label Summary (first page) ──
-  content.push(...buildPdfSummaryPage(metadata, evaluations, rubric));
+  content.push(...await buildPdfSummaryPage(metadata, evaluations, rubric));
 
-  // ── Title ──
+  // ── Title block ──
   content.push({
-    text: "TRUST Framework Review Report",
-    style: "title",
+    columns: [
+      { image: TRUST_LOGO, width: 150, margin: [0, 4, 0, 0] },
+      {
+        stack: [
+          {
+            text: "Review Report",
+            fontSize: 14,
+            color: "#172033",
+            margin: [0, 10, 0, 4],
+          },
+          {
+            text: metadata.toolName,
+            fontSize: 16,
+            bold: true,
+            color: "#172033",
+            margin: [0, 0, 0, 2],
+          },
+          {
+            text: metadata.toolUrl,
+            link: metadata.toolUrl,
+            color: "#2563eb",
+            fontSize: 9,
+            margin: [0, 0, 0, 0],
+          },
+        ],
+        width: "*",
+        alignment: "right",
+      },
+    ],
+    margin: [0, 0, 0, 6],
   });
   content.push({
-    text: metadata.toolName,
-    style: "toolName",
-  });
-  content.push({
-    text: metadata.toolUrl,
-    link: metadata.toolUrl,
-    color: "#2563eb",
-    fontSize: 10,
+    canvas: [{ type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: "#dde1e7" }],
     margin: [0, 0, 0, 4],
   });
-  content.push({
-    text: `Evaluated: ${new Date(metadata.startTime).toLocaleString()}`,
-    fontSize: 9,
-    color: "#576578",
-    margin: [0, 0, 0, 2],
-  });
-  content.push({
-    text: `Rubric: ${rubric.framework_name} v${rubric.version}`,
-    fontSize: 9,
-    color: "#576578",
-    margin: [0, 0, 0, 2],
-  });
-  if (!(metadata.usesAi ?? true)) {
-    content.push({
-      text: "Note: Tool marked as non-AI. AI-specific questions scored N/A.",
-      fontSize: 9,
-      color: "#ea580c",
-      margin: [0, 0, 0, 2],
-    });
-  }
-  if (metadata.company)
-    content.push({
-      text: `Company: ${metadata.company}`,
-      fontSize: 9,
-      color: "#576578",
-      margin: [0, 0, 0, 2],
-    });
-  if (metadata.pricing)
-    content.push({
-      text: `Pricing: ${metadata.pricing}`,
-      fontSize: 9,
-      color: "#576578",
-      margin: [0, 0, 0, 2],
-    });
-  if (metadata.notes)
-    content.push({
-      text: `Notes: ${metadata.notes}`,
-      fontSize: 9,
-      color: "#576578",
-      margin: [0, 0, 0, 2],
-    });
 
-  content.push({ text: "", margin: [0, 10] });
+  // ── Centered metadata row ──
+  const metaItems: any[] = [
+    { text: `Evaluated: ${new Date(metadata.startTime).toLocaleString()}`, fontSize: 8, color: "#576578" },
+    { text: "  |  ", fontSize: 8, color: "#dde1e7" },
+    { text: `Rubric: ${rubric.framework_name} v${rubric.version}`, fontSize: 8, color: "#576578" },
+  ];
+  if (!(metadata.usesAi ?? true)) {
+    metaItems.push({ text: "  |  ", fontSize: 8, color: "#dde1e7" });
+    metaItems.push({ text: "Non-AI tool — AI questions scored N/A", fontSize: 8, color: "#ea580c" });
+  }
+  content.push({ text: metaItems, alignment: "center", margin: [0, 0, 0, 4] });
+
+  if (metadata.company || metadata.pricing) {
+    const extra: any[] = [];
+    if (metadata.company) extra.push({ text: metadata.company, fontSize: 8, color: "#576578" });
+    if (metadata.company && metadata.pricing) extra.push({ text: " · ", fontSize: 8, color: "#dde1e7" });
+    if (metadata.pricing) extra.push({ text: metadata.pricing, fontSize: 8, color: "#576578" });
+    content.push({ text: extra, alignment: "center", margin: [0, 0, 0, 4] });
+  }
+  if (metadata.notes) {
+    content.push({ text: metadata.notes, fontSize: 8, color: "#576578", italics: true, alignment: "center", margin: [0, 0, 0, 4] });
+  }
+
+  content.push({ text: "", margin: [0, 6] });
 
   // ── Quality Gates ──
-  content.push({ text: "Quality Gates", style: "section" });
   content.push({
-    text: "Mandatory pass/fail thresholds. Any fail halts the review.",
-    fontSize: 8,
-    color: "#8b9bb0",
+    text: "Quality Gates",
+    fontSize: 12,
+    bold: true,
+    color: "#8e036c",
+    characterSpacing: 0.5,
     margin: [0, 0, 0, 6],
   });
 
   // biome-ignore lint/suspicious/noExplicitAny: pdfmake table defs
   const qgBody: any[][] = [
     [
-      { text: "Category", style: "th" },
-      { text: "Requirement", style: "th" },
+      { text: "Code", style: "th" },
       { text: "Result", style: "th" },
+      { text: "Requirement", style: "th" },
       { text: "Notes", style: "th" },
     ],
   ];
@@ -202,15 +235,10 @@ async function buildPdfReport(
       const scoreStr = String(score).toUpperCase();
       const color = score === "pass" ? "#4a8355" : score === "fail" ? "#c60c30" : "#576578";
       qgBody.push([
-        { text: getCategoryLabel(cat), fontSize: 8 },
-        { text: q.requirement, fontSize: 8 },
-        {
-          text: scoreStr,
-          fontSize: 9,
-          bold: true,
-          color,
-        },
-        { text: ev?.notes ?? "", fontSize: 7, color: "#576578" },
+        { text: `${cat.toUpperCase()}${Object.keys(questions).indexOf(qId) + 1}`, fontSize: 8, bold: true, color: "#576578", margin: [0, 2, 0, 2] },
+        { text: scoreStr, fontSize: 9, bold: true, color, alignment: "center", margin: [0, 2, 0, 2] },
+        { text: q.requirement, fontSize: 7, color: "#172033", margin: [0, 2, 0, 2] },
+        { text: ev?.notes ?? "", fontSize: 7, color: "#576578", margin: [0, 2, 0, 2] },
       ]);
     }
   }
@@ -218,33 +246,47 @@ async function buildPdfReport(
   content.push({
     table: {
       headerRows: 1,
-      widths: [90, "*", 55, 100],
+      widths: [32, 40, "*", "*"],
       body: qgBody,
     },
     layout: {
-      hLineColor: () => "#bfc6cf",
+      hLineColor: () => "#e8eaee",
       hLineWidth: () => 0.5,
       fillColor: (row: number) => (row === 0 ? "#002c5f" : null),
+      paddingLeft: (col: number) => col < 2 ? 3 : 4,
+      paddingRight: (col: number) => col < 2 ? 3 : 4,
+      paddingTop: () => 2,
+      paddingBottom: () => 2,
     },
-    margin: [0, 0, 0, 10],
+    margin: [0, 0, 0, 14],
   });
 
-  // ── Scoring Rubric ──
-  content.push({ text: "Scoring Rubric", style: "section" });
-
+  // ── Scoring Rubric — one table per category, each on new page ──
+  let firstCategory = true;
   for (const [cat, questions] of Object.entries(rubric.scoring_rubric)) {
+    const accentColor = PRINCIPLE_COLORS[cat] ?? "#002c5f";
+
+    if (!firstCategory) {
+      content.push({ text: "", pageBreak: "before" });
+    }
+    firstCategory = false;
+
     content.push({
-      text: getCategoryLabel(cat),
-      style: "category",
+      canvas: [{ type: "rect", x: 0, y: 0, w: 515, h: 3, color: accentColor }],
+      margin: [0, 0, 0, 0],
     });
 
     // biome-ignore lint/suspicious/noExplicitAny: pdfmake table defs
     const body: any[][] = [
       [
-        { text: "Question", style: "th" },
+        { text: getCategoryLabel(cat), style: "th", colSpan: 4 },
+        {}, {}, {},
+      ],
+      [
+        { text: "Code", style: "th" },
         { text: "Score", style: "th" },
-        { text: "Achieved Level", style: "th" },
-        { text: "Notes", style: "th" },
+        { text: "Level", style: "th" },
+        { text: "Reasoning", style: "th" },
       ],
     ];
 
@@ -254,174 +296,153 @@ async function buildPdfReport(
       const isNa = ev?.score === "na";
       const score = typeof ev?.score === "number" ? ev.score : -1;
       const qIdx = Object.keys(questions).indexOf(qId);
-      const levelDesc = isNa ? "N/A" : score >= 0 ? (levels as unknown as Record<string, string>)[String(score)] : "—";
+      const code = getQuestionCode(cat, qIdx);
+
+      const levelDesc = isNa ? "Not applicable" : score >= 0
+        ? (levels as unknown as Record<string, string>)[String(score)] ?? "—"
+        : "—";
+
+      // Score indicator image
+      const indicatorUrl = scoreIndicatorUrl(isNa ? "na" : score >= 0 ? score as 0|1|2|3 : -1);
+
+      // Fixed-height cell for level description (2 lines)
+      const levelContent: any = {
+        text: levelDesc,
+        fontSize: 7,
+        color: "#576578",
+        lineHeight: 1.3,
+      };
 
       body.push([
-        { text: `${getQuestionCode(cat, qIdx)} — ${levels.title}`, fontSize: 8 },
-        {
-          text: isNa ? "N/A" : score >= 0 ? `${score}/3` : "—",
-          fontSize: 9,
-          bold: true,
-          alignment: "center",
-          color:
-            isNa ? "#576578" :
-            score >= 2 ? "#4a8355" : score === 1 ? "#ea580c" : score === 0 ? "#c60c30" : "#576578",
-        },
-        { text: levelDesc, fontSize: 7, color: "#576578" },
-        { text: ev?.notes ?? "", fontSize: 7, color: "#576578" },
+        { text: code, fontSize: 8, bold: true, color: accentColor, margin: [0, 3, 0, 3] },
+        { image: indicatorUrl, width: 30, margin: [0, 4, 0, 4] },
+        levelContent,
+        { text: ev?.notes ?? "", fontSize: 7, color: "#172033", margin: [0, 3, 0, 3] },
       ]);
+
+      // Evidence images inline
+      const linkedCaptures = captures.filter((c) => ev?.explicitEvidenceIds.includes(c.id));
+      if (linkedCaptures.length > 0) {
+        for (const cap of linkedCaptures) {
+          body.push([
+            {
+              image: downscaled.get(cap.id) ?? cap.screenshotBase64,
+              width: 200,
+              colSpan: 4,
+              alignment: "center",
+              margin: [0, 2, 0, 0],
+            },
+            {}, {}, {},
+          ]);
+          body.push([
+            {
+              text: [
+                { text: cap.pageTitle || "Capture", fontSize: 7, bold: true },
+                { text: ` — ${new Date(cap.timestamp).toLocaleString()}`, fontSize: 7, color: "#576578" },
+                ...(cap.notes ? [{ text: `\n${cap.notes}`, fontSize: 7, color: "#576578", italics: true }] : []),
+              ],
+              colSpan: 4,
+              margin: [0, 0, 0, 4],
+            },
+            {}, {}, {},
+          ]);
+        }
+      }
     }
 
     content.push({
       table: {
-        headerRows: 1,
-        widths: [70, 35, "*", 100],
+        headerRows: 2,
+        widths: [32, 40, 110, "*"],
         body,
       },
       layout: {
-        hLineColor: () => "#bfc6cf",
-        hLineWidth: () => 0.5,
-        fillColor: (row: number) => (row === 0 ? "#002c5f" : null),
+        hLineColor: () => "#e8eaee",
+        hLineWidth: (i: number, node: any) => {
+          if (i === 0 || i === 1) return 0.5;
+          return 0.3;
+        },
+        fillColor: (row: number) => (row <= 1 ? accentColor : null),
+        paddingLeft: (col: number) => col < 2 ? 3 : 4,
+        paddingRight: (col: number) => col < 2 ? 3 : 4,
+        paddingTop: () => 1,
+        paddingBottom: () => 1,
       },
-      margin: [0, 0, 0, 8],
+      margin: [0, 0, 0, 10],
     });
   }
 
-  // ── Evidence Index ──
-  if (captures.length > 0) {
-    content.push({ text: "", pageBreak: "before" });
-    content.push({ text: "Evidence Captures", style: "section" });
+  // ── Unlinked Evidence Index ──
+  const unlinkedCaptures = captures.filter(
+    (c) => !evaluations.some((e) => e.explicitEvidenceIds.includes(c.id)),
+  );
 
-    for (const capture of captures) {
-      const shortId = capture.id.slice(0, 8);
+  if (unlinkedCaptures.length > 0) {
+    content.push({ text: "", pageBreak: "before" });
+    content.push({
+      canvas: [{ type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: "#8e036c" }],
+      margin: [0, 0, 0, 6],
+    });
+    content.push({
+      text: "Additional Evidence",
+      fontSize: 12,
+      bold: true,
+      color: "#8e036c",
+      characterSpacing: 0.5,
+      margin: [0, 0, 0, 6],
+    });
+
+    for (const capture of unlinkedCaptures) {
+      const img = downscaled.get(capture.id) ?? capture.screenshotBase64;
       content.push({
         columns: [
-          {
-            image: capture.screenshotBase64,
-            width: 120,
-            margin: [0, 0, 8, 0],
-          },
+          { image: img, width: 280, margin: [0, 0, 8, 0] },
           {
             stack: [
-              {
-                text: capture.pageTitle || `Capture ${shortId}`,
-                fontSize: 9,
-                bold: true,
-                margin: [0, 0, 0, 2],
-              },
-              {
-                text: capture.sourceUrl,
-                fontSize: 8,
-                color: "#2563eb",
-                link: capture.sourceUrl,
-                margin: [0, 0, 0, 2],
-              },
-              {
-                text: new Date(capture.timestamp).toLocaleString(),
-                fontSize: 8,
-                color: "#576578",
-                margin: [0, 0, 0, 2],
-              },
-              ...(capture.notes
-                ? [
-                    {
-                      text: `Notes: ${capture.notes}`,
-                      fontSize: 8,
-                      color: "#576578",
-                    },
-                  ]
-                : []),
-              ...(() => {
-                const tagged = evaluations
-                  .filter((e) => e.explicitEvidenceIds.includes(capture.id))
-                  .map((e) => e.rubricId);
-                return tagged.length > 0
-                  ? [
-                      {
-                        text: `Tagged: ${tagged.join(", ")}`,
-                        fontSize: 7,
-                        color: "#8b9bb0",
-                        margin: [0, 2, 0, 0],
-                      },
-                    ]
-                  : [];
-              })(),
+              { text: capture.pageTitle || "Capture", fontSize: 10, bold: true, color: "#172033", margin: [0, 0, 0, 4] },
+              { text: capture.sourceUrl, fontSize: 8, color: "#2563eb", link: capture.sourceUrl, margin: [0, 0, 0, 4] },
+              { text: new Date(capture.timestamp).toLocaleString(), fontSize: 8, color: "#576578", margin: [0, 0, 0, 4] },
+              ...(capture.notes ? [{ text: capture.notes, fontSize: 8, color: "#576578", italics: true }] : []),
             ],
             width: "*",
           },
         ],
-        margin: [0, 0, 0, 10],
+        margin: [0, 0, 0, 14],
       });
     }
   }
 
-  // ── TRUST / LISA-EIS footer ──
-  content.push({ text: "", margin: [0, 20] });
-  content.push({
-    canvas: [
-      { type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: "#bfc6cf" }, // 595 - 40*2 = 515
-    ],
-    margin: [0, 0, 0, 6],
-  });
-  content.push({
-    columns: [
-      {
-        text: "TRUST Framework",
-        fontSize: 8,
-        bold: true,
-        color: "#8e036c",
-        width: "50%",
-      },
-      {
-        text: "LISA-EIS / University of Twente",
-        fontSize: 7,
-        color: "#8b9bb0",
-        alignment: "right",
-        width: "50%",
-      },
-    ],
-    margin: [0, 0, 0, 0],
-  });
-
   const docDefinition = {
     pageSize: "A4" as const,
-    pageMargins: [40, 50, 40, 50],
+    pageMargins: [40, 48, 40, 48],
     content,
+    header: (currentPage: number) => {
+      if (currentPage <= 2) return null;
+      return {
+        columns: [
+          { image: TRUST_LOGO, width: 60, margin: [40, 14, 0, 0] },
+          {
+            text: metadata.toolName,
+            fontSize: 7,
+            color: "#576578",
+            alignment: "right",
+            margin: [0, 20, 40, 0],
+          },
+        ],
+      };
+    },
+    footer: (currentPage: number, pageCount: number) => ({
+      columns: [
+        { image: LISA_EIS_LOGO, width: 40, margin: [40, 0, 6, 0] },
+        { image: UT_LOGO, width: 24, margin: [0, 4, 0, 0] },
+        { text: `${currentPage} / ${pageCount}`, fontSize: 7, color: "#8b9bb0", alignment: "right", margin: [0, 6, 40, 0] },
+      ],
+      margin: [0, 10, 0, 0],
+    }),
     styles: {
-      title: {
-        fontSize: 20,
-        bold: true,
-        color: "#8e036c",
-        margin: [0, 0, 0, 4] as [number, number, number, number],
-      },
-      toolName: {
-        fontSize: 14,
-        bold: true,
-        color: "#8e036c",
-        margin: [0, 0, 0, 4] as [number, number, number, number],
-      },
-      section: {
-        fontSize: 13,
-        bold: true,
-        color: "#172033",
-        margin: [0, 10, 0, 4] as [number, number, number, number],
-      },
-      category: {
-        fontSize: 10,
-        bold: true,
-        color: "#576578",
-        margin: [0, 6, 0, 4] as [number, number, number, number],
-      },
-      th: {
-        bold: true,
-        fontSize: 8,
-        color: "#ffffff",
-        fillColor: "#002c5f",
-      },
+      th: { bold: true, fontSize: 7, color: "#ffffff" },
     },
-    defaultStyle: {
-      font: "Roboto",
-    },
+    defaultStyle: { font: "Roboto" },
   };
 
   return new Promise<Uint8Array>((resolve, reject) => {

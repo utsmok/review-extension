@@ -119,15 +119,13 @@ function renderScoringScores(
             key={val}
             className={`score-row ${selected ? "is-selected" : ""}`}
             data-score={val}
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
+            tabIndex={isAutoNa ? -1 : 0}
+            role="radio"
+            aria-checked={selected}
           >
-            <span
-              role="radio"
-              aria-checked={selected}
-              tabIndex={isAutoNa ? -1 : 0}
-              onClick={handleClick}
-              onKeyDown={handleKeyDown}
-              className="score-badge cursor-pointer select-none"
-            >
+            <span className="score-badge select-none">
               {val}
             </span>
             <span className="score-desc">{desc}</span>
@@ -139,32 +137,30 @@ function renderScoringScores(
       <div
         className={`score-row ${isNa ? "is-selected" : ""}`}
         data-score="na"
-      >
-        <span
-          role="radio"
-          aria-checked={isNa}
-          tabIndex={isAutoNa ? -1 : 0}
-          onClick={() => {
+        role="radio"
+        aria-checked={isNa}
+        tabIndex={isAutoNa ? -1 : 0}
+        onClick={() => {
+          if (isAutoNa) return;
+          if (isNa) {
+            setEvaluation(rubricId, { score: "" });
+          } else {
+            setEvaluation(rubricId, { score: "na" });
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === " " || e.key === "Enter") {
+            e.preventDefault();
             if (isAutoNa) return;
             if (isNa) {
               setEvaluation(rubricId, { score: "" });
             } else {
               setEvaluation(rubricId, { score: "na" });
             }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === " " || e.key === "Enter") {
-              e.preventDefault();
-              if (isAutoNa) return;
-              if (isNa) {
-                setEvaluation(rubricId, { score: "" });
-              } else {
-                setEvaluation(rubricId, { score: "na" });
-              }
-            }
-          }}
-          className="score-badge cursor-pointer select-none"
-        >
+          }
+        }}
+      >
+        <span className="score-badge select-none">
           —
         </span>
         <span className="score-desc">Not applicable</span>
@@ -298,29 +294,33 @@ export default function QuestionSection({
                           ? (question as PassFailQuestion).basic_requirement
                           : (question as PassFailQuestion).requirement}
                       </p>
-                      <button
-                        type="button"
-                        className="text-ut-xs text-ut-slate hover:text-ut-text font-mono uppercase tracking-ut-label ml-2 shrink-0"
-                        onClick={() =>
-                          setQuestionMode(rubricId, mode === "expert" ? "standard" : "expert")
-                        }
-                        title={`Switch to ${mode === "expert" ? "standard" : "expert"} wording`}
-                      >
-                        {mode === "expert" ? "Expert" : "Standard"}
-                      </button>
+                      <label className="mode-toggle ml-2 shrink-0" title={`Switch to ${mode === "expert" ? "standard" : "expert"} wording`}>
+                        <input
+                          type="checkbox"
+                          aria-label="Standard wording"
+                          checked={mode === "standard"}
+                          onChange={() =>
+                            setQuestionMode(rubricId, mode === "expert" ? "standard" : "expert")
+                          }
+                        />
+                        <span className="mode-toggle-track" />
+                        <span className="mode-toggle-label">{mode === "expert" ? "Expert" : "Standard"}</span>
+                      </label>
                     </div>
                   ) : (
                     <div className="flex items-center justify-end mb-ut-1">
-                      <button
-                        type="button"
-                        className="text-ut-xs text-ut-slate hover:text-ut-text font-mono uppercase tracking-ut-label shrink-0"
-                        onClick={() =>
-                          setQuestionMode(rubricId, mode === "expert" ? "standard" : "expert")
-                        }
-                        title={`Switch to ${mode === "expert" ? "standard" : "expert"} wording`}
-                      >
-                        {mode === "expert" ? "Expert" : "Standard"}
-                      </button>
+                      <label className="mode-toggle shrink-0" title={`Switch to ${mode === "expert" ? "standard" : "expert"} wording`}>
+                        <input
+                          type="checkbox"
+                          aria-label="Standard wording"
+                          checked={mode === "standard"}
+                          onChange={() =>
+                            setQuestionMode(rubricId, mode === "expert" ? "standard" : "expert")
+                          }
+                        />
+                        <span className="mode-toggle-track" />
+                        <span className="mode-toggle-label">{mode === "expert" ? "Expert" : "Standard"}</span>
+                      </label>
                     </div>
                   )}
 

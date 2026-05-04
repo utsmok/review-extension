@@ -35,9 +35,11 @@ export async function deleteFromIDB(id: string): Promise<void> { ... }
 
 Auto-save is handled by a debounced `subscribe` listener in the hook (AD-3), not inside a storage adapter. 300ms debounce. The hook tags saves with the session ID; stale saves (from a previous session) are skipped.
 
+Data durability on panel close: a `visibilitychange` handler flushes the current debounce buffer immediately when the document is hidden (side panel closed, tab switched). Losing at most 300ms of intermediate state is acceptable — the last persisted state is always at most 300ms behind.
+
 ### AD-3: Deepened `useActiveSession` Hook as Orchestration Seam
 
-**Problem:** 7 of 8 components import `useSessionStore` directly. With the store split (AD-1), components would need to import from two stores. The store's internal shape becomes a public API — any refactor touches every component.
+**Problem:** 7 of 9 components import `useSessionStore` directly. With the store split (AD-1), components would need to import from two stores. The store's internal shape becomes a public API — any refactor touches every component.
 
 **Decision:** `hooks/useActiveSession.ts` is the single seam between components and the stores. It has real leverage: it reads from both stores AND manages the session lifecycle (loading, auto-saving, closing). Components import the hook, not the stores.
 
@@ -62,11 +64,23 @@ export function useActiveSession() {
   const evaluations = useSessionStore((s) => s.evaluations);
   const questionModes = useSessionStore((s) => s.questionModes);
 
+  // Re-render safety: each value is its own Zustand selector, so
+  // consumers destructure what they need and only re-render when
+  // that specific slice changes. Do NOT spread the hook return
+  // into a single object selector.
+  //
+  // StrictMode safety: effects use idempotent guards (check status
+  // before mutating) and cleanup functions that cancel in-flight
+  // loads. React StrictMode fires effects twice in dev; the second
+  // invocation finds status already "loading" and is a no-op.
+
   // Lifecycle orchestration
   useEffect(() => {
     if (activeSessionId && status === "empty") {
       useSessionStore.setState({ status: "loading" });
+      const controller = new AbortController();
       loadFromIDB(activeSessionId).then((data) => {
+        if (controller.signal.aborted) return;
         if (data) {
           useSessionStore.getState().loadSession(data);
           useSessionStore.setState({ status: "active" });
@@ -75,6 +89,7 @@ export function useActiveSession() {
           useRegistryStore.getState().setActiveSessionId(null);
         }
       });
+      return () => controller.abort();
     } else if (!activeSessionId && status === "active") {
       const { session, captures, evaluations, questionModes } =
         useSessionStore.getState();
@@ -95,6 +110,20 @@ export function useActiveSession() {
     }, 300));
     return unsub;
   }, [activeSessionId, status]);
+
+  // Flush on panel close / tab switch
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        const { session, captures, evaluations, questionModes } = useSessionStore.getState();
+        if (session) {
+          saveToIDB(session.id, { metadata: session, captures, evaluations, questionModes });
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, []);
 
   // Forwarded actions
   const addCapture = useSessionStore((s) => s.addCapture);
@@ -135,6 +164,8 @@ After this change, components don't import stores at all. Tests mock the hook, n
 **Problem:** The session table shows status "started/xx%/done" but no logic computes completion percentage.
 
 **Decision:** Add `computeCompletion(evaluations, rubricData): number` as a pure function in `lib/rubric.ts`. The registry store's summary includes a cached `completionPercent` field, updated when a session is closed or exported. During active review, the table shows "Started"; percentage appears after closing.
+
+N/A scores count as "scored" for completion tracking — marking a question N/A (with reason/evidence) is a completed review action, not a skipped one. The function counts any evaluation where `score !== "" && score !== undefined`, which includes `"na"`.
 
 ### AD-5: "basic"→"standard" Rename in Phase 1
 
@@ -181,7 +212,7 @@ The export pipeline's existing `getLinkedIds` function already has fallback logi
 
 ### AD-8: Evaluation Component Decomposition
 
-**Problem:** Evaluation.tsx is 421 lines with 8 store selectors, handling Quality Gate pass/fail UI, Scoring Rubric 0-3 UI, inline evidence management, capture-from-evidence flow, confirm dialogs, and mode toggling. The spec adds score deselection, checkbox mode toggle, and N/A desaturation to this same file.
+**Problem:** Evaluation.tsx is 421 lines with 9 store selectors, handling Quality Gate pass/fail UI, Scoring Rubric 0-3 UI, inline evidence management, capture-from-evidence flow, confirm dialogs, and mode toggling. The spec adds score deselection, checkbox mode toggle, and N/A desaturation to this same file.
 
 **Decision:** Decompose into three modules:
 - **`components/Evaluation.tsx`** — thin shell: tab navigation between QG and Scoring sections, ProgressCircle, mode toggle. ~80 lines.
@@ -231,6 +262,8 @@ function deterministicId(toolName: string, toolUrl: string, startTime: string): 
 - `lib/types.ts` — add `id`, `status`, `faviconUrl` to `SessionMetadata`; add `Settings`, `SessionData`, `SessionStatus` types; rename `"basic"` → `"standard"` in `questionModes` types; **remove `linkedRubricIds` from `Capture`**
 - `stores/session.ts` — remove localStorage persist; **add `status` field with `"empty" | "loading" | "active"`**; add `loadSession(data: SessionData)`, `clear()`, `setStatus(s)`; simplify `linkCaptureToRubric`/`unlinkCaptureFromRubric`/`removeCapture` to single-direction (update `explicitEvidenceIds` only); keep all other mutations unchanged
 - `lib/rubric.ts` — add `computeCompletion()` pure function; add `getLinkedRubricIdsForCapture()` selector
+- `components/Captures.tsx` — **must update in Phase 1 alongside type changes** (build-breaking if deferred): replace `capture.linkedRubricIds` reads (lines 76-77, 97, 110, 143) with `getLinkedRubricIdsForCapture(capture.id, evaluations)` calls; migrate from `useSessionStore` direct import to `useActiveSession` hook (or accept evaluations prop if not yet using the hook)
+- `components/EvidenceModal.tsx` — **must update in Phase 1**: migrate `useSessionStore` direct import (line 3) and `updateCapture` selector (line 20) to use `useActiveSession` hook
 
 **Key changes:**
 
@@ -321,6 +354,8 @@ function deterministicId(toolName: string, toolUrl: string, startTime: string): 
 
 4. **`lib/rubric.ts`** — add completion computation and linking selector:
    ```ts
+   // N/A scores ("na") count as scored — a completed review action.
+   // Only empty-string and undefined are "not yet scored".
    export function computeCompletion(
      evaluations: Evaluation[],
      rubric: RubricData,
@@ -339,6 +374,17 @@ function deterministicId(toolName: string, toolUrl: string, startTime: string): 
        .map((e) => e.rubricId);
    }
    ```
+
+5. **`components/Captures.tsx`** — replace `linkedRubricIds` reads with computed values:
+   - Import `getLinkedRubricIdsForCapture` from `lib/rubric.ts`
+   - Replace `capture.linkedRubricIds.length` (line 76) with `getLinkedRubricIdsForCapture(capture.id, evaluations).length`
+   - Replace `capture.linkedRubricIds.length !== 1` (line 77) with the same computed length check
+   - Replace `capture.linkedRubricIds` in tag rendering (lines 97, 110, 143) with `getLinkedRubricIdsForCapture(capture.id, evaluations)`
+   - If `useActiveSession` hook exists from Phase 2, migrate the direct `useSessionStore` import (5 selectors) to the hook. Otherwise, accept `evaluations` as a prop or add a second selector from the session store.
+
+6. **`components/EvidenceModal.tsx`** — migrate store import:
+   - Replace `useSessionStore` import (line 3) and `updateCapture` selector (line 20) with `useActiveSession().updateCapture`
+   - If hook is not yet available (Phase 2), temporarily import from the new session store path — but this is a mechanical change that must happen in Phase 1 to prevent build errors
 
 ### Phase 2: Session Storage + Orchestration Hook
 
@@ -360,10 +406,14 @@ function deterministicId(toolName: string, toolUrl: string, startTime: string): 
    - Reads state from both stores
    - `useEffect` on `activeSessionId`: loads from IDB when switching in, saves to IDB when switching out
    - `useEffect` on `status === "active"`: subscribes to session store with 300ms debounced auto-save
+   - `useEffect` on `visibilitychange`: flushes current state to IDB immediately when document is hidden (panel close, tab switch)
+   - **StrictMode safety**: lifecycle effect uses an `AbortController` to cancel in-flight IDB loads on cleanup. React StrictMode fires effects twice in dev; the second invocation finds status already `"loading"` and the first (aborted) load is discarded. The abort check prevents stale data from overwriting the second load.
+   - **Re-render strategy**: each store slice (`session`, `captures`, `evaluations`, `questionModes`, `status`) is its own `useStore(selector)` call — Zustand's `Object.is` equality check means consumers only re-render when their specific slice changes. Do NOT return a single merged object from the hook; let consumers destructure individual values.
    - Forwards all session store actions + registry `addSession`/`setActiveSessionId`
    - `closeSession()` — sets `activeSessionId` to null (triggers save via effect)
    - `switchToSession(id)` — saves current session immediately, clears, sets new activeSessionId
    - Components import this hook exclusively — no direct store imports
+   - **Captures.tsx and EvidenceModal.tsx**: now finalize migration to `useActiveSession` hook (temporary imports from Phase 1 are replaced with hook calls)
 
 ### Phase 3: Idempotent Migration
 
@@ -587,6 +637,7 @@ function deterministicId(toolName: string, toolUrl: string, startTime: string): 
    - Remove the fallback logic that scans `captures` for `linkedRubricIds`
    - Use `explicitEvidenceIds` directly — it's now the only direction
    - For `capture_log.csv`'s `Tagged_Rubric_IDs` column: use `getLinkedRubricIdsForCapture(captureId, evaluations)` from rubric.ts
+   - Update PDF report: replace `capture.linkedRubricIds.length > 0` (line 328) with `getLinkedRubricIdsForCapture(capture.id, evaluations).length > 0`
 
 ### Phase 8: Favicon Capture
 
@@ -643,7 +694,7 @@ After SVG update, regenerate PNGs at 16/19/32/38/48/128px (however they're curre
 
 4. **`tests/active-session-hook.test.ts`**: Test lifecycle orchestration: loads from IDB on `activeSessionId` change, saves on clear, debounced auto-save, race condition prevention (stale saves skipped).
 
-5. **`tests/export.test.ts`**: Update `SessionMetadata` fixtures to include `id` field. Update linking tests to use `explicitEvidenceIds` only (no `linkedRubricIds`).
+5. **`tests/export.test.ts`**: Update `SessionMetadata` fixtures to include `id` field. Update linking tests to use `explicitEvidenceIds` only (no `linkedRubricIds`). **Delete the fallback test** (line 147: "falls back to capture.linkedRubricIds when explicitEvidenceIds is empty") — the fallback path no longer exists with unidirectional linking.
 
 6. **`tests/rubric.test.ts`**: Add tests for `computeCompletion()` and `getLinkedRubricIdsForCapture()`. Update question mode assertions from `"basic"` to `"standard"`.
 
@@ -673,9 +724,12 @@ After SVG update, regenerate PNGs at 16/19/32/38/48/128px (however they're curre
 
 - **Loading gap eliminated structurally**: The `status` field ("loading") gives App.tsx an explicit state to render during the async IDB read. No "brief render with no session" — the spinner shows until data is ready.
 - **Race conditions prevented structurally**: Auto-save subscription is gated on `status === "active"`. Session switch sets `status` to "empty" before clearing, so debounced saves from the old session can't fire. The debounced save also captures `activeSessionId` in its closure — if it doesn't match the current ID, it skips.
+- **StrictMode double-effect safety**: The lifecycle effect uses an `AbortController` to cancel in-flight IDB loads on cleanup. In StrictMode (dev), the second effect invocation finds status already `"loading"` and the first load is aborted. No double-write, no stale data.
+- **Panel close data durability**: `visibilitychange` handler flushes the current session state to IDB immediately when the document is hidden. Maximum data loss is 300ms of intermediate edits (the debounce window). This is acceptable for a review tool where users type notes and click scores — not high-frequency input.
 - **Migration is idempotent**: Deterministic ID derivation means re-running migration is safe. No duplicate sessions, no data loss window.
 - **Favicon availability**: `tab.favIconUrl` not always populated. Treated as strictly optional — fallback (first letter of tool name) when missing.
 - **No persist middleware for session store**: This is deliberate. The session store's data is large (MB of screenshots). Explicit save/load via the hook gives control over timing, prevents unwanted writes, and avoids the dynamic-key workaround.
+- **Phase 1 completeness**: All components that read `linkedRubricIds` (Captures.tsx, Evaluation.tsx, export.ts) or import `useSessionStore` directly (Captures.tsx, EvidenceModal.tsx) are listed in Phase 1 modified files. This prevents build-breaking intermediate states where types have changed but consumers haven't been updated.
 
 ## File Summary
 
@@ -703,17 +757,19 @@ After SVG update, regenerate PNGs at 16/19/32/38/48/128px (however they're curre
 | `tests/session-storage.test.ts` | IDB adapter + migration tests |
 | `tests/active-session-hook.test.ts` | Hook orchestration tests |
 
-### Modified Files (10)
+### Modified Files (12)
 | File | Change |
 |---|---|
 | `lib/types.ts` | Add SessionStatus, StoreStatus, Settings, SessionData; add id/status/faviconUrl to SessionMetadata; remove linkedRubricIds from Capture; rename basic→standard |
 | `stores/session.ts` | Remove persist; add status field; add loadSession/clear/setStatus; simplify linking to single-direction |
 | `lib/rubric.ts` | Add computeCompletion(), getLinkedRubricIdsForCapture() |
 | `lib/capture.ts` | Add captureCurrentPageInfo() |
-| `lib/export.ts` | Update getLinkedIds to canonical direction only |
+| `lib/export.ts` | Update getLinkedIds to canonical direction only; replace linkedRubricIds in capture_log.csv and PDF report |
 | `components/App.tsx` | 3-way routing via status field + migration call |
 | `components/ActiveSession.tsx` | Home button, favicon, clickable URL |
 | `components/Evaluation.tsx` | Decomposed to thin shell (~80 lines) |
+| `components/Captures.tsx` | Replace linkedRubricIds with getLinkedRubricIdsForCapture(); migrate to useActiveSession hook |
+| `components/EvidenceModal.tsx` | Migrate useSessionStore direct import to useActiveSession hook |
 | `components/Metadata.tsx` | Export marks done, delete returns home |
 | `entrypoints/sidepanel.html` | Add Nunito Sans font |
 

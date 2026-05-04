@@ -30,8 +30,6 @@ function FaviconOrFallback({ url, toolName }: { url?: string; toolName: string }
 export default function SessionManager() {
   const [showModal, setShowModal] = useState(false);
   const sessionIndex = useRegistryStore((s) => s.sessionIndex);
-  const settings = useRegistryStore((s) => s.settings);
-  const updateSettings = useRegistryStore((s) => s.updateSettings);
   const { switchToSession, deleteSession } = useActiveSession();
 
   const sessions = useMemo(
@@ -169,34 +167,6 @@ export default function SessionManager() {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Settings section */}
-      <div className="border-t border-ut-border px-ut-4 py-ut-3 space-y-ut-2">
-        <h2 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Settings
-        </h2>
-        <div className="flex gap-ut-2">
-          <label className="flex-1 flex flex-col gap-0.5">
-            <span className="text-ut-xs text-ut-muted">Name</span>
-            <input
-              className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-xs text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
-              value={settings.reviewerName}
-              onChange={(e) => updateSettings({ reviewerName: e.target.value })}
-              placeholder="Reviewer name"
-            />
-          </label>
-          <label className="flex-1 flex flex-col gap-0.5">
-            <span className="text-ut-xs text-ut-muted">Email</span>
-            <input
-              type="email"
-              className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-xs text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
-              value={settings.reviewerEmail}
-              onChange={(e) => updateSettings({ reviewerEmail: e.target.value })}
-              placeholder="email@example.com"
-            />
-          </label>
-        </div>
       </div>
 
       {/* New session modal */}

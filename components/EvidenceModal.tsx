@@ -183,7 +183,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
           <div className="flex-1" />
           <button
             type="button"
-            className="bg-ut-green text-white border-0 px-ut-3 py-ut-1 text-ut-xs font-heading font-bold uppercase tracking-ut-label cursor-pointer"
+            className="btn-save px-ut-3 py-ut-1 text-ut-xs font-heading font-bold uppercase tracking-ut-label cursor-pointer"
             onClick={handleSave}
           >
             Save
