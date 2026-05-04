@@ -1,5 +1,6 @@
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useRovingTabIndex } from "@/lib/hooks";
+import { TabNavigationContext } from "@/lib/tab-navigation-context";
 import Captures from "./Captures";
 import Evaluation from "./Evaluation";
 import Metadata from "./Metadata";
@@ -19,17 +20,17 @@ export default function ActiveSession() {
   const { session, closeSession } = useActiveSession();
 
   return (
-    <>
-      <header className="bg-ut-white border-b-2 border-ut-border px-ut-4 py-ut-2 flex items-center justify-between">
+    <TabNavigationContext.Provider value={setActiveTab}>
+      <header className="bg-trust-magenta-tint border-b-2 border-trust-magenta-border px-ut-4 py-ut-3 flex items-center justify-between">
         <div className="flex items-center gap-ut-2 min-w-0">
           <button
             type="button"
-            className="shrink-0 p-1 rounded-ut-sm text-ut-slate hover:text-trust-magenta hover:bg-trust-magenta-tint transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue"
+            className="shrink-0 p-1 rounded-ut-sm text-ut-slate hover:text-trust-magenta hover:bg-white/60 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue"
             onClick={closeSession}
             title="Close session and return to start"
             aria-label="Close session"
           >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="12,14 7,9 12,4" />
             </svg>
           </button>
@@ -38,7 +39,7 @@ export default function ActiveSession() {
             <img
               src={session.faviconUrl}
               alt=""
-              className="w-4 h-4 shrink-0"
+              className="w-5 h-5 shrink-0"
               onError={(e) => {
                 const target = e.currentTarget;
                 target.style.display = "none";
@@ -48,7 +49,7 @@ export default function ActiveSession() {
             />
           ) : null}
           <span
-            className="w-4 h-4 shrink-0 rounded-full bg-trust-magenta text-white text-ut-xs font-bold items-center justify-center leading-none"
+            className="w-5 h-5 shrink-0 rounded-full bg-trust-magenta text-white text-ut-xs font-bold items-center justify-center leading-none"
             style={{ display: session?.faviconUrl ? "none" : "flex" }}
             aria-hidden="true"
           >
@@ -56,7 +57,7 @@ export default function ActiveSession() {
           </span>
 
           <div className="min-w-0">
-            <h1 className="text-ut-md font-heading font-bold text-trust-magenta truncate">
+            <h1 className="text-ut-body font-heading font-bold text-trust-magenta truncate">
               {session?.toolName}
             </h1>
             {session?.toolUrl && (
@@ -106,6 +107,6 @@ export default function ActiveSession() {
         {activeTab === "Metadata" && <Metadata />}
         {activeTab === "Finalize" && <FinalizationScreen />}
       </div>
-    </>
+    </TabNavigationContext.Provider>
   );
 }

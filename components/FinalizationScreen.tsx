@@ -1,21 +1,24 @@
 import { useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { useTabNavigation } from "@/lib/tab-navigation-context";
 import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
 
 const GRADES: { value: FinalizationGrade; label: string; color: string }[] = [
   { value: "pass", label: "Pass", color: "bg-ut-green" },
-  { value: "conditional", label: "Conditional", color: "bg-[#ea580c]" },
+  { value: "conditional", label: "Conditional", color: "bg-score-1" },
   { value: "fail", label: "Fail", color: "bg-ut-red" },
 ];
 
 export default function FinalizationScreen() {
   const { finalization, setFinalization } = useActiveSession();
+  const setActiveTab = useTabNavigation();
 
   const [grade, setGrade] = useState<FinalizationGrade | "">(finalization?.grade ?? "");
   const [conclusion, setConclusion] = useState(finalization?.conclusion ?? "");
   const [strengths, setStrengths] = useState<string[]>(finalization?.strengths ?? [""]);
   const [weaknesses, setWeaknesses] = useState<string[]>(finalization?.weaknesses ?? [""]);
   const [recommendations, setRecommendations] = useState(finalization?.recommendations ?? "");
+  const [justSaved, setJustSaved] = useState(false);
 
   const handleSave = () => {
     if (!grade) return;
@@ -29,6 +32,8 @@ export default function FinalizationScreen() {
       finalizedAt: new Date().toISOString(),
     };
     setFinalization(data);
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2000);
   };
 
   const handleClear = () => {
@@ -38,6 +43,7 @@ export default function FinalizationScreen() {
     setWeaknesses([""]);
     setRecommendations("");
     setFinalization(null);
+    setJustSaved(false);
   };
 
   const updateListItem = (list: string[], setter: (v: string[]) => void, idx: number, value: string) => {
@@ -61,9 +67,25 @@ export default function FinalizationScreen() {
       </h2>
 
       {finalization && (
-        <p className="text-ut-xs text-ut-muted font-mono">
-          Finalized {new Date(finalization.finalizedAt).toLocaleString()}
-        </p>
+        <div className="border-l-2 border-trust-magenta pl-ut-2">
+          <p className="text-ut-xs text-ut-muted font-mono">
+            Finalized {new Date(finalization.finalizedAt).toLocaleString()}
+          </p>
+          {(justSaved || finalization) && (
+            <div className="flex items-center gap-ut-2 mt-1">
+              <span className="text-ut-xs text-ut-muted font-heading uppercase tracking-ut-label">
+                Ready to export
+              </span>
+              <button
+                type="button"
+                className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta hover:text-trust-magenta-strong transition-colors"
+                onClick={() => setActiveTab("Metadata")}
+              >
+                Export review &rarr;
+              </button>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Grade selector */}
@@ -137,11 +159,15 @@ export default function FinalizationScreen() {
       <div className="border-t-2 border-ut-border pt-ut-3 mt-1">
         <button
           type="button"
-          className="w-full bg-trust-magenta text-white rounded-ut-sm px-ut-4 py-ut-3 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase hover:bg-trust-magenta-strong disabled:opacity-50 transition-colors"
-          disabled={!grade}
+          className={`w-full rounded-ut-sm px-ut-4 py-ut-3 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase disabled:opacity-50 transition-colors ${
+            justSaved
+              ? "bg-ut-green text-white"
+              : "bg-trust-magenta text-white hover:bg-trust-magenta-strong"
+          }`}
+          disabled={!grade || justSaved}
           onClick={handleSave}
         >
-          Save Finalization
+          {justSaved ? "Saved" : "Save Finalization"}
         </button>
         {finalization && (
           <button

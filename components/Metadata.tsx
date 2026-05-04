@@ -1,11 +1,19 @@
 import { useState } from "react";
 import { useRubric } from "@/lib/rubric-context";
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { useTabNavigation } from "@/lib/tab-navigation-context";
+import { toastError } from "@/stores/toast";
+import ConfirmDialog from "./ConfirmDialog";
+import ExportCompleteScreen from "./ExportCompleteScreen";
 
 export default function Metadata() {
   const { rubric } = useRubric();
-  const { session, updateMetadata, captures, evaluations, finalization, exportAndClose, deleteSession } = useActiveSession();
+  const setActiveTab = useTabNavigation();
+  const { session, updateMetadata, captures, evaluations, finalization, exportAndClose, deleteSession, closeSession } = useActiveSession();
   const [exporting, setExporting] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [exportComplete, setExportComplete] = useState(false);
+  const [exportFilename, setExportFilename] = useState("");
 
   if (!session) return null;
 
@@ -13,18 +21,38 @@ export default function Metadata() {
     setExporting(true);
     try {
       await exportAndClose(rubric);
+      setExportFilename(`TRUST_Review_${session.toolName}.zip`);
+      setExportComplete(true);
     } catch (err) {
       console.error("Export failed:", err);
+      toastError(err instanceof Error ? err.message : "Export failed. Please try again.");
     } finally {
       setExporting(false);
     }
   };
 
   const handleDiscardSession = () => {
-    deleteSession(session.id);
+    setShowDiscardConfirm(true);
   };
 
   const scoredCount = evaluations.filter((e) => e.score !== "" && e.score !== undefined).length;
+
+  const handleDone = () => {
+    closeSession();
+  };
+
+  // Export completion overlay
+  if (exportComplete) {
+    return (
+      <ExportCompleteScreen
+        captures={captures.length}
+        scoredCount={scoredCount}
+        finalization={finalization}
+        filename={exportFilename}
+        onDone={handleDone}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-ut-3 p-ut-4">
@@ -141,9 +169,21 @@ export default function Metadata() {
         )}
 
         {!finalization && (
-          <p className="text-ut-xs text-[#ea580c] mb-ut-2">
-            Review not finalized — conclusions will not be included in the report.
-          </p>
+          <div className="border border-score-1/40 bg-score-1/5 rounded-ut-sm px-ut-3 py-ut-2 mb-ut-2">
+            <p className="text-ut-xs text-score-1 font-heading font-bold uppercase tracking-ut-label">
+              Review not finalized
+            </p>
+            <p className="text-ut-xs text-ut-muted mt-0.5">
+              Conclusions will not be included in the report.
+            </p>
+            <button
+              type="button"
+              className="mt-1 text-ut-xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta hover:text-trust-magenta-strong transition-colors"
+              onClick={() => setActiveTab("Finalize")}
+            >
+              Finalize review &rarr;
+            </button>
+          </div>
         )}
         {finalization && (
           <p className="text-ut-xs text-ut-muted font-mono mb-ut-2">
@@ -168,6 +208,16 @@ export default function Metadata() {
           Discard session
         </button>
       </div>
+
+      {showDiscardConfirm && (
+        <ConfirmDialog
+          message="This will permanently delete all captures, scores, and notes for this review."
+          actions={[
+            { label: "Cancel", handler: () => setShowDiscardConfirm(false), variant: "cancel" },
+            { label: "Discard", handler: () => { deleteSession(session.id); setShowDiscardConfirm(false); }, variant: "danger" },
+          ]}
+        />
+      )}
     </div>
   );
 }
