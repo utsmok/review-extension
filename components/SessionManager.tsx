@@ -4,13 +4,15 @@ import { useActiveSession } from "@/hooks/useActiveSession";
 import { loadFromIDB } from "@/lib/session-storage";
 import { downloadBlob, exportSession } from "@/lib/export";
 import { getRubricById } from "@/data/rubrics";
+import { toastError, toastSuccess } from "@/stores/toast";
 import NewSessionModal from "./NewSessionModal";
+import ConfirmDialog from "./ConfirmDialog";
 
 function FaviconOrFallback({ url, toolName }: { url?: string; toolName: string }) {
   const [failed, setFailed] = useState(false);
   if (!url || failed) {
     return (
-      <span className="inline-flex items-center justify-center shrink-0 w-4 h-4 rounded-full bg-trust-magenta/20 text-trust-magenta text-[9px] font-bold leading-none">
+      <span className="inline-flex items-center justify-center shrink-0 w-4 h-4 rounded-full bg-[color-mix(in_srgb,var(--trust-magenta)_20%,var(--ut-white))] text-trust-magenta text-[9px] font-bold leading-none">
         {toolName.charAt(0).toUpperCase()}
       </span>
     );
@@ -29,6 +31,7 @@ function FaviconOrFallback({ url, toolName }: { url?: string; toolName: string }
 
 export default function SessionManager() {
   const [showModal, setShowModal] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const sessionIndex = useRegistryStore((s) => s.sessionIndex);
   const { switchToSession, deleteSession } = useActiveSession();
 
@@ -45,18 +48,27 @@ export default function SessionManager() {
     const variant = getRubricById(meta.rubricId);
     try {
       const blob = await exportSession(meta, data.captures, data.evaluations, variant.data, data.finalization);
-      downloadBlob(blob, `TRUST_Review_${meta.toolName.replace(/\s+/g, "_")}.zip`);
+      const filename = `TRUST_Review_${meta.toolName.replace(/\s+/g, "_")}.zip`;
+      downloadBlob(blob, filename);
+      const scoredCount = data.evaluations.filter((e) => e.score !== "" && e.score !== undefined).length;
+      toastSuccess(`Review exported: ${data.captures.length} captures, ${scoredCount} scores`);
     } catch (err) {
       console.error("Export failed:", err);
+      toastError(err instanceof Error ? err.message : "Export failed. Please try again.");
     }
   };
 
-  const handleDelete = async (id: string) => {
-    const meta = sessionIndex[id];
-    if (!meta) return;
-    if (!confirm(`Delete review of "${meta.toolName}"? This cannot be undone.`)) return;
-    await deleteSession(id);
+  const handleDelete = (id: string) => {
+    setDeleteTargetId(id);
   };
+
+  const confirmDelete = async () => {
+    if (!deleteTargetId) return;
+    await deleteSession(deleteTargetId);
+    setDeleteTargetId(null);
+  };
+
+  const deleteTargetMeta = deleteTargetId ? sessionIndex[deleteTargetId] : null;
 
   return (
     <div className="flex flex-col h-full">
@@ -70,7 +82,7 @@ export default function SessionManager() {
         </p>
         <button
           type="button"
-          className="bg-trust-magenta text-white rounded-ut-sm px-ut-4 py-ut-2 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase hover:bg-trust-magenta-strong disabled:opacity-50 transition-colors w-full"
+          className="bg-trust-magenta text-white rounded-ut-sm px-ut-4 py-ut-3 text-ut-md font-heading font-bold uppercase tracking-ut-uppercase hover:bg-trust-magenta-strong active:scale-[0.98] disabled:opacity-50 transition-all w-full"
           onClick={() => setShowModal(true)}
         >
           Start New Review
@@ -90,7 +102,16 @@ export default function SessionManager() {
             {sessions.map((s) => (
               <div
                 key={s.id}
-                className="border border-ut-border rounded-ut-sm px-ut-3 py-ut-2 flex items-center gap-ut-2"
+                className="border border-ut-border rounded-ut-sm px-ut-3 py-ut-2 flex items-center gap-ut-2 cursor-pointer hover:bg-trust-magenta-tint transition-colors group"
+                role="button"
+                tabIndex={0}
+                onClick={() => switchToSession(s.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    switchToSession(s.id);
+                  }
+                }}
               >
                 {/* Favicon */}
                 <FaviconOrFallback url={s.faviconUrl} toolName={s.toolName} />
@@ -102,16 +123,16 @@ export default function SessionManager() {
                       {s.toolName}
                     </span>
                     <span
-                      className={`text-ut-xs font-heading font-bold uppercase tracking-ut-label px-1 rounded ${
+                      className={`text-ut-xs font-heading font-bold uppercase tracking-ut-label px-1.5 py-0.5 rounded ${
                         s.status === "done"
-                          ? "bg-ut-green/15 text-ut-green"
-                          : "bg-trust-magenta/10 text-trust-magenta"
+                          ? "bg-[color-mix(in_srgb,var(--ut-green)_20%,var(--ut-white))] text-ut-green"
+                          : "bg-[color-mix(in_srgb,var(--trust-magenta)_20%,var(--ut-white))] text-trust-magenta-strong"
                       }`}
                     >
                       {s.status === "done" ? "Done" : "Started"}
                     </span>
                     {s.finalizedAt && (
-                      <span className="text-ut-xs font-heading font-bold uppercase tracking-ut-label px-1 rounded bg-[#ea580c]/10 text-[#ea580c]">
+                      <span className="text-ut-xs font-heading font-bold uppercase tracking-ut-label px-1.5 py-0.5 rounded bg-[color-mix(in_srgb,var(--trust-magenta)_20%,var(--ut-white))] text-trust-magenta">
                         Finalized
                       </span>
                     )}
@@ -122,22 +143,14 @@ export default function SessionManager() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    type="button"
-                    title="Open review"
-                    className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta hover:text-trust-magenta-strong transition-colors px-1"
-                    onClick={() => switchToSession(s.id)}
-                  >
-                    Open
-                  </button>
+                <div className="flex items-center shrink-0" onClick={(e) => e.stopPropagation()}>
                   <button
                     type="button"
                     title="Open tool in new tab"
-                    className="text-ut-muted hover:text-ut-navy transition-colors p-0.5"
+                    className="text-ut-muted hover:text-ut-navy transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
                     onClick={() => window.open(s.toolUrl, "_blank")}
                   >
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3" />
                       <path d="M9 2h5v5" />
                       <path d="M14 2 8 8" />
@@ -146,10 +159,10 @@ export default function SessionManager() {
                   <button
                     type="button"
                     title="Download report"
-                    className="text-ut-muted hover:text-ut-navy transition-colors p-0.5"
+                    className="text-ut-muted hover:text-ut-navy transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
                     onClick={() => handleExport(s.id)}
                   >
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" />
                       <path d="M8 2v8" />
                       <path d="M5 7l3 3 3-3" />
@@ -158,10 +171,10 @@ export default function SessionManager() {
                   <button
                     type="button"
                     title="Delete review"
-                    className="text-ut-muted hover:text-red-500 transition-colors p-0.5"
+                    className="text-ut-muted hover:text-ut-red transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
                     onClick={() => handleDelete(s.id)}
                   >
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M2 4h12" />
                       <path d="M5.33 4V2.67a1.33 1.33 0 0 1 1.34-1.34h2.66a1.33 1.33 0 0 1 1.34 1.34V4" />
                       <path d="M12.67 4v9.33a1.33 1.33 0 0 1-1.34 1.34H4.67a1.33 1.33 0 0 1-1.34-1.34V4" />
@@ -176,6 +189,17 @@ export default function SessionManager() {
 
       {/* New session modal */}
       {showModal && <NewSessionModal onClose={() => setShowModal(false)} />}
+
+      {/* Delete confirmation */}
+      {deleteTargetId && deleteTargetMeta && (
+        <ConfirmDialog
+          message={`Delete review of "${deleteTargetMeta.toolName}"? This cannot be undone.`}
+          actions={[
+            { label: "Cancel", handler: () => setDeleteTargetId(null), variant: "cancel" },
+            { label: "Delete", handler: confirmDelete, variant: "danger" },
+          ]}
+        />
+      )}
     </div>
   );
 }
