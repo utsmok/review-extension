@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import EvidenceModal from "@/components/EvidenceModal";
 import QuestionSection from "@/components/QuestionSection";
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { useRubric } from "@/lib/rubric-context";
 import { useRovingTabIndex } from "@/lib/hooks";
+import { getRubricQuestionIds } from "@/lib/rubric";
 import type { Capture } from "@/lib/types";
 
 const evalTabs = ["Quality Gates", "Scoring Rubric"] as const;
 
 export default function Evaluation() {
-  const { removeCapture, unlinkCaptureFromRubric } = useActiveSession();
+  const { evaluations, removeCapture, unlinkCaptureFromRubric } = useActiveSession();
+  const { rubric } = useRubric();
   const { activeTab, setActiveTab, handleKeyDown } = useRovingTabIndex(evalTabs, "Quality Gates");
   const [capturingFor, setCapturingFor] = useState<string | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<{
@@ -18,36 +21,48 @@ export default function Evaluation() {
   } | null>(null);
   const [viewCapture, setViewCapture] = useState<Capture | null>(null);
 
+  const progress = useMemo(() => {
+    if (!rubric) return { scored: 0, total: 0 };
+    const total = getRubricQuestionIds(rubric).length;
+    const scored = evaluations.filter((e) => e.score !== "" && e.score !== undefined).length;
+    return { scored, total };
+  }, [evaluations, rubric]);
+
   const handleConfirmRemove = (capture: Capture, rubricId: string) => {
     setConfirmTarget({ capture, rubricId });
   };
 
   return (
     <div className="flex flex-col gap-ut-4 p-ut-4">
-      <nav
-        className="flex border-b border-ut-border mb-ut-2"
-        role="tablist"
-        aria-label="Evaluation sections"
-        onKeyDown={handleKeyDown}
-      >
-        {evalTabs.map((tab) => (
-          <button
-            key={tab}
-            role="tab"
-            id={`tab-${tab.toLowerCase().replace(/\s+/g, "-")}`}
-            aria-selected={activeTab === tab}
-            tabIndex={activeTab === tab ? 0 : -1}
-            className={`px-ut-3 py-ut-2 text-ut-sm font-heading font-bold uppercase tracking-ut-label border-b-2 transition-colors ${
-              activeTab === tab
-                ? "border-trust-magenta text-trust-magenta"
-                : "border-transparent text-ut-slate hover:text-ut-text"
-            }`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </nav>
+      <div className="flex items-end justify-between border-b border-ut-border mb-ut-2">
+        <nav
+          className="flex"
+          role="tablist"
+          aria-label="Evaluation sections"
+          onKeyDown={handleKeyDown}
+        >
+          {evalTabs.map((tab) => (
+            <button
+              key={tab}
+              role="tab"
+              id={`tab-${tab.toLowerCase().replace(/\s+/g, "-")}`}
+              aria-selected={activeTab === tab}
+              tabIndex={activeTab === tab ? 0 : -1}
+              className={`px-ut-3 py-ut-2 text-ut-sm font-heading font-bold uppercase tracking-ut-label border-b-2 transition-colors ${
+                activeTab === tab
+                  ? "border-trust-magenta text-trust-magenta"
+                  : "border-transparent text-ut-slate hover:text-ut-text"
+              }`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </nav>
+        <span className="text-ut-xs font-mono text-ut-muted pb-ut-2 whitespace-nowrap pl-ut-2">
+          {progress.scored}/{progress.total} scored
+        </span>
+      </div>
 
       {activeTab === "Quality Gates" && (
         <QuestionSection
@@ -72,15 +87,17 @@ export default function Evaluation() {
       {confirmTarget && (
         <ConfirmDialog
           message="Remove this evidence?"
-          onRemoveTag={() => {
-            unlinkCaptureFromRubric(confirmTarget.capture.id, confirmTarget.rubricId);
-            setConfirmTarget(null);
-          }}
-          onDelete={() => {
-            removeCapture(confirmTarget.capture.id);
-            setConfirmTarget(null);
-          }}
-          onCancel={() => setConfirmTarget(null)}
+          actions={[
+            { label: "Remove tag", handler: () => {
+              unlinkCaptureFromRubric(confirmTarget.capture.id, confirmTarget.rubricId);
+              setConfirmTarget(null);
+            }, variant: "secondary" },
+            { label: "Delete", handler: () => {
+              removeCapture(confirmTarget.capture.id);
+              setConfirmTarget(null);
+            }, variant: "danger" },
+            { label: "Cancel", handler: () => setConfirmTarget(null), variant: "cancel" },
+          ]}
         />
       )}
 
