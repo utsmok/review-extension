@@ -1,6 +1,6 @@
 # TRUST Review Extension
 
-Browser extension for systematic evaluation of academic search tools against the TRUST framework. Side panel UI captures screenshots/DOM, tags evidence to rubric items, and exports a `.zip` with CSVs + PDF report.
+Browser extension for systematic evaluation of academic search tools against the TRUST framework. Side panel UI captures screenshots/DOM, tags evidence to rubric items, and exports a `.zip` with CSVs + standalone HTML report.
 
 ## Commands
 
@@ -17,7 +17,7 @@ pnpm typecheck        # type check
 - **WXT** (`wxt.dev`) — cross-browser extension framework
 - **React 19 + TailwindCSS 3** — side panel UI
 - **Zustand** — persistent session state (`stores/session.ts`)
-- **JSZip + pdfmake + papaparse** — export pipeline (`lib/export.ts`)
+- **JSZip + papaparse** — export pipeline (`lib/export.ts`)
 - **Nunito Sans + Inter + Arial Narrow + JetBrains Mono** — 4-font type system (`display`, `heading`, `body`, `mono`)
 
 ## Architecture
@@ -54,10 +54,9 @@ lib/
   session-lifecycle.ts   create/switch/close/markDone orchestration
   migration.ts           legacy localStorage → IDB migration (idempotent)
   capture.ts             screenshot + HTML archiver (inlines CSS, strips scripts)
-  export.ts              zip/pdf/csv pipeline
-  nutrition-label.ts     PDF summary page builder
-  pdf-logos.ts           base64-encoded logos for PDF
-  pdf-score-indicator.ts SVG score indicators for PDF
+  export.ts              zip/csv pipeline + HTML report generation
+  html-report.ts         standalone HTML report builder
+  logos.ts               base64-encoded logos (TRUST, LISA-EIS, UT)
   principles.ts          TRUST principle color map
   rubric.ts              rubric data + helpers
   hooks.ts               shared React hooks
@@ -90,7 +89,7 @@ Two-store architecture:
 2. `useActiveSession` loads from IDB when `activeSessionId` changes
 3. Captures linked to rubric items via `Evaluation.explicitEvidenceIds` (one-directional)
 4. Auto-save to IDB on every change (debounced), flush on visibility hidden
-5. Export compiles active session state into `.zip` (evidence/, CSVs, PDF report)
+5. Export compiles active session state into `.zip` (evidence/, CSVs, HTML report)
 
 ## Key Decisions
 
