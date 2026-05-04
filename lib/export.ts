@@ -8,6 +8,7 @@ const PDF_IMAGE_MAX_WIDTH = 500;
 const PDF_IMAGE_JPEG_QUALITY = 0.8;
 
 function downscaleImage(dataUrl: string, maxWidth: number, quality: number): Promise<string> {
+  if (typeof Image === "undefined") return Promise.resolve(dataUrl);
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {

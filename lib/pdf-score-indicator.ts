@@ -33,9 +33,22 @@ function fillForIndex(score: ScoreValue, i: number): { fill: string; stroke: str
 
 const cache = new Map<string, string>();
 
+// Valid 1x1 transparent PNG
+const PLACEHOLDER_PNG =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==";
+
+function isCanvasAvailable(): boolean {
+  return typeof document !== "undefined" && typeof document.createElement === "function";
+}
+
 export function scoreIndicatorUrl(score: ScoreValue | -1): string {
   const key = String(score);
   if (cache.has(key)) return cache.get(key)!;
+
+  if (!isCanvasAvailable()) {
+    cache.set(key, PLACEHOLDER_PNG);
+    return PLACEHOLDER_PNG;
+  }
 
   const n = 4;
   const cellW = CIRCLE_R * 2 + CIRCLE_GAP;
