@@ -3,6 +3,7 @@ import { captureActiveTab } from "@/lib/capture";
 import { getAccentKey, getCategoryLabel, getQuestionCode, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import { useRubric } from "@/lib/rubric-context";
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { toastError } from "@/stores/toast";
 
 export default function Captures() {
   const { rubric, usesAi } = useRubric();
@@ -26,6 +27,7 @@ export default function Captures() {
       addCapture(capture);
     } catch (err) {
       console.error("Capture failed:", err);
+      toastError(err instanceof Error ? err.message : "Capture failed. Check tab permissions and try again.");
     } finally {
       setCapturing(false);
     }

@@ -4,6 +4,7 @@ import { RUBRIC_VARIANTS } from "@/data/rubrics";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureCurrentPageInfo } from "@/lib/capture";
 import { useAutoFocus, useFocusTrap } from "@/lib/hooks";
+import { toastError } from "@/stores/toast";
 
 interface NewSessionModalProps {
   onClose: () => void;
@@ -70,6 +71,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
       onClose();
     } catch (err) {
       console.error("Failed to create session:", err);
+      toastError(err instanceof Error ? err.message : "Failed to create session. Please try again.");
       setSubmitting(false);
     }
   };

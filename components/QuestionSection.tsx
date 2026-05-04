@@ -16,6 +16,7 @@ import type {
   ScoringQuestion,
 } from "@/lib/types";
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { toastError } from "@/stores/toast";
 import EvidenceThumbnails from "./EvidenceThumbnails";
 import { ProgressCircle, getProgressState } from "./ProgressCircle";
 
@@ -71,7 +72,7 @@ function renderQGScores(
             onClick={handleClick}
             onKeyDown={handleKeyDown}
             className="judgment-label cursor-pointer select-none"
-            data-judgment={val === "na" ? "fail" : val}
+            data-judgment={val}
             data-active={isActive ? "true" : "false"}
           >
             {val === "pass" ? "✓ Pass" : val === "fail" ? "✗ Fail" : "— N/A"}
@@ -221,6 +222,7 @@ export default function QuestionSection({
       linkCaptureToRubric(capture.id, rubricId);
     } catch (err) {
       console.error("Evidence capture failed:", err);
+      toastError(err instanceof Error ? err.message : "Capture failed. Check tab permissions and try again.");
     } finally {
       setCapturingFor(null);
     }

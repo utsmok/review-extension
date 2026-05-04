@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from "react";
+import ToastContainer from "./Toast";
 
 interface AppShellProps {
   children: ReactNode;
@@ -12,6 +13,7 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
 
   return (
     <div className="flex flex-col h-screen bg-ut-white">
+      <ToastContainer />
       <header className="border-b border-ut-border px-ut-4 py-ut-2 flex items-center gap-2 bg-ut-white shrink-0">
         {trustImgError ? (
           <span className="text-ut-sm font-display font-bold uppercase tracking-ut-kicker text-trust-magenta">
