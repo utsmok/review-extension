@@ -5,8 +5,3 @@ export const PRINCIPLES = [
   { id: "SE", code: "SE", color: "#ea580c" },
   { id: "TC", code: "TC", color: "#0d9488" },
 ] as const;
-
-export const PRINCIPLE_COLORS: Readonly<Record<string, string>> = {
-  ...Object.fromEntries(PRINCIPLES.map((p) => [p.id, p.color])),
-  control: "#002c5f",
-};
