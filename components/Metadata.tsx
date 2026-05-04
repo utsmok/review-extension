@@ -5,7 +5,7 @@ import { useActiveSession } from "@/hooks/useActiveSession";
 
 export default function Metadata() {
   const { rubric } = useRubric();
-  const { session, updateMetadata, captures, evaluations, markDoneAndClose, deleteSession } = useActiveSession();
+  const { session, updateMetadata, captures, evaluations, finalization, markDoneAndClose, deleteSession } = useActiveSession();
   const [exporting, setExporting] = useState(false);
 
   if (!session) return null;
@@ -13,7 +13,7 @@ export default function Metadata() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const blob = await exportSession(session, captures, evaluations, rubric);
+      const blob = await exportSession(session, captures, evaluations, rubric, finalization);
       downloadBlob(blob, `TRUST_Review_${session.toolName}.zip`);
       markDoneAndClose(session.id);
     } catch (err) {
@@ -140,6 +140,17 @@ export default function Metadata() {
         {scoredCount === 0 && captures.length > 0 && (
           <p className="text-ut-xs text-state-warning mb-ut-2">
             No scores yet — export will contain only captures and metadata.
+          </p>
+        )}
+
+        {!finalization && (
+          <p className="text-ut-xs text-[#ea580c] mb-ut-2">
+            Review not finalized — conclusions will not be included in the report.
+          </p>
+        )}
+        {finalization && (
+          <p className="text-ut-xs text-ut-muted font-mono mb-ut-2">
+            Finalized {new Date(finalization.finalizedAt).toLocaleString()}
           </p>
         )}
 

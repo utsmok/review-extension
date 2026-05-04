@@ -44,7 +44,7 @@ export default function SessionManager() {
     if (!data) return;
     const variant = getRubricById(meta.rubricId);
     try {
-      const blob = await exportSession(meta, data.captures, data.evaluations, variant.data);
+      const blob = await exportSession(meta, data.captures, data.evaluations, variant.data, data.finalization);
       downloadBlob(blob, `TRUST_Review_${meta.toolName.replace(/\s+/g, "_")}.zip`);
     } catch (err) {
       console.error("Export failed:", err);
@@ -110,6 +110,11 @@ export default function SessionManager() {
                     >
                       {s.status === "done" ? "Done" : "Started"}
                     </span>
+                    {s.finalizedAt && (
+                      <span className="text-ut-xs font-heading font-bold uppercase tracking-ut-label px-1 rounded bg-[#ea580c]/10 text-[#ea580c]">
+                        Finalized
+                      </span>
+                    )}
                   </div>
                   <p className="text-ut-xs text-ut-muted truncate">
                     {new Date(s.startTime).toLocaleString()}

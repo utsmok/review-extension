@@ -3,13 +3,15 @@ import { useRovingTabIndex } from "@/lib/hooks";
 import Captures from "./Captures";
 import Evaluation from "./Evaluation";
 import Metadata from "./Metadata";
+import FinalizationScreen from "./FinalizationScreen";
 
-const tabs = ["Captures", "Evaluation", "Metadata"] as const;
+const tabs = ["Captures", "Evaluation", "Metadata", "Finalize"] as const;
 
 const tabIds: Record<(typeof tabs)[number], string> = {
   Captures: "panel-captures",
   Evaluation: "panel-evaluation",
   Metadata: "panel-metadata",
+  Finalize: "panel-finalize",
 };
 
 export default function ActiveSession() {
@@ -102,6 +104,7 @@ export default function ActiveSession() {
         {activeTab === "Captures" && <Captures />}
         {activeTab === "Evaluation" && <Evaluation />}
         {activeTab === "Metadata" && <Metadata />}
+        {activeTab === "Finalize" && <FinalizationScreen />}
       </div>
     </>
   );
