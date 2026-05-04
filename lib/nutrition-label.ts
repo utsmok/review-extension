@@ -1,7 +1,7 @@
 import { getCategoryLabel } from "./rubric";
 import { averageScoreIndicatorUrl } from "./pdf-score-indicator";
 import { PRINCIPLES } from "./principles";
-import type { Evaluation, RubricData, SessionMetadata } from "./types";
+import type { Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 function reviewId(startTime: string): string {
   const d = new Date(startTime);
@@ -41,6 +41,7 @@ export async function buildPdfSummaryPage(
   metadata: SessionMetadata,
   evaluations: Evaluation[],
   rubric: RubricData,
+  finalization: ReviewFinalization | null = null,
   // biome-ignore lint/suspicious/noExplicitAny: pdfmake defs are untyped
 ): Promise<any[]> {
   const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = await import("./pdf-logos");
@@ -69,14 +70,31 @@ export async function buildPdfSummaryPage(
 
   // Verdict
   const ratio = totalMax > 0 ? totalActual / totalMax : 0;
-  const failed = anyFail || ratio < 0.5;
-  const verdict = failed ? "FAILED" : "PASSED";
-  const verdictColor = failed ? "#c60c30" : "#4a8355";
-  const verdictReason = anyFail
-    ? "Quality gate failure"
-    : ratio < 0.5
-      ? `Score below threshold (${Math.round(ratio * 100)}%)`
-      : `Score ${Math.round(ratio * 100)}% — meets threshold`;
+  const computedFailed = anyFail || ratio < 0.5;
+
+  let verdict: string;
+  let verdictColor: string;
+  let verdictReason: string;
+
+  if (finalization) {
+    const gradeColors: Record<string, string> = { pass: "#4a8355", conditional: "#ea580c", fail: "#c60c30" };
+    const gradeLabels: Record<string, string> = { pass: "PASSED", conditional: "CONDITIONAL", fail: "FAILED" };
+    verdict = gradeLabels[finalization.grade] ?? finalization.grade.toUpperCase();
+    verdictColor = gradeColors[finalization.grade] ?? "#576578";
+    verdictReason = finalization.conclusion
+      ? finalization.conclusion.length > 120
+        ? `${finalization.conclusion.slice(0, 120)}...`
+        : finalization.conclusion
+      : `Reviewer grade: ${finalization.grade}`;
+  } else {
+    verdict = computedFailed ? "FAILED" : "PASSED";
+    verdictColor = computedFailed ? "#c60c30" : "#4a8355";
+    verdictReason = anyFail
+      ? "Quality gate failure"
+      : ratio < 0.5
+        ? `Score below threshold (${Math.round(ratio * 100)}%)`
+        : `Score ${Math.round(ratio * 100)}% — meets threshold`;
+  }
 
   // biome-ignore lint/suspicious/noExplicitAny: pdfmake defs
   const content: any[] = [];
@@ -206,7 +224,7 @@ export async function buildPdfSummaryPage(
     margin: [0, 6, 0, 0],
   });
 
-  const verdictTint = failed ? "#fdf0f2" : "#f0f7f1";
+  const verdictTint = verdictColor === "#c60c30" ? "#fdf0f2" : verdictColor === "#4a8355" ? "#f0f7f1" : "#fef3e8";
   content.push({
     table: {
       widths: ["*"],

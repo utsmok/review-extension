@@ -2,7 +2,7 @@ import { getCategoryLabel, getQuestionCode } from "./rubric";
 import { buildPdfSummaryPage } from "./nutrition-label";
 import { PRINCIPLE_COLORS } from "./principles";
 import { scoreIndicatorUrl } from "./pdf-score-indicator";
-import type { Capture, Evaluation, RubricData, SessionMetadata } from "./types";
+import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 const PDF_IMAGE_MAX_WIDTH = 500;
 const PDF_IMAGE_JPEG_QUALITY = 0.8;
@@ -40,6 +40,7 @@ export async function exportSession(
   captures: Capture[],
   evaluations: Evaluation[],
   rubric: RubricData,
+  finalization: ReviewFinalization | null = null,
 ): Promise<Blob> {
   const JSZip = (await import("jszip")).default;
   const Papa = (await import("papaparse")).default;
@@ -107,7 +108,23 @@ export async function exportSession(
     ),
   );
 
-  const pdfBlob = await buildPdfReport(metadata, captures, evaluations, rubric);
+  if (finalization) {
+    zip.file(
+      "review_conclusions.csv",
+      Papa.unparse([
+        {
+          Grade: finalization.grade,
+          Conclusion: finalization.conclusion,
+          Strengths: finalization.strengths.join("; "),
+          Weaknesses: finalization.weaknesses.join("; "),
+          Recommendations: finalization.recommendations,
+          Finalized_At: finalization.finalizedAt,
+        },
+      ]),
+    );
+  }
+
+  const pdfBlob = await buildPdfReport(metadata, captures, evaluations, rubric, finalization);
   zip.file(`Evaluation_Report_${metadata.toolName}.pdf`, pdfBlob);
 
   return zip.generateAsync({ type: "blob" });
@@ -118,6 +135,7 @@ async function buildPdfReport(
   captures: Capture[],
   evaluations: Evaluation[],
   rubric: RubricData,
+  finalization: ReviewFinalization | null = null,
 ): Promise<Uint8Array> {
   const pdfMake = (await import("pdfmake/build/pdfmake")).default;
 
@@ -144,7 +162,7 @@ async function buildPdfReport(
   const content: any[] = [];
 
   // ── Nutrition Label Summary (first page) ──
-  content.push(...await buildPdfSummaryPage(metadata, evaluations, rubric));
+  content.push(...await buildPdfSummaryPage(metadata, evaluations, rubric, finalization));
 
   // ── Title block ──
   content.push({
@@ -370,6 +388,89 @@ async function buildPdfReport(
         paddingBottom: () => 1,
       },
       margin: [0, 0, 0, 10],
+    });
+  }
+
+  // ── Conclusions Page ──
+  if (finalization) {
+    const gradeColors: Record<string, string> = { pass: "#4a8355", conditional: "#ea580c", fail: "#c60c30" };
+    const gradeLabels: Record<string, string> = { pass: "PASSED", conditional: "CONDITIONAL", fail: "FAILED" };
+    const gradeColor = gradeColors[finalization.grade] ?? "#576578";
+    const gradeLabel = gradeLabels[finalization.grade] ?? finalization.grade.toUpperCase();
+
+    content.push({ text: "", pageBreak: "before" });
+    content.push({
+      canvas: [{ type: "rect", x: 0, y: 0, w: 515, h: 4, color: "#8e036c" }],
+      margin: [0, 0, 0, 8],
+    });
+    content.push({
+      text: "REVIEW CONCLUSIONS",
+      fontSize: 12,
+      bold: true,
+      color: "#8e036c",
+      characterSpacing: 0.5,
+      margin: [0, 0, 0, 8],
+    });
+
+    // Grade banner
+    content.push({
+      canvas: [{ type: "rect", x: 0, y: 0, w: 515, h: 4, color: gradeColor }],
+      margin: [0, 0, 0, 0],
+    });
+    content.push({
+      table: {
+        widths: ["*"],
+        body: [[
+          {
+            text: gradeLabel,
+            fontSize: 22,
+            bold: true,
+            color: gradeColor,
+            alignment: "center",
+            margin: [0, 8, 0, 8],
+          },
+        ]],
+      },
+      layout: {
+        hLineWidth: () => 0,
+        vLineWidth: () => 0,
+        fillColor: () => "#f8f9fb",
+      },
+      margin: [0, 0, 0, 8],
+    });
+
+    if (finalization.conclusion) {
+      content.push({ text: "Conclusion", fontSize: 10, bold: true, color: "#172033", margin: [0, 0, 0, 4] });
+      content.push({ text: finalization.conclusion, fontSize: 9, color: "#172033", lineHeight: 1.4, margin: [0, 0, 0, 10] });
+    }
+
+    if (finalization.strengths.length > 0) {
+      content.push({ text: "Strengths", fontSize: 10, bold: true, color: "#4a8355", margin: [0, 0, 0, 4] });
+      content.push({
+        ul: finalization.strengths.map((s) => ({ text: s, fontSize: 9, color: "#172033" })),
+        margin: [0, 0, 0, 10],
+      });
+    }
+
+    if (finalization.weaknesses.length > 0) {
+      content.push({ text: "Weaknesses", fontSize: 10, bold: true, color: "#c60c30", margin: [0, 0, 0, 4] });
+      content.push({
+        ul: finalization.weaknesses.map((w) => ({ text: w, fontSize: 9, color: "#172033" })),
+        margin: [0, 0, 0, 10],
+      });
+    }
+
+    if (finalization.recommendations) {
+      content.push({ text: "Recommendations", fontSize: 10, bold: true, color: "#172033", margin: [0, 0, 0, 4] });
+      content.push({ text: finalization.recommendations, fontSize: 9, color: "#172033", lineHeight: 1.4, margin: [0, 0, 0, 10] });
+    }
+
+    content.push({
+      text: `Finalized ${new Date(finalization.finalizedAt).toLocaleString()}`,
+      fontSize: 8,
+      color: "#8b9bb0",
+      alignment: "right",
+      margin: [0, 4, 0, 0],
     });
   }
 
