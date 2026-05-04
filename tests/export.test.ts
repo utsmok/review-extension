@@ -231,4 +231,51 @@ describe("exportSession", () => {
     expect(header).toBe("%PDF");
   });
 
+  it("includes review_conclusions.csv when finalization is provided", async () => {
+    const finalization = {
+      grade: "pass" as const,
+      conclusion: "Solid tool overall",
+      strengths: ["Transparent methodology", "Good documentation"],
+      weaknesses: ["Slow response times"],
+      recommendations: "Improve performance",
+      finalizedAt: "2025-06-01T12:00:00.000Z",
+    };
+
+    const blob = await exportSession(makeMetadata(), [], [], RUBRIC, finalization);
+    const files = await unzipToFiles(blob);
+    const csv = files.get("review_conclusions.csv") as string;
+    expect(csv).toBeDefined();
+
+    const rows = parseCsv(csv);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].Grade).toBe("pass");
+    expect(rows[0].Conclusion).toBe("Solid tool overall");
+    expect(rows[0].Strengths).toBe("Transparent methodology; Good documentation");
+    expect(rows[0].Weaknesses).toBe("Slow response times");
+  });
+
+  it("does not include review_conclusions.csv when no finalization", async () => {
+    const blob = await exportSession(makeMetadata(), [], [], RUBRIC);
+    const files = await unzipToFiles(blob);
+    expect(files.has("review_conclusions.csv")).toBe(false);
+  });
+
+  it("includes finalization grade in PDF report", async () => {
+    const finalization = {
+      grade: "conditional" as const,
+      conclusion: "Needs improvement",
+      strengths: [],
+      weaknesses: ["Limited docs"],
+      recommendations: "Add documentation",
+      finalizedAt: "2025-06-01T12:00:00.000Z",
+    };
+
+    const blob = await exportSession(makeMetadata(), [], [], RUBRIC, finalization);
+    const files = await unzipToFiles(blob);
+    const pdfData = files.get("Evaluation_Report_TestSearch.pdf") as Uint8Array;
+    const header = new TextDecoder().decode(pdfData.slice(0, 4));
+    expect(header).toBe("%PDF");
+    expect(pdfData.length).toBeGreaterThan(0);
+  });
+
 });

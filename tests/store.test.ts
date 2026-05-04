@@ -44,6 +44,7 @@ describe("session lifecycle", () => {
       captures: [],
       evaluations: [],
       questionModes: {},
+      finalization: null,
     });
 
     const state = useSessionStore.getState();
@@ -61,6 +62,7 @@ describe("session lifecycle", () => {
       captures: [],
       evaluations: [],
       questionModes: {},
+      finalization: null,
     });
     store.addCapture(makeCapture());
     store.setEvaluation("TR.data_source_clarity", { score: 3 });
@@ -81,6 +83,7 @@ describe("session lifecycle", () => {
       captures: [],
       evaluations: [],
       questionModes: {},
+      finalization: null,
     });
     store.updateMetadata({ company: "Acme Corp", pricing: "Free" });
 
@@ -95,6 +98,73 @@ describe("session lifecycle", () => {
     store.updateMetadata({ company: "Acme Corp" });
 
     expect(useSessionStore.getState().session).toBeNull();
+  });
+
+  it("saves and clears finalization", () => {
+    const store = useSessionStore.getState();
+    store.loadSession({
+      metadata: makeMetadata(),
+      captures: [],
+      evaluations: [],
+      questionModes: {},
+      finalization: null,
+    });
+
+    const finalization = {
+      grade: "pass" as const,
+      conclusion: "Great tool",
+      strengths: ["Good UI"],
+      weaknesses: ["Slow"],
+      recommendations: "Improve speed",
+      finalizedAt: "2025-06-01T12:00:00.000Z",
+    };
+    store.setFinalization(finalization);
+    expect(useSessionStore.getState().finalization).toEqual(finalization);
+
+    store.setFinalization(null);
+    expect(useSessionStore.getState().finalization).toBeNull();
+  });
+
+  it("clear resets finalization to null", () => {
+    const store = useSessionStore.getState();
+    store.loadSession({
+      metadata: makeMetadata(),
+      captures: [],
+      evaluations: [],
+      questionModes: {},
+      finalization: {
+        grade: "conditional",
+        conclusion: "Mixed results",
+        strengths: [],
+        weaknesses: ["Incomplete docs"],
+        recommendations: "Add docs",
+        finalizedAt: "2025-06-01T12:00:00.000Z",
+      },
+    });
+
+    store.clear();
+    expect(useSessionStore.getState().finalization).toBeNull();
+  });
+
+  it("loadSession hydrates finalization", () => {
+    const store = useSessionStore.getState();
+    const finalization = {
+      grade: "fail" as const,
+      conclusion: "Not ready",
+      strengths: [],
+      weaknesses: ["No transparency"],
+      recommendations: "Overhaul needed",
+      finalizedAt: "2025-06-01T12:00:00.000Z",
+    };
+    store.loadSession({
+      metadata: makeMetadata(),
+      captures: [],
+      evaluations: [],
+      questionModes: {},
+      finalization,
+    });
+
+    expect(useSessionStore.getState().finalization).toEqual(finalization);
   });
 });
 
