@@ -143,41 +143,51 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         onClick={(e) => e.stopPropagation()}
       >
         {/* Toolbar */}
-        <div className="drawing-toolbar">
-          {PEN_COLORS.map((c) => (
-            <button
-              key={c.value}
-              type="button"
-              title={c.label}
-              className={`color-swatch ${!erasing && penColor === c.value ? "is-active" : ""}`}
-              style={{ background: c.value }}
-              onClick={() => {
-                setErasing(false);
-                setPenColor(c.value);
-              }}
-            />
-          ))}
+        <div className="drawing-toolbar" role="toolbar" aria-label="Annotation tools">
+          <div role="radiogroup" aria-label="Pen color">
+            {PEN_COLORS.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                title={c.label}
+                aria-label={c.label}
+                aria-pressed={!erasing && penColor === c.value}
+                className={`color-swatch ${!erasing && penColor === c.value ? "is-active" : ""}`}
+                style={{ background: c.value }}
+                onClick={() => {
+                  setErasing(false);
+                  setPenColor(c.value);
+                }}
+              />
+            ))}
+          </div>
           <span className="toolbar-separator" />
-          {PEN_SIZES.map((s) => (
-            <button
-              key={s}
-              type="button"
-              title={`${s}px`}
-              className={penSize === s ? "is-active" : ""}
-              onClick={() => setPenSize(s)}
-            >
-              {s}
-            </button>
-          ))}
+          <div role="radiogroup" aria-label="Pen size">
+            {PEN_SIZES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                title={`${s}px`}
+                aria-label={`${s}px pen size`}
+                aria-pressed={penSize === s}
+                className={penSize === s ? "is-active" : ""}
+                onClick={() => setPenSize(s)}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
           <span className="toolbar-separator" />
           <button
             type="button"
+            aria-label="Eraser"
+            aria-pressed={erasing}
             className={erasing ? "is-active" : ""}
             onClick={() => setErasing(!erasing)}
           >
             ✕ Eraser
           </button>
-          <button type="button" onClick={clearCanvas}>
+          <button type="button" aria-label="Clear annotations" onClick={clearCanvas}>
             Clear
           </button>
           <div className="flex-1" />
