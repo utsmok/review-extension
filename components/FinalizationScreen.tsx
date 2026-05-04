@@ -9,7 +9,7 @@ const GRADES: { value: FinalizationGrade; label: string; color: string }[] = [
 ];
 
 export default function FinalizationScreen() {
-  const { finalization, setFinalization, updateMetadata } = useActiveSession();
+  const { finalization, setFinalization } = useActiveSession();
 
   const [grade, setGrade] = useState<FinalizationGrade | "">(finalization?.grade ?? "");
   const [conclusion, setConclusion] = useState(finalization?.conclusion ?? "");
@@ -29,7 +29,6 @@ export default function FinalizationScreen() {
       finalizedAt: new Date().toISOString(),
     };
     setFinalization(data);
-    updateMetadata({ finalizedAt: data.finalizedAt });
   };
 
   const handleClear = () => {
@@ -39,7 +38,6 @@ export default function FinalizationScreen() {
     setWeaknesses([""]);
     setRecommendations("");
     setFinalization(null);
-    updateMetadata({ finalizedAt: undefined });
   };
 
   const updateListItem = (list: string[], setter: (v: string[]) => void, idx: number, value: string) => {

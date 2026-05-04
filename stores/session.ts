@@ -132,5 +132,11 @@ export const useSessionStore = create<SessionState>()((set) => ({
       ),
     })),
 
-  setFinalization: (data) => set({ finalization: data }),
+  setFinalization: (data) =>
+    set((s) => ({
+      finalization: data,
+      session: s.session
+        ? { ...s.session, finalizedAt: data?.finalizedAt }
+        : null,
+    })),
 }));

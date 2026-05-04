@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { downloadBlob, exportSession } from "@/lib/export";
 import { useRubric } from "@/lib/rubric-context";
 import { useActiveSession } from "@/hooks/useActiveSession";
 
 export default function Metadata() {
   const { rubric } = useRubric();
-  const { session, updateMetadata, captures, evaluations, finalization, markDoneAndClose, deleteSession } = useActiveSession();
+  const { session, updateMetadata, captures, evaluations, finalization, exportAndClose, deleteSession } = useActiveSession();
   const [exporting, setExporting] = useState(false);
 
   if (!session) return null;
@@ -13,9 +12,7 @@ export default function Metadata() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const blob = await exportSession(session, captures, evaluations, rubric, finalization);
-      downloadBlob(blob, `TRUST_Review_${session.toolName}.zip`);
-      markDoneAndClose(session.id);
+      await exportAndClose(rubric);
     } catch (err) {
       console.error("Export failed:", err);
     } finally {

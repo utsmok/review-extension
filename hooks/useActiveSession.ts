@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useSessionStore } from "@/stores/session";
 import { useRegistryStore } from "@/stores/registry";
 import { saveToIDB } from "@/lib/session-storage";
+import { downloadBlob, exportSession } from "@/lib/export";
+import type { RubricData } from "@/lib/types";
 import * as lifecycle from "@/lib/session-lifecycle";
 
 export function useActiveSession(migrationReady = true) {
@@ -100,6 +102,14 @@ export function useActiveSession(migrationReady = true) {
     useRegistryStore.getState().setActiveSessionId(null);
   };
 
+  const doExportAndClose = async (rubric: RubricData) => {
+    const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
+    if (!s) throw new Error("No active session");
+    const blob = await exportSession(s, c, e, rubric, f);
+    downloadBlob(blob, `TRUST_Review_${s.toolName}.zip`);
+    lifecycle.markDoneAndClose(s.id);
+  };
+
   return {
     status,
     session,
@@ -119,6 +129,7 @@ export function useActiveSession(migrationReady = true) {
     updateMetadata,
     setFinalization,
     closeSession,
+    exportAndClose: doExportAndClose,
     switchToSession: lifecycle.switchToSession,
     createSession: lifecycle.createSession,
     deleteSession: lifecycle.deleteSession,
