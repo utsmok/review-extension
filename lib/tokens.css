@@ -47,39 +47,39 @@
   /* Section context families — control */
   --section-control-accent: var(--ut-darkblue);
   --section-control-accent-strong: color-mix(in srgb, var(--section-control-accent) 88%, black);
-  --section-control-tint: color-mix(in srgb, var(--section-control-accent) 16%, var(--ut-white));
-  --section-control-border: color-mix(in srgb, var(--section-control-accent) 32%, var(--ut-border));
+  --section-control-tint: color-mix(in srgb, var(--section-control-accent) 22%, var(--ut-white));
+  --section-control-border: color-mix(in srgb, var(--section-control-accent) 36%, var(--ut-border));
   --section-control-on-accent: #ffffff;
 
   /* Section context families — TRUST principles */
   --section-tr-accent: var(--tr);
   --section-tr-accent-strong: color-mix(in srgb, var(--section-tr-accent) 86%, black);
-  --section-tr-tint: color-mix(in srgb, var(--section-tr-accent) 16%, var(--ut-white));
-  --section-tr-border: color-mix(in srgb, var(--section-tr-accent) 32%, var(--ut-border));
+  --section-tr-tint: color-mix(in srgb, var(--section-tr-accent) 22%, var(--ut-white));
+  --section-tr-border: color-mix(in srgb, var(--section-tr-accent) 36%, var(--ut-border));
   --section-tr-on-accent: #ffffff;
 
   --section-re-accent: var(--re);
   --section-re-accent-strong: color-mix(in srgb, var(--section-re-accent) 86%, black);
-  --section-re-tint: color-mix(in srgb, var(--section-re-accent) 16%, var(--ut-white));
-  --section-re-border: color-mix(in srgb, var(--section-re-accent) 32%, var(--ut-border));
+  --section-re-tint: color-mix(in srgb, var(--section-re-accent) 22%, var(--ut-white));
+  --section-re-border: color-mix(in srgb, var(--section-re-accent) 36%, var(--ut-border));
   --section-re-on-accent: #ffffff;
 
   --section-uc-accent: var(--uc);
   --section-uc-accent-strong: color-mix(in srgb, var(--section-uc-accent) 86%, black);
-  --section-uc-tint: color-mix(in srgb, var(--section-uc-accent) 16%, var(--ut-white));
-  --section-uc-border: color-mix(in srgb, var(--section-uc-accent) 32%, var(--ut-border));
+  --section-uc-tint: color-mix(in srgb, var(--section-uc-accent) 22%, var(--ut-white));
+  --section-uc-border: color-mix(in srgb, var(--section-uc-accent) 36%, var(--ut-border));
   --section-uc-on-accent: #ffffff;
 
   --section-se-accent: var(--se);
   --section-se-accent-strong: color-mix(in srgb, var(--section-se-accent) 86%, black);
-  --section-se-tint: color-mix(in srgb, var(--section-se-accent) 16%, var(--ut-white));
-  --section-se-border: color-mix(in srgb, var(--section-se-accent) 32%, var(--ut-border));
+  --section-se-tint: color-mix(in srgb, var(--section-se-accent) 22%, var(--ut-white));
+  --section-se-border: color-mix(in srgb, var(--section-se-accent) 36%, var(--ut-border));
   --section-se-on-accent: #ffffff;
 
   --section-tc-accent: var(--tc);
   --section-tc-accent-strong: color-mix(in srgb, var(--section-tc-accent) 86%, black);
-  --section-tc-tint: color-mix(in srgb, var(--section-tc-accent) 16%, var(--ut-white));
-  --section-tc-border: color-mix(in srgb, var(--section-tc-accent) 32%, var(--ut-border));
+  --section-tc-tint: color-mix(in srgb, var(--section-tc-accent) 22%, var(--ut-white));
+  --section-tc-border: color-mix(in srgb, var(--section-tc-accent) 36%, var(--ut-border));
   --section-tc-on-accent: #ffffff;
 
   /* Score-level semantic colors */
@@ -88,14 +88,14 @@
   --score-2: #0e7490;
   --score-3: #4a8355;
 
-  --score-0-tint: color-mix(in srgb, var(--score-0) 10%, var(--ut-white));
-  --score-0-border: color-mix(in srgb, var(--score-0) 24%, var(--ut-border));
-  --score-1-tint: color-mix(in srgb, var(--score-1) 10%, var(--ut-white));
-  --score-1-border: color-mix(in srgb, var(--score-1) 24%, var(--ut-border));
-  --score-2-tint: color-mix(in srgb, var(--score-2) 10%, var(--ut-white));
-  --score-2-border: color-mix(in srgb, var(--score-2) 24%, var(--ut-border));
-  --score-3-tint: color-mix(in srgb, var(--score-3) 10%, var(--ut-white));
-  --score-3-border: color-mix(in srgb, var(--score-3) 24%, var(--ut-border));
+  --score-0-tint: color-mix(in srgb, var(--score-0) 18%, var(--ut-white));
+  --score-0-border: color-mix(in srgb, var(--score-0) 32%, var(--ut-border));
+  --score-1-tint: color-mix(in srgb, var(--score-1) 18%, var(--ut-white));
+  --score-1-border: color-mix(in srgb, var(--score-1) 32%, var(--ut-border));
+  --score-2-tint: color-mix(in srgb, var(--score-2) 18%, var(--ut-white));
+  --score-2-border: color-mix(in srgb, var(--score-2) 32%, var(--ut-border));
+  --score-3-tint: color-mix(in srgb, var(--score-3) 18%, var(--ut-white));
+  --score-3-border: color-mix(in srgb, var(--score-3) 32%, var(--ut-border));
 
   /* Judgment state family */
   --judgment-pass: var(--ut-green);
@@ -171,5 +171,5 @@
 
   /* Border widths */
   --border-default: 2px;
-  --border-accent: 6px;
+  --border-accent: 8px;
 }
