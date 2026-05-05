@@ -19,8 +19,8 @@
   --ut-offwhite: #f3f4f6;
   --ut-border: #bfc6cf;
   --ut-text: #172033;
-  --ut-muted: #576578;
-  --ut-slate: #5f7088; /* WCAG AA: 5.05:1 against white. L=0.1580. R=95,G=112,B=136. R_lin=0.1176 G_lin=0.1604 B_lin=0.2574. Contrast=(1.05)/(0.158+0.05)=5.05 */
+  --ut-muted: #4f5e73;
+  --ut-slate: #4c5e74; /* WCAG AAA: ~6.5:1 against white. Was #5f7088 (5.05:1). R=76,G=94,B=116 */
 
   --ut-panel-bg: #f3f4f6;
   --ut-white: #fafbfc;
@@ -117,9 +117,9 @@
   --state-error-tint: color-mix(in srgb, var(--state-error) 10%, var(--ut-white));
 
   /* Type scale */
-  --text-xs: 0.6875rem;
-  --text-sm: 0.75rem;
-  --text-md: 0.875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.9375rem;
   --text-body: 1rem;
   --text-sub: 1.2rem;
   --text-heading: 1.563rem;

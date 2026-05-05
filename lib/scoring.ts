@@ -34,21 +34,24 @@ export function getCategoryScores(
 }
 
 export function scoreColor(s: number | "na" | "unsure" | undefined): string {
-  if (s === "na" || s === undefined) return "#5f7088";
-  if (s === "unsure") return "#6b7f94";
+  if (s === "na" || s === undefined) return "#4c5e74";
+  if (s === "unsure") return "#5a6e82";
   const colors: Record<number, string> = { 0: "#c60c30", 1: "#ea580c", 2: "#0e7490", 3: "#4a8355" };
-  return colors[s] ?? "#5f7088";
+  return colors[s] ?? "#4c5e74";
 }
 
 export function distributionBar(scores: (number | "na" | "unsure" | "" | undefined)[]): string {
   const numeric = scores.filter((s): s is number => typeof s === "number");
-  if (numeric.length === 0) return '<div class="dist-bar"><div class="dist-empty">No scores</div></div>';
+  if (numeric.length === 0)
+    return '<div class="dist-bar"><div class="dist-empty">No scores</div></div>';
   const counts = [0, 0, 0, 0];
   for (const s of numeric) counts[s]++;
-  const segments = counts.map((c, i) => {
-    const pct = (c / numeric.length) * 100;
-    return `<div class="dist-seg" style="width:${pct}%;background:${scoreColor(i as 0|1|2|3)}"></div>`;
-  }).join("");
+  const segments = counts
+    .map((c, i) => {
+      const pct = (c / numeric.length) * 100;
+      return `<div class="dist-seg" style="width:${pct}%;background:${scoreColor(i as 0 | 1 | 2 | 3)}"></div>`;
+    })
+    .join("");
   return `<div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px">${segments}</div>`;
 }
 
