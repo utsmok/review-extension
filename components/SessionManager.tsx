@@ -58,7 +58,8 @@ export default function SessionManager() {
         variant.data,
         data.finalization,
       );
-      const filename = `TRUST_Review_${sanitizeFilename(meta.toolName)}.zip`;
+      const sanitized = sanitizeFilename(meta.toolName).slice(0, 80);
+      const filename = `TRUST_Review_${sanitized}.zip`.slice(0, 100);
       downloadBlob(blob, filename);
       const scoredCount = data.evaluations.filter(
         (e) => e.score !== "" && e.score !== undefined,
@@ -102,9 +103,24 @@ export default function SessionManager() {
       {/* Session list */}
       <div className="flex-1 overflow-y-auto px-ut-4">
         {sessions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-ut-8">
-            <p className="text-ut-sm text-ut-muted text-center">
-              No reviews yet. Start your first review.
+          <div className="flex flex-col items-center justify-center py-ut-8 text-center">
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--ut-slate)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mb-ut-2"
+              aria-hidden="true"
+            >
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            </svg>
+            <p className="text-ut-sm text-ut-muted font-bold mb-ut-1">No reviews yet</p>
+            <p className="text-ut-xs text-ut-slate">
+              Start a new review to evaluate a search tool.
             </p>
           </div>
         ) : (
@@ -113,7 +129,7 @@ export default function SessionManager() {
               <button
                 type="button"
                 key={s.id}
-                className="border border-ut-border rounded-ut-sm px-ut-3 py-ut-2 flex items-center gap-ut-2 cursor-pointer hover:bg-trust-magenta-tint transition-colors group bg-transparent text-left w-full"
+                className={`border border-ut-border rounded-ut-sm px-ut-3 py-ut-2 flex items-center gap-ut-2 cursor-pointer hover:bg-trust-magenta-tint transition-colors group bg-transparent text-left w-full border-l-[3px] ${s.status === "done" ? "border-l-ut-green" : "border-l-ut-navy"}`}
                 onClick={() => switchToSession(s.id)}
               >
                 {/* Favicon */}
@@ -149,7 +165,10 @@ export default function SessionManager() {
                     type="button"
                     title="Open tool in new tab"
                     className="text-ut-muted hover:text-ut-navy transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    onClick={(e) => { e.stopPropagation(); window.open(s.toolUrl, "_blank"); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(s.toolUrl, "_blank");
+                    }}
                   >
                     <svg
                       width="16"
@@ -171,7 +190,10 @@ export default function SessionManager() {
                     type="button"
                     title="Download report"
                     className="text-ut-muted hover:text-ut-navy transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    onClick={(e) => { e.stopPropagation(); handleExport(s.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleExport(s.id);
+                    }}
                   >
                     <svg
                       width="16"
@@ -193,7 +215,10 @@ export default function SessionManager() {
                     type="button"
                     title="Delete review"
                     className="text-ut-muted hover:text-ut-red transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(s.id);
+                    }}
                   >
                     <svg
                       width="16"
