@@ -34,10 +34,10 @@ export function getCategoryScores(
 }
 
 export function scoreColor(s: number | "na" | "unsure" | undefined): string {
-  if (s === "na" || s === undefined) return "#8b9bb0";
-  if (s === "unsure") return "#6b7280";
+  if (s === "na" || s === undefined) return "#5f7088";
+  if (s === "unsure") return "#6b7f94";
   const colors: Record<number, string> = { 0: "#c60c30", 1: "#ea580c", 2: "#0e7490", 3: "#4a8355" };
-  return colors[s] ?? "#8b9bb0";
+  return colors[s] ?? "#5f7088";
 }
 
 export function distributionBar(scores: (number | "na" | "unsure" | "" | undefined)[]): string {
@@ -49,7 +49,7 @@ export function distributionBar(scores: (number | "na" | "unsure" | "" | undefin
     const pct = (c / numeric.length) * 100;
     return `<div class="dist-seg" style="width:${pct}%;background:${scoreColor(i as 0|1|2|3)}"></div>`;
   }).join("");
-  return `<div class="dist-bar">${segments}</div>`;
+  return `<div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px">${segments}</div>`;
 }
 
 export function principleAverage(

@@ -20,11 +20,14 @@
   --ut-border: #bfc6cf;
   --ut-text: #172033;
   --ut-muted: #576578;
-  --ut-slate: #8b9bb0;
+  --ut-slate: #5f7088; /* WCAG AA: 5.05:1 against white. L=0.1580. R=95,G=112,B=136. R_lin=0.1176 G_lin=0.1604 B_lin=0.2574. Contrast=(1.05)/(0.158+0.05)=5.05 */
 
   --ut-panel-bg: #f3f4f6;
   --ut-white: #fafbfc;
   --ut-canvas: var(--ut-grey);
+  --ut-on-accent: #ffffff;
+  --ut-overlay: rgba(0, 44, 95, 0.5);
+  --ut-overlay-light: rgba(0, 44, 95, 0.3);
 
   /* TRUST principle tokens */
   --tr: #2563eb;
@@ -172,4 +175,8 @@
   /* Border widths */
   --border-default: 2px;
   --border-accent: 8px;
+  /* Grade tint hints (very subtle) */
+  --grade-pass-tint: color-mix(in srgb, var(--ut-green) 10%, var(--ut-white));
+  --grade-conditional-tint: color-mix(in srgb, var(--score-1) 10%, var(--ut-white));
+  --grade-fail-tint: color-mix(in srgb, var(--ut-red) 10%, var(--ut-white));
 }
