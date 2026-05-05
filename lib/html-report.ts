@@ -12,13 +12,84 @@ function esc(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-export function buildHtmlReport(
+/** Validate URL starts with http:// or https:// */
+function isSafeUrl(url: string): boolean {
+  return /^https?:\/\//i.test(url.trim());
+}
+
+/** Render a URL as a link if valid, otherwise as plain text */
+function safeLink(url: string, attrs: string = ""): string {
+  const escaped = esc(url);
+  if (isSafeUrl(url)) {
+    return `<a href="${escaped}" rel="noopener noreferrer" target="_blank" ${attrs}>${escaped}</a>`;
+  }
+  return `<span class="url-plain">${escaped}</span>`;
+}
+
+/** Format date consistently as YYYY-MM-DD HH:mm */
+function formatDate(isoString: string): string {
+  const d = new Date(isoString);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** Resize and compress a base64 data-URL image. Returns original if resize fails. */
+async function compressScreenshot(dataUrl: string, maxWidth = 800, quality = 0.8): Promise<string> {
+  try {
+    if (!dataUrl.startsWith("data:image/")) return dataUrl;
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("Image load failed"));
+      img.src = dataUrl;
+    });
+    if (img.width <= maxWidth) return dataUrl;
+    const scale = maxWidth / img.width;
+    const canvas = document.createElement("canvas");
+    canvas.width = maxWidth;
+    canvas.height = Math.round(img.height * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return dataUrl;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", quality);
+  } catch {
+    return dataUrl;
+  }
+}
+
+/** Darkened report-local colors for WCAG AA contrast with white text */
+const REPORT_COLORS: Record<string, string> = {
+  TR: "#2563eb", // blue — already AA on white (~4.6:1)
+  RE: "#15803d", // green — darkened from #16a34a for AA (5.02:1)
+  US: "#9333ea", // purple — already AA on white (~5.9:1)
+  SE: "#c2410c", // orange — darkened from #ea580c for AA (5.18:1)
+  TC: "#0f766e", // teal — darkened from #0d9488 for AA (5.47:1)
+};
+
+/** Principle full names for display */
+const PRINCIPLE_NAMES: Record<string, string> = {
+  TR: "Transparency",
+  RE: "Reliability",
+  US: "Usability",
+  SE: "Security",
+  TC: "Technical",
+};
+
+export async function buildHtmlReport(
   metadata: SessionMetadata,
   captures: Capture[],
   evaluations: Evaluation[],
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
-): string {
+): Promise<string> {
+  // Compress all screenshots in parallel
+  const compressedScreenshots = new Map<string, string>();
+  await Promise.all(
+    captures.map(async (c) => {
+      compressedScreenshots.set(c.id, await compressScreenshot(c.screenshotBase64));
+    }),
+  );
+
   const date = new Date(metadata.startTime).toISOString().split("T")[0];
   const gates = qualityGateResults(evaluations, rubric);
   const allPassed = gates.length > 0 && gates.every((g) => g.result === "pass");
@@ -62,6 +133,8 @@ export function buildHtmlReport(
     return avg < 1.0;
   });
   const computedFailed = anyFail || ratio < 0.6 || principleFail;
+  const noEvaluation = answeredScoringQuestions === 0 && answeredQGQuestions === 0;
+
   let verdict: string;
   let verdictColor: string;
   if (finalization) {
@@ -73,6 +146,9 @@ export function buildHtmlReport(
     };
     verdict = gl[finalization.grade] ?? finalization.grade.toUpperCase();
     verdictColor = gc[finalization.grade] ?? "#576578";
+  } else if (noEvaluation) {
+    verdict = "NOT EVALUATED";
+    verdictColor = "#8b9bb0";
   } else if (!isComplete) {
     verdict = "INCOMPLETE";
     verdictColor = "#8b9bb0";
@@ -81,13 +157,10 @@ export function buildHtmlReport(
     verdictColor = computedFailed ? "#c60c30" : "#4a8355";
   }
 
-  const _principleLetters = PRINCIPLES.map(
-    (p) => `<span style="color:${p.color};font-weight:800">${p.code[0]}</span>`,
-  ).join("");
-
   // Build category sections
-  const categorySections = PRINCIPLES.map((p) => {
+  const categorySections = PRINCIPLES.map((p, sectionIdx) => {
     if (!(p.id in rubric.scoring_rubric)) return "";
+    const reportColor = REPORT_COLORS[p.id] ?? p.color;
     const questions = rubric.scoring_rubric[p.id];
     const scores = catScores.get(p.id) ?? [];
     const catEvals = evaluations.filter((e) => e.rubricId.startsWith(`${p.id}.`));
@@ -117,15 +190,16 @@ export function buildHtmlReport(
               ? ((levels as unknown as Record<string, string>)[String(score)] ?? "—")
               : "—";
 
+        const isWeakEvidence = score >= 0 && score <= 1;
         const evidenceImgs = captures
           .filter((c) => ev?.explicitEvidenceIds.includes(c.id))
           .map(
             (c) => `
-          <div class="evidence-item">
-            <img src="${c.screenshotBase64}" alt="${esc(c.pageTitle)}" loading="lazy" />
+          <div class="evidence-item${isWeakEvidence ? " evidence-weak" : ""}">
+            <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
             <div class="evidence-meta">
               <strong>${esc(c.pageTitle || "Capture")}</strong>
-              <span class="evidence-time">${new Date(c.timestamp).toLocaleString()}</span>
+              <span class="evidence-time">${formatDate(c.timestamp)}</span>
               ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
             </div>
           </div>
@@ -162,7 +236,7 @@ export function buildHtmlReport(
 
         return `
         <tr class="score-row">
-          <td class="code" style="color:${p.color}">${code}</td>
+          <td class="code" style="color:${reportColor}">${code}</td>
           <td class="score-cell">
             <span class="score-badge" style="background:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined)}20;color:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined)}">
               ${isNa ? "N/A" : isUnsure ? "?" : score >= 0 ? score : "—"}
@@ -178,9 +252,12 @@ export function buildHtmlReport(
       .join("");
 
     return `
-      <section class="category-section" style="--accent:${p.color}">
+      <section id="category-${p.id}" class="category-section${sectionIdx % 2 === 1 ? " category-alt" : ""}" style="--accent:${reportColor}">
         <div class="category-header">
-          <div class="category-letter">${p.code[0]}</div>
+          <div class="category-letter-block">
+            <div class="category-letter">${p.code}</div>
+            <div class="category-letter-name">${PRINCIPLE_NAMES[p.id] ?? ""}</div>
+          </div>
           <div class="category-info">
             <h2>${esc(getCategoryLabel(p.id).replace(/^.*?— /, ""))}</h2>
             <div class="category-meta">
@@ -191,12 +268,14 @@ export function buildHtmlReport(
             ${distributionBar(scores)}
           </div>
         </div>
-        <table>
-          <thead>
-            <tr><th>Code</th><th>Score</th><th>Level</th><th>Notes</th></tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
+        <div class="category-table-wrap">
+          <table>
+            <thead>
+              <tr><th>Code</th><th>Score</th><th>Level</th><th>Notes</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
       </section>
     `;
   }).join("");
@@ -290,7 +369,7 @@ export function buildHtmlReport(
       `
           : ""
       }
-      <div class="fin-timestamp">Finalized ${new Date(finalization.finalizedAt).toLocaleString()}</div>
+      <div class="fin-timestamp">Finalized ${formatDate(finalization.finalizedAt)}</div>
     </section>
   `
     : "";
@@ -308,11 +387,11 @@ export function buildHtmlReport(
         .map(
           (c) => `
         <div class="unlinked-item">
-          <img src="${c.screenshotBase64}" alt="${esc(c.pageTitle)}" loading="lazy" />
+          <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
           <div class="unlinked-meta">
             <strong>${esc(c.pageTitle || "Capture")}</strong>
-            <a href="${esc(c.sourceUrl)}">${esc(c.sourceUrl)}</a>
-            <span>${new Date(c.timestamp).toLocaleString()}</span>
+            ${safeLink(c.sourceUrl)}
+            <span>${formatDate(c.timestamp)}</span>
             ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
           </div>
         </div>
@@ -323,11 +402,36 @@ export function buildHtmlReport(
   `
       : "";
 
+  // Table of Contents
+  const tocItems = PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
+    .map((p) => {
+      const reportColor = REPORT_COLORS[p.id] ?? p.color;
+      return `<a href="#category-${p.id}" class="toc-item" style="color:${reportColor}"><span class="toc-code">${p.code}</span> ${esc(PRINCIPLE_NAMES[p.id] ?? getCategoryLabel(p.id).replace(/^.*?— /, ""))}</a>`;
+    })
+    .join("");
+
+  // Score legend
+  const scoreLegend = `
+    <div class="score-legend">
+      <span class="legend-label">Score Legend:</span>
+      <span class="score-badge" style="background:#c60c3020;color:#c60c30">0 = No</span>
+      <span class="score-badge" style="background:#ea580c20;color:#ea580c">1 = Partially</span>
+      <span class="score-badge" style="background:#0e749020;color:#0e7490">2 = Mostly</span>
+      <span class="score-badge" style="background:#4a835520;color:#4a8355">3 = Yes</span>
+      <span class="score-badge" style="background:#8b9bb020;color:#8b9bb0">N/A</span>
+      <span class="score-badge" style="background:#6b7f9420;color:#6b7f94">? = Unsure</span>
+    </div>
+  `;
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="TRUST Framework Evaluation Report" />
+<meta property="og:title" content="TRUST Review: ${esc(metadata.toolName)}" />
+<meta property="og:description" content="TRUST Framework Evaluation Report" />
+<meta property="og:type" content="article" />
 <title>TRUST Review: ${esc(metadata.toolName)}</title>
 <style>
   :root {
@@ -335,11 +439,12 @@ export function buildHtmlReport(
     --navy: #002c5f;
     --text: #172033;
     --muted: #576578;
-    --slate: #8b9bb0;
+    --slate: #5f7088;
     --border: #bfc6cf;
     --canvas: #eef0f3;
     --panel: #f3f4f6;
     --white: #fafbfc;
+    --link: #2563eb;
     --ff-body: "Inter", system-ui, sans-serif;
     --ff-heading: "Arial Narrow", Arial, sans-serif;
     --ff-mono: "JetBrains Mono", monospace;
@@ -380,7 +485,7 @@ export function buildHtmlReport(
     color: var(--muted);
   }
 
-  .divider { height: 4px; background: var(--text); margin: 0 0 16px; }
+  .divider { height: 4px; background: var(--navy); margin: 0 0 16px; }
 
   /* TRUST letterform */
   .letterform {
@@ -391,9 +496,18 @@ export function buildHtmlReport(
   }
   .letterform-letter {
     font-family: var(--ff-heading);
-    font-size: 3rem;
+    font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 800;
     line-height: 1;
+    letter-spacing: 0.08em;
+  }
+  .letterform-letters {
+    display: flex;
+    gap: 2px;
+    padding: 6px 12px;
+    border: 2px solid var(--navy);
+    border-radius: 2px;
+    background: var(--white);
   }
   .letterform-score {
     margin-left: auto;
@@ -414,7 +528,7 @@ export function buildHtmlReport(
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
-    border-bottom: 4px solid var(--text);
+    border-bottom: 4px solid var(--navy);
     margin-bottom: 12px;
     font-family: var(--ff-heading);
     font-weight: 700;
@@ -423,7 +537,58 @@ export function buildHtmlReport(
     letter-spacing: 0.03em;
   }
 
-  .accent-bar { height: 3px; background: var(--text); margin: 8px 0; }
+  .accent-bar { height: 3px; background: var(--navy); margin: 8px 0; }
+
+  /* Table of Contents */
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+  .toc-label {
+    font-family: var(--ff-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-right: 4px;
+    align-self: center;
+  }
+  .toc-item {
+    font-size: 0.8rem;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .toc-item:hover { text-decoration: underline; }
+  .toc-code {
+    font-family: var(--ff-mono);
+    font-weight: 700;
+  }
+
+  /* Score legend */
+  .score-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 0.72rem;
+  }
+  .legend-label {
+    font-family: var(--ff-heading);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-right: 2px;
+  }
 
   /* Category table (nutrition label style) */
   .cat-table {
@@ -462,13 +627,16 @@ export function buildHtmlReport(
   /* Distribution bar */
   .dist-bar {
     display: flex;
-    height: 6px;
+    height: 10px;
     background: var(--panel);
     border-radius: 1px;
+    border: 1px solid rgba(0,0,0,0.12);
     overflow: hidden;
     margin-top: 4px;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
-  .dist-seg { min-width: 2px; }
+  .dist-seg { min-width: 2px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .dist-empty {
     display: flex;
     align-items: center;
@@ -482,7 +650,7 @@ export function buildHtmlReport(
   .verdict-bar { height: 6px; margin-top: 12px; }
   .verdict-block {
     text-align: center;
-    padding: 16px 0;
+    padding: 24px 0;
   }
   .verdict-label {
     font-size: 0.75rem;
@@ -493,13 +661,13 @@ export function buildHtmlReport(
   }
   .verdict-text {
     font-family: var(--ff-heading);
-    font-size: 2.2rem;
+    font-size: clamp(2rem, 6vw, 3.5rem);
     font-weight: 700;
   }
   .verdict-reason {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     color: var(--muted);
-    margin-top: 4px;
+    margin-top: 8px;
   }
 
   .bottom-bar { height: 4px; background: var(--magenta); margin: 16px 0 8px; }
@@ -528,6 +696,7 @@ export function buildHtmlReport(
     color: var(--magenta);
     margin-bottom: 4px;
   }
+  .report-meta-url { color: var(--link); }
 
   /* Quality gates table */
   .qg-table {
@@ -540,11 +709,12 @@ export function buildHtmlReport(
     background: var(--navy);
     color: #fff;
     font-family: var(--ff-heading);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.02em;
     padding: 6px 8px;
     text-align: left;
+    border-bottom: 2px solid #001a3a;
   }
   .qg-table td { padding: 5px 8px; border-bottom: 1px solid var(--panel); }
   .qg-table .code {
@@ -570,6 +740,9 @@ export function buildHtmlReport(
     margin-bottom: 32px;
     border-top: 3px solid var(--accent);
   }
+  .category-section.category-alt {
+    background: #fafafa;
+  }
   .category-header {
     display: flex;
     align-items: flex-start;
@@ -577,12 +750,21 @@ export function buildHtmlReport(
     padding: 12px;
     background: color-mix(in srgb, var(--accent) 6%, var(--white));
   }
+  .category-letter-block { text-align: center; min-width: 48px; }
   .category-letter {
     font-family: var(--ff-heading);
-    font-size: 2.5rem;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
     font-weight: 800;
     color: var(--accent);
     line-height: 1;
+  }
+  .category-letter-name {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    margin-top: 2px;
   }
   .category-info h2 {
     font-family: var(--ff-heading);
@@ -599,6 +781,7 @@ export function buildHtmlReport(
     font-family: var(--ff-mono);
     margin-bottom: 6px;
   }
+  .category-table-wrap { overflow-x: auto; }
   .category-section table {
     width: 100%;
     border-collapse: collapse;
@@ -608,11 +791,12 @@ export function buildHtmlReport(
     background: var(--accent);
     color: #fff;
     font-family: var(--ff-heading);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.02em;
     padding: 5px 8px;
     text-align: left;
+    border-bottom: 2px solid color-mix(in srgb, var(--accent) 70%, black);
   }
   .category-section td { padding: 5px 8px; border-bottom: 1px solid var(--panel); vertical-align: top; }
   .category-section .code {
@@ -643,8 +827,13 @@ export function buildHtmlReport(
     background: var(--panel);
     border-radius: 2px;
   }
+  .evidence-item.evidence-weak {
+    border-left: 3px solid #c60c30;
+    background: #fef2f2;
+  }
   .evidence-item img {
-    max-width: 300px;
+    max-width: 100%;
+    height: auto;
     border: 1px solid var(--border);
     border-radius: 1px;
   }
@@ -662,11 +851,14 @@ export function buildHtmlReport(
   .fin-grade {
     text-align: center;
     font-family: var(--ff-heading);
-    font-size: 1.8rem;
+    font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 700;
-    padding: 12px 0;
+    padding: 16px 0;
     margin-bottom: 16px;
     letter-spacing: 0.03em;
+    border: 2px solid currentColor;
+    border-radius: 2px;
+    opacity: 0.95;
   }
   .fin-block { margin-bottom: 16px; }
   .fin-block h3 {
@@ -686,7 +878,7 @@ export function buildHtmlReport(
   .supplementary-cell details { font-size: 0.75rem; }
   .supplementary-summary {
     font-family: var(--ff-mono);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -732,14 +924,32 @@ export function buildHtmlReport(
     border-bottom: 1px solid var(--panel);
   }
   .unlinked-item img {
-    max-width: 350px;
+    max-width: 100%;
+    height: auto;
     border: 1px solid var(--border);
     border-radius: 1px;
   }
   .unlinked-meta { font-size: 0.8rem; }
   .unlinked-meta strong { display: block; margin-bottom: 4px; }
-  .unlinked-meta a { color: #2563eb; font-size: 0.75rem; }
+  .unlinked-meta a { color: var(--link); font-size: 0.75rem; }
   .unlinked-meta span { display: block; color: var(--muted); font-family: var(--ff-mono); font-size: 0.7rem; }
+
+  .url-plain { color: var(--muted); font-size: 0.75rem; word-break: break-all; }
+
+  @media (max-width: 640px) {
+    body { padding: 12px; }
+    .header { flex-direction: column; gap: 8px; }
+    .header-meta { text-align: left; }
+    .letterform { flex-wrap: wrap; }
+    .letterform-score { margin-left: 0; width: 100%; }
+    .gate-summary { flex-wrap: wrap; }
+    .cat-table, .qg-table, .category-section table { display: block; overflow-x: auto; }
+    .category-header { flex-wrap: wrap; }
+    .unlinked-item { flex-wrap: wrap; }
+    .evidence-item { flex-wrap: wrap; }
+    .evidence-item img { max-width: 100%; }
+    .toc { flex-wrap: wrap; }
+  }
 
   @media print {
     html { font-size: 12px; }
@@ -747,6 +957,7 @@ export function buildHtmlReport(
     .top-bar, .divider, .accent-bar, .bottom-bar, .verdict-bar, .fin-bar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .category-header, .gate-badge, .score-badge, .fin-grade { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     table th, .category-section th, .qg-table th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .dist-bar, .dist-seg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .report-header { page-break-before: always; border-top: none; padding-top: 0; margin-top: 0; }
     .category-section { page-break-inside: avoid; }
     .finalization-section { page-break-inside: avoid; }
@@ -754,6 +965,16 @@ export function buildHtmlReport(
     .evidence-item { page-break-inside: avoid; }
     .evidence-item img { max-width: 250px; }
     .unlinked-item img { max-width: 280px; }
+
+    /* Print footer with page numbering */
+    @page {
+      margin-bottom: 2cm;
+      @bottom-center {
+        content: "Page " counter(page) " of " counter(pages) " · " "TRUST Framework Evaluation Report · " "Confidential";
+        font-size: 8px;
+        color: #8b9bb0;
+      }
+    }
   }
 </style>
 </head>
@@ -775,14 +996,19 @@ export function buildHtmlReport(
 <div class="divider"></div>
 
 <div class="letterform">
-  <div>
-    ${PRINCIPLES.map((p) => `<span class="letterform-letter" style="color:${p.color}">${p.code}</span>`).join("")}
+  <div class="letterform-letters">
+    ${PRINCIPLES.map((p) => {
+      const reportColor = REPORT_COLORS[p.id] ?? p.color;
+      return `<span class="letterform-letter" style="color:${reportColor}">${p.code}</span>`;
+    }).join("")}
   </div>
   <div class="letterform-score">
     <div class="total">${totalActual} / ${totalMax}</div>
     <div class="pct">${Math.round(ratio * 100)}% score · ${answeredQuestions}/${totalQuestions} answered</div>
   </div>
 </div>
+
+${scoreLegend}
 
 <div class="gate-summary">
   <span>Quality Gate Status</span>
@@ -796,6 +1022,7 @@ export function buildHtmlReport(
 <table class="cat-table">
   ${PRINCIPLES.map((p) => {
     if (!(p.id in rubric.scoring_rubric)) return "";
+    const reportColor = REPORT_COLORS[p.id] ?? p.color;
     const scores = catScores.get(p.id) ?? [];
     const numeric = scores.filter((s): s is number => typeof s === "number");
     const avg =
@@ -808,7 +1035,7 @@ export function buildHtmlReport(
     ).length;
     return `
       <tr>
-        <td class="cat-code" style="color:${p.color}">${p.code}</td>
+        <td class="cat-code" style="color:${reportColor}">${p.code}</td>
         <td class="cat-label">${esc(getCategoryLabel(p.id).replace(/^.*?— /, ""))}<br />
           <span style="font-size:0.7rem;color:var(--muted);font-family:var(--ff-mono)">${catTotal}/${catMax} avg ${avg}</span>
         </td>
@@ -829,17 +1056,19 @@ export function buildHtmlReport(
   <div class="verdict-label">Verdict</div>
   <div class="verdict-text" style="color:${verdictColor}">${verdict}</div>
   <div class="verdict-reason">${
-    finalization?.conclusion
-      ? esc(
-          finalization.conclusion.length > 120
-            ? `${finalization.conclusion.slice(0, 120)}...`
-            : finalization.conclusion,
-        )
-      : !isComplete
-        ? `${answeredQuestions}/${totalQuestions} questions answered — evaluation incomplete`
-        : anyFail
-          ? "Quality gate failure"
-          : `Score ${Math.round(ratio * 100)}%${computedFailed ? ` — ${anyFail ? "quality gate failure" : principleFail ? "principle below minimum" : "below threshold"}` : " meets threshold"}`
+    noEvaluation
+      ? "No questions have been answered — review not started"
+      : finalization?.conclusion
+        ? esc(
+            finalization.conclusion.length > 120
+              ? `${finalization.conclusion.slice(0, 120)}...`
+              : finalization.conclusion,
+          )
+        : !isComplete
+          ? `${answeredQuestions}/${totalQuestions} questions answered — evaluation incomplete`
+          : anyFail
+            ? "Quality gate failure (one or more required checks did not pass)"
+            : `Score ${Math.round(ratio * 100)}%${computedFailed ? ` — ${anyFail ? "quality gate failure (required check did not pass)" : principleFail ? "principle below minimum (at least one principle scored too low)" : "below threshold (overall score too low to pass)"}` : " meets threshold"}`
   }</div>
 </div>
 
@@ -854,10 +1083,15 @@ export function buildHtmlReport(
 <div class="report-header">
   <h1>Detailed Report</h1>
   <div style="font-size:0.85rem;color:var(--muted)">
-    ${esc(metadata.toolName)} &middot; ${esc(metadata.toolUrl)} &middot; Evaluated ${new Date(metadata.startTime).toLocaleString()}
+    ${esc(metadata.toolName)} &middot; ${safeLink(metadata.toolUrl, 'class="report-meta-url"')} &middot; Evaluated ${formatDate(metadata.startTime)}
   </div>
   ${metadata.notes ? `<div style="font-size:0.8rem;color:var(--muted);font-style:italic;margin-top:4px">${esc(metadata.notes)}</div>` : ""}
 </div>
+
+<nav class="toc">
+  <span class="toc-label">Contents</span>
+  ${tocItems}
+</nav>
 
 <h2 style="font-family:var(--ff-heading);text-transform:uppercase;letter-spacing:0.03em;color:var(--magenta);margin:0 0 8px;font-size:1rem">Quality Gates</h2>
 <table class="qg-table">

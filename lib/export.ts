@@ -101,7 +101,7 @@ export async function exportSession(
     );
   }
 
-  const htmlReport = buildHtmlReport(metadata, captures, evaluations, rubric, finalization);
+  const htmlReport = await buildHtmlReport(metadata, captures, evaluations, rubric, finalization);
   zip.file(`Evaluation_Report_${sanitizeFilename(metadata.toolName)}.html`, htmlReport);
 
   return zip.generateAsync({ type: "blob" });
