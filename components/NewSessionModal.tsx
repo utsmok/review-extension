@@ -71,7 +71,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
       onClose();
     } catch (err) {
       console.error("Failed to create session:", err);
-      toastError(err instanceof Error ? err.message : "Failed to create session. Please try again.");
+      toastError(err instanceof Error ? err.message : "Failed to create review. Please try again.");
       setSubmitting(false);
     }
   };
@@ -83,7 +83,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
         className="modal-panel"
         role="dialog"
         aria-modal="true"
-        aria-label="Start a new review session"
+        aria-label="Start a new review"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
@@ -123,7 +123,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
 
           <label className="flex flex-col gap-1">
             <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-              Rubric Variant
+              Scoring Method
             </span>
             <select
               className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"

@@ -103,7 +103,7 @@ export default function Metadata() {
 
       <label className="flex flex-col gap-1">
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Availability
+          Access Level
         </span>
         <input
           className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
@@ -127,7 +127,7 @@ export default function Metadata() {
 
       <label className="flex flex-col gap-1">
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Session Notes
+          Review Notes
         </span>
         <textarea
           className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text resize-y focus:outline-none focus:ring-2 focus:ring-ut-blue"
@@ -138,7 +138,7 @@ export default function Metadata() {
         />
       </label>
 
-      {/* Session summary */}
+      {/* Review summary */}
       <div className="border-t-2 border-ut-border pt-ut-3 mt-1">
         <div className="flex justify-between text-ut-xs text-ut-muted font-mono mb-1">
           <span>Started</span>
@@ -197,7 +197,7 @@ export default function Metadata() {
           disabled={exporting}
           onClick={handleExport}
         >
-          {exporting ? "Exporting..." : "End Session & Export"}
+          {exporting ? "Exporting..." : "End Review & Export"}
         </button>
 
         <button
@@ -205,7 +205,7 @@ export default function Metadata() {
           className="w-full mt-ut-2 rounded-ut-sm px-ut-4 py-2 text-ut-sm transition-colors font-heading font-bold uppercase tracking-ut-uppercase text-ut-slate hover:text-ut-red"
           onClick={handleDiscardSession}
         >
-          Discard session
+          Discard review
         </button>
       </div>
 

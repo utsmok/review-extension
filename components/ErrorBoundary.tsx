@@ -44,11 +44,8 @@ export default class ErrorBoundary extends Component<Props, State> {
             Something went wrong
           </h2>
           <p className="text-ut-sm text-ut-muted mb-ut-4">
-            The TRUST Review Extension encountered an unexpected error.
+            Something went wrong. Please try refreshing the page.
           </p>
-          <pre className="text-ut-xs text-ut-slate bg-ut-grey rounded-ut-sm p-ut-2 mb-ut-4 max-w-full overflow-auto">
-            {this.state.error?.message}
-          </pre>
           <button
             type="button"
             onClick={this.handleReload}
