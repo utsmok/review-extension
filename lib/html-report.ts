@@ -22,7 +22,7 @@ export function buildHtmlReport(
 
   let totalActual = 0;
   let totalMax = 0;
-  const catScores: Map<string, (number | "na" | "" | undefined)[]> = new Map();
+  const catScores: Map<string, (number | "na" | "unsure" | "" | undefined)[]> = new Map();
   for (const p of PRINCIPLES) {
     if (!(p.id in rubric.scoring_rubric)) continue;
     const scores = getCategoryScores(p.id, evaluations, rubric);
@@ -72,9 +72,10 @@ export function buildHtmlReport(
       const rubricId = `${p.id}.${qId}`;
       const ev = evaluations.find((e) => e.rubricId === rubricId);
       const isNa = ev?.score === "na";
+      const isUnsure = ev?.score === "unsure";
       const score = typeof ev?.score === "number" ? ev.score : -1;
       const code = getQuestionCode(p.id, idx);
-      const levelDesc = isNa ? "Not applicable" : score >= 0
+      const levelDesc = isNa ? "Not applicable" : isUnsure ? "Insufficient information" : score >= 0
         ? (levels as unknown as Record<string, string>)[String(score)] ?? "—"
         : "—";
 
@@ -95,8 +96,8 @@ export function buildHtmlReport(
         <tr class="score-row">
           <td class="code" style="color:${p.color}">${code}</td>
           <td class="score-cell">
-            <span class="score-badge" style="background:${scoreColor(isNa ? "na" : score >= 0 ? score as 0|1|2|3 : undefined)}20;color:${scoreColor(isNa ? "na" : score >= 0 ? score as 0|1|2|3 : undefined)}">
-              ${isNa ? "N/A" : score >= 0 ? score : "—"}
+            <span class="score-badge" style="background:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? score as 0|1|2|3 : undefined)}20;color:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? score as 0|1|2|3 : undefined)}">
+              ${isNa ? "N/A" : isUnsure ? "?" : score >= 0 ? score : "—"}
             </span>
           </td>
           <td class="level">${esc(levelDesc)}</td>

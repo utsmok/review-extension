@@ -41,10 +41,10 @@ function renderQGScores(
 ) {
   return (
     <div role="radiogroup" className="flex gap-ut-2 mb-ut-2">
-      {(["pass", "fail", "na"] as PassFailScore[]).map((val) => {
+      {(["pass", "fail", "na", "unsure"] as PassFailScore[]).map((val) => {
         const isActive =
           ev?.score === val ||
-          (isAutoNa && val === "na" && ev?.score !== "pass" && ev?.score !== "fail");
+          (isAutoNa && val === "na" && ev?.score !== "pass" && ev?.score !== "fail" && ev?.score !== "unsure");
         const isDisabled = isAutoNa && val !== "na";
 
         const handleClick = () => {
@@ -75,7 +75,7 @@ function renderQGScores(
             data-judgment={val}
             data-active={isActive ? "true" : "false"}
           >
-            {val === "pass" ? "✓ Pass" : val === "fail" ? "✗ Fail" : "— N/A"}
+            {val === "pass" ? "✓ Pass" : val === "fail" ? "✗ Fail" : val === "na" ? "— N/A" : "? Unsure"}
           </span>
         );
       })}
@@ -87,6 +87,7 @@ function renderScoringScores(
   rubricId: string,
   scoreNum: number,
   isNa: boolean,
+  isUnsure: boolean,
   isAutoNa: boolean,
   mode: "expert" | "standard",
   levels: ScoringQuestion,
@@ -165,6 +166,39 @@ function renderScoringScores(
           —
         </span>
         <span className="score-desc">Not applicable</span>
+      </div>
+
+      {/* Unsure row */}
+      <div
+        className={`score-row ${isUnsure ? "is-selected" : ""}`}
+        data-score="unsure"
+        role="radio"
+        aria-checked={isUnsure}
+        tabIndex={isAutoNa ? -1 : 0}
+        onClick={() => {
+          if (isAutoNa) return;
+          if (isUnsure) {
+            setEvaluation(rubricId, { score: "" });
+          } else {
+            setEvaluation(rubricId, { score: "unsure" });
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === " " || e.key === "Enter") {
+            e.preventDefault();
+            if (isAutoNa) return;
+            if (isUnsure) {
+              setEvaluation(rubricId, { score: "" });
+            } else {
+              setEvaluation(rubricId, { score: "unsure" });
+            }
+          }
+        }}
+      >
+        <span className="score-badge select-none">
+          ?
+        </span>
+        <span className="score-desc">Insufficient information to score</span>
       </div>
     </div>
   );
@@ -257,10 +291,10 @@ export default function QuestionSection({
             // Compute progress based on section type
             let hasScore: boolean;
             if (isQG) {
-              hasScore = ev?.score === "pass" || ev?.score === "fail" || ev?.score === "na";
+              hasScore = ev?.score === "pass" || ev?.score === "fail" || ev?.score === "na" || ev?.score === "unsure";
             } else {
               const sn = typeof ev?.score === "number" ? (ev.score as number) : -1;
-              hasScore = sn >= 0 || ev?.score === "na";
+              hasScore = sn >= 0 || ev?.score === "na" || ev?.score === "unsure";
             }
             const hasNotes = !!(ev?.notes && ev.notes.trim());
             const hasEvidence = evidence.length > 0;
@@ -268,7 +302,7 @@ export default function QuestionSection({
 
             // For scoring: determine scoreNum and isNa
             const scoreNum = typeof ev?.score === "number" ? (ev.score as number) : -1;
-            const isNa = ev?.score === "na" || isAutoNa;
+            const isNa = ev?.score === "na" || ev?.score === "unsure" || isAutoNa;
 
             return (
               <details
@@ -333,6 +367,7 @@ export default function QuestionSection({
                         rubricId,
                         scoreNum,
                         isNa,
+                        ev?.score === "unsure",
                         isAutoNa,
                         mode,
                         question as ScoringQuestion,

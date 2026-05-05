@@ -43,8 +43,8 @@ export interface Capture {
   notes: string;
 }
 
-export type QualityGateScore = "pass" | "fail" | "na" | "";
-export type ScoringScore = 0 | 1 | 2 | 3 | "na" | "";
+export type QualityGateScore = "pass" | "fail" | "na" | "unsure" | "";
+export type ScoringScore = 0 | 1 | 2 | 3 | "na" | "unsure" | "";
 export type EvaluationScore = QualityGateScore | ScoringScore;
 
 export interface Evaluation {

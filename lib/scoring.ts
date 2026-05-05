@@ -21,25 +21,26 @@ export function getCategoryScores(
   categoryId: string,
   evaluations: Evaluation[],
   rubric: RubricData,
-): (number | "na" | "" | undefined)[] {
+): (number | "na" | "unsure" | "" | undefined)[] {
   const questions = rubric.scoring_rubric[categoryId];
   if (!questions) return [];
-  const scores: (number | "na" | "" | undefined)[] = [];
+  const scores: (number | "na" | "unsure" | "" | undefined)[] = [];
   for (const qId of Object.keys(questions)) {
     const ev = evaluations.find((e) => e.rubricId === `${categoryId}.${qId}`);
     const s = ev?.score;
-    scores.push(typeof s === "number" || s === "na" || s === "" ? s : undefined);
+    scores.push(typeof s === "number" || s === "na" || s === "unsure" || s === "" ? s : undefined);
   }
   return scores;
 }
 
-export function scoreColor(s: number | "na" | undefined): string {
+export function scoreColor(s: number | "na" | "unsure" | undefined): string {
   if (s === "na" || s === undefined) return "#8b9bb0";
+  if (s === "unsure") return "#6b7280";
   const colors: Record<number, string> = { 0: "#c60c30", 1: "#ea580c", 2: "#0e7490", 3: "#4a8355" };
   return colors[s] ?? "#8b9bb0";
 }
 
-export function distributionBar(scores: (number | "na" | "" | undefined)[]): string {
+export function distributionBar(scores: (number | "na" | "unsure" | "" | undefined)[]): string {
   const numeric = scores.filter((s): s is number => typeof s === "number");
   if (numeric.length === 0) return '<div class="dist-bar"><div class="dist-empty">No scores</div></div>';
   const counts = [0, 0, 0, 0];
