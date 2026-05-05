@@ -18,7 +18,11 @@ function loadZoom(): number {
 }
 
 function applyZoom(level: number): void {
-  document.documentElement.style.zoom = String(level);
+  if (level === 1) {
+    document.documentElement.style.removeProperty("zoom");
+  } else {
+    document.documentElement.style.zoom = String(level);
+  }
 }
 
 export function useSidepanelZoom(): { zoom: number; setZoom: (level: number) => void } {
