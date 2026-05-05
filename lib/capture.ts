@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
 import type { Capture } from "./types";
 
+const ALLOWED_SCHEMES = ["http:", "https:", "file:"];
+const MAX_CAPTURE_SIZE = 25 * 1024 * 1024; // 25 MB total per capture
+
 async function archivePageHtml(): Promise<{ html: string; title: string }> {
   const doc = document;
   const base = doc.baseURI;
@@ -42,14 +45,18 @@ async function archivePageHtml(): Promise<{ html: string; title: string }> {
           .catch(() => ({ original, replacement: original })),
       );
     }
-    const results = await Promise.all(replacements);
-    for (const { original, replacement } of results) {
-      css = css.replace(original, replacement);
+    const results = await Promise.allSettled(replacements);
+    for (const result of results) {
+      if (result.status === "fulfilled") {
+        const { original, replacement } = result.value;
+        css = css.replace(original, replacement);
+      }
     }
     styleEl.textContent = css;
   });
 
-  await Promise.all([...cssFetches, ...importResolutions]);
+  // Use allSettled so one slow CSS resource doesn't block everything
+  await Promise.allSettled([...cssFetches, ...importResolutions]);
 
   // 3. Strip scripts to prevent execution in archive
   clone.querySelectorAll("script").forEach((el) => el.remove());
@@ -124,26 +131,54 @@ export async function captureActiveTab(): Promise<Capture> {
     throw new Error("No active tab found");
   }
 
+  // C9: URL scheme allowlist — block restricted browser-internal pages
+  try {
+    const url = new URL(tab.url);
+    if (!ALLOWED_SCHEMES.includes(url.protocol)) {
+      throw new Error(
+        `Cannot capture this page — ${url.protocol} URLs are not accessible. Browser-internal pages cannot be captured.`,
+      );
+    }
+  } catch (err) {
+    if (err instanceof TypeError) {
+      // Malformed URL
+      throw new Error("Cannot capture this page — the URL is invalid.");
+    }
+    throw err;
+  }
+
   const screenshotUri: string = await browser.tabs.captureVisibleTab(tab.windowId, {
     format: "png",
   });
 
   const [result] = await browser.scripting.executeScript({
-    target: { tabId: tab.id },
+    target: { tabId: tab.id! },
     func: archivePageHtml,
   });
 
   const scriptResult = result?.result as { html: string; title: string } | undefined;
 
-  return {
+  const htmlContent = scriptResult?.html ?? "";
+  const capture: Capture = {
     id: uuidv4(),
     timestamp: new Date().toISOString(),
     sourceUrl: tab.url,
     pageTitle: scriptResult?.title ?? "",
     screenshotBase64: screenshotUri,
-    htmlContent: scriptResult?.html ?? "",
+    htmlContent,
     notes: "",
   };
+
+  // I8: Size limit — truncate HTML if capture is too large
+  const totalSize = capture.screenshotBase64.length + capture.htmlContent.length;
+  if (totalSize > MAX_CAPTURE_SIZE) {
+    const overhead = capture.screenshotBase64.length;
+    const htmlBudget = Math.max(0, MAX_CAPTURE_SIZE - overhead);
+    capture.htmlContent =
+      htmlContent.slice(0, htmlBudget) + "\n<!-- TRUNCATED: page content exceeded size limit -->";
+  }
+
+  return capture;
 }
 
 export async function captureCurrentPageInfo(): Promise<{

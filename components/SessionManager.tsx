@@ -5,6 +5,7 @@ import { loadFromIDB } from "@/lib/session-storage";
 import { downloadBlob, exportSession } from "@/lib/export";
 import { getRubricById } from "@/data/rubrics";
 import { toastError, toastSuccess } from "@/stores/toast";
+import { sanitizeFilename } from "@/lib/filename";
 import NewSessionModal from "./NewSessionModal";
 import ConfirmDialog from "./ConfirmDialog";
 
@@ -36,7 +37,10 @@ export default function SessionManager() {
   const { switchToSession, deleteSession } = useActiveSession();
 
   const sessions = useMemo(
-    () => Object.values(sessionIndex).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()),
+    () =>
+      Object.values(sessionIndex).sort(
+        (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime(),
+      ),
     [sessionIndex],
   );
 
@@ -47,10 +51,18 @@ export default function SessionManager() {
     if (!data) return;
     const variant = getRubricById(meta.rubricId);
     try {
-      const blob = await exportSession(meta, data.captures, data.evaluations, variant.data, data.finalization);
-      const filename = `TRUST_Review_${meta.toolName.replace(/\s+/g, "_")}.zip`;
+      const blob = await exportSession(
+        meta,
+        data.captures,
+        data.evaluations,
+        variant.data,
+        data.finalization,
+      );
+      const filename = `TRUST_Review_${sanitizeFilename(meta.toolName)}.zip`;
       downloadBlob(blob, filename);
-      const scoredCount = data.evaluations.filter((e) => e.score !== "" && e.score !== undefined).length;
+      const scoredCount = data.evaluations.filter(
+        (e) => e.score !== "" && e.score !== undefined,
+      ).length;
       toastSuccess(`Review exported: ${data.captures.length} captures, ${scoredCount} scores`);
     } catch (err) {
       console.error("Export failed:", err);
@@ -74,9 +86,7 @@ export default function SessionManager() {
     <div className="flex flex-col h-full">
       {/* Hero section */}
       <div className="px-ut-4 pt-ut-6 pb-ut-4">
-        <h1 className="font-display text-ut-xl font-bold text-ut-navy mb-ut-1">
-          Start a Review
-        </h1>
+        <h1 className="font-display text-ut-xl font-bold text-ut-navy mb-ut-1">Start a Review</h1>
         <p className="text-ut-sm text-ut-muted mb-ut-4">
           Evaluate an information tool against the TRUST framework.
         </p>
@@ -119,9 +129,7 @@ export default function SessionManager() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-ut-1">
-                    <span className="text-ut-sm font-bold text-ut-text truncate">
-                      {s.toolName}
-                    </span>
+                    <span className="text-ut-sm font-bold text-ut-text truncate">{s.toolName}</span>
                     <span
                       className={`text-ut-xs font-heading font-bold uppercase tracking-ut-label px-1.5 py-0.5 rounded ${
                         s.status === "done"
@@ -150,7 +158,16 @@ export default function SessionManager() {
                     className="text-ut-muted hover:text-ut-navy transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
                     onClick={() => window.open(s.toolUrl, "_blank")}
                   >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3" />
                       <path d="M9 2h5v5" />
                       <path d="M14 2 8 8" />
@@ -162,7 +179,16 @@ export default function SessionManager() {
                     className="text-ut-muted hover:text-ut-navy transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
                     onClick={() => handleExport(s.id)}
                   >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" />
                       <path d="M8 2v8" />
                       <path d="M5 7l3 3 3-3" />
@@ -174,7 +200,16 @@ export default function SessionManager() {
                     className="text-ut-muted hover:text-ut-red transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
                     onClick={() => handleDelete(s.id)}
                   >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M2 4h12" />
                       <path d="M5.33 4V2.67a1.33 1.33 0 0 1 1.34-1.34h2.66a1.33 1.33 0 0 1 1.34 1.34V4" />
                       <path d="M12.67 4v9.33a1.33 1.33 0 0 1-1.34 1.34H4.67a1.33 1.33 0 0 1-1.34-1.34V4" />

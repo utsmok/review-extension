@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import EvidenceModal from "@/components/EvidenceModal";
 import QuestionSection from "@/components/QuestionSection";
@@ -10,11 +10,46 @@ import type { Capture } from "@/lib/types";
 
 const evalTabs = ["Quality Gates", "Scoring Rubric"] as const;
 
+/**
+ * Serial capture queue — prevents concurrent captures from interleaving.
+ * Queues up to MAX_QUEUE captures; additional clicks are rejected.
+ */
+const MAX_QUEUE = 4;
+
+function useCaptureQueue() {
+  const queueRef = useRef<(() => Promise<void>)[]>([]);
+  const runningRef = useRef(false);
+
+  function enqueue(fn: () => Promise<void>) {
+    if (queueRef.current.length >= MAX_QUEUE) return;
+    queueRef.current.push(fn);
+    drain();
+  }
+
+  async function drain() {
+    if (runningRef.current) return;
+    const next = queueRef.current.shift();
+    if (!next) return;
+    runningRef.current = true;
+    try {
+      await next();
+    } finally {
+      runningRef.current = false;
+      drain();
+    }
+  }
+
+  const isCapturing = () => runningRef.current || queueRef.current.length > 0;
+
+  return { enqueue, isCapturing };
+}
+
 export default function Evaluation() {
   const { evaluations, removeCapture, unlinkCaptureFromRubric } = useActiveSession();
   const { rubric } = useRubric();
   const { activeTab, setActiveTab, handleKeyDown } = useRovingTabIndex(evalTabs, "Quality Gates");
   const [capturingFor, setCapturingFor] = useState<string | null>(null);
+  const captureQueue = useCaptureQueue();
   const [confirmTarget, setConfirmTarget] = useState<{
     capture: Capture;
     rubricId: string;
@@ -44,6 +79,7 @@ export default function Evaluation() {
           {evalTabs.map((tab) => (
             <button
               key={tab}
+              type="button"
               role="tab"
               id={`tab-${tab.toLowerCase().replace(/\s+/g, "-")}`}
               aria-selected={activeTab === tab}
@@ -69,6 +105,7 @@ export default function Evaluation() {
           section="quality_gate"
           capturingFor={capturingFor}
           setCapturingFor={setCapturingFor}
+          captureQueue={captureQueue}
           onConfirmRemove={handleConfirmRemove}
           onViewEvidence={setViewCapture}
         />
@@ -78,6 +115,7 @@ export default function Evaluation() {
           section="scoring_rubric"
           capturingFor={capturingFor}
           setCapturingFor={setCapturingFor}
+          captureQueue={captureQueue}
           onConfirmRemove={handleConfirmRemove}
           onViewEvidence={setViewCapture}
         />
@@ -88,23 +126,29 @@ export default function Evaluation() {
         <ConfirmDialog
           message="Remove this evidence?"
           actions={[
-            { label: "Remove tag", handler: () => {
-              unlinkCaptureFromRubric(confirmTarget.capture.id, confirmTarget.rubricId);
-              setConfirmTarget(null);
-            }, variant: "secondary" },
-            { label: "Delete", handler: () => {
-              removeCapture(confirmTarget.capture.id);
-              setConfirmTarget(null);
-            }, variant: "danger" },
+            {
+              label: "Remove tag",
+              handler: () => {
+                unlinkCaptureFromRubric(confirmTarget.capture.id, confirmTarget.rubricId);
+                setConfirmTarget(null);
+              },
+              variant: "secondary",
+            },
+            {
+              label: "Delete",
+              handler: () => {
+                removeCapture(confirmTarget.capture.id);
+                setConfirmTarget(null);
+              },
+              variant: "danger",
+            },
             { label: "Cancel", handler: () => setConfirmTarget(null), variant: "cancel" },
           ]}
         />
       )}
 
       {/* Evidence modal */}
-      {viewCapture && (
-        <EvidenceModal capture={viewCapture} onClose={() => setViewCapture(null)} />
-      )}
+      {viewCapture && <EvidenceModal capture={viewCapture} onClose={() => setViewCapture(null)} />}
     </div>
   );
 }

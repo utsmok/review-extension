@@ -1,5 +1,6 @@
 import { getCategoryLabel } from "./rubric";
 import { buildHtmlReport } from "./html-report";
+import { sanitizeFilename } from "./filename";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 export function downloadBlob(blob: Blob, filename: string): void {
@@ -101,8 +102,7 @@ export async function exportSession(
   }
 
   const htmlReport = buildHtmlReport(metadata, captures, evaluations, rubric, finalization);
-  zip.file(`Evaluation_Report_${metadata.toolName}.html`, htmlReport);
+  zip.file(`Evaluation_Report_${sanitizeFilename(metadata.toolName)}.html`, htmlReport);
 
   return zip.generateAsync({ type: "blob" });
 }
-

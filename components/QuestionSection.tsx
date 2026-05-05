@@ -20,19 +20,6 @@ import { toastError } from "@/stores/toast";
 import EvidenceThumbnails from "./EvidenceThumbnails";
 import { ProgressCircle, getProgressState } from "./ProgressCircle";
 
-function getLevelDesc(
-  levels: ScoringQuestion,
-  val: number,
-  mode: "expert" | "standard",
-): string {
-  if (mode === "standard") {
-    const basicKey = `${val}_basic` as keyof ScoringQuestion;
-    const basic = levels[basicKey];
-    if (typeof basic === "string") return basic;
-  }
-  return levels[String(val) as "0" | "1" | "2" | "3"];
-}
-
 function renderQGScores(
   rubricId: string,
   ev: Evaluation | undefined,
@@ -44,7 +31,11 @@ function renderQGScores(
       {(["pass", "fail", "na", "unsure"] as PassFailScore[]).map((val) => {
         const isActive =
           ev?.score === val ||
-          (isAutoNa && val === "na" && ev?.score !== "pass" && ev?.score !== "fail" && ev?.score !== "unsure");
+          (isAutoNa &&
+            val === "na" &&
+            ev?.score !== "pass" &&
+            ev?.score !== "fail" &&
+            ev?.score !== "unsure");
         const isDisabled = isAutoNa && val !== "na";
 
         const handleClick = () => {
@@ -75,7 +66,13 @@ function renderQGScores(
             data-judgment={val}
             data-active={isActive ? "true" : "false"}
           >
-            {val === "pass" ? "✓ Pass" : val === "fail" ? "✗ Fail" : val === "na" ? "— N/A" : "? Unsure"}
+            {val === "pass"
+              ? "✓ Pass"
+              : val === "fail"
+                ? "✗ Fail"
+                : val === "na"
+                  ? "— N/A"
+                  : "? Unsure"}
           </span>
         );
       })}
@@ -89,7 +86,6 @@ function renderScoringScores(
   isNa: boolean,
   isUnsure: boolean,
   isAutoNa: boolean,
-  mode: "expert" | "standard",
   levels: ScoringQuestion,
   setEvaluation: (rubricId: string, patch: Partial<Evaluation>) => void,
 ) {
@@ -97,7 +93,7 @@ function renderScoringScores(
     <div role="radiogroup" className="my-ut-2">
       {([0, 1, 2, 3] as RubricScore[]).map((val) => {
         if (val === "") return null;
-        const desc = getLevelDesc(levels, val as number, mode);
+        const desc = levels[String(val) as "0" | "1" | "2" | "3"];
         const selected = scoreNum === val;
 
         const handleClick = () => {
@@ -127,9 +123,7 @@ function renderScoringScores(
             role="radio"
             aria-checked={selected}
           >
-            <span className="score-badge select-none">
-              {val}
-            </span>
+            <span className="score-badge select-none">{val}</span>
             <span className="score-desc">{desc}</span>
           </div>
         );
@@ -162,9 +156,7 @@ function renderScoringScores(
           }
         }}
       >
-        <span className="score-badge select-none">
-          —
-        </span>
+        <span className="score-badge select-none">—</span>
         <span className="score-desc">Not applicable</span>
       </div>
 
@@ -195,9 +187,7 @@ function renderScoringScores(
           }
         }}
       >
-        <span className="score-badge select-none">
-          ?
-        </span>
+        <span className="score-badge select-none">?</span>
         <span className="score-desc">Insufficient information to score</span>
       </div>
     </div>
@@ -208,6 +198,7 @@ interface QuestionSectionProps {
   section: "quality_gate" | "scoring_rubric";
   capturingFor: string | null;
   setCapturingFor: (id: string | null) => void;
+  captureQueue: { enqueue: (fn: () => Promise<void>) => void; isCapturing: () => boolean };
   onConfirmRemove: (capture: Capture, rubricId: string) => void;
   onViewEvidence: (capture: Capture) => void;
 }
@@ -216,19 +207,13 @@ export default function QuestionSection({
   section,
   capturingFor,
   setCapturingFor,
+  captureQueue,
   onConfirmRemove,
   onViewEvidence,
 }: QuestionSectionProps) {
   const { rubric, usesAi } = useRubric();
-  const {
-    evaluations,
-    captures,
-    questionModes,
-    setEvaluation,
-    setQuestionMode,
-    addCapture,
-    linkCaptureToRubric,
-  } = useActiveSession();
+  const { evaluations, captures, setEvaluation, addCapture, linkCaptureToRubric } =
+    useActiveSession();
 
   const evaluationMap = useMemo(
     () => new Map(evaluations.map((e) => [e.rubricId, e])),
@@ -248,18 +233,24 @@ export default function QuestionSection({
     return map;
   }, [captures, evaluations]);
 
-  const handleCaptureEvidence = async (rubricId: string) => {
-    setCapturingFor(rubricId);
-    try {
-      const capture = await captureActiveTab();
-      addCapture(capture);
-      linkCaptureToRubric(capture.id, rubricId);
-    } catch (err) {
-      console.error("Evidence capture failed:", err);
-      toastError(err instanceof Error ? err.message : "Capture failed. Check tab permissions and try again.");
-    } finally {
-      setCapturingFor(null);
-    }
+  const handleCaptureEvidence = (rubricId: string) => {
+    captureQueue.enqueue(async () => {
+      setCapturingFor(rubricId);
+      try {
+        const capture = await captureActiveTab();
+        addCapture(capture);
+        linkCaptureToRubric(capture.id, rubricId);
+      } catch (err) {
+        console.error("Evidence capture failed:", err);
+        toastError(
+          err instanceof Error
+            ? err.message
+            : "Capture failed. Check tab permissions and try again.",
+        );
+      } finally {
+        setCapturingFor(null);
+      }
+    });
   };
 
   const isQG = section === "quality_gate";
@@ -284,14 +275,17 @@ export default function QuestionSection({
             const code = getQuestionCode(category, qIdx);
             const ev = evaluationMap.get(rubricId);
             const evidence = captureMap.get(rubricId) ?? [];
-            const mode = questionModes[rubricId] ?? "expert";
             const isAiOnly = question.ai_only ?? false;
             const isAutoNa = isAiOnly && !usesAi;
 
             // Compute progress based on section type
             let hasScore: boolean;
             if (isQG) {
-              hasScore = ev?.score === "pass" || ev?.score === "fail" || ev?.score === "na" || ev?.score === "unsure";
+              hasScore =
+                ev?.score === "pass" ||
+                ev?.score === "fail" ||
+                ev?.score === "na" ||
+                ev?.score === "unsure";
             } else {
               const sn = typeof ev?.score === "number" ? (ev.score as number) : -1;
               hasScore = sn >= 0 || ev?.score === "na" || ev?.score === "unsure";
@@ -322,42 +316,11 @@ export default function QuestionSection({
                   )}
                 </summary>
                 <div className="question-body">
-                  {/* QG: requirement text + mode toggle. Scoring: mode toggle only. */}
-                  {isQG ? (
-                    <div className="flex items-center justify-between mb-ut-2">
-                      <p className="text-ut-xs text-ut-muted leading-relaxed flex-1">
-                        {mode === "standard" && (question as PassFailQuestion).basic_requirement
-                          ? (question as PassFailQuestion).basic_requirement
-                          : (question as PassFailQuestion).requirement}
-                      </p>
-                      <label className="mode-toggle ml-2 shrink-0" title={`Switch to ${mode === "expert" ? "standard" : "expert"} wording`}>
-                        <input
-                          type="checkbox"
-                          aria-label="Standard wording"
-                          checked={mode === "standard"}
-                          onChange={() =>
-                            setQuestionMode(rubricId, mode === "expert" ? "standard" : "expert")
-                          }
-                        />
-                        <span className="mode-toggle-track" />
-                        <span className="mode-toggle-label">{mode === "expert" ? "Expert" : "Standard"}</span>
-                      </label>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-end mb-ut-1">
-                      <label className="mode-toggle shrink-0" title={`Switch to ${mode === "expert" ? "standard" : "expert"} wording`}>
-                        <input
-                          type="checkbox"
-                          aria-label="Standard wording"
-                          checked={mode === "standard"}
-                          onChange={() =>
-                            setQuestionMode(rubricId, mode === "expert" ? "standard" : "expert")
-                          }
-                        />
-                        <span className="mode-toggle-track" />
-                        <span className="mode-toggle-label">{mode === "expert" ? "Expert" : "Standard"}</span>
-                      </label>
-                    </div>
+                  {/* QG: requirement text. Scoring: nothing extra. */}
+                  {isQG && (
+                    <p className="text-ut-xs text-ut-muted leading-relaxed mb-ut-2">
+                      {(question as PassFailQuestion).requirement}
+                    </p>
                   )}
 
                   {/* Score UI */}
@@ -369,10 +332,46 @@ export default function QuestionSection({
                         isNa,
                         ev?.score === "unsure",
                         isAutoNa,
-                        mode,
                         question as ScoringQuestion,
                         setEvaluation,
                       )}
+
+                  {/* Background foldout */}
+                  {question.background && (
+                    <details className="question-foldout">
+                      <summary className="question-foldout-summary">Background</summary>
+                      <p className="question-foldout-content">{question.background}</p>
+                    </details>
+                  )}
+
+                  {/* Examples foldout */}
+                  {question.examples && (
+                    <details className="question-foldout">
+                      <summary className="question-foldout-summary">Examples</summary>
+                      <div className="question-foldout-content">
+                        {isQG
+                          ? Object.entries((question as PassFailQuestion).examples!).map(
+                              ([key, desc]) => (
+                                <div key={key} className="example-row">
+                                  <span className="example-label">
+                                    {key === "pass" ? "Pass" : key === "fail" ? "Fail" : "N/A"}
+                                  </span>
+                                  <span className="example-desc">{desc}</span>
+                                </div>
+                              ),
+                            )
+                          : (["0", "1", "2", "3"] as const).map((level) => {
+                              const ex = (question as ScoringQuestion).examples?.[level];
+                              return ex ? (
+                                <div key={level} className="example-row">
+                                  <span className="example-badge">{level}</span>
+                                  <span className="example-desc">{ex}</span>
+                                </div>
+                              ) : null;
+                            })}
+                      </div>
+                    </details>
+                  )}
 
                   <EvidenceThumbnails
                     captures={evidence}
@@ -384,7 +383,7 @@ export default function QuestionSection({
                   <button
                     type="button"
                     className="text-ut-xs text-ut-blue hover:text-ut-darkblue font-mono uppercase tracking-ut-label"
-                    disabled={capturingFor === rubricId}
+                    disabled={capturingFor === rubricId || captureQueue.isCapturing()}
                     onClick={() => handleCaptureEvidence(rubricId)}
                   >
                     {capturingFor === rubricId ? "Capturing..." : "+ Capture Evidence"}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useTabNavigation } from "@/lib/tab-navigation-context";
 import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
@@ -19,6 +19,23 @@ export default function FinalizationScreen() {
   const [weaknesses, setWeaknesses] = useState<string[]>(finalization?.weaknesses ?? [""]);
   const [recommendations, setRecommendations] = useState(finalization?.recommendations ?? "");
   const [justSaved, setJustSaved] = useState(false);
+
+  // C8: Sync local state when store finalization changes externally
+  useEffect(() => {
+    if (finalization) {
+      setGrade(finalization.grade);
+      setConclusion(finalization.conclusion);
+      setStrengths(finalization.strengths.length > 0 ? finalization.strengths : [""]);
+      setWeaknesses(finalization.weaknesses.length > 0 ? finalization.weaknesses : [""]);
+      setRecommendations(finalization.recommendations);
+    } else {
+      setGrade("");
+      setConclusion("");
+      setStrengths([""]);
+      setWeaknesses([""]);
+      setRecommendations("");
+    }
+  }, [finalization]);
 
   const handleSave = () => {
     if (!grade) return;
@@ -46,7 +63,12 @@ export default function FinalizationScreen() {
     setJustSaved(false);
   };
 
-  const updateListItem = (list: string[], setter: (v: string[]) => void, idx: number, value: string) => {
+  const updateListItem = (
+    list: string[],
+    setter: (v: string[]) => void,
+    idx: number,
+    value: string,
+  ) => {
     const next = [...list];
     next[idx] = value;
     setter(next);
@@ -183,6 +205,15 @@ export default function FinalizationScreen() {
   );
 }
 
+/**
+ * Stable key counter — persists across renders so items keep their keys
+ * when the list is modified.
+ */
+let bulletIdCounter = 0;
+function nextBulletId(): string {
+  return `item-${++bulletIdCounter}`;
+}
+
 function BulletListEditor({
   label,
   items,
@@ -194,13 +225,38 @@ function BulletListEditor({
   onChange: (items: string[]) => void;
   placeholder: string;
 }) {
+  // Track stable keys per item position
+  const keysRef = useRef<string[]>([]);
+
+  // Ensure we have a key for every item
+  if (keysRef.current.length < items.length) {
+    while (keysRef.current.length < items.length) {
+      keysRef.current.push(nextBulletId());
+    }
+  }
+  // Trim if items were removed
+  if (keysRef.current.length > items.length) {
+    keysRef.current = keysRef.current.slice(0, items.length);
+  }
+
+  const handleRemove = (idx: number) => {
+    const next = items.filter((_, i) => i !== idx);
+    keysRef.current = keysRef.current.filter((_, i) => i !== idx);
+    onChange(next);
+  };
+
+  const handleAdd = () => {
+    keysRef.current.push(nextBulletId());
+    onChange([...items, ""]);
+  };
+
   return (
     <div className="flex flex-col gap-1">
       <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
         {label}
       </span>
       {items.map((item, idx) => (
-        <div key={idx} className="flex gap-ut-1">
+        <div key={keysRef.current[idx]} className="flex gap-ut-1">
           <input
             className="flex-1 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
             placeholder={placeholder}
@@ -215,7 +271,7 @@ function BulletListEditor({
             <button
               type="button"
               className="px-ut-2 text-ut-slate hover:text-ut-red transition-colors"
-              onClick={() => onChange(items.filter((_, i) => i !== idx))}
+              onClick={() => handleRemove(idx)}
             >
               &times;
             </button>
@@ -225,7 +281,7 @@ function BulletListEditor({
       <button
         type="button"
         className="self-start text-ut-sm text-ut-blue hover:text-ut-navy font-heading font-bold uppercase tracking-ut-label"
-        onClick={() => onChange([...items, ""])}
+        onClick={handleAdd}
       >
         + Add {label.toLowerCase().slice(0, -1)}
       </button>

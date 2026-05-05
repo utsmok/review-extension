@@ -3,6 +3,9 @@ import { useSessionStore } from "@/stores/session";
 import { useRegistryStore } from "@/stores/registry";
 import { saveToIDB } from "@/lib/session-storage";
 import { downloadBlob, exportSession } from "@/lib/export";
+import { sanitizeFilename } from "@/lib/filename";
+import { initAutoSave } from "@/lib/auto-save";
+import { toastError } from "@/stores/toast";
 import type { RubricData } from "@/lib/types";
 import * as lifecycle from "@/lib/session-lifecycle";
 
@@ -13,7 +16,6 @@ export function useActiveSession(migrationReady = true) {
   const session = useSessionStore((s) => s.session);
   const captures = useSessionStore((s) => s.captures);
   const evaluations = useSessionStore((s) => s.evaluations);
-  const questionModes = useSessionStore((s) => s.questionModes);
   const finalization = useSessionStore((s) => s.finalization);
 
   // --- Lifecycle orchestration ---
@@ -22,22 +24,28 @@ export function useActiveSession(migrationReady = true) {
   useEffect(() => {
     if (!migrationReady) return;
     if (activeSessionId && status === "empty") {
-      const controller = new AbortController();
-      lifecycle.loadSessionById(activeSessionId).then((found) => {
-        if (controller.signal.aborted) return;
-        // loadSessionById already handles both success and not-found cases
-        void found;
-      });
-      return () => controller.abort();
+      lifecycle
+        .loadSessionById(activeSessionId)
+        .then((found) => {
+          void found;
+        })
+        .catch((err) => {
+          console.error("Failed to load session:", err);
+          toastError("Failed to load session. It may be corrupted or storage is unavailable.");
+          useSessionStore.setState({ status: "empty" });
+        });
     } else if (!activeSessionId && (status === "active" || status === "loading")) {
-      const { session: curSession, captures: curCaptures, evaluations: curEvaluations, questionModes: curQuestionModes, finalization: curFinalization } =
-        useSessionStore.getState();
+      const {
+        session: curSession,
+        captures: curCaptures,
+        evaluations: curEvaluations,
+        finalization: curFinalization,
+      } = useSessionStore.getState();
       if (curSession) {
         saveToIDB(curSession.id, {
           metadata: curSession,
           captures: curCaptures,
           evaluations: curEvaluations,
-          questionModes: curQuestionModes,
           finalization: curFinalization,
         });
       }
@@ -45,41 +53,12 @@ export function useActiveSession(migrationReady = true) {
     }
   }, [activeSessionId, migrationReady]);
 
-  // Effect 2: Debounced auto-save during active review
+  // Effect 2+3: Init auto-save singleton (debounced auto-save + visibility flush)
+  // This replaces the per-consumer subscriptions that caused N-way amplification.
   useEffect(() => {
-    if (!migrationReady || status !== "active" || !activeSessionId) return;
-
-    const timerRef = { current: undefined as ReturnType<typeof setTimeout> | undefined };
-
-    const unsub = useSessionStore.subscribe((state) => {
-      if (timerRef.current !== undefined) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        const { session: s, captures: c, evaluations: e, questionModes: q, finalization: f } = useSessionStore.getState();
-        if (s && activeSessionId) {
-          saveToIDB(activeSessionId, { metadata: s, captures: c, evaluations: e, questionModes: q, finalization: f });
-        }
-      }, 300);
-    });
-
-    return () => {
-      unsub();
-      if (timerRef.current !== undefined) clearTimeout(timerRef.current);
-    };
-  }, [activeSessionId, status, migrationReady]);
-
-  // Effect 3: Flush on panel close / tab switch
-  useEffect(() => {
-    const handleVisibility = () => {
-      if (document.visibilityState === "hidden") {
-        const { session: s, captures: c, evaluations: e, questionModes: q, finalization: f } = useSessionStore.getState();
-        if (s) {
-          saveToIDB(s.id, { metadata: s, captures: c, evaluations: e, questionModes: q, finalization: f });
-        }
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, []);
+    if (!migrationReady) return;
+    initAutoSave();
+  }, [migrationReady]);
 
   // --- Forwarded actions ---
   // Session store actions
@@ -89,7 +68,6 @@ export function useActiveSession(migrationReady = true) {
   const updateCapture = useSessionStore((s) => s.updateCapture);
   const removeCapture = useSessionStore((s) => s.removeCapture);
   const setEvaluation = useSessionStore((s) => s.setEvaluation);
-  const setQuestionMode = useSessionStore((s) => s.setQuestionMode);
   const linkCaptureToRubric = useSessionStore((s) => s.linkCaptureToRubric);
   const unlinkCaptureFromRubric = useSessionStore((s) => s.unlinkCaptureFromRubric);
   const updateMetadata = useSessionStore((s) => s.updateMetadata);
@@ -106,7 +84,7 @@ export function useActiveSession(migrationReady = true) {
     const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
     if (!s) throw new Error("No active session");
     const blob = await exportSession(s, c, e, rubric, f);
-    downloadBlob(blob, `TRUST_Review_${s.toolName}.zip`);
+    downloadBlob(blob, `TRUST_Review_${sanitizeFilename(s.toolName)}.zip`);
     lifecycle.markDoneAndClose(s.id);
   };
 
@@ -115,7 +93,6 @@ export function useActiveSession(migrationReady = true) {
     session,
     captures,
     evaluations,
-    questionModes,
     finalization,
     loadSession,
     clear,
@@ -123,7 +100,6 @@ export function useActiveSession(migrationReady = true) {
     updateCapture,
     removeCapture,
     setEvaluation,
-    setQuestionMode,
     linkCaptureToRubric,
     unlinkCaptureFromRubric,
     updateMetadata,

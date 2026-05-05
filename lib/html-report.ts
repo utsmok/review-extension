@@ -5,7 +5,11 @@ import { qualityGateResults, getCategoryScores, scoreColor, distributionBar } fr
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 function esc(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 export function buildHtmlReport(
@@ -22,18 +26,31 @@ export function buildHtmlReport(
 
   let totalActual = 0;
   let totalMax = 0;
+  let totalScoringQuestions = 0;
+  let answeredScoringQuestions = 0;
   const catScores: Map<string, (number | "na" | "unsure" | "" | undefined)[]> = new Map();
   for (const p of PRINCIPLES) {
     if (!(p.id in rubric.scoring_rubric)) continue;
     const scores = getCategoryScores(p.id, evaluations, rubric);
     catScores.set(p.id, scores);
     for (const s of scores) {
-      if (typeof s === "number") {
-        totalActual += s;
-        totalMax += 3;
+      totalScoringQuestions++;
+      if (typeof s === "number" || s === "na" || s === "unsure") {
+        answeredScoringQuestions++;
+        if (typeof s === "number") {
+          totalActual += s;
+          totalMax += 3;
+        }
       }
     }
   }
+
+  // Count QG questions too for full completion tracking
+  const totalQGQuestions = gates.length;
+  const answeredQGQuestions = gates.filter((g) => g.result !== null).length;
+  const totalQuestions = totalScoringQuestions + totalQGQuestions;
+  const answeredQuestions = answeredScoringQuestions + answeredQGQuestions;
+  const isComplete = totalQuestions > 0 && answeredQuestions >= totalQuestions;
 
   const ratio = totalMax > 0 ? totalActual / totalMax : 0;
   const principleFail = PRINCIPLES.some((p) => {
@@ -49,16 +66,23 @@ export function buildHtmlReport(
   let verdictColor: string;
   if (finalization) {
     const gc: Record<string, string> = { pass: "#4a8355", conditional: "#ea580c", fail: "#c60c30" };
-    const gl: Record<string, string> = { pass: "PASSED", conditional: "CONDITIONAL", fail: "FAILED" };
+    const gl: Record<string, string> = {
+      pass: "PASSED",
+      conditional: "CONDITIONAL",
+      fail: "FAILED",
+    };
     verdict = gl[finalization.grade] ?? finalization.grade.toUpperCase();
     verdictColor = gc[finalization.grade] ?? "#576578";
+  } else if (!isComplete) {
+    verdict = "INCOMPLETE";
+    verdictColor = "#8b9bb0";
   } else {
     verdict = computedFailed ? "FAILED" : "PASSED";
     verdictColor = computedFailed ? "#c60c30" : "#4a8355";
   }
 
-  const principleLetters = PRINCIPLES.map((p) =>
-    `<span style="color:${p.color};font-weight:800">${p.code[0]}</span>`
+  const principleLetters = PRINCIPLES.map(
+    (p) => `<span style="color:${p.color};font-weight:800">${p.code[0]}</span>`,
   ).join("");
 
   // Build category sections
@@ -72,24 +96,31 @@ export function buildHtmlReport(
     ).length;
 
     const numeric = scores.filter((s): s is number => typeof s === "number");
-    const avg = numeric.length > 0 ? (numeric.reduce((a, b) => a + b, 0) / numeric.length).toFixed(1) : "—";
+    const avg =
+      numeric.length > 0 ? (numeric.reduce((a, b) => a + b, 0) / numeric.length).toFixed(1) : "—";
     const catTotal = numeric.reduce((a, b) => a + b, 0);
     const catMax = numeric.length * 3;
 
-    const rows = Object.entries(questions).map(([qId, levels], idx) => {
-      const rubricId = `${p.id}.${qId}`;
-      const ev = evaluations.find((e) => e.rubricId === rubricId);
-      const isNa = ev?.score === "na";
-      const isUnsure = ev?.score === "unsure";
-      const score = typeof ev?.score === "number" ? ev.score : -1;
-      const code = getQuestionCode(p.id, idx);
-      const levelDesc = isNa ? "Not applicable" : isUnsure ? "Insufficient information" : score >= 0
-        ? (levels as unknown as Record<string, string>)[String(score)] ?? "—"
-        : "—";
+    const rows = Object.entries(questions)
+      .map(([qId, levels], idx) => {
+        const rubricId = `${p.id}.${qId}`;
+        const ev = evaluations.find((e) => e.rubricId === rubricId);
+        const isNa = ev?.score === "na";
+        const isUnsure = ev?.score === "unsure";
+        const score = typeof ev?.score === "number" ? ev.score : -1;
+        const code = getQuestionCode(p.id, idx);
+        const levelDesc = isNa
+          ? "Not applicable"
+          : isUnsure
+            ? "Insufficient information"
+            : score >= 0
+              ? ((levels as unknown as Record<string, string>)[String(score)] ?? "—")
+              : "—";
 
-      const evidenceImgs = captures
-        .filter((c) => ev?.explicitEvidenceIds.includes(c.id))
-        .map((c) => `
+        const evidenceImgs = captures
+          .filter((c) => ev?.explicitEvidenceIds.includes(c.id))
+          .map(
+            (c) => `
           <div class="evidence-item">
             <img src="${c.screenshotBase64}" alt="${esc(c.pageTitle)}" loading="lazy" />
             <div class="evidence-meta">
@@ -98,22 +129,53 @@ export function buildHtmlReport(
               ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
             </div>
           </div>
-        `).join("");
+        `,
+          )
+          .join("");
 
-      return `
+        const backgroundRow = levels.background
+          ? `
+        <tr class="supplementary-row"><td colspan="4" class="supplementary-cell">
+          <details><summary class="supplementary-summary">Background</summary>
+          <p>${esc(levels.background)}</p></details>
+        </td></tr>
+      `
+          : "";
+
+        const examplesRow = levels.examples
+          ? `
+        <tr class="supplementary-row"><td colspan="4" class="supplementary-cell">
+          <details><summary class="supplementary-summary">Examples</summary>
+          <table class="examples-table">
+            ${(["0", "1", "2", "3"] as const)
+              .map((lvl) => {
+                const ex = (levels as unknown as { examples?: Record<string, string> }).examples?.[
+                  lvl
+                ];
+                return ex ? `<tr><td class="ex-level">${lvl}</td><td>${esc(ex)}</td></tr>` : "";
+              })
+              .join("")}
+          </table></details>
+        </td></tr>
+      `
+          : "";
+
+        return `
         <tr class="score-row">
           <td class="code" style="color:${p.color}">${code}</td>
           <td class="score-cell">
-            <span class="score-badge" style="background:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? score as 0|1|2|3 : undefined)}20;color:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? score as 0|1|2|3 : undefined)}">
+            <span class="score-badge" style="background:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined)}20;color:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined)}">
               ${isNa ? "N/A" : isUnsure ? "?" : score >= 0 ? score : "—"}
             </span>
           </td>
           <td class="level">${esc(levelDesc)}</td>
           <td class="notes">${esc(ev?.notes ?? "")}</td>
         </tr>
+        ${backgroundRow}${examplesRow}
         ${evidenceImgs ? `<tr class="evidence-row"><td colspan="4"><div class="evidence-list">${evidenceImgs}</div></td></tr>` : ""}
       `;
-    }).join("");
+      })
+      .join("");
 
     return `
       <section class="category-section" style="--accent:${p.color}">
@@ -140,61 +202,111 @@ export function buildHtmlReport(
   }).join("");
 
   // Quality gate rows
-  const gateRows = Object.entries(rubric.quality_gate).map(([cat, questions]) =>
-    Object.entries(questions).map(([qId, q]) => {
-      const ev = evaluations.find((e) => e.rubricId === `${cat}.${qId}`);
-      const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
-      const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#8b9bb0";
-      const label = result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "—";
-      return `
+  const gateRows = Object.entries(rubric.quality_gate)
+    .map(([cat, questions]) =>
+      Object.entries(questions)
+        .map(([qId, q]) => {
+          const ev = evaluations.find((e) => e.rubricId === `${cat}.${qId}`);
+          const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
+          const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#8b9bb0";
+          const label = result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "—";
+
+          const qgBackgroundRow = q.background
+            ? `
+        <tr class="supplementary-row"><td colspan="4" class="supplementary-cell">
+          <details><summary class="supplementary-summary">Background</summary>
+          <p>${esc(q.background)}</p></details>
+        </td></tr>
+      `
+            : "";
+
+          const qgExamplesRow = q.examples
+            ? `
+        <tr class="supplementary-row"><td colspan="4" class="supplementary-cell">
+          <details><summary class="supplementary-summary">Examples</summary>
+          <table class="examples-table">
+            ${(Object.entries(q.examples) as [string, string][])
+              .map(
+                ([key, desc]) => `
+              <tr><td class="ex-level">${key === "pass" ? "Pass" : key === "fail" ? "Fail" : key === "na" ? "N/A" : esc(key)}</td><td>${esc(desc)}</td></tr>
+            `,
+              )
+              .join("")}
+          </table></details>
+        </td></tr>
+      `
+            : "";
+
+          return `
         <tr>
           <td class="code">${cat.toUpperCase()}${Object.keys(questions).indexOf(qId) + 1}</td>
           <td><span class="gate-badge" style="background:${color}18;color:${color}">${label}</span></td>
           <td>${esc(q.requirement)}</td>
           <td class="notes">${esc(ev?.notes ?? "")}</td>
         </tr>
+        ${qgBackgroundRow}${qgExamplesRow}
       `;
-    }).join("")
-  ).join("");
+        })
+        .join(""),
+    )
+    .join("");
 
   // Finalization section
-  const finalizationSection = finalization ? `
+  const finalizationSection = finalization
+    ? `
     <section class="finalization-section">
       <div class="fin-bar" style="background:${verdictColor}"></div>
       <div class="fin-grade" style="color:${verdictColor};background:${verdictColor}10">
         ${verdict}
       </div>
       ${finalization.conclusion ? `<div class="fin-block"><h3>Conclusion</h3><p>${esc(finalization.conclusion)}</p></div>` : ""}
-      ${finalization.strengths.length > 0 ? `
+      ${
+        finalization.strengths.length > 0
+          ? `
         <div class="fin-block">
           <h3 style="color:#4a8355">Strengths</h3>
           <ul>${finalization.strengths.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
         </div>
-      ` : ""}
-      ${finalization.weaknesses.length > 0 ? `
+      `
+          : ""
+      }
+      ${
+        finalization.weaknesses.length > 0
+          ? `
         <div class="fin-block">
           <h3 style="color:#c60c30">Weaknesses</h3>
           <ul>${finalization.weaknesses.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>
         </div>
-      ` : ""}
-      ${finalization.recommendations ? `
+      `
+          : ""
+      }
+      ${
+        finalization.recommendations
+          ? `
         <div class="fin-block">
           <h3>Recommendations</h3>
           <p>${esc(finalization.recommendations)}</p>
         </div>
-      ` : ""}
+      `
+          : ""
+      }
       <div class="fin-timestamp">Finalized ${new Date(finalization.finalizedAt).toLocaleString()}</div>
     </section>
-  ` : "";
+  `
+    : "";
 
   // Unlinked evidence
   const unlinked = captures.filter(
     (c) => !evaluations.some((e) => e.explicitEvidenceIds.includes(c.id)),
   );
-  const unlinkedSection = unlinked.length > 0 ? `
+  const unlinkedSection =
+    unlinked.length > 0
+      ? `
     <section class="unlinked-section">
       <h2>Additional Evidence</h2>
-      ${unlinked.map((c) => `
+      ${unlinked
+        .map(
+          (c) => `
         <div class="unlinked-item">
           <img src="${c.screenshotBase64}" alt="${esc(c.pageTitle)}" loading="lazy" />
           <div class="unlinked-meta">
@@ -204,9 +316,12 @@ export function buildHtmlReport(
             ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
           </div>
         </div>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </section>
-  ` : "";
+  `
+      : "";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -565,6 +680,37 @@ export function buildHtmlReport(
   .fin-block ul { padding-left: 20px; }
   .fin-timestamp { font-size: 0.7rem; color: var(--slate); text-align: right; }
 
+  /* Supplementary foldout rows */
+  .supplementary-row td { border-bottom: none !important; }
+  .supplementary-cell { padding: 2px 8px 2px 52px !important; }
+  .supplementary-cell details { font-size: 0.75rem; }
+  .supplementary-summary {
+    font-family: var(--ff-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--slate);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .supplementary-summary::-webkit-details-marker { display: none; }
+  .supplementary-summary::before { content: "▸"; font-size: 8px; }
+  .supplementary-cell details[open] .supplementary-summary::before { content: "▾"; }
+  .supplementary-cell p { color: var(--muted); line-height: 1.5; margin-top: 4px; }
+  .examples-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .examples-table td { padding: 3px 6px; font-size: 0.72rem; border-bottom: 1px solid var(--panel); }
+  .ex-level {
+    font-family: var(--ff-mono);
+    font-weight: 700;
+    color: var(--slate);
+    width: 36px;
+    vertical-align: top;
+  }
+
   /* Unlinked evidence */
   .unlinked-section {
     border-top: 2px solid var(--magenta);
@@ -634,7 +780,7 @@ export function buildHtmlReport(
   </div>
   <div class="letterform-score">
     <div class="total">${totalActual} / ${totalMax}</div>
-    <div class="pct">${Math.round(ratio * 100)}% overall</div>
+    <div class="pct">${Math.round(ratio * 100)}% score · ${answeredQuestions}/${totalQuestions} answered</div>
   </div>
 </div>
 
@@ -652,7 +798,8 @@ export function buildHtmlReport(
     if (!(p.id in rubric.scoring_rubric)) return "";
     const scores = catScores.get(p.id) ?? [];
     const numeric = scores.filter((s): s is number => typeof s === "number");
-    const avg = numeric.length > 0 ? (numeric.reduce((a, b) => a + b, 0) / numeric.length).toFixed(1) : "—";
+    const avg =
+      numeric.length > 0 ? (numeric.reduce((a, b) => a + b, 0) / numeric.length).toFixed(1) : "—";
     const catTotal = numeric.reduce((a, b) => a + b, 0);
     const catMax = numeric.length * 3;
     const catEvals = evaluations.filter((e) => e.rubricId.startsWith(`${p.id}.`));
@@ -681,11 +828,19 @@ export function buildHtmlReport(
 <div class="verdict-block">
   <div class="verdict-label">Verdict</div>
   <div class="verdict-text" style="color:${verdictColor}">${verdict}</div>
-  <div class="verdict-reason">${finalization?.conclusion
-    ? esc(finalization.conclusion.length > 120 ? `${finalization.conclusion.slice(0, 120)}...` : finalization.conclusion)
-    : anyFail
-      ? "Quality gate failure"
-      : `Score ${Math.round(ratio * 100)}%${computedFailed ? " — " + (anyFail ? "quality gate failure" : principleFail ? "principle below minimum" : "below threshold") : " meets threshold"}`}</div>
+  <div class="verdict-reason">${
+    finalization?.conclusion
+      ? esc(
+          finalization.conclusion.length > 120
+            ? `${finalization.conclusion.slice(0, 120)}...`
+            : finalization.conclusion,
+        )
+      : !isComplete
+        ? `${answeredQuestions}/${totalQuestions} questions answered — evaluation incomplete`
+        : anyFail
+          ? "Quality gate failure"
+          : `Score ${Math.round(ratio * 100)}%${computedFailed ? " — " + (anyFail ? "quality gate failure" : principleFail ? "principle below minimum" : "below threshold") : " meets threshold"}`
+  }</div>
 </div>
 
 <div class="bottom-bar"></div>
