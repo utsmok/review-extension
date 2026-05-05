@@ -1,7 +1,7 @@
-import { getCategoryLabel, getQuestionCode } from "./rubric";
 import { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } from "./logos";
 import { PRINCIPLES } from "./principles";
-import { qualityGateResults, getCategoryScores, scoreColor, distributionBar } from "./scoring";
+import { getCategoryLabel, getQuestionCode } from "./rubric";
+import { distributionBar, getCategoryScores, qualityGateResults, scoreColor } from "./scoring";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 function esc(s: string): string {
@@ -145,13 +145,13 @@ export async function buildHtmlReport(
       fail: "FAILED",
     };
     verdict = gl[finalization.grade] ?? finalization.grade.toUpperCase();
-    verdictColor = gc[finalization.grade] ?? "#576578";
+    verdictColor = gc[finalization.grade] ?? "#4f5e73";
   } else if (noEvaluation) {
     verdict = "NOT EVALUATED";
-    verdictColor = "#8b9bb0";
+    verdictColor = "#6b7f94";
   } else if (!isComplete) {
     verdict = "INCOMPLETE";
-    verdictColor = "#8b9bb0";
+    verdictColor = "#6b7f94";
   } else {
     verdict = computedFailed ? "FAILED" : "PASSED";
     verdictColor = computedFailed ? "#c60c30" : "#4a8355";
@@ -287,7 +287,7 @@ export async function buildHtmlReport(
         .map(([qId, q]) => {
           const ev = evaluations.find((e) => e.rubricId === `${cat}.${qId}`);
           const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
-          const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#8b9bb0";
+          const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#6b7f94";
           const label = result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "—";
 
           const qgBackgroundRow = q.background
@@ -418,8 +418,8 @@ export async function buildHtmlReport(
       <span class="score-badge" style="background:#ea580c20;color:#ea580c">1 = Partially</span>
       <span class="score-badge" style="background:#0e749020;color:#0e7490">2 = Mostly</span>
       <span class="score-badge" style="background:#4a835520;color:#4a8355">3 = Yes</span>
-      <span class="score-badge" style="background:#8b9bb020;color:#8b9bb0">N/A</span>
-      <span class="score-badge" style="background:#6b7f9420;color:#6b7f94">? = Unsure</span>
+      <span class="score-badge" style="background:#6b7f9420;color:#6b7f94">N/A</span>
+      <span class="score-badge" style="background:#5a6e8220;color:#5a6e82">? = Unsure</span>
     </div>
   `;
 
@@ -438,8 +438,8 @@ export async function buildHtmlReport(
     --magenta: #8e036c;
     --navy: #002c5f;
     --text: #172033;
-    --muted: #576578;
-    --slate: #5f7088;
+    --muted: #4f5e73;
+    --slate: #4c5e74;
     --border: #bfc6cf;
     --canvas: #eef0f3;
     --panel: #f3f4f6;
@@ -578,11 +578,11 @@ export async function buildHtmlReport(
     gap: 6px;
     align-items: center;
     margin-bottom: 16px;
-    font-size: 0.72rem;
+    font-size: 0.78rem;
   }
   .legend-label {
     font-family: var(--ff-heading);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -642,7 +642,7 @@ export async function buildHtmlReport(
     align-items: center;
     justify-content: center;
     width: 100%;
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     color: var(--slate);
   }
 
@@ -677,7 +677,7 @@ export async function buildHtmlReport(
     display: flex;
     gap: 12px;
     align-items: center;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--slate);
     margin-bottom: 32px;
   }
@@ -730,7 +730,7 @@ export async function buildHtmlReport(
     display: inline-block;
     padding: 1px 8px;
     font-family: var(--ff-mono);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
     border-radius: 1px;
   }
@@ -759,7 +759,7 @@ export async function buildHtmlReport(
     line-height: 1;
   }
   .category-letter-name {
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -813,7 +813,7 @@ export async function buildHtmlReport(
     display: inline-block;
     padding: 1px 8px;
     font-family: var(--ff-mono);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
     border-radius: 1px;
   }
@@ -839,7 +839,7 @@ export async function buildHtmlReport(
   }
   .evidence-meta { font-size: 0.75rem; }
   .evidence-meta strong { display: block; margin-bottom: 2px; }
-  .evidence-time { color: var(--muted); font-family: var(--ff-mono); font-size: 0.7rem; }
+  .evidence-time { color: var(--muted); font-family: var(--ff-mono); font-size: 0.75rem; }
 
   /* Finalization */
   .finalization-section {
@@ -870,7 +870,7 @@ export async function buildHtmlReport(
   }
   .fin-block p, .fin-block li { font-size: 0.85rem; line-height: 1.5; }
   .fin-block ul { padding-left: 20px; }
-  .fin-timestamp { font-size: 0.7rem; color: var(--slate); text-align: right; }
+  .fin-timestamp { font-size: 0.75rem; color: var(--slate); text-align: right; }
 
   /* Supplementary foldout rows */
   .supplementary-row td { border-bottom: none !important; }
@@ -894,7 +894,7 @@ export async function buildHtmlReport(
   .supplementary-cell details[open] .supplementary-summary::before { content: "▾"; }
   .supplementary-cell p { color: var(--muted); line-height: 1.5; margin-top: 4px; }
   .examples-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-  .examples-table td { padding: 3px 6px; font-size: 0.72rem; border-bottom: 1px solid var(--panel); }
+  .examples-table td { padding: 3px 6px; font-size: 0.78rem; border-bottom: 1px solid var(--panel); }
   .ex-level {
     font-family: var(--ff-mono);
     font-weight: 700;
@@ -932,7 +932,7 @@ export async function buildHtmlReport(
   .unlinked-meta { font-size: 0.8rem; }
   .unlinked-meta strong { display: block; margin-bottom: 4px; }
   .unlinked-meta a { color: var(--link); font-size: 0.75rem; }
-  .unlinked-meta span { display: block; color: var(--muted); font-family: var(--ff-mono); font-size: 0.7rem; }
+  .unlinked-meta span { display: block; color: var(--muted); font-family: var(--ff-mono); font-size: 0.75rem; }
 
   .url-plain { color: var(--muted); font-size: 0.75rem; word-break: break-all; }
 
@@ -972,7 +972,7 @@ export async function buildHtmlReport(
       @bottom-center {
         content: "Page " counter(page) " of " counter(pages) " · " "TRUST Framework Evaluation Report · " "Confidential";
         font-size: 8px;
-        color: #8b9bb0;
+        color: #6b7f94;
       }
     }
   }
@@ -1012,7 +1012,7 @@ ${scoreLegend}
 
 <div class="gate-summary">
   <span>Quality Gate Status</span>
-  <span style="color:${allPassed ? "#4a8355" : anyFail ? "#c60c30" : "#8b9bb0"}">
+  <span style="color:${allPassed ? "#4a8355" : anyFail ? "#c60c30" : "#6b7f94"}">
     ${allPassed ? "PASSED" : anyFail ? "FAILED" : "INCOMPLETE"}
   </span>
 </div>
