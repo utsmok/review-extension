@@ -37,7 +37,9 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
       .catch(() => {
         // Silent — user can fill in manually
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Close on Escape
@@ -77,7 +79,18 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
   };
 
   return (
-    <button type="button" className="modal-backdrop" tabIndex={-1} onClick={onClose} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClose(); } }}>
+    <button
+      type="button"
+      className="modal-backdrop"
+      tabIndex={-1}
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClose();
+        }
+      }}
+    >
       <div
         ref={panelRef}
         className="modal-panel"
@@ -87,9 +100,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <h2 className="font-display text-ut-lg font-bold text-ut-navy mb-ut-3">
-          New Review
-        </h2>
+        <h2 className="font-display text-ut-lg font-bold text-ut-navy mb-ut-3">New Review</h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-ut-3">
           <label className="flex flex-col gap-1">

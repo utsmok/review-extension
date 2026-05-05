@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import type { Capture } from "@/lib/types";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useAutoFocus, useFocusTrap } from "@/lib/hooks";
+import type { Capture } from "@/lib/types";
 
 function getPenColors() {
   const style = getComputedStyle(document.documentElement);
@@ -141,7 +141,18 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
   const penColors = getPenColors();
 
   return (
-    <button type="button" className="modal-backdrop" tabIndex={-1} onClick={onClose} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClose(); } }}>
+    <button
+      type="button"
+      className="modal-backdrop"
+      tabIndex={-1}
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClose();
+        }
+      }}
+    >
       <div
         ref={panelRef}
         className="modal-panel max-w-[720px] p-0"
@@ -210,16 +221,8 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         </div>
 
         {/* Image + canvas */}
-        <div
-          ref={containerRef}
-          className="relative overflow-auto max-h-[50vh]"
-        >
-          <img
-            src={imageSrc}
-            alt="Evidence"
-            onLoad={handleImageLoad}
-            className="block w-full"
-          />
+        <div ref={containerRef} className="relative overflow-auto max-h-[50vh]">
+          <img src={imageSrc} alt="Evidence" onLoad={handleImageLoad} className="block w-full" />
           <canvas
             ref={canvasRef}
             onMouseDown={startDrawing}
@@ -236,9 +239,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
           {capture.pageTitle && (
             <p className="text-ut-xs font-bold text-ut-text mb-1">{capture.pageTitle}</p>
           )}
-          <p className="text-ut-xs font-mono text-ut-muted mb-1 break-all">
-            {capture.sourceUrl}
-          </p>
+          <p className="text-ut-xs font-mono text-ut-muted mb-1 break-all">{capture.sourceUrl}</p>
           <p className="text-ut-xs text-ut-slate mb-2">
             {new Date(capture.timestamp).toLocaleString()}
           </p>

@@ -5,7 +5,12 @@ import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
 
 const GRADES: { value: FinalizationGrade; label: string; color: string; tint: string }[] = [
   { value: "pass", label: "Pass", color: "bg-ut-green", tint: "bg-grade-pass-tint" },
-  { value: "conditional", label: "Conditional", color: "bg-score-1", tint: "bg-grade-conditional-tint" },
+  {
+    value: "conditional",
+    label: "Conditional",
+    color: "bg-score-1",
+    tint: "bg-grade-conditional-tint",
+  },
   { value: "fail", label: "Fail", color: "bg-ut-red", tint: "bg-grade-fail-tint" },
 ];
 
@@ -198,7 +203,17 @@ export default function FinalizationScreen() {
         </button>
         {saved && (
           <span className="flex items-center gap-1 text-ut-green text-ut-xs font-heading font-bold uppercase tracking-ut-label shrink-0">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
               <path d="M3 7.5l3 3 6-6" />
             </svg>
             Saved

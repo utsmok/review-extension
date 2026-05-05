@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
-import { useRegistryStore } from "@/stores/registry";
-import { useActiveSession } from "@/hooks/useActiveSession";
-import { loadFromIDB } from "@/lib/session-storage";
-import { downloadBlob, exportSession } from "@/lib/export";
 import { getRubricById } from "@/data/rubrics";
-import { toastError, toastSuccess } from "@/stores/toast";
+import { useActiveSession } from "@/hooks/useActiveSession";
+import { downloadBlob, exportSession } from "@/lib/export";
 import { sanitizeFilename } from "@/lib/filename";
-import NewSessionModal from "./NewSessionModal";
+import { loadFromIDB } from "@/lib/session-storage";
+import { useRegistryStore } from "@/stores/registry";
+import { toastError, toastSuccess } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
+import NewSessionModal from "./NewSessionModal";
 
 function FaviconOrFallback({ url, toolName }: { url?: string; toolName: string }) {
   const [failed, setFailed] = useState(false);

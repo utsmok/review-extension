@@ -3,9 +3,9 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import EvidenceModal from "@/components/EvidenceModal";
 import QuestionSection from "@/components/QuestionSection";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { useRubric } from "@/lib/rubric-context";
 import { useRovingTabIndex } from "@/lib/hooks";
 import { getRubricQuestionIds } from "@/lib/rubric";
+import { useRubric } from "@/lib/rubric-context";
 import type { Capture } from "@/lib/types";
 
 const evalTabs = ["Quality Gates", "Scoring Rubric"] as const;

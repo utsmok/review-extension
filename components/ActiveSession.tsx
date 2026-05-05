@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useRovingTabIndex } from "@/lib/hooks";
-import { TabNavigationContext } from "@/lib/tab-navigation-context";
-import { useRubric } from "@/lib/rubric-context";
 import { computeCompletion } from "@/lib/rubric";
+import { useRubric } from "@/lib/rubric-context";
+import { TabNavigationContext } from "@/lib/tab-navigation-context";
 import Captures from "./Captures";
 import Evaluation from "./Evaluation";
-import Metadata from "./Metadata";
 import FinalizationScreen from "./FinalizationScreen";
+import Metadata from "./Metadata";
 
 const tabs = ["Captures", "Evaluation", "Metadata", "Finalize"] as const;
 
@@ -72,7 +72,16 @@ export default function ActiveSession() {
             title="Close review and return to start"
             aria-label="Close review"
           >
-            <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 18 18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <title>Close</title>
               <polyline points="12,14 7,9 12,4" />
             </svg>

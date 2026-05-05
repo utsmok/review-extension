@@ -1,5 +1,5 @@
-import { useRegistryStore } from "@/stores/registry";
 import { RUBRIC_VARIANTS } from "@/data/rubrics";
+import { useRegistryStore } from "@/stores/registry";
 
 export default function SettingsScreen({ onBack }: { onBack: () => void }) {
   const settings = useRegistryStore((s) => s.settings);
@@ -14,7 +14,16 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
           onClick={onBack}
           aria-label="Back"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <title>Back</title>
             <path d="M10 3L5 8l5 5" />
           </svg>
@@ -64,7 +73,9 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
               onChange={(e) => updateSettings({ preferredRubric: e.target.value })}
             >
               {RUBRIC_VARIANTS.map((v) => (
-                <option key={v.id} value={v.id}>{v.label}</option>
+                <option key={v.id} value={v.id}>
+                  {v.label}
+                </option>
               ))}
             </select>
           </label>

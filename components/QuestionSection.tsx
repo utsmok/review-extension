@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureActiveTab } from "@/lib/capture";
 import {
   getAccentKey,
@@ -15,10 +16,9 @@ import type {
   RubricScore,
   ScoringQuestion,
 } from "@/lib/types";
-import { useActiveSession } from "@/hooks/useActiveSession";
 import { toastError } from "@/stores/toast";
 import EvidenceThumbnails from "./EvidenceThumbnails";
-import { ProgressCircle, getProgressState } from "./ProgressCircle";
+import { getProgressState, ProgressCircle } from "./ProgressCircle";
 
 function renderQGScores(
   rubricId: string,
@@ -46,7 +46,6 @@ function renderQGScores(
             setEvaluation(rubricId, { score: val });
           }
         };
-
 
         return (
           <label
@@ -102,7 +101,6 @@ function renderScoringScores(
           }
         };
 
-
         return (
           <label
             key={val}
@@ -124,10 +122,7 @@ function renderScoringScores(
       })}
 
       {/* N/A row */}
-      <label
-        className={`score-row ${isNa ? "is-selected" : ""}`}
-        data-score="na"
-      >
+      <label className={`score-row ${isNa ? "is-selected" : ""}`} data-score="na">
         <input
           type="radio"
           name={rubricId}
@@ -148,10 +143,7 @@ function renderScoringScores(
       </label>
 
       {/* Unsure row */}
-      <label
-        className={`score-row ${isUnsure ? "is-selected" : ""}`}
-        data-score="unsure"
-      >
+      <label className={`score-row ${isUnsure ? "is-selected" : ""}`} data-score="unsure">
         <input
           type="radio"
           name={rubricId}
@@ -213,25 +205,28 @@ export default function QuestionSection({
     return map;
   }, [captures, evaluations]);
 
-  const handleCaptureEvidence = useCallback((rubricId: string) => {
-    captureQueue.enqueue(async () => {
-      setCapturingFor(rubricId);
-      try {
-        const capture = await captureActiveTab();
-        addCapture(capture);
-        linkCaptureToRubric(capture.id, rubricId);
-      } catch (err) {
-        console.error("Evidence capture failed:", err);
-        toastError(
-          err instanceof Error
-            ? err.message
-            : "Capture failed. Check tab permissions and try again.",
-        );
-      } finally {
-        setCapturingFor(null);
-      }
-    });
-  }, [captureQueue, setCapturingFor, addCapture, linkCaptureToRubric]);
+  const handleCaptureEvidence = useCallback(
+    (rubricId: string) => {
+      captureQueue.enqueue(async () => {
+        setCapturingFor(rubricId);
+        try {
+          const capture = await captureActiveTab();
+          addCapture(capture);
+          linkCaptureToRubric(capture.id, rubricId);
+        } catch (err) {
+          console.error("Evidence capture failed:", err);
+          toastError(
+            err instanceof Error
+              ? err.message
+              : "Capture failed. Check tab permissions and try again.",
+          );
+        } finally {
+          setCapturingFor(null);
+        }
+      });
+    },
+    [captureQueue, setCapturingFor, addCapture, linkCaptureToRubric],
+  );
 
   const isQG = section === "quality_gate";
   const rubricSection = isQG ? rubric.quality_gate : rubric.scoring_rubric;
@@ -270,7 +265,7 @@ export default function QuestionSection({
               const sn = typeof ev?.score === "number" ? (ev.score as number) : -1;
               hasScore = sn >= 0 || ev?.score === "na" || ev?.score === "unsure";
             }
-            const hasNotes = !!(ev?.notes?.trim());
+            const hasNotes = !!ev?.notes?.trim();
             const hasEvidence = evidence.length > 0;
             const progress = getProgressState(hasScore, hasEvidence, hasNotes);
 

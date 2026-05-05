@@ -1,13 +1,13 @@
 import { useEffect } from "react";
-import { useSessionStore } from "@/stores/session";
-import { useRegistryStore } from "@/stores/registry";
-import { saveToIDB } from "@/lib/session-storage";
+import { initAutoSave } from "@/lib/auto-save";
 import { downloadBlob, exportSession } from "@/lib/export";
 import { sanitizeFilename } from "@/lib/filename";
-import { initAutoSave } from "@/lib/auto-save";
-import { toastError } from "@/stores/toast";
-import type { RubricData } from "@/lib/types";
 import * as lifecycle from "@/lib/session-lifecycle";
+import { saveToIDB } from "@/lib/session-storage";
+import type { RubricData } from "@/lib/types";
+import { useRegistryStore } from "@/stores/registry";
+import { useSessionStore } from "@/stores/session";
+import { toastError } from "@/stores/toast";
 
 export function useActiveSession(migrationReady = true) {
   // --- State from both stores (individual selectors for re-render safety) ---

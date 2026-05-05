@@ -24,12 +24,28 @@ function gradeColorClass(finalization: ReviewFinalization | null): string {
   return map[finalization.grade] ?? "text-ut-muted";
 }
 
-export default function ExportCompleteScreen({ captures, scoredCount, finalization, filename, onDone }: ExportCompleteScreenProps) {
+export default function ExportCompleteScreen({
+  captures,
+  scoredCount,
+  finalization,
+  filename,
+  onDone,
+}: ExportCompleteScreenProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-ut-4 p-ut-6 h-full">
       {/* Checkmark indicator with scale-in animation */}
       <div className="w-12 h-12 rounded-full border-2 border-ut-green flex items-center justify-center animate-scale-in">
-        <svg width="24" height="24" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-ut-green">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-ut-green"
+        >
           <title>Checkmark</title>
           <path d="M5 10.5l3.5 3.5 7-7" />
         </svg>
@@ -39,14 +55,14 @@ export default function ExportCompleteScreen({ captures, scoredCount, finalizati
         Review Exported
       </h2>
 
-      <p className="text-ut-sm text-ut-muted text-center -mt-2">
-        Your report is ready
-      </p>
+      <p className="text-ut-sm text-ut-muted text-center -mt-2">Your report is ready</p>
 
       {/* Grade & verdict display */}
       {finalization && (
         <div className="flex flex-col items-center gap-0.5">
-          <span className={`font-heading text-ut-heading font-bold uppercase tracking-ut-heading ${gradeColorClass(finalization)}`}>
+          <span
+            className={`font-heading text-ut-heading font-bold uppercase tracking-ut-heading ${gradeColorClass(finalization)}`}
+          >
             {gradeLabel(finalization)}
           </span>
           {finalization.conclusion && (

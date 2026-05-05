@@ -38,7 +38,16 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
             onClick={onSettingsClick}
             aria-label="Settings"
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <title>Settings</title>
               <circle cx="8" cy="8" r="2.5" />
             </svg>

@@ -1,4 +1,4 @@
-import { useToastStore, type ToastType } from "@/stores/toast";
+import { type ToastType, useToastStore } from "@/stores/toast";
 
 const typeStyles: Record<ToastType, { bg: string; border: string; text: string; label: string }> = {
   error: {
@@ -36,7 +36,9 @@ export default function ToastContainer() {
             className={`flex items-start gap-ut-2 px-ut-3 py-ut-2 border rounded-ut-sm ${style.bg} ${style.border}`}
             role="alert"
           >
-            <span className={`text-ut-xs font-heading font-bold uppercase tracking-ut-label ${style.text} shrink-0`}>
+            <span
+              className={`text-ut-xs font-heading font-bold uppercase tracking-ut-label ${style.text} shrink-0`}
+            >
               {style.label}
             </span>
             <span className="text-ut-xs text-ut-text flex-1 font-body leading-snug">

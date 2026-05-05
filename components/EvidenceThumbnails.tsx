@@ -53,7 +53,11 @@ export default function EvidenceThumbnails({
               >
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                   <title>View evidence</title>
-                  <path d="M1 6s2-4 5-4 5 4 5 4-2 4-5 4-5-4-5-4Z" stroke="currentColor" strokeWidth="1.2" />
+                  <path
+                    d="M1 6s2-4 5-4 5 4 5 4-2 4-5 4-5-4-5-4Z"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                  />
                 </svg>
               </button>
             </div>

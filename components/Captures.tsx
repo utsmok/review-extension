@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
+import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureActiveTab } from "@/lib/capture";
 import {
   getAccentKey,
   getCategoryLabel,
-  getQuestionCode,
   getLinkedRubricIdsForCapture,
+  getQuestionCode,
 } from "@/lib/rubric";
 import { useRubric } from "@/lib/rubric-context";
-import { useActiveSession } from "@/hooks/useActiveSession";
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
 

@@ -18,12 +18,23 @@ export function ProgressCircle({ state }: { state: ProgressState }) {
   }
   return (
     <svg width="22" height="22" viewBox="0 0 16 16" className="shrink-0" aria-hidden="true">
-      <circle cx="8" cy="8" r="6" fill="var(--state-success)" stroke="var(--state-success)" strokeWidth="2" />
+      <circle
+        cx="8"
+        cy="8"
+        r="6"
+        fill="var(--state-success)"
+        stroke="var(--state-success)"
+        strokeWidth="2"
+      />
     </svg>
   );
 }
 
-export function getProgressState(hasScore: boolean, hasEvidence: boolean, hasNotes: boolean): ProgressState {
+export function getProgressState(
+  hasScore: boolean,
+  hasEvidence: boolean,
+  hasNotes: boolean,
+): ProgressState {
   const hasExtra = hasEvidence || hasNotes;
   if (hasScore && hasExtra) return "complete";
   if (hasScore || hasExtra) return "partial";

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useRubric } from "@/lib/rubric-context";
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { useRubric } from "@/lib/rubric-context";
 import { useTabNavigation } from "@/lib/tab-navigation-context";
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
@@ -9,7 +9,16 @@ import ExportCompleteScreen from "./ExportCompleteScreen";
 export default function Metadata() {
   const { rubric } = useRubric();
   const setActiveTab = useTabNavigation();
-  const { session, updateMetadata, captures, evaluations, finalization, exportAndClose, deleteSession, closeSession } = useActiveSession();
+  const {
+    session,
+    updateMetadata,
+    captures,
+    evaluations,
+    finalization,
+    exportAndClose,
+    deleteSession,
+    closeSession,
+  } = useActiveSession();
   const [exporting, setExporting] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [exportComplete, setExportComplete] = useState(false);
@@ -214,7 +223,14 @@ export default function Metadata() {
           message="This will permanently delete all captures, scores, and notes for this review."
           actions={[
             { label: "Cancel", handler: () => setShowDiscardConfirm(false), variant: "cancel" },
-            { label: "Discard", handler: () => { deleteSession(session.id); setShowDiscardConfirm(false); }, variant: "danger" },
+            {
+              label: "Discard",
+              handler: () => {
+                deleteSession(session.id);
+                setShowDiscardConfirm(false);
+              },
+              variant: "danger",
+            },
           ]}
         />
       )}
