@@ -8,14 +8,22 @@
         "type": "pass_fail",
         "title": "Privacy policy",
         "requirement": "Can you find a privacy policy that explains what data the tool collects, what it does with your data, and whether it follows GDPR or similar protections?",
-        "basic_requirement": "Look for a privacy policy on the tool's website. Does it say what data is collected, how it's used, and whether it follows GDPR? Provide a screenshot or link.",
+        "background": "Any tool you use for research collects some data about you — your search queries, your email address, maybe your institutional affiliation. A privacy policy should clearly explain what is collected, how it is used, and how long it is kept. This is especially important for AI tools, since they may use your inputs in ways you do not expect. If you cannot find a privacy policy, that is a red flag.",
+        "examples": {
+          "pass": "You find a clearly written privacy policy on the tool's website. It lists the types of data collected (search queries, email, browser type), says data is kept for 90 days, and mentions GDPR compliance with a right-to-delete option.",
+          "fail": "There is no privacy policy link anywhere on the tool's website, or clicking the link takes you to an empty page with no actual information about data practices."
+        },
         "ai_only": false
       },
       "training_policy": {
         "type": "pass_fail",
         "title": "Data usage for training",
         "requirement": "Does the tool explicitly state that user inputs are NOT used to train AI models?",
-        "basic_requirement": "Does the tool say in writing that it won't use your questions or files to train its AI? Look in the privacy policy or terms of service.",
+        "background": "When you type a research question into an AI tool, your query could potentially be used to teach the AI to answer better. For academic users, this is a serious concern — you might be searching for unpublished findings, confidential data, or sensitive topics. The tool should clearly and explicitly state that it does not use your inputs for AI training. Check the privacy policy, terms of service, or FAQ for this statement.",
+        "examples": {
+          "pass": "The tool's FAQ has a question titled 'Do you use my data to train AI?' with a clear answer: 'No. Your search queries, uploaded documents, and conversations are never used to train or improve our AI models.'",
+          "fail": "The terms of service say the company 'may use interactions to improve its services' without any further clarification, or there is no mention of training data anywhere in the documentation."
+        },
         "ai_only": true
       }
     },
@@ -24,7 +32,11 @@
         "type": "pass_fail",
         "title": "Source references",
         "requirement": "Does the tool show clickable references for the information it provides? Most claims should have citations, and the links should work.",
-        "basic_requirement": "When the tool gives you an answer, does it show links to where the information came from? It's okay if a few claims don't have links, but most should.",
+        "background": "If an AI tool gives you an answer without showing where the information came from, you have no way to check whether it is correct. Good academic tools show their sources — ideally with clickable links that take you to the original paper or article. You should test this with a few queries and check that the links actually work and lead to real sources, not just a generic journal homepage.",
+        "examples": {
+          "pass": "The tool provides numbered references after each factual claim. Clicking a reference opens the actual paper in a new tab. Most claims have sources, and the few that do not are clearly marked.",
+          "fail": "The tool gives detailed answers but includes no source links at all, or the citation links are broken and lead to error pages."
+        },
         "ai_only": true
       }
     },
@@ -33,7 +45,11 @@
         "type": "pass_fail",
         "title": "Accessibility",
         "requirement": "Can you use the tool with just a keyboard? Can you make the text bigger without breaking the layout? Does it work with screen readers?",
-        "basic_requirement": "Try using the tool with just a keyboard — can you reach all the main features? Can you zoom in without the page breaking? Mark pass if keyboard navigation works and there's an accessibility statement.",
+        "background": "Not everyone can use a mouse. Some people rely on keyboard navigation, screen readers, or zoomed-in text. A tool that only works with a mouse, or that breaks when you zoom in, excludes users with disabilities. Universities have a legal and ethical obligation to provide accessible tools. Try navigating the tool using only your keyboard (Tab, Enter, arrow keys) and zoom your browser to 200% to check if everything still works.",
+        "examples": {
+          "pass": "You can reach the search bar, all filter options, and the export button using only the Tab and Enter keys. Zooming to 200% keeps the layout intact with nothing overlapping or disappearing. The tool has an accessibility statement on its website.",
+          "fail": "Important buttons like 'Search' or 'Export' only respond to mouse clicks — pressing Enter on them does nothing. When you zoom to 200%, the navigation menu overlaps the search results and some buttons become unreachable."
+        },
         "ai_only": false
       }
     }
@@ -42,130 +58,160 @@
     "TR": {
       "data_source_clarity": {
         "title": "Where does the data come from?",
+        "background": "If you do not know which databases a tool searches, you cannot tell whether it covers your field. A biology tool that only searches engineering databases would miss most relevant literature. Good tools tell you exactly which databases, journals, and publishers they include. Even better, they tell you how far back the coverage goes and how often the index is updated. Without this information, you are searching in the dark.",
         "0": "No information about sources.",
         "1": "The tool mentions what kind of sources it uses but gives no specifics.",
         "2": "The tool names the specific databases or publishers it searches.",
         "3": "The tool provides a complete list of all its sources, including when they were last updated.",
-        "0_basic": "There is no information about where the tool gets its data.",
-        "1_basic": "The tool says it searches 'academic sources' but doesn't say which ones.",
-        "2_basic": "The tool tells you which databases or publishers it uses.",
-        "3_basic": "The tool provides a full list of every source it searches and when each was last updated.",
+        "examples": {
+          "0": "You cannot find any information about where the tool gets its data. The website does not mention sources, and the help section is silent on the topic.",
+          "1": "The tool says it searches 'academic journals and conference papers' but does not name any specific databases like Scopus, PubMed, or IEEE.",
+          "2": "The tool's help page lists Scopus, Web of Science, and PubMed as its main sources, though it mentions 'and more' without specifying what the 'more' includes.",
+          "3": "A dedicated 'Our Sources' page lists every database the tool searches, shows coverage dates for each one (for example, 'PubMed: from 1950 to present'), and displays a 'Last updated' date showing the list was refreshed this month."
+        },
         "ai_only": false
       },
       "methodology_disclosure": {
         "title": "How does it work?",
+        "background": "When a tool uses AI to generate answers, you deserve to know how it works. Does it just search a database and show results? Does it use a language model to rewrite or summarize? Does it rank results using an algorithm you can understand? Knowing the method helps you interpret the answers correctly and spot potential weaknesses. This question only applies to tools that use AI.",
         "0": "No explanation of how the tool works.",
         "1": "The tool just says it uses 'AI' without details.",
         "2": "The tool names the specific AI technology it uses and explains how it finds information.",
         "3": "The tool gives a complete step-by-step explanation of how it processes your question and generates an answer.",
-        "0_basic": "The tool doesn't explain how it works at all.",
-        "1_basic": "The tool only says 'powered by AI' without explaining what that means.",
-        "2_basic": "The tool explains the type of AI it uses (like a language model) and how it searches for information.",
-        "3_basic": "The tool gives a complete step-by-step explanation: how it finds sources, which AI model it uses, and how it builds its answer.",
+        "examples": {
+          "0": "The website says nothing about how the tool works. There is no technical page, no blog post explaining the approach, and the FAQ does not address methodology.",
+          "1": "The homepage says 'Powered by AI' and 'Uses advanced machine learning' but never explains what kind of AI or what it actually does with your search query.",
+          "2": "The documentation explains that the tool uses a language model (like GPT-4) to understand your question and searches an index of academic papers to find relevant results. It describes the approach in general terms.",
+          "3": "A detailed technical page walks through the entire process: how your question is interpreted, which search index is queried, how results are ranked, which AI model generates the summary, and how citations are verified against the original sources."
+        },
         "ai_only": true
       }
     },
     "RE": {
       "accuracy_and_hallucination": {
         "title": "Is the information correct?",
+        "background": "AI tools sometimes make things up — they can invent fake citations, misattribute findings to the wrong paper, or state incorrect facts with complete confidence. This is called 'hallucination' and it is a serious problem in academic research, where accuracy matters. To test this, ask the tool about topics you already know well and check whether its claims and citations are real and correct. This question only applies to AI-powered tools.",
         "0": "The tool frequently makes up incorrect facts or fake citations.",
         "1": "The tool is mostly correct but sometimes gets details wrong.",
-        "2": "The tool is accurate with only small mistakes that don't change the meaning.",
+        "2": "The tool is accurate with only small mistakes that do not change the meaning.",
         "3": "The tool consistently provides correct, verified information — everything checks out.",
-        "0_basic": "The tool often gives wrong or made-up information.",
-        "1_basic": "Mostly correct, but you've caught some mistakes in details.",
-        "2_basic": "Very few errors — mostly small details that don't matter much.",
-        "3_basic": "Everything the tool says checks out as accurate when you verify it.",
+        "examples": {
+          "0": "You ask about a well-known topic and the tool cites three papers. When you look them up, two of the three do not exist at all — the authors, titles, and journals are fabricated. The third paper is real but the tool's summary contradicts its actual findings.",
+          "1": "The tool gives a generally accurate overview but gets some details wrong — it attributes a key finding to the wrong year, misstates the sample size of a study, or slightly mischaracterizes the conclusion of a paper.",
+          "2": "All the cited papers are real and the tool's summaries are mostly accurate. It occasionally oversimplifies a nuanced topic, but no fabricated claims or fake citations appear.",
+          "3": "You verify every claim the tool makes across multiple test queries and everything checks out. Every cited paper exists, every author attribution is correct, and the summaries faithfully represent the original findings."
+        },
         "ai_only": true
       },
       "variance_consistency": {
         "title": "Are the results consistent?",
+        "background": "Imagine asking the same question twice and getting two completely different answers — one saying 'yes, the evidence is strong' and the other saying 'no, the evidence is weak.' That makes a tool unreliable for research. A good tool should give you substantially the same answer each time you ask the same question. Small differences in wording are fine, but the core claims and key sources should be consistent. Test this by running the same query at least three times.",
         "0": "Asking the same question twice gives completely different conclusions.",
         "1": "Answers vary noticeably between tries — you need to ask a few times to get a good result.",
         "2": "The main answers are consistent, though the wording may differ slightly.",
         "3": "The tool gives the same substantive answer every time you ask the same question.",
-        "0_basic": "Completely different conclusions each time you ask the same thing.",
-        "1_basic": "Noticeably different results — you need to ask a few times to get a good answer.",
-        "2_basic": "Mostly consistent with minor variations in wording.",
-        "3_basic": "Same substance every time — the core answer doesn't change.",
+        "examples": {
+          "0": "You ask 'Is mindfulness effective for anxiety?' three times. The first answer says 'strong evidence supports it,' the second says 'evidence is inconclusive,' and the third says 'studies show mixed results.' Each answer cites completely different papers.",
+          "1": "Running the same query five times gives broadly similar answers, but in two of the five runs the tool recommends a specific study that does not appear in the others. You are not sure which answer to trust without running it again.",
+          "2": "Three runs of the same query produce the same conclusion and cite the same key studies. The wording is slightly different each time and one run includes an extra secondary source, but the substance is consistent.",
+          "3": "You ask the same question five times and get the same answer every time: same conclusion, same key papers cited, same effect sizes reported. Only the sentence structure varies slightly between runs."
+        },
         "ai_only": false
       }
     },
     "US": {
       "workflow_integration": {
         "title": "Can you export or save results?",
+        "background": "Research does not happen in one tool — you need to move results into your reference manager, citation tool, or writing environment. A tool that traps your results with no way to export them creates extra work and makes it harder to keep track of your sources. The best tools let you download references in standard formats (BibTeX, RIS) or connect directly to tools like Zotero. Without export options, you are stuck manually copying and pasting.",
         "0": "No way to save or export your results.",
         "1": "You can only copy and paste results manually.",
         "2": "You can download references in standard formats (BibTeX, RIS).",
         "3": "The tool connects directly to reference managers like Zotero.",
-        "0_basic": "No save or export option at all.",
-        "1_basic": "You can highlight and copy text, but that's it.",
-        "2_basic": "There's an export button that saves references as files.",
-        "3_basic": "The tool has a direct connection to Zotero, EndNote, or similar tools.",
+        "examples": {
+          "0": "There is no export button, no download option, and no way to save results. The only way to capture anything is to select text and copy it to your clipboard.",
+          "1": "You can select and copy text from the results, but there is no structured export. You would need to manually type the citation details into your reference manager.",
+          "2": "The tool has an 'Export' button that lets you download selected references as a BibTeX or RIS file. You can then import this file into Zotero, EndNote, or similar tools.",
+          "3": "When you click the Zotero browser extension icon, it automatically captures the displayed references with all metadata filled in. The tool also has direct export buttons for EndNote and Mendeley, plus a public API for custom integrations."
+        },
         "ai_only": false
       },
       "cognitive_guardrails": {
         "title": "Does the tool help you think critically?",
+        "background": "Some AI tools present their answers as if they are facts — no warnings, no sources, no encouragement to double-check. This is dangerous in research, where questioning and verifying are essential skills. A good tool does not just give you an answer; it helps you evaluate that answer by showing sources, flagging uncertainty, or prompting you to compare different perspectives. This question only applies to AI-powered tools.",
         "0": "The tool presents answers as final facts with no warnings or source links.",
-        "1": "There's a generic 'check your sources' disclaimer but nothing else.",
+        "1": "There is a generic 'check your sources' disclaimer but nothing else.",
         "2": "The tool shows original source text alongside its answers so you can compare.",
         "3": "The tool has built-in features that help you compare sources and check for accuracy.",
-        "0_basic": "No warnings or prompts — answers look like final facts.",
-        "1_basic": "A small disclaimer says 'always verify your sources'.",
-        "2_basic": "The tool shows original sources and encourages you to read them.",
-        "3_basic": "The tool actively helps you verify — prompting you to compare sources, check for bias, or double-check claims.",
+        "examples": {
+          "0": "The tool produces a polished paragraph summarizing research findings with no citations, no links, no disclaimer, and no indication that it was generated by AI. It reads like an encyclopedia entry that you are expected to trust.",
+          "1": "A small text at the bottom of every response says 'AI-generated content may contain errors. Always verify.' But the tool does not provide any source links or tools to help you verify — you are on your own.",
+          "2": "Each claim in the response has a clickable reference that expands to show the original text from the source paper. You can see exactly what the source says and compare it to the tool's summary.",
+          "3": "Alongside showing original sources, the tool displays a confidence score for each claim ('High — supported by 3 studies'), flags disagreements between sources ('These two studies reach different conclusions'), and has a 'Compare' button that opens sources side by side for detailed review."
+        },
         "ai_only": true
       }
     },
     "SE": {
       "algorithmic_fairness": {
         "title": "Is the tool fair and balanced?",
-        "0": "Results appear systematically biased and the tool doesn't acknowledge it.",
-        "1": "The tool mentions that bias might exist but doesn't show evidence of doing anything about it.",
+        "background": "Search tools can have built-in biases — for example, always showing results from English-language, Western, or high-impact journals while ignoring research from other regions, languages, or smaller publications. This matters because it shapes what research you see and cite. A fair tool makes an effort to include diverse perspectives and tells you about its efforts to reduce bias. Test with topics that should have contributions from around the world.",
+        "0": "Results appear systematically biased and the tool does not acknowledge it.",
+        "1": "The tool mentions that bias might exist but does not show evidence of doing anything about it.",
         "2": "The tool either shows diverse results in practice or documents how it tries to be fair.",
         "3": "The tool both shows diverse results and publishes reports about its fairness efforts.",
-        "0_basic": "Nothing suggests the tool tries to be fair or balanced — results seem one-sided.",
-        "1_basic": "The tool acknowledges bias could be an issue but doesn't do much about it.",
-        "2_basic": "You can see diverse results in the tool, or it documents how it works to be fair.",
-        "3_basic": "The tool both shows diverse results and publishes reports about how it tries to be fair.",
+        "examples": {
+          "0": "Searching for 'malaria prevention strategies' returns only papers from US and UK institutions, even though the most affected regions are in Sub-Saharan Africa and Southeast Asia. The tool's documentation does not mention diversity or bias at all.",
+          "1": "The 'About' page says 'We aim for diverse results' but does not explain how, and test queries still return mostly English-language Western sources with no improvement visible.",
+          "2": "A search for 'traditional medicine' shows results from research institutions in India, China, Brazil, and Nigeria alongside Western sources. The tool documents that it applies a diversity boost in its ranking algorithm, though it does not publish specific metrics.",
+          "3": "The tool publishes a 'Source Diversity Report' every quarter showing the geographic and language distribution of its results. It includes a 'Perspectives' filter to highlight underrepresented regions and explains its debiasing approach in the documentation."
+        },
         "ai_only": false
       },
       "data_handling": {
         "title": "How does the tool protect your data?",
+        "background": "Beyond having a privacy policy (which is checked in the quality gate), this question asks how well the tool protects your data in practice. Does it tell you specifically how long your data is kept? Does it use encryption? What happens if there is a data breach? Can you delete your data? Vague statements like 'we take security seriously' are not enough — you should be able to find concrete specifics about retention, encryption, and your rights.",
         "0": "No clear information about data retention or security.",
-        "1": "The privacy policy mentions data protection but doesn't give specifics.",
+        "1": "The privacy policy mentions data protection but does not give specifics.",
         "2": "The tool clearly states how long it keeps your data and that it uses encryption.",
-        "3": "The tool provides full details: how long data is kept, how it's encrypted, and how you can delete your data.",
-        "0_basic": "It's unclear what happens to your data after you use the tool.",
-        "1_basic": "The tool says your data is 'protected' but doesn't explain how.",
-        "2_basic": "The tool tells you how long it stores your data and that it's encrypted.",
-        "3_basic": "The tool explains everything: storage time, encryption, what happens if there's a security breach, and how to delete your data.",
+        "3": "The tool provides full details: how long data is kept, how it is encrypted, and how you can delete your data.",
+        "examples": {
+          "0": "The privacy policy says 'We value your privacy and protect your data' but does not mention retention periods, encryption methods, breach procedures, or any way for you to control your data.",
+          "1": "The tool says your data is 'stored securely with encryption' but does not tell you what encryption standard is used, how long data is kept, or what happens in case of a breach.",
+          "2": "The documentation states: 'Search queries are kept for 30 days and then permanently deleted. All data is encrypted using AES-256.' There is also a button in your account settings to request data deletion.",
+          "3": "A comprehensive 'Data Handling' page explains: retention periods for each type of data (queries: 30 days, account data: until you delete it), the encryption standard (AES-256), the breach notification policy (72 hours per GDPR), where data is stored (EU servers for EU users), and provides one-click 'Export my data' and 'Delete my data' buttons."
+        },
         "ai_only": false
       }
     },
     "TC": {
       "source_attribution_depth": {
         "title": "Do the source links work and go deep?",
+        "background": "When a tool cites a source, the link should take you somewhere useful. A link to a journal's homepage is not very helpful — you still have to find the specific article yourself. A link directly to the article is much better. The best tools link to the exact passage or page in the source that supports the claim. Test this by clicking several citations and noting how close they get you to the actual evidence.",
         "0": "Sources are missing or links are broken.",
         "1": "Links go to a journal homepage, not the specific article.",
         "2": "Links go to the specific article's abstract.",
         "3": "Links go to the exact part of the source that supports the claim.",
-        "0_basic": "No source links, or clicking them leads nowhere useful.",
-        "1_basic": "Links take you to the journal's website but not the specific article.",
-        "2_basic": "Links take you to the right article.",
-        "3_basic": "Links take you to the exact paragraph or section that supports the claim.",
+        "examples": {
+          "0": "The tool shows reference numbers but they are not clickable. Or the links exist but lead to 'page not found' errors when you click them.",
+          "1": "Clicking a citation takes you to the journal's homepage (for example, nature.com) but not to the specific article. You would need to search within the journal to find the paper yourself.",
+          "2": "Each citation links directly to the article page with its abstract and metadata (for example, doi.org/10.1038/s41586-023-12345). You can immediately see what the paper is about.",
+          "3": "Citation links take you to the exact paragraph or page in the source document that supports the claim. For open-access papers, the relevant passage is highlighted. This is the gold standard for source attribution."
+        },
         "ai_only": false
       },
       "bibliometric_credibility": {
         "title": "Are the sources trustworthy?",
+        "background": "Not all academic papers are equally reliable. Some have been retracted due to errors or fraud. Others are published in predatory journals with no real peer review. Preprints have not been peer-reviewed at all. A good tool helps you understand the quality of each source it cites — whether it has been peer-reviewed, whether it has been retracted, how many times it has been cited, and what type of publication it is. Without these indicators, you have to check every source manually.",
         "0": "The tool includes retracted or low-quality sources without warning.",
-        "1": "The tool doesn't filter or label source quality.",
+        "1": "The tool does not filter or label source quality.",
         "2": "The tool labels sources as peer-reviewed or preprint.",
         "3": "The tool shows detailed quality info: retraction status, citation counts, and publication type.",
-        "0_basic": "The tool cites papers that have been withdrawn or come from unreliable publishers, without any warning.",
-        "1_basic": "The tool doesn't tell you if sources are good quality or not.",
-        "2_basic": "The tool labels whether each source is peer-reviewed or a preprint.",
-        "3_basic": "The tool shows detailed info for each source: whether it was retracted, how many times it was cited, and what type of publication it is.",
+        "examples": {
+          "0": "The tool cites a paper that was retracted in 2022 due to fabricated data, and there is no indication of the retraction. It also includes articles from a known predatory publisher, presented the same way as legitimate journal articles.",
+          "1": "All sources look the same in the tool's output — there is no label, badge, or indicator to tell you whether a source is peer-reviewed, a preprint, a blog post, or something else.",
+          "2": "Each source has a label like 'Peer-reviewed article', 'Preprint', or 'Conference paper'. The tool filters out known predatory publishers but does not show citation counts or retraction status.",
+          "3": "Each cited source shows: a 'Peer-reviewed' or 'Preprint' badge, the number of times it has been cited, a red warning flag if it has been retracted (with the retraction date and reason), whether it is open access, and the journal's reputation tier."
+        },
         "ai_only": false
       }
     }

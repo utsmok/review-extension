@@ -122,3 +122,12 @@ Default triage label vocabulary (needs-triage, needs-info, ready-for-agent, read
 ### Domain docs
 
 Single-context layout — one CONTEXT.md + docs/adr/ at repo root. See `docs/agents/domain.md`.
+
+### Impeccable design skill
+
+- **Status:** fully set up and accessible from OMP. Skill resolved via `skill://impeccable`, scripts at `~/.claude/skills/impeccable/`.
+- **Register:** `product` (design serves the product — correct for this evaluation instrument).
+- **Context files:** `PRODUCT.md` (users, brand, principles) and `DESIGN.md` (full design system: colors, typography, elevation, components, do's/don'ts) are both present and substantive at the project root.
+- **Path note:** the skill's SKILL.md references `node .claude/skills/impeccable/scripts/load-context.mjs` (relative), but the project's `.claude/skills/` has no `impeccable` symlink. Use the resolved absolute path instead: `node /home/sam/.claude/skills/impeccable/scripts/load-context.mjs`. Alternatively, add a symlink: `ln -s ~/.claude/skills/impeccable .claude/skills/impeccable`.
+- **Commands available:** 22 commands across build (craft, shape, teach, document, extract), evaluate (critique, audit), refine (polish, bolder, quieter, distill, harden, onboard), enhance (animate, colorize, typeset, layout, delight, overdrive), fix (clarify, adapt, optimize), and iterate (live). Plus pin/unpin management.
+- **No `.impeccable.md`** — not needed; the native PRODUCT.md/DESIGN.md pair is richer.

@@ -29,7 +29,7 @@ export async function migrateLegacySession(): Promise<void> {
     return;
   }
 
-  // Navigate the persisted zustand shape: { version: N, state: { session, captures, evaluations, questionModes } }
+  // Navigate the persisted zustand shape: { version: N, state: { session, captures, evaluations } }
   const state = (data as { state?: Record<string, unknown> }).state ?? data;
   const session = state.session as Record<string, unknown> | undefined;
 
@@ -55,12 +55,6 @@ export async function migrateLegacySession(): Promise<void> {
     return;
   }
 
-  // Migrate questionModes: "basic" -> "standard"
-  const rawModes = (state.questionModes ?? {}) as Record<string, string>;
-  const modes = Object.fromEntries(
-    Object.entries(rawModes).map(([k, v]) => [k, v === "basic" ? "standard" : v]),
-  );
-
   // Strip linkedRubricIds from captures (removed from Capture type)
   const rawCaptures = (state.captures ?? []) as Record<string, unknown>[];
   const captures = rawCaptures.map((c) => {
@@ -78,7 +72,6 @@ export async function migrateLegacySession(): Promise<void> {
     metadata,
     captures: captures as unknown as SessionData["captures"],
     evaluations: (state.evaluations ?? []) as SessionData["evaluations"],
-    questionModes: modes as SessionData["questionModes"],
     finalization: null,
   });
 

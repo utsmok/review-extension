@@ -28,7 +28,7 @@ export interface SessionData {
   metadata: SessionMetadata;
   captures: Capture[];
   evaluations: Evaluation[];
-  questionModes: Record<string, "expert" | "standard">;
+  questionModes?: Record<string, "expert" | "standard">;
   finalization: ReviewFinalization | null;
 }
 
@@ -72,7 +72,12 @@ export interface PassFailQuestion {
   type: "pass_fail";
   title: string;
   requirement: string;
-  basic_requirement: string;
+  background?: string;
+  examples?: {
+    pass: string;
+    fail: string;
+    na?: string;
+  };
   ai_only?: boolean;
 }
 
@@ -82,10 +87,13 @@ export interface ScoringQuestion {
   "1": string;
   "2": string;
   "3": string;
-  "0_basic"?: string;
-  "1_basic"?: string;
-  "2_basic"?: string;
-  "3_basic"?: string;
+  background?: string;
+  examples?: {
+    "0": string;
+    "1": string;
+    "2": string;
+    "3": string;
+  };
   ai_only?: boolean;
 }
 
