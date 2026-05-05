@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import trustFull from "@/data/rubrics/trust-full.json";
 import {
   distributionBar,
   getCategoryScores,
@@ -6,7 +7,6 @@ import {
   qualityGateResults,
   scoreColor,
 } from "@/lib/scoring";
-import trustFull from "@/data/rubrics/trust-full.json";
 import type { Evaluation, RubricData } from "@/lib/types";
 
 const RUBRIC = trustFull as unknown as RubricData;
@@ -221,15 +221,15 @@ describe("scoreColor", () => {
   });
 
   it("returns gray for na", () => {
-    expect(scoreColor("na")).toBe("#5f7088");
+    expect(scoreColor("na")).toBe("#4c5e74");
   });
 
   it("returns gray for undefined", () => {
-    expect(scoreColor(undefined)).toBe("#5f7088");
+    expect(scoreColor(undefined)).toBe("#4c5e74");
   });
 
   it("returns gray for unsure", () => {
-    expect(scoreColor("unsure")).toBe("#6b7f94");
+    expect(scoreColor("unsure")).toBe("#5a6e82");
   });
 });
 
@@ -279,7 +279,7 @@ describe("principle minimum enforcement", () => {
   it("a category can have a low average even when others are high", () => {
     const evals: Evaluation[] = [
       // All TR questions get 0
-      ...Object.keys(RUBRIC.scoring_rubric["TR"]).map(
+      ...Object.keys(RUBRIC.scoring_rubric.TR).map(
         (qId) =>
           ({
             rubricId: `TR.${qId}`,
@@ -295,7 +295,7 @@ describe("principle minimum enforcement", () => {
           Object.keys(qs).map(
             (qId) =>
               ({
-                rubricId: `${Object.entries(RUBRIC.scoring_rubric).find(([c]) => c !== "TR")![0]}.${qId}`,
+                rubricId: `${Object.entries(RUBRIC.scoring_rubric).find(([c]) => c !== "TR")?.[0]}.${qId}`,
                 score: 3,
                 notes: "",
                 explicitEvidenceIds: [],
