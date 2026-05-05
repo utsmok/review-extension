@@ -51,7 +51,7 @@ export function getCategoryLabel(categoryId: string): string {
     TR: "TR — Transparent",
     RE: "RE — Reliable",
     US: "US — User-Centric",
-    SE: "SE — Secure",
+    SE: "SE — Sound",
     TC: "TC — Traceable",
   };
   return labels[categoryId] ?? categoryId;
