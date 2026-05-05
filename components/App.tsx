@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
+import { getRubricById, RUBRIC_VARIANTS } from "@/data/rubrics";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { RUBRIC_VARIANTS, getRubricById } from "@/data/rubrics";
-import { RubricContext } from "@/lib/rubric-context";
+import { useSidepanelZoom } from "@/hooks/useSidepanelZoom";
 import { migrateLegacySession } from "@/lib/migration";
-import AppShell from "./AppShell";
+import { RubricContext } from "@/lib/rubric-context";
 import ActiveSession from "./ActiveSession";
+import AppShell from "./AppShell";
 import SessionManager from "./SessionManager";
 import SettingsScreen from "./SettingsScreen";
 
 export default function App() {
   const [migrationReady, setMigrationReady] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  useSidepanelZoom();
 
   useEffect(() => {
     migrateLegacySession()
