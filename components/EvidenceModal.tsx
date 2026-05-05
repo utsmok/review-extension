@@ -3,11 +3,14 @@ import type { Capture } from "@/lib/types";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useAutoFocus, useFocusTrap } from "@/lib/hooks";
 
-const PEN_COLORS = [
-  { label: "Black", value: "#172033" },
-  { label: "Red", value: "#c60c30" },
-  { label: "Blue", value: "#007d9c" },
-];
+function getPenColors() {
+  const style = getComputedStyle(document.documentElement);
+  return [
+    { label: "Black", value: style.getPropertyValue("--ut-text").trim() || "#172033" },
+    { label: "Red", value: style.getPropertyValue("--ut-error").trim() || "#c60c30" },
+    { label: "Blue", value: style.getPropertyValue("--ut-navy").trim() || "#007d9c" },
+  ];
+}
 
 const PEN_SIZES = [2, 4, 6];
 
@@ -22,11 +25,12 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
   const containerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const [drawing, setDrawing] = useState(false);
-  const [penColor, setPenColor] = useState(PEN_COLORS[0].value);
+  const [penColor, setPenColor] = useState(getPenColors()[0].value);
   const [penSize, setPenSize] = useState(PEN_SIZES[1]);
   const [erasing, setErasing] = useState(false);
   const [notes, setNotes] = useState(capture.notes);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
+  const hasDrawn = useRef(false);
 
   const imageSrc = capture.annotatedScreenshotBase64 ?? capture.screenshotBase64;
 
@@ -65,6 +69,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const pos = getCanvasPos(e);
+    hasDrawn.current = true;
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(pos.x, pos.y);
@@ -91,6 +96,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    hasDrawn.current = false;
   };
 
   const handleSave = async () => {
@@ -98,7 +104,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     const container = containerRef.current;
     if (!canvas || !container) return;
 
-    const hasDrawing = canvas.getContext("2d")?.getImageData(0, 0, canvas.width, canvas.height).data.some((v, i) => i % 4 === 3 && v > 0);
+    const hasDrawing = hasDrawn.current;
     if (!hasDrawing) {
       updateCapture(capture.id, { notes });
       onClose();
@@ -132,6 +138,8 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     }
   };
 
+  const penColors = getPenColors();
+
   return (
     <button type="button" className="modal-backdrop" tabIndex={-1} onClick={onClose} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClose(); } }}>
       <div
@@ -146,7 +154,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         {/* Toolbar */}
         <div className="drawing-toolbar" role="toolbar" aria-label="Annotation tools">
           <div role="radiogroup" aria-label="Pen color">
-            {PEN_COLORS.map((c) => (
+            {penColors.map((c) => (
               <button
                 key={c.value}
                 type="button"

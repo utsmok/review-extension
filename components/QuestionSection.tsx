@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { captureActiveTab } from "@/lib/capture";
 import {
   getAccentKey,
@@ -213,7 +213,7 @@ export default function QuestionSection({
     return map;
   }, [captures, evaluations]);
 
-  const handleCaptureEvidence = (rubricId: string) => {
+  const handleCaptureEvidence = useCallback((rubricId: string) => {
     captureQueue.enqueue(async () => {
       setCapturingFor(rubricId);
       try {
@@ -231,13 +231,13 @@ export default function QuestionSection({
         setCapturingFor(null);
       }
     });
-  };
+  }, [captureQueue, setCapturingFor, addCapture, linkCaptureToRubric]);
 
   const isQG = section === "quality_gate";
   const rubricSection = isQG ? rubric.quality_gate : rubric.scoring_rubric;
   const headerText = isQG ? "Quality Gates" : "Scoring Rubric";
   const descriptionText = isQG
-    ? "Mandatory pass/fail thresholds. Any fail halts the review."
+    ? "Mandatory pass/fail thresholds. Gate failures are flagged but you can continue scoring all questions."
     : "Score each criterion on a 0–3 scale.";
 
   return (
