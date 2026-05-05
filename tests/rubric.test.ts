@@ -120,14 +120,15 @@ describe("getRubricQuestionIds", () => {
       "US.workflow_integration",
       "US.cognitive_guardrails",
       "SE.algorithmic_fairness",
+      "SE.data_handling",
       "TC.source_attribution_depth",
       "TC.bibliometric_credibility",
     ]);
   });
 
-  it("returns 13 total question IDs", () => {
+  it("returns 14 total question IDs", () => {
     const ids = getRubricQuestionIds(TRUST_RUBRIC);
-    expect(ids).toHaveLength(13);
+    expect(ids).toHaveLength(14);
   });
 
   it("all IDs use category.question_id format", () => {
@@ -144,7 +145,7 @@ describe("getCategoryLabel", () => {
     expect(getCategoryLabel("TR")).toBe("TR — Transparent");
     expect(getCategoryLabel("RE")).toBe("RE — Reliable");
     expect(getCategoryLabel("US")).toBe("US — User-Centric");
-    expect(getCategoryLabel("SE")).toBe("SE — Secure");
+    expect(getCategoryLabel("SE")).toBe("SE — Sound");
     expect(getCategoryLabel("TC")).toBe("TC — Traceable");
   });
 
