@@ -15,6 +15,7 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
           aria-label="Back"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <title>Back</title>
             <path d="M10 3L5 8l5 5" />
           </svg>
         </button>

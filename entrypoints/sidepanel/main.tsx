@@ -4,7 +4,9 @@ import App from "@/components/App";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import "./style.css";
 
-createRoot(document.getElementById("root")!).render(
+const rootEl = document.getElementById("root");
+if (!rootEl) throw new Error("Root element not found");
+createRoot(rootEl).render(
   <ErrorBoundary>
     <React.StrictMode>
       <App />

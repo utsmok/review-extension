@@ -51,7 +51,7 @@ export function useActiveSession(migrationReady = true) {
       }
       useSessionStore.getState().clear();
     }
-  }, [activeSessionId, migrationReady]);
+  }, [activeSessionId, migrationReady, status]);
 
   // Effect 2+3: Init auto-save singleton (debounced auto-save + visibility flush)
   // This replaces the per-consumer subscriptions that caused N-way amplification.

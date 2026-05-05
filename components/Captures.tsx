@@ -55,13 +55,18 @@ export default function Captures() {
 
         return (
           <div key={capture.id} className="border border-ut-border overflow-hidden bg-ut-white">
-            <img
-              src={capture.annotatedScreenshotBase64 ?? capture.screenshotBase64}
-              alt={`Screenshot of ${capture.pageTitle || capture.sourceUrl}`}
-              loading="lazy"
-              className="w-full border-b border-ut-border cursor-pointer"
+            <button
+              type="button"
+              className="w-full border-b border-ut-border cursor-pointer block"
               onClick={() => setExpanded(expanded === capture.id ? null : capture.id)}
-            />
+            >
+              <img
+                src={capture.annotatedScreenshotBase64 ?? capture.screenshotBase64}
+                alt={`Screenshot of ${capture.pageTitle || capture.sourceUrl}`}
+                loading="lazy"
+                className="w-full block"
+              />
+            </button>
 
             <div className="p-ut-2">
               <div className="flex items-center justify-between mb-1">
@@ -124,6 +129,7 @@ export default function Captures() {
                                 className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"} ${isAutoNa ? "opacity-40" : ""}`}
                                 data-linked={linked ? "true" : "false"}
                                 aria-label={`${getQuestionCode(cat, qIdx)} ${question.title} ${linked ? "linked" : "unlinked"}`}
+                                type="button"
                                 title={isAutoNa ? "Not applicable — non-AI tool" : question.title}
                                 onClick={() =>
                                   linked
@@ -157,6 +163,7 @@ export default function Captures() {
                                 className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"} ${isAutoNa ? "opacity-40" : ""}`}
                                 data-linked={linked ? "true" : "false"}
                                 aria-label={`${getQuestionCode(cat, qIdx)} ${question.title} ${linked ? "linked" : "unlinked"}`}
+                                type="button"
                                 title={isAutoNa ? "Not applicable — non-AI tool" : question.title}
                                 onClick={() =>
                                   linked

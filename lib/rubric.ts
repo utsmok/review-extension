@@ -15,7 +15,7 @@ export function getRubricQuestionIds(rubric: RubricData): string[] {
   return ids;
 }
 
-const CATEGORY_ORDER = ["TR", "RE", "US", "SE", "TC"];
+const _CATEGORY_ORDER = ["TR", "RE", "US", "SE", "TC"];
 
 export function getQuestionCode(categoryKey: string, questionIndex: number): string {
   return `${categoryKey}${questionIndex + 1}`;

@@ -6,9 +6,11 @@
  * entry names and download filenames.
  */
 export function sanitizeFilename(name: string): string {
+  // biome-ignore lint/complexity/useRegexLiterals: must use RegExp constructor to avoid noControlCharactersInRegex
+  const INVALID_CHARS = new RegExp("[<>:\"/\\\\|?*\u0000-\u001F]", "g");
   return (
     name
-      .replace(/[<>:"/\\|?*\x00-\x1f]/g, "_")
+      .replace(INVALID_CHARS, "_")
       .replace(/\.+/g, ".")
       .replace(/^\.+/, "")
       .trim() || "review"

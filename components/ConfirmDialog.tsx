@@ -29,7 +29,7 @@ export default function ConfirmDialog(props: ConfirmDialogProps) {
   }, [cancelAction]);
 
   return (
-    <div className="modal-backdrop" onClick={cancelAction}>
+    <button type="button" className="modal-backdrop" tabIndex={-1} onClick={cancelAction} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cancelAction?.(); } }}>
       <div
         ref={panelRef}
         className="modal-panel"
@@ -37,13 +37,14 @@ export default function ConfirmDialog(props: ConfirmDialogProps) {
         aria-modal="true"
         aria-labelledby="confirm-dialog-heading"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <h2 id="confirm-dialog-heading" className="visually-hidden">Confirm action</h2>
         <p className="text-ut-sm text-ut-text">{props.message}</p>
         <div className="confirm-dialog-actions">
           {actions.map((action, i) => (
             <button
-              key={i}
+              key={action.label ?? action.variant ?? i}
               type="button"
               className={`btn-${action.variant ?? "secondary"}`}
               onClick={action.handler}
@@ -53,6 +54,6 @@ export default function ConfirmDialog(props: ConfirmDialogProps) {
           ))}
         </div>
       </div>
-    </div>
+    </button>
   );
 }

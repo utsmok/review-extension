@@ -77,7 +77,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <button type="button" className="modal-backdrop" tabIndex={-1} onClick={onClose} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClose(); } }}>
       <div
         ref={panelRef}
         className="modal-panel"
@@ -85,6 +85,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
         aria-modal="true"
         aria-label="Start a new review session"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <h2 className="font-display text-ut-lg font-bold text-ut-navy mb-ut-3">
           New Review
@@ -179,6 +180,6 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
           </div>
         </form>
       </div>
-    </div>
+    </button>
   );
 }

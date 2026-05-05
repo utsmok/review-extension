@@ -31,6 +31,7 @@ export default function ActiveSession() {
             aria-label="Close session"
           >
             <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <title>Close</title>
               <polyline points="12,14 7,9 12,4" />
             </svg>
           </button>
@@ -74,7 +75,7 @@ export default function ActiveSession() {
         </div>
       </header>
 
-      <nav
+      <div
         className="sidebar-tab-bar"
         role="tablist"
         aria-label="Review sections"
@@ -83,6 +84,7 @@ export default function ActiveSession() {
         {tabs.map((tab) => (
           <button
             key={tab}
+            type="button"
             role="tab"
             id={`tab-${tab.toLowerCase()}`}
             aria-selected={activeTab === tab}
@@ -94,7 +96,7 @@ export default function ActiveSession() {
             {tab}
           </button>
         ))}
-      </nav>
+      </div>
 
       <div
         role="tabpanel"

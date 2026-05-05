@@ -47,25 +47,22 @@ function renderQGScores(
           }
         };
 
-        const handleKeyDown = (e: React.KeyboardEvent) => {
-          if (e.key === " " || e.key === "Enter") {
-            e.preventDefault();
-            handleClick();
-          }
-        };
 
         return (
-          <span
+          <label
             key={val}
-            role="radio"
-            aria-checked={isActive}
-            tabIndex={isDisabled ? -1 : 0}
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
             className="judgment-label cursor-pointer select-none"
             data-judgment={val}
             data-active={isActive ? "true" : "false"}
           >
+            <input
+              type="radio"
+              name={rubricId}
+              checked={isActive}
+              onChange={handleClick}
+              className="sr-only"
+              disabled={isDisabled}
+            />
             {val === "pass"
               ? "✓ Pass"
               : val === "fail"
@@ -73,7 +70,7 @@ function renderQGScores(
                 : val === "na"
                   ? "— N/A"
                   : "? Unsure"}
-          </span>
+          </label>
         );
       })}
     </div>
@@ -105,91 +102,74 @@ function renderScoringScores(
           }
         };
 
-        const handleKeyDown = (e: React.KeyboardEvent) => {
-          if (e.key === " " || e.key === "Enter") {
-            e.preventDefault();
-            handleClick();
-          }
-        };
 
         return (
-          <div
+          <label
             key={val}
             className={`score-row ${selected ? "is-selected" : ""}`}
             data-score={val}
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
-            tabIndex={isAutoNa ? -1 : 0}
-            role="radio"
-            aria-checked={selected}
           >
+            <input
+              type="radio"
+              name={rubricId}
+              checked={selected}
+              onChange={handleClick}
+              className="sr-only"
+              disabled={isAutoNa}
+            />
             <span className="score-badge select-none">{val}</span>
             <span className="score-desc">{desc}</span>
-          </div>
+          </label>
         );
       })}
 
       {/* N/A row */}
-      <div
+      <label
         className={`score-row ${isNa ? "is-selected" : ""}`}
         data-score="na"
-        role="radio"
-        aria-checked={isNa}
-        tabIndex={isAutoNa ? -1 : 0}
-        onClick={() => {
-          if (isAutoNa) return;
-          if (isNa) {
-            setEvaluation(rubricId, { score: "" });
-          } else {
-            setEvaluation(rubricId, { score: "na" });
-          }
-        }}
-        onKeyDown={(e) => {
-          if (e.key === " " || e.key === "Enter") {
-            e.preventDefault();
+      >
+        <input
+          type="radio"
+          name={rubricId}
+          checked={isNa}
+          onChange={() => {
             if (isAutoNa) return;
             if (isNa) {
               setEvaluation(rubricId, { score: "" });
             } else {
               setEvaluation(rubricId, { score: "na" });
             }
-          }
-        }}
-      >
+          }}
+          className="sr-only"
+          disabled={isAutoNa}
+        />
         <span className="score-badge select-none">—</span>
         <span className="score-desc">Not applicable</span>
-      </div>
+      </label>
 
       {/* Unsure row */}
-      <div
+      <label
         className={`score-row ${isUnsure ? "is-selected" : ""}`}
         data-score="unsure"
-        role="radio"
-        aria-checked={isUnsure}
-        tabIndex={isAutoNa ? -1 : 0}
-        onClick={() => {
-          if (isAutoNa) return;
-          if (isUnsure) {
-            setEvaluation(rubricId, { score: "" });
-          } else {
-            setEvaluation(rubricId, { score: "unsure" });
-          }
-        }}
-        onKeyDown={(e) => {
-          if (e.key === " " || e.key === "Enter") {
-            e.preventDefault();
+      >
+        <input
+          type="radio"
+          name={rubricId}
+          checked={isUnsure}
+          onChange={() => {
             if (isAutoNa) return;
             if (isUnsure) {
               setEvaluation(rubricId, { score: "" });
             } else {
               setEvaluation(rubricId, { score: "unsure" });
             }
-          }
-        }}
-      >
+          }}
+          className="sr-only"
+          disabled={isAutoNa}
+        />
         <span className="score-badge select-none">?</span>
         <span className="score-desc">Insufficient information to score</span>
-      </div>
+      </label>
     </div>
   );
 }
@@ -290,7 +270,7 @@ export default function QuestionSection({
               const sn = typeof ev?.score === "number" ? (ev.score as number) : -1;
               hasScore = sn >= 0 || ev?.score === "na" || ev?.score === "unsure";
             }
-            const hasNotes = !!(ev?.notes && ev.notes.trim());
+            const hasNotes = !!(ev?.notes?.trim());
             const hasEvidence = evidence.length > 0;
             const progress = getProgressState(hasScore, hasEvidence, hasNotes);
 
@@ -350,7 +330,7 @@ export default function QuestionSection({
                       <summary className="question-foldout-summary">Examples</summary>
                       <div className="question-foldout-content">
                         {isQG
-                          ? Object.entries((question as PassFailQuestion).examples!).map(
+                          ? Object.entries((question as PassFailQuestion).examples ?? {}).map(
                               ([key, desc]) => (
                                 <div key={key} className="example-row">
                                   <span className="example-label">

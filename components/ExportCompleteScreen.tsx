@@ -14,6 +14,7 @@ export default function ExportCompleteScreen({ captures, scoredCount, finalizati
       {/* Checkmark indicator */}
       <div className="w-10 h-10 rounded-full border-2 border-ut-green flex items-center justify-center">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-ut-green">
+          <title>Checkmark</title>
           <path d="M5 10.5l3.5 3.5 7-7" />
         </svg>
       </div>

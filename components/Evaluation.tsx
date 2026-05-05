@@ -70,7 +70,7 @@ export default function Evaluation() {
   return (
     <div className="flex flex-col gap-ut-4 p-ut-4">
       <div className="flex items-end justify-between border-b border-ut-border mb-ut-2">
-        <nav
+        <div
           className="flex"
           role="tablist"
           aria-label="Evaluation sections"
@@ -94,7 +94,7 @@ export default function Evaluation() {
               {tab}
             </button>
           ))}
-        </nav>
+        </div>
         <span className="text-ut-xs font-mono text-ut-muted pb-ut-2 whitespace-nowrap pl-ut-2">
           {progress.scored}/{progress.total} scored
         </span>

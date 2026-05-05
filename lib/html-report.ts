@@ -81,7 +81,7 @@ export function buildHtmlReport(
     verdictColor = computedFailed ? "#c60c30" : "#4a8355";
   }
 
-  const principleLetters = PRINCIPLES.map(
+  const _principleLetters = PRINCIPLES.map(
     (p) => `<span style="color:${p.color};font-weight:800">${p.code[0]}</span>`,
   ).join("");
 
@@ -839,7 +839,7 @@ export function buildHtmlReport(
         ? `${answeredQuestions}/${totalQuestions} questions answered — evaluation incomplete`
         : anyFail
           ? "Quality gate failure"
-          : `Score ${Math.round(ratio * 100)}%${computedFailed ? " — " + (anyFail ? "quality gate failure" : principleFail ? "principle below minimum" : "below threshold") : " meets threshold"}`
+          : `Score ${Math.round(ratio * 100)}%${computedFailed ? ` — ${anyFail ? "quality gate failure" : principleFail ? "principle below minimum" : "below threshold"}` : " meets threshold"}`
   }</div>
 </div>
 

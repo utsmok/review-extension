@@ -33,9 +33,9 @@ async function archivePageHtml(): Promise<{ html: string; title: string }> {
   const importResolutions = styleTags.map(async (styleEl) => {
     let css = styleEl.textContent ?? "";
     const importRegex = /@import\s+(?:url\(\s*)?['"]([^'")\s]+)['"]\s*(?:\)\s*)?;/g;
-    let match: RegExpExecArray | null;
+    let match: RegExpExecArray | null = importRegex.exec(css);
     const replacements: Promise<{ original: string; replacement: string }>[] = [];
-    while ((match = importRegex.exec(css)) !== null) {
+    while (match !== null) {
       const original = match[0];
       const importUrl = match[1];
       replacements.push(
@@ -44,6 +44,7 @@ async function archivePageHtml(): Promise<{ html: string; title: string }> {
           .then((importedCss) => ({ original, replacement: importedCss }))
           .catch(() => ({ original, replacement: original })),
       );
+      match = importRegex.exec(css);
     }
     const results = await Promise.allSettled(replacements);
     for (const result of results) {
@@ -59,8 +60,8 @@ async function archivePageHtml(): Promise<{ html: string; title: string }> {
   await Promise.allSettled([...cssFetches, ...importResolutions]);
 
   // 3. Strip scripts to prevent execution in archive
-  clone.querySelectorAll("script").forEach((el) => el.remove());
-  clone.querySelectorAll("noscript").forEach((el) => el.remove());
+  clone.querySelectorAll("script").forEach((el) => { el.remove(); });
+  clone.querySelectorAll("noscript").forEach((el) => { el.remove(); });
 
   // 4. Make relative URLs absolute so resources still load
   const makeAbsolute = (attr: string, selector: string) => {
@@ -117,7 +118,7 @@ async function archivePageHtml(): Promise<{ html: string; title: string }> {
   if (headEl) headEl.prepend(comment);
 
   return {
-    html: "<!DOCTYPE html>\n" + clone.documentElement.outerHTML,
+    html: `<!DOCTYPE html>\n${clone.documentElement.outerHTML}`,
     title: doc.title,
   };
 }
@@ -152,7 +153,7 @@ export async function captureActiveTab(): Promise<Capture> {
   });
 
   const [result] = await browser.scripting.executeScript({
-    target: { tabId: tab.id! },
+    target: { tabId: tab.id },
     func: archivePageHtml,
   });
 
@@ -175,7 +176,7 @@ export async function captureActiveTab(): Promise<Capture> {
     const overhead = capture.screenshotBase64.length;
     const htmlBudget = Math.max(0, MAX_CAPTURE_SIZE - overhead);
     capture.htmlContent =
-      htmlContent.slice(0, htmlBudget) + "\n<!-- TRUNCATED: page content exceeded size limit -->";
+      `${htmlContent.slice(0, htmlBudget)}\n<!-- TRUNCATED: page content exceeded size limit -->`;
   }
 
   return capture;

@@ -110,18 +110,11 @@ export default function SessionManager() {
         ) : (
           <div className="flex flex-col gap-ut-2">
             {sessions.map((s) => (
-              <div
+              <button
+                type="button"
                 key={s.id}
-                className="border border-ut-border rounded-ut-sm px-ut-3 py-ut-2 flex items-center gap-ut-2 cursor-pointer hover:bg-trust-magenta-tint transition-colors group"
-                role="button"
-                tabIndex={0}
+                className="border border-ut-border rounded-ut-sm px-ut-3 py-ut-2 flex items-center gap-ut-2 cursor-pointer hover:bg-trust-magenta-tint transition-colors group bg-transparent text-left w-full"
                 onClick={() => switchToSession(s.id)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    switchToSession(s.id);
-                  }
-                }}
               >
                 {/* Favicon */}
                 <FaviconOrFallback url={s.faviconUrl} toolName={s.toolName} />
@@ -151,12 +144,12 @@ export default function SessionManager() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center shrink-0" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center shrink-0">
                   <button
                     type="button"
                     title="Open tool in new tab"
                     className="text-ut-muted hover:text-ut-navy transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    onClick={() => window.open(s.toolUrl, "_blank")}
+                    onClick={(e) => { e.stopPropagation(); window.open(s.toolUrl, "_blank"); }}
                   >
                     <svg
                       width="16"
@@ -168,6 +161,7 @@ export default function SessionManager() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     >
+                      <title>Open in new tab</title>
                       <path d="M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3" />
                       <path d="M9 2h5v5" />
                       <path d="M14 2 8 8" />
@@ -177,7 +171,7 @@ export default function SessionManager() {
                     type="button"
                     title="Download report"
                     className="text-ut-muted hover:text-ut-navy transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    onClick={() => handleExport(s.id)}
+                    onClick={(e) => { e.stopPropagation(); handleExport(s.id); }}
                   >
                     <svg
                       width="16"
@@ -189,6 +183,7 @@ export default function SessionManager() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     >
+                      <title>Download report</title>
                       <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" />
                       <path d="M8 2v8" />
                       <path d="M5 7l3 3 3-3" />
@@ -198,7 +193,7 @@ export default function SessionManager() {
                     type="button"
                     title="Delete review"
                     className="text-ut-muted hover:text-ut-red transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    onClick={() => handleDelete(s.id)}
+                    onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
                   >
                     <svg
                       width="16"
@@ -210,13 +205,14 @@ export default function SessionManager() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     >
+                      <title>Delete review</title>
                       <path d="M2 4h12" />
                       <path d="M5.33 4V2.67a1.33 1.33 0 0 1 1.34-1.34h2.66a1.33 1.33 0 0 1 1.34 1.34V4" />
                       <path d="M12.67 4v9.33a1.33 1.33 0 0 1-1.34 1.34H4.67a1.33 1.33 0 0 1-1.34-1.34V4" />
                     </svg>
                   </button>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}

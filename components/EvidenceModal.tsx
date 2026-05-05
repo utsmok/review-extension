@@ -133,7 +133,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <button type="button" className="modal-backdrop" tabIndex={-1} onClick={onClose} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClose(); } }}>
       <div
         ref={panelRef}
         className="modal-panel max-w-[720px] p-0"
@@ -141,6 +141,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         aria-modal="true"
         aria-label="Evidence viewer and annotation"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         {/* Toolbar */}
         <div className="drawing-toolbar" role="toolbar" aria-label="Annotation tools">
@@ -242,6 +243,6 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
           />
         </div>
       </div>
-    </div>
+    </button>
   );
 }

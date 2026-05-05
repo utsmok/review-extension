@@ -63,7 +63,7 @@ export default function FinalizationScreen() {
     setJustSaved(false);
   };
 
-  const updateListItem = (
+  const _updateListItem = (
     list: string[],
     setter: (v: string[]) => void,
     idx: number,
@@ -74,11 +74,11 @@ export default function FinalizationScreen() {
     setter(next);
   };
 
-  const removeListItem = (list: string[], setter: (v: string[]) => void, idx: number) => {
+  const _removeListItem = (list: string[], setter: (v: string[]) => void, idx: number) => {
     setter(list.filter((_, i) => i !== idx));
   };
 
-  const addListItem = (list: string[], setter: (v: string[]) => void) => {
+  const _addListItem = (list: string[], setter: (v: string[]) => void) => {
     setter([...list, ""]);
   };
 
