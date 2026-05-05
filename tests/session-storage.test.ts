@@ -19,7 +19,6 @@ function makeSessionData(overrides?: Partial<SessionData>): SessionData {
     },
     captures: [],
     evaluations: [],
-    questionModes: {},
     finalization: null,
     ...overrides,
   };

@@ -282,25 +282,25 @@ describe("exportSession", () => {
 });
 
 describe("buildHtmlReport", () => {
-  it("produces valid HTML with tool name", () => {
-    const html = buildHtmlReport(makeMetadata(), [], [], RUBRIC);
+  it("produces valid HTML with tool name", async () => {
+    const html = await buildHtmlReport(makeMetadata(), [], [], RUBRIC);
     expect(html).toContain("<!DOCTYPE html>");
     expect(html).toContain("TestSearch");
     expect(html).toContain("Quality Gate Status");
     expect(html).toContain("</html>");
   });
 
-  it("includes evaluation scores with color coding", () => {
+  it("includes evaluation scores with color coding", async () => {
     const evaluations: Evaluation[] = [
       { rubricId: "TR.data_source_clarity", score: 3, notes: "Excellent", explicitEvidenceIds: [] },
       { rubricId: "RE.result_accuracy", score: 1, notes: "Needs work", explicitEvidenceIds: [] },
     ];
-    const html = buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
+    const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
     expect(html).toContain("#4a8355");
     expect(html).toContain("#ea580c");
   });
 
-  it("renders finalization verdict", () => {
+  it("renders finalization verdict", async () => {
     const finalization = {
       grade: "pass" as const,
       conclusion: "Solid tool",
@@ -309,24 +309,24 @@ describe("buildHtmlReport", () => {
       recommendations: "",
       finalizedAt: "2025-06-01T12:00:00.000Z",
     };
-    const html = buildHtmlReport(makeMetadata(), [], [], RUBRIC, finalization);
+    const html = await buildHtmlReport(makeMetadata(), [], [], RUBRIC, finalization);
     expect(html).toContain("PASSED");
     expect(html).toContain("Solid tool");
     expect(html).toContain("Good docs");
   });
 
-  it("renders evidence images linked to evaluations", () => {
+  it("renders evidence images linked to evaluations", async () => {
     const c = makeCapture({ id: "cap-001", pageTitle: "Results Page" });
     const evaluations: Evaluation[] = [
       { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: ["cap-001"] },
     ];
-    const html = buildHtmlReport(makeMetadata(), [c], evaluations, RUBRIC);
+    const html = await buildHtmlReport(makeMetadata(), [c], evaluations, RUBRIC);
     expect(html).toContain("Results Page");
     expect(html).toContain("evidence-item");
   });
 
-  it("escapes HTML in user-generated content", () => {
-    const html = buildHtmlReport(
+  it("escapes HTML in user-generated content", async () => {
+    const html = await buildHtmlReport(
       makeMetadata({ notes: '<script>alert("xss")</script>' }),
       [],
       [],

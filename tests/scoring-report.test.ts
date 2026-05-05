@@ -17,17 +17,17 @@ function makeMetadata(overrides?: Partial<SessionMetadata>): SessionMetadata {
 }
 
 describe("buildHtmlReport completion tracking (I11)", () => {
-  it("shows INCOMPLETE verdict when scoring questions are unanswered", () => {
+  it("shows INCOMPLETE verdict when scoring questions are unanswered", async () => {
     // Only answer 1 out of many scoring questions
     const evaluations: Evaluation[] = [
       { rubricId: "TR.data_source_clarity", score: 3, notes: "", explicitEvidenceIds: [] },
     ];
-    const html = buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
+    const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
     expect(html).toContain("INCOMPLETE");
     expect(html).toContain("questions answered");
   });
 
-  it("shows PASSED verdict when all questions are answered with high scores", () => {
+  it("shows PASSED verdict when all questions are answered with high scores", async () => {
     // Answer all quality gate questions as pass
     const evaluations: Evaluation[] = [];
     for (const [cat, questions] of Object.entries(RUBRIC.quality_gate)) {
@@ -51,13 +51,13 @@ describe("buildHtmlReport completion tracking (I11)", () => {
         });
       }
     }
-    const html = buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
+    const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
     expect(html).toContain("PASSED");
     // Should show completion info
     expect(html).toContain("answered");
   });
 
-  it("shows FAILED verdict when quality gate fails, even with all questions answered", () => {
+  it("shows FAILED verdict when quality gate fails, even with all questions answered", async () => {
     const evaluations: Evaluation[] = [];
     for (const [cat, questions] of Object.entries(RUBRIC.quality_gate)) {
       for (const qId of Object.keys(questions)) {
@@ -79,24 +79,24 @@ describe("buildHtmlReport completion tracking (I11)", () => {
         });
       }
     }
-    const html = buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
+    const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
     expect(html).toContain("FAILED");
   });
 
-  it("shows score among answered questions, not against total possible", () => {
+  it("shows score among answered questions, not against total possible", async () => {
     // Answer 2 scoring questions with 3/3 each
     const evaluations: Evaluation[] = [
       { rubricId: "TR.data_source_clarity", score: 3, notes: "", explicitEvidenceIds: [] },
       { rubricId: "RE.result_accuracy", score: 3, notes: "", explicitEvidenceIds: [] },
     ];
-    const html = buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
+    const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
     // Score among answered should be 100%
     expect(html).toContain("100% score");
     // But it should be marked INCOMPLETE because not all answered
     expect(html).toContain("INCOMPLETE");
   });
 
-  it("uses finalized grade when finalization is provided, even if incomplete", () => {
+  it("uses finalized grade when finalization is provided, even if incomplete", async () => {
     const evaluations: Evaluation[] = [
       { rubricId: "TR.data_source_clarity", score: 3, notes: "", explicitEvidenceIds: [] },
     ];
@@ -108,7 +108,7 @@ describe("buildHtmlReport completion tracking (I11)", () => {
       recommendations: "",
       finalizedAt: "2025-06-01T12:00:00.000Z",
     };
-    const html = buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC, finalization);
+    const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC, finalization);
     // Finalized grade takes precedence
     expect(html).toContain("PASSED");
   });

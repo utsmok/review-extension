@@ -31,18 +31,21 @@ describe("TRUST_RUBRIC (full)", () => {
     ]);
   });
 
-  it("all quality gate questions have title, requirement, and basic_requirement", () => {
+  it("all quality gate questions have title, requirement, background, and examples", () => {
     for (const questions of Object.values(TRUST_RUBRIC.quality_gate)) {
       for (const q of Object.values(questions)) {
         expect(q.type).toBe("pass_fail");
         expect(q.title.length).toBeGreaterThan(0);
         expect(q.requirement.length).toBeGreaterThan(0);
-        expect(q.basic_requirement.length).toBeGreaterThan(0);
+        expect(q.background!.length).toBeGreaterThan(0);
+        expect(q.examples).toBeDefined();
+        expect(q.examples!.pass.length).toBeGreaterThan(0);
+        expect(q.examples!.fail.length).toBeGreaterThan(0);
       }
     }
   });
 
-  it("all scoring questions have title, levels 0-3, and basic levels", () => {
+  it("all scoring questions have title, levels 0-3, background, and examples", () => {
     for (const questions of Object.values(TRUST_RUBRIC.scoring_rubric)) {
       for (const [_qId, levels] of Object.entries(questions)) {
         expect(levels.title.length).toBeGreaterThan(0);
@@ -50,10 +53,10 @@ describe("TRUST_RUBRIC (full)", () => {
         expect(levels["1"].length).toBeGreaterThan(0);
         expect(levels["2"].length).toBeGreaterThan(0);
         expect(levels["3"].length).toBeGreaterThan(0);
-        expect((levels as unknown as Record<string, unknown>)["0_basic"]).toBeDefined();
-        expect((levels as unknown as Record<string, unknown>)["1_basic"]).toBeDefined();
-        expect((levels as unknown as Record<string, unknown>)["2_basic"]).toBeDefined();
-        expect((levels as unknown as Record<string, unknown>)["3_basic"]).toBeDefined();
+        expect(levels.background!.length).toBeGreaterThan(0);
+        expect(levels.examples).toBeDefined();
+        expect(levels.examples!["0"].length).toBeGreaterThan(0);
+        expect(levels.examples!["3"].length).toBeGreaterThan(0);
       }
     }
   });
@@ -76,10 +79,11 @@ describe("TRUST_LITE (simplified)", () => {
     expect(liteCats).toEqual(fullCats);
   });
 
-  it("all questions have basic_requirement", () => {
+  it("all questions have background and examples", () => {
     for (const questions of Object.values(TRUST_LITE.quality_gate)) {
       for (const q of Object.values(questions)) {
-        expect(q.basic_requirement.length).toBeGreaterThan(0);
+        expect(q.background!.length).toBeGreaterThan(0);
+        expect(q.examples).toBeDefined();
       }
     }
   });

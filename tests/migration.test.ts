@@ -54,7 +54,6 @@ describe("migrateLegacySession", () => {
           },
         ],
         evaluations: [],
-        questionModes: {},
       },
     };
     localStorage.setItem("trust-review-session", JSON.stringify(legacyState));
@@ -99,7 +98,6 @@ describe("migrateLegacySession", () => {
         },
         captures: [],
         evaluations: [],
-        questionModes: {},
       },
     };
     localStorage.setItem("trust-review-session", JSON.stringify(legacyState));
@@ -130,34 +128,6 @@ describe("migrateLegacySession", () => {
     expect(localStorage.getItem("trust-review-migrated")).toBe("1");
   });
 
-  it("converts 'basic' questionModes to 'standard'", async () => {
-    const legacyState = {
-      state: {
-        session: {
-          toolName: "Basic Mode Tool",
-          toolUrl: "https://basic.example.com",
-          startTime: "2024-06-01T00:00:00.000Z",
-        },
-        captures: [],
-        evaluations: [],
-        questionModes: {
-          "TR.data_source_clarity": "basic",
-          "RE.accuracy_and_hallucination": "expert",
-        },
-      },
-    };
-    localStorage.setItem("trust-review-session", JSON.stringify(legacyState));
-
-    await migrateLegacySession();
-
-    const registry = useRegistryStore.getState();
-    const sessionId = Object.keys(registry.sessionIndex)[0];
-    const loaded = await loadFromIDB(sessionId);
-
-    expect(loaded!.questionModes["TR.data_source_clarity"]).toBe("standard");
-    expect(loaded!.questionModes["RE.accuracy_and_hallucination"]).toBe("expert");
-  });
-
   it("strips linkedRubricIds from captures", async () => {
     const legacyState = {
       state: {
@@ -179,7 +149,6 @@ describe("migrateLegacySession", () => {
           },
         ],
         evaluations: [],
-        questionModes: {},
       },
     };
     localStorage.setItem("trust-review-session", JSON.stringify(legacyState));

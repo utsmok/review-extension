@@ -221,15 +221,15 @@ describe("scoreColor", () => {
   });
 
   it("returns gray for na", () => {
-    expect(scoreColor("na")).toBe("#8b9bb0");
+    expect(scoreColor("na")).toBe("#5f7088");
   });
 
   it("returns gray for undefined", () => {
-    expect(scoreColor(undefined)).toBe("#8b9bb0");
+    expect(scoreColor(undefined)).toBe("#5f7088");
   });
 
   it("returns gray for unsure", () => {
-    expect(scoreColor("unsure")).toBe("#6b7280");
+    expect(scoreColor("unsure")).toBe("#6b7f94");
   });
 });
 

@@ -33,7 +33,6 @@ describe("session lifecycle", () => {
       session: null,
       captures: [],
       evaluations: [],
-      questionModes: {},
     });
   });
 
@@ -43,7 +42,6 @@ describe("session lifecycle", () => {
       metadata: makeMetadata(),
       captures: [],
       evaluations: [],
-      questionModes: {},
       finalization: null,
     });
 
@@ -61,7 +59,6 @@ describe("session lifecycle", () => {
       metadata: makeMetadata(),
       captures: [],
       evaluations: [],
-      questionModes: {},
       finalization: null,
     });
     store.addCapture(makeCapture());
@@ -82,7 +79,6 @@ describe("session lifecycle", () => {
       metadata: makeMetadata(),
       captures: [],
       evaluations: [],
-      questionModes: {},
       finalization: null,
     });
     store.updateMetadata({ company: "Acme Corp", pricing: "Free" });
@@ -106,7 +102,6 @@ describe("session lifecycle", () => {
       metadata: makeMetadata(),
       captures: [],
       evaluations: [],
-      questionModes: {},
       finalization: null,
     });
 
@@ -131,7 +126,6 @@ describe("session lifecycle", () => {
       metadata: makeMetadata(),
       captures: [],
       evaluations: [],
-      questionModes: {},
       finalization: {
         grade: "conditional",
         conclusion: "Mixed results",
@@ -160,7 +154,6 @@ describe("session lifecycle", () => {
       metadata: makeMetadata(),
       captures: [],
       evaluations: [],
-      questionModes: {},
       finalization,
     });
 
@@ -175,7 +168,6 @@ describe("capture management", () => {
       session: null,
       captures: [],
       evaluations: [],
-      questionModes: {},
     });
   });
 
@@ -230,7 +222,6 @@ describe("evaluation management", () => {
       session: null,
       captures: [],
       evaluations: [],
-      questionModes: {},
     });
   });
 
@@ -290,7 +281,6 @@ describe("capture ↔ rubric linking (single-direction)", () => {
       session: null,
       captures: [],
       evaluations: [],
-      questionModes: {},
     });
   });
 
@@ -361,14 +351,13 @@ describe("capture ↔ rubric linking (single-direction)", () => {
   });
 });
 
-describe("status and question mode management", () => {
+describe("status management", () => {
   beforeEach(() => {
     useSessionStore.setState({
       status: "empty",
       session: null,
       captures: [],
       evaluations: [],
-      questionModes: {},
     });
   });
 
@@ -381,24 +370,5 @@ describe("status and question mode management", () => {
 
     store.setStatus("active");
     expect(useSessionStore.getState().status).toBe("active");
-  });
-
-  it("setQuestionMode stores mode per rubricId", () => {
-    const store = useSessionStore.getState();
-    store.setQuestionMode("TR.data_source_clarity", "expert");
-    store.setQuestionMode("RE.accuracy_and_hallucination", "standard");
-
-    const state = useSessionStore.getState();
-    expect(state.questionModes["TR.data_source_clarity"]).toBe("expert");
-    expect(state.questionModes["RE.accuracy_and_hallucination"]).toBe("standard");
-  });
-
-  it("getQuestionMode returns current mode (via state)", () => {
-    const store = useSessionStore.getState();
-    store.setQuestionMode("TR.data_source_clarity", "expert");
-
-    const state = useSessionStore.getState();
-    expect(state.questionModes["TR.data_source_clarity"]).toBe("expert");
-    expect(state.questionModes["RE.accuracy_and_hallucination"]).toBeUndefined();
   });
 });
