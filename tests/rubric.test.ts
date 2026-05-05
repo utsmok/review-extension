@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { getCategoryLabel, getQuestionCode, getRubricQuestionIds } from "@/lib/rubric";
+import { computeCompletion, getCategoryLabel, getLinkedRubricIdsForCapture, getQuestionCode, getRubricQuestionIds } from "@/lib/rubric";
 import trustFull from "@/data/rubrics/trust-full.json";
 import trustLite from "@/data/rubrics/trust-lite.json";
-import type { RubricData } from "@/lib/types";
+import type { Evaluation, RubricData } from "@/lib/types";
 
 const TRUST_RUBRIC = trustFull as unknown as RubricData;
 const TRUST_LITE = trustLite as unknown as RubricData;
@@ -31,18 +31,21 @@ describe("TRUST_RUBRIC (full)", () => {
     ]);
   });
 
-  it("all quality gate questions have title, requirement, and basic_requirement", () => {
+  it("all quality gate questions have title, requirement, background, and examples", () => {
     for (const questions of Object.values(TRUST_RUBRIC.quality_gate)) {
       for (const q of Object.values(questions)) {
         expect(q.type).toBe("pass_fail");
         expect(q.title.length).toBeGreaterThan(0);
         expect(q.requirement.length).toBeGreaterThan(0);
-        expect(q.basic_requirement.length).toBeGreaterThan(0);
+        expect(q.background!.length).toBeGreaterThan(0);
+        expect(q.examples).toBeDefined();
+        expect(q.examples!.pass.length).toBeGreaterThan(0);
+        expect(q.examples!.fail.length).toBeGreaterThan(0);
       }
     }
   });
 
-  it("all scoring questions have title, levels 0-3, and basic levels", () => {
+  it("all scoring questions have title, levels 0-3, background, and examples", () => {
     for (const questions of Object.values(TRUST_RUBRIC.scoring_rubric)) {
       for (const [_qId, levels] of Object.entries(questions)) {
         expect(levels.title.length).toBeGreaterThan(0);
@@ -50,10 +53,10 @@ describe("TRUST_RUBRIC (full)", () => {
         expect(levels["1"].length).toBeGreaterThan(0);
         expect(levels["2"].length).toBeGreaterThan(0);
         expect(levels["3"].length).toBeGreaterThan(0);
-        expect((levels as unknown as Record<string, unknown>)["0_basic"]).toBeDefined();
-        expect((levels as unknown as Record<string, unknown>)["1_basic"]).toBeDefined();
-        expect((levels as unknown as Record<string, unknown>)["2_basic"]).toBeDefined();
-        expect((levels as unknown as Record<string, unknown>)["3_basic"]).toBeDefined();
+        expect(levels.background!.length).toBeGreaterThan(0);
+        expect(levels.examples).toBeDefined();
+        expect(levels.examples!["0"].length).toBeGreaterThan(0);
+        expect(levels.examples!["3"].length).toBeGreaterThan(0);
       }
     }
   });
@@ -76,10 +79,11 @@ describe("TRUST_LITE (simplified)", () => {
     expect(liteCats).toEqual(fullCats);
   });
 
-  it("all questions have basic_requirement", () => {
+  it("all questions have background and examples", () => {
     for (const questions of Object.values(TRUST_LITE.quality_gate)) {
       for (const q of Object.values(questions)) {
-        expect(q.basic_requirement.length).toBeGreaterThan(0);
+        expect(q.background!.length).toBeGreaterThan(0);
+        expect(q.examples).toBeDefined();
       }
     }
   });
@@ -120,14 +124,15 @@ describe("getRubricQuestionIds", () => {
       "US.workflow_integration",
       "US.cognitive_guardrails",
       "SE.algorithmic_fairness",
+      "SE.data_handling",
       "TC.source_attribution_depth",
       "TC.bibliometric_credibility",
     ]);
   });
 
-  it("returns 13 total question IDs", () => {
+  it("returns 14 total question IDs", () => {
     const ids = getRubricQuestionIds(TRUST_RUBRIC);
-    expect(ids).toHaveLength(13);
+    expect(ids).toHaveLength(14);
   });
 
   it("all IDs use category.question_id format", () => {
@@ -144,7 +149,7 @@ describe("getCategoryLabel", () => {
     expect(getCategoryLabel("TR")).toBe("TR — Transparent");
     expect(getCategoryLabel("RE")).toBe("RE — Reliable");
     expect(getCategoryLabel("US")).toBe("US — User-Centric");
-    expect(getCategoryLabel("SE")).toBe("SE — Secure");
+    expect(getCategoryLabel("SE")).toBe("SE — Sound");
     expect(getCategoryLabel("TC")).toBe("TC — Traceable");
   });
 
@@ -158,5 +163,64 @@ describe("getQuestionCode", () => {
     expect(getQuestionCode("TR", 0)).toBe("TR1");
     expect(getQuestionCode("TR", 1)).toBe("TR2");
     expect(getQuestionCode("SE", 0)).toBe("SE1");
+  });
+});
+
+describe("computeCompletion", () => {
+  it("returns 0% with no evaluations", () => {
+    expect(computeCompletion([], TRUST_RUBRIC)).toBe(0);
+  });
+
+  it("returns partial percentage with some evaluations scored", () => {
+    const totalQuestions = getRubricQuestionIds(TRUST_RUBRIC).length;
+    const evaluations: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
+      { rubricId: "RE.accuracy_and_hallucination", score: "", notes: "", explicitEvidenceIds: [] },
+      { rubricId: "US.workflow_integration", score: 1, notes: "", explicitEvidenceIds: [] },
+    ];
+
+    const result = computeCompletion(evaluations, TRUST_RUBRIC);
+    // 2 scored out of totalQuestions
+    const expected = Math.round((2 / totalQuestions) * 100);
+    expect(result).toBe(expected);
+  });
+
+  it("returns 100% when all questions are scored", () => {
+    const allIds = getRubricQuestionIds(TRUST_RUBRIC);
+    const evaluations: Evaluation[] = allIds.map((id) => ({
+      rubricId: id,
+      score: 2,
+      notes: "",
+      explicitEvidenceIds: [],
+    }));
+
+    expect(computeCompletion(evaluations, TRUST_RUBRIC)).toBe(100);
+  });
+});
+
+describe("getLinkedRubricIdsForCapture", () => {
+  it("returns rubric IDs where capture is in explicitEvidenceIds", () => {
+    const evaluations: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: ["cap-1", "cap-2"] },
+      { rubricId: "RE.accuracy_and_hallucination", score: 1, notes: "", explicitEvidenceIds: ["cap-1"] },
+      { rubricId: "US.workflow_integration", score: "", notes: "", explicitEvidenceIds: [] },
+    ];
+
+    const result = getLinkedRubricIdsForCapture("cap-1", evaluations);
+    expect(result).toEqual(["TR.data_source_clarity", "RE.accuracy_and_hallucination"]);
+  });
+
+  it("returns empty array for unlinked capture", () => {
+    const evaluations: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: ["cap-2"] },
+    ];
+
+    const result = getLinkedRubricIdsForCapture("cap-1", evaluations);
+    expect(result).toEqual([]);
+  });
+
+  it("returns empty array with no evaluations", () => {
+    const result = getLinkedRubricIdsForCapture("cap-1", []);
+    expect(result).toEqual([]);
   });
 });

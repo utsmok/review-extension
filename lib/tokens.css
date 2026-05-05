@@ -19,12 +19,15 @@
   --ut-offwhite: #f3f4f6;
   --ut-border: #bfc6cf;
   --ut-text: #172033;
-  --ut-muted: #576578;
-  --ut-slate: #8b9bb0;
+  --ut-muted: #4f5e73;
+  --ut-slate: #4c5e74; /* WCAG AAA: ~6.5:1 against white. Was #5f7088 (5.05:1). R=76,G=94,B=116 */
 
   --ut-panel-bg: #f3f4f6;
   --ut-white: #fafbfc;
   --ut-canvas: var(--ut-grey);
+  --ut-on-accent: #ffffff;
+  --ut-overlay: rgba(0, 44, 95, 0.5);
+  --ut-overlay-light: rgba(0, 44, 95, 0.3);
 
   /* TRUST principle tokens */
   --tr: #2563eb;
@@ -47,39 +50,39 @@
   /* Section context families — control */
   --section-control-accent: var(--ut-darkblue);
   --section-control-accent-strong: color-mix(in srgb, var(--section-control-accent) 88%, black);
-  --section-control-tint: color-mix(in srgb, var(--section-control-accent) 16%, var(--ut-white));
-  --section-control-border: color-mix(in srgb, var(--section-control-accent) 32%, var(--ut-border));
+  --section-control-tint: color-mix(in srgb, var(--section-control-accent) 22%, var(--ut-white));
+  --section-control-border: color-mix(in srgb, var(--section-control-accent) 36%, var(--ut-border));
   --section-control-on-accent: #ffffff;
 
   /* Section context families — TRUST principles */
   --section-tr-accent: var(--tr);
   --section-tr-accent-strong: color-mix(in srgb, var(--section-tr-accent) 86%, black);
-  --section-tr-tint: color-mix(in srgb, var(--section-tr-accent) 16%, var(--ut-white));
-  --section-tr-border: color-mix(in srgb, var(--section-tr-accent) 32%, var(--ut-border));
+  --section-tr-tint: color-mix(in srgb, var(--section-tr-accent) 22%, var(--ut-white));
+  --section-tr-border: color-mix(in srgb, var(--section-tr-accent) 36%, var(--ut-border));
   --section-tr-on-accent: #ffffff;
 
   --section-re-accent: var(--re);
   --section-re-accent-strong: color-mix(in srgb, var(--section-re-accent) 86%, black);
-  --section-re-tint: color-mix(in srgb, var(--section-re-accent) 16%, var(--ut-white));
-  --section-re-border: color-mix(in srgb, var(--section-re-accent) 32%, var(--ut-border));
+  --section-re-tint: color-mix(in srgb, var(--section-re-accent) 22%, var(--ut-white));
+  --section-re-border: color-mix(in srgb, var(--section-re-accent) 36%, var(--ut-border));
   --section-re-on-accent: #ffffff;
 
   --section-uc-accent: var(--uc);
   --section-uc-accent-strong: color-mix(in srgb, var(--section-uc-accent) 86%, black);
-  --section-uc-tint: color-mix(in srgb, var(--section-uc-accent) 16%, var(--ut-white));
-  --section-uc-border: color-mix(in srgb, var(--section-uc-accent) 32%, var(--ut-border));
+  --section-uc-tint: color-mix(in srgb, var(--section-uc-accent) 22%, var(--ut-white));
+  --section-uc-border: color-mix(in srgb, var(--section-uc-accent) 36%, var(--ut-border));
   --section-uc-on-accent: #ffffff;
 
   --section-se-accent: var(--se);
   --section-se-accent-strong: color-mix(in srgb, var(--section-se-accent) 86%, black);
-  --section-se-tint: color-mix(in srgb, var(--section-se-accent) 16%, var(--ut-white));
-  --section-se-border: color-mix(in srgb, var(--section-se-accent) 32%, var(--ut-border));
+  --section-se-tint: color-mix(in srgb, var(--section-se-accent) 22%, var(--ut-white));
+  --section-se-border: color-mix(in srgb, var(--section-se-accent) 36%, var(--ut-border));
   --section-se-on-accent: #ffffff;
 
   --section-tc-accent: var(--tc);
   --section-tc-accent-strong: color-mix(in srgb, var(--section-tc-accent) 86%, black);
-  --section-tc-tint: color-mix(in srgb, var(--section-tc-accent) 16%, var(--ut-white));
-  --section-tc-border: color-mix(in srgb, var(--section-tc-accent) 32%, var(--ut-border));
+  --section-tc-tint: color-mix(in srgb, var(--section-tc-accent) 22%, var(--ut-white));
+  --section-tc-border: color-mix(in srgb, var(--section-tc-accent) 36%, var(--ut-border));
   --section-tc-on-accent: #ffffff;
 
   /* Score-level semantic colors */
@@ -88,14 +91,14 @@
   --score-2: #0e7490;
   --score-3: #4a8355;
 
-  --score-0-tint: color-mix(in srgb, var(--score-0) 10%, var(--ut-white));
-  --score-0-border: color-mix(in srgb, var(--score-0) 24%, var(--ut-border));
-  --score-1-tint: color-mix(in srgb, var(--score-1) 10%, var(--ut-white));
-  --score-1-border: color-mix(in srgb, var(--score-1) 24%, var(--ut-border));
-  --score-2-tint: color-mix(in srgb, var(--score-2) 10%, var(--ut-white));
-  --score-2-border: color-mix(in srgb, var(--score-2) 24%, var(--ut-border));
-  --score-3-tint: color-mix(in srgb, var(--score-3) 10%, var(--ut-white));
-  --score-3-border: color-mix(in srgb, var(--score-3) 24%, var(--ut-border));
+  --score-0-tint: color-mix(in srgb, var(--score-0) 18%, var(--ut-white));
+  --score-0-border: color-mix(in srgb, var(--score-0) 32%, var(--ut-border));
+  --score-1-tint: color-mix(in srgb, var(--score-1) 18%, var(--ut-white));
+  --score-1-border: color-mix(in srgb, var(--score-1) 32%, var(--ut-border));
+  --score-2-tint: color-mix(in srgb, var(--score-2) 18%, var(--ut-white));
+  --score-2-border: color-mix(in srgb, var(--score-2) 32%, var(--ut-border));
+  --score-3-tint: color-mix(in srgb, var(--score-3) 18%, var(--ut-white));
+  --score-3-border: color-mix(in srgb, var(--score-3) 32%, var(--ut-border));
 
   /* Judgment state family */
   --judgment-pass: var(--ut-green);
@@ -114,9 +117,9 @@
   --state-error-tint: color-mix(in srgb, var(--state-error) 10%, var(--ut-white));
 
   /* Type scale */
-  --text-xs: 0.6875rem;
-  --text-sm: 0.75rem;
-  --text-md: 0.875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.9375rem;
   --text-body: 1rem;
   --text-sub: 1.2rem;
   --text-heading: 1.563rem;
@@ -171,5 +174,9 @@
 
   /* Border widths */
   --border-default: 2px;
-  --border-accent: 6px;
+  --border-accent: 8px;
+  /* Grade tint hints (very subtle) */
+  --grade-pass-tint: color-mix(in srgb, var(--ut-green) 10%, var(--ut-white));
+  --grade-conditional-tint: color-mix(in srgb, var(--score-1) 10%, var(--ut-white));
+  --grade-fail-tint: color-mix(in srgb, var(--ut-red) 10%, var(--ut-white));
 }

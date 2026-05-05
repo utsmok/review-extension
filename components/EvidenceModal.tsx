@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import type { Capture } from "@/lib/types";
-import { useSessionStore } from "@/stores/session";
+import { useActiveSession } from "@/hooks/useActiveSession";
 import { useAutoFocus, useFocusTrap } from "@/lib/hooks";
+import type { Capture } from "@/lib/types";
 
-const PEN_COLORS = [
-  { label: "Black", value: "#172033" },
-  { label: "Red", value: "#c60c30" },
-  { label: "Blue", value: "#007d9c" },
-];
+function getPenColors() {
+  const style = getComputedStyle(document.documentElement);
+  return [
+    { label: "Black", value: style.getPropertyValue("--ut-text").trim() || "#172033" },
+    { label: "Red", value: style.getPropertyValue("--ut-error").trim() || "#c60c30" },
+    { label: "Blue", value: style.getPropertyValue("--ut-navy").trim() || "#007d9c" },
+  ];
+}
 
 const PEN_SIZES = [2, 4, 6];
 
@@ -17,16 +20,17 @@ interface EvidenceModalProps {
 }
 
 export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) {
-  const updateCapture = useSessionStore((s) => s.updateCapture);
+  const { updateCapture } = useActiveSession();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const [drawing, setDrawing] = useState(false);
-  const [penColor, setPenColor] = useState(PEN_COLORS[0].value);
+  const [penColor, setPenColor] = useState(getPenColors()[0].value);
   const [penSize, setPenSize] = useState(PEN_SIZES[1]);
   const [erasing, setErasing] = useState(false);
   const [notes, setNotes] = useState(capture.notes);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
+  const hasDrawn = useRef(false);
 
   const imageSrc = capture.annotatedScreenshotBase64 ?? capture.screenshotBase64;
 
@@ -65,6 +69,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const pos = getCanvasPos(e);
+    hasDrawn.current = true;
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(pos.x, pos.y);
@@ -91,6 +96,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    hasDrawn.current = false;
   };
 
   const handleSave = async () => {
@@ -98,7 +104,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     const container = containerRef.current;
     if (!canvas || !container) return;
 
-    const hasDrawing = canvas.getContext("2d")?.getImageData(0, 0, canvas.width, canvas.height).data.some((v, i) => i % 4 === 3 && v > 0);
+    const hasDrawing = hasDrawn.current;
     if (!hasDrawing) {
       updateCapture(capture.id, { notes });
       onClose();
@@ -132,8 +138,21 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     }
   };
 
+  const penColors = getPenColors();
+
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <button
+      type="button"
+      className="modal-backdrop"
+      tabIndex={-1}
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClose();
+        }
+      }}
+    >
       <div
         ref={panelRef}
         className="modal-panel max-w-[720px] p-0"
@@ -141,49 +160,60 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         aria-modal="true"
         aria-label="Evidence viewer and annotation"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         {/* Toolbar */}
-        <div className="drawing-toolbar">
-          {PEN_COLORS.map((c) => (
-            <button
-              key={c.value}
-              type="button"
-              title={c.label}
-              className={`color-swatch ${!erasing && penColor === c.value ? "is-active" : ""}`}
-              style={{ background: c.value }}
-              onClick={() => {
-                setErasing(false);
-                setPenColor(c.value);
-              }}
-            />
-          ))}
+        <div className="drawing-toolbar" role="toolbar" aria-label="Annotation tools">
+          <div role="radiogroup" aria-label="Pen color">
+            {penColors.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                title={c.label}
+                aria-label={c.label}
+                aria-pressed={!erasing && penColor === c.value}
+                className={`color-swatch ${!erasing && penColor === c.value ? "is-active" : ""}`}
+                style={{ background: c.value }}
+                onClick={() => {
+                  setErasing(false);
+                  setPenColor(c.value);
+                }}
+              />
+            ))}
+          </div>
           <span className="toolbar-separator" />
-          {PEN_SIZES.map((s) => (
-            <button
-              key={s}
-              type="button"
-              title={`${s}px`}
-              className={penSize === s ? "is-active" : ""}
-              onClick={() => setPenSize(s)}
-            >
-              {s}
-            </button>
-          ))}
+          <div role="radiogroup" aria-label="Pen size">
+            {PEN_SIZES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                title={`${s}px`}
+                aria-label={`${s}px pen size`}
+                aria-pressed={penSize === s}
+                className={penSize === s ? "is-active" : ""}
+                onClick={() => setPenSize(s)}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
           <span className="toolbar-separator" />
           <button
             type="button"
+            aria-label="Eraser"
+            aria-pressed={erasing}
             className={erasing ? "is-active" : ""}
             onClick={() => setErasing(!erasing)}
           >
             ✕ Eraser
           </button>
-          <button type="button" onClick={clearCanvas}>
+          <button type="button" aria-label="Clear annotations" onClick={clearCanvas}>
             Clear
           </button>
           <div className="flex-1" />
           <button
             type="button"
-            className="bg-ut-green text-white border-0 px-ut-3 py-ut-1 text-ut-xs font-heading font-bold uppercase tracking-ut-label cursor-pointer"
+            className="btn-save px-ut-3 py-ut-1 text-ut-xs font-heading font-bold uppercase tracking-ut-label cursor-pointer"
             onClick={handleSave}
           >
             Save
@@ -191,16 +221,8 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         </div>
 
         {/* Image + canvas */}
-        <div
-          ref={containerRef}
-          className="relative overflow-auto max-h-[50vh]"
-        >
-          <img
-            src={imageSrc}
-            alt="Evidence"
-            onLoad={handleImageLoad}
-            className="block w-full"
-          />
+        <div ref={containerRef} className="relative overflow-auto max-h-[50vh]">
+          <img src={imageSrc} alt="Evidence" onLoad={handleImageLoad} className="block w-full" />
           <canvas
             ref={canvasRef}
             onMouseDown={startDrawing}
@@ -217,9 +239,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
           {capture.pageTitle && (
             <p className="text-ut-xs font-bold text-ut-text mb-1">{capture.pageTitle}</p>
           )}
-          <p className="text-ut-xs font-mono text-ut-muted mb-1 break-all">
-            {capture.sourceUrl}
-          </p>
+          <p className="text-ut-xs font-mono text-ut-muted mb-1 break-all">{capture.sourceUrl}</p>
           <p className="text-ut-xs text-ut-slate mb-2">
             {new Date(capture.timestamp).toLocaleString()}
           </p>
@@ -232,6 +252,6 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
           />
         </div>
       </div>
-    </div>
+    </button>
   );
 }

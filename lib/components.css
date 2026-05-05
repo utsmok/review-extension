@@ -61,7 +61,7 @@
 /* ── Top accent bar ─────────────────────────────────────────── */
 
 .top-accent {
-  height: 5px;
+  height: 8px;
   background: var(--top-accent-color, var(--trust-magenta));
   transition: background var(--duration-accent) ease;
 }
@@ -97,6 +97,11 @@
   color: var(--ut-navy);
 }
 
+.sidebar-tab:focus-visible {
+  outline: 2px solid var(--ut-magenta);
+  outline-offset: 2px;
+}
+
 .sidebar-tab.is-active {
   color: var(--trust-magenta);
   border-bottom-color: var(--trust-magenta);
@@ -123,6 +128,11 @@
   border-color: var(--ut-slate);
 }
 
+.rubric-chip:focus-visible {
+  outline: 2px solid var(--ut-magenta);
+  outline-offset: 2px;
+}
+
 .rubric-chip[data-linked="true"] {
   background: var(--section-tint, color-mix(in srgb, var(--ut-navy) 8%, var(--ut-white)));
   border-color: var(--section-accent, var(--ut-navy));
@@ -137,7 +147,11 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--ls-kicker);
-  color: var(--ut-muted);
+  color: var(--section-accent, var(--ut-navy));
+  padding: var(--space-1) var(--space-2);
+  background: var(--section-tint, var(--ut-offwhite));
+  border-top: 2px solid var(--section-accent, var(--ut-navy));
+  border-left: none;
 }
 
 /* ── Pass / Fail judgment labels ────────────────────────────── */
@@ -179,6 +193,12 @@
   background: var(--judgment-fail-tint);
   border-color: var(--judgment-fail);
   color: var(--judgment-fail);
+}
+
+.judgment-label[data-judgment="na"][data-active="true"] {
+  background: color-mix(in srgb, var(--ut-slate) 10%, var(--ut-white));
+  border-color: var(--ut-slate);
+  color: var(--ut-muted);
 }
 
 /* ── Reduced motion ─────────────────────────────────────────── */
@@ -249,38 +269,70 @@
   padding: var(--space-1) var(--space-2);
   cursor: pointer;
   transition:
-    background var(--duration-fast) ease;
+    background var(--duration-fast) ease,
+    opacity var(--duration-fast) ease;
 }
 
 .score-row:hover {
   background: var(--ut-offwhite);
 }
 
-.score-row.is-selected {
-  font-weight: 700;
+.score-row:focus-visible {
+  outline: 2px solid var(--ut-magenta);
+  outline-offset: 2px;
 }
 
+.score-row.is-selected {
+  font-weight: 700;
+  border-left: 2px solid transparent;
+}
+
+
+.score-row[data-score="0"] {
+  opacity: 0.6;
+  font-weight: 400;
+}
+.score-row[data-score="1"] {
+  opacity: 0.75;
+  font-weight: 400;
+}
+.score-row[data-score="2"] {
+  opacity: 0.9;
+  font-weight: 500;
+}
+.score-row[data-score="3"] {
+  opacity: 1;
+  font-weight: 600;
+}
 .score-row[data-score="0"].is-selected {
   background: var(--score-0-tint);
   color: var(--score-0);
+  border-left-color: var(--score-0);
+  opacity: 1;
 }
 .score-row[data-score="1"].is-selected {
   background: var(--score-1-tint);
   color: var(--score-1);
+  border-left-color: var(--score-1);
+  opacity: 1;
 }
 .score-row[data-score="2"].is-selected {
   background: var(--score-2-tint);
   color: var(--score-2);
+  border-left-color: var(--score-2);
+  opacity: 1;
 }
 .score-row[data-score="3"].is-selected {
   background: var(--score-3-tint);
   color: var(--score-3);
+  border-left-color: var(--score-3);
+  opacity: 1;
 }
 
 .score-row .score-badge {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border: 2px solid var(--ut-border);
   border-radius: 50%;
   display: grid;
@@ -294,11 +346,83 @@
 
 .score-row.is-selected .score-badge {
   border-color: currentColor;
-  background: var(--ut-white);
-  color: var(--ut-text);
+  background: currentColor;
+  color: var(--ut-on-accent);
 }
 
 .score-row .score-desc {
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
+/* ── Question foldouts (Background / Examples) ─────────────── */
+
+.question-foldout {
+  margin-top: var(--space-2);
+  border: 1px solid var(--ut-border);
+  border-radius: var(--radius-sm);
+  background: var(--ut-offwhite);
+}
+
+.question-foldout-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  cursor: pointer;
+  font-family: var(--ff-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  color: var(--ut-muted);
+  list-style: none;
+  user-select: none;
+}
+
+.question-foldout-summary::-webkit-details-marker {
+  display: none;
+}
+
+.question-foldout-summary::before {
+  content: "▸";
+  font-size: 9px;
+  transition: transform var(--duration-fast) ease;
+}
+
+.question-foldout[open] > .question-foldout-summary::before {
+  transform: rotate(90deg);
+}
+
+.question-foldout-content {
+  padding: 0 var(--space-2) var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--ut-slate);
+  line-height: 1.5;
+}
+
+.example-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+}
+
+.example-row + .example-row {
+  border-top: 1px solid var(--ut-border);
+}
+
+.example-label,
+.example-badge {
+  flex-shrink: 0;
+  font-family: var(--ff-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--ut-slate);
+  min-width: 22px;
+}
+
+.example-desc {
   font-size: var(--text-xs);
   line-height: 1.4;
 }
@@ -323,12 +447,13 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--ut-overlay);
   opacity: 0;
   transition: opacity var(--duration-fast) ease;
 }
 
-.evidence-thumb-wrap:hover .evidence-thumb-overlay {
+.evidence-thumb-wrap:hover .evidence-thumb-overlay,
+.evidence-thumb-wrap:focus-within .evidence-thumb-overlay {
   opacity: 1;
 }
 
@@ -345,12 +470,17 @@
 
 .evidence-thumb-overlay .btn-remove {
   background: var(--ut-red);
-  color: #fff;
+  color: var(--ut-on-accent);
 }
 
 .evidence-thumb-overlay .btn-view {
   background: var(--ut-blue);
-  color: #fff;
+  color: var(--ut-on-accent);
+}
+
+.evidence-thumb-overlay button:focus-visible {
+  outline: 2px solid var(--ut-magenta);
+  outline-offset: 2px;
 }
 
 /* ── Modal backdrop ─────────────────────────────────────────── */
@@ -358,7 +488,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--ut-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -395,9 +525,14 @@
     border-color var(--duration-fast) ease;
 }
 
+.confirm-dialog-actions button:focus-visible {
+  outline: 2px solid var(--ut-magenta);
+  outline-offset: 2px;
+}
+
 .confirm-dialog-actions .btn-danger {
   background: var(--ut-red);
-  color: #fff;
+  color: var(--ut-on-accent);
   border-color: var(--ut-red);
 }
 
@@ -439,10 +574,25 @@
   cursor: pointer;
 }
 
+.drawing-toolbar button:focus-visible {
+  outline: 2px solid var(--ut-magenta);
+  outline-offset: 2px;
+}
+
 .drawing-toolbar button.is-active {
   background: var(--ut-navy);
-  color: #fff;
+  color: var(--ut-on-accent);
   border-color: var(--ut-navy);
+}
+
+.btn-save {
+  background: var(--ut-green);
+  color: var(--ut-on-accent);
+  border: 0;
+}
+
+.btn-save:hover {
+  opacity: 0.85;
 }
 
 .toolbar-separator {
@@ -464,4 +614,45 @@
   border-color: var(--ut-text);
   outline: 2px solid var(--ut-text);
   outline-offset: 2px;
+}
+
+/* ── Grade tint hint backgrounds ──────────────────────────── */
+
+.bg-grade-pass-tint {
+  background: var(--grade-pass-tint);
+}
+
+.bg-grade-conditional-tint {
+  background: var(--grade-conditional-tint);
+}
+
+.bg-grade-fail-tint {
+  background: var(--grade-fail-tint);
+}
+
+/* ── Scale-in animation ───────────────────────────────────── */
+
+@keyframes omp-scale-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: omp-scale-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ── Flex text overflow containment ──────────────────────────── */
+
+.score-row .score-desc,
+.rubric-chip,
+.question-details > summary {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

@@ -1,18 +1,66 @@
-import { useSessionStore } from "@/stores/session";
-import { getRubricById } from "@/data/rubrics";
+import { useEffect, useState } from "react";
+import { getRubricById, RUBRIC_VARIANTS } from "@/data/rubrics";
+import { useActiveSession } from "@/hooks/useActiveSession";
+import { useSidepanelZoom } from "@/hooks/useSidepanelZoom";
+import { migrateLegacySession } from "@/lib/migration";
 import { RubricContext } from "@/lib/rubric-context";
 import ActiveSession from "./ActiveSession";
-import SessionInit from "./SessionInit";
+import AppShell from "./AppShell";
+import SessionManager from "./SessionManager";
+import SettingsScreen from "./SettingsScreen";
 
 export default function App() {
-  const session = useSessionStore((s) => s.session);
+  const [migrationReady, setMigrationReady] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  useSidepanelZoom();
 
-  if (!session) return <SessionInit />;
+  useEffect(() => {
+    migrateLegacySession()
+      .catch((err) => console.error("Legacy migration failed:", err))
+      .finally(() => setMigrationReady(true));
+  }, []);
 
-  const variant = getRubricById(session.rubricId);
+  const { status, session } = useActiveSession(migrationReady);
+
+  if (!migrationReady || status === "loading") {
+    return (
+      <AppShell>
+        <div className="flex items-center justify-center flex-1 h-full">
+          <p className="text-ut-md text-ut-muted">Loading session...</p>
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (showSettings) {
+    return (
+      <AppShell>
+        <SettingsScreen onBack={() => setShowSettings(false)} />
+      </AppShell>
+    );
+  }
+
+  if (status === "active" && session) {
+    const variant = getRubricById(session.rubricId ?? RUBRIC_VARIANTS[0].id);
+    if (!variant?.data) {
+      return (
+        <AppShell showSettingsButton onSettingsClick={() => setShowSettings(true)}>
+          <SessionManager />
+        </AppShell>
+      );
+    }
+    return (
+      <AppShell showSettingsButton onSettingsClick={() => setShowSettings(true)}>
+        <RubricContext.Provider value={{ rubric: variant.data, usesAi: session.usesAi ?? true }}>
+          <ActiveSession />
+        </RubricContext.Provider>
+      </AppShell>
+    );
+  }
+
   return (
-    <RubricContext.Provider value={{ rubric: variant.data, usesAi: session.usesAi ?? true }}>
-      <ActiveSession />
-    </RubricContext.Provider>
+    <AppShell showSettingsButton onSettingsClick={() => setShowSettings(true)}>
+      <SessionManager />
+    </AppShell>
   );
 }

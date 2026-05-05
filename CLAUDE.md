@@ -1,6 +1,6 @@
 # TRUST Review Extension
 
-Browser extension for systematic evaluation of academic search tools against the TRUST framework. Side panel UI captures screenshots/DOM, tags evidence to rubric items, and exports a `.zip` with CSVs + PDF report.
+Browser extension for systematic evaluation of academic search tools against the TRUST framework. Side panel UI captures screenshots/DOM, tags evidence to rubric items, and exports a `.zip` with CSVs + standalone HTML report.
 
 ## Commands
 
@@ -17,12 +17,12 @@ pnpm typecheck        # type check
 - **WXT** (`wxt.dev`) — cross-browser extension framework
 - **React 19 + TailwindCSS 3** — side panel UI
 - **Zustand** — persistent session state (`stores/session.ts`)
-- **JSZip + pdfmake + papaparse** — export pipeline (`lib/export.ts`)
+- **JSZip + papaparse** — export pipeline (`lib/export.ts`)
 - **Nunito Sans + Inter + Arial Narrow + JetBrains Mono** — 4-font type system (`display`, `heading`, `body`, `mono`)
 
 ## Architecture
 
-Side panel (`chrome.sidePanel`) is the only UI surface. Background script opens it on extension icon click.
+Side panel (`chrome.sidePanel`) is the only UI surface. Background script opens it on extension icon click. Multi-session: `SessionManager` lists sessions, `NewSessionModal` creates new ones.
 
 ```
 entrypoints/
@@ -30,19 +30,36 @@ entrypoints/
   sidepanel.html         side panel entry
   sidepanel/main.tsx     React bootstrap
 components/
-  App.tsx                routes SessionInit ↔ ActiveSession
-  SessionInit.tsx        start session form (centered hero layout, TRUST wordmark)
+  App.tsx                root — migration, routing, RubricContext provider
+  AppShell.tsx           layout wrapper (header, settings gear)
+  SessionManager.tsx     session list, new/done/delete actions
+  NewSessionModal.tsx    session creation form
   ActiveSession.tsx      tab container (Captures / Evaluation / Metadata)
-  Captures.tsx           capture list, notes, rubric tagging
-  Evaluation.tsx         quality gates (pass/fail) + scoring rubric (0-3)
+  Captures.tsx           capture list, notes, evidence linking
+  Evaluation.tsx         quality gates + scoring rubric (delegates to QuestionSection)
+  QuestionSection.tsx    individual rubric question with score/evidence
   Metadata.tsx           tool metadata form + export trigger
+  SettingsScreen.tsx     reviewer name/email/rubric preferences
+  EvidenceThumbnails.tsx inline evidence preview in questions
+  ProgressCircle.tsx     circular score indicator
+  ConfirmDialog.tsx      generic confirm dialog
+hooks/
+  useActiveSession.ts    lifecycle orchestration (load/save/flush/auto-save)
 stores/
-  session.ts             Zustand store — session, captures, evaluations
+  registry.ts            Zustand+persist — session index, active ID, settings
+  session.ts             in-memory Zustand — active session data (captures, evaluations)
 lib/
-  types.ts               data model types
-  rubric.ts              hardcoded TRUST rubric + helpers
-  capture.ts             chrome.tabs.captureVisibleTab + DOM serialization
-  export.ts              zip/pdf/csv generation pipeline
+  types.ts               data model (SessionData, discriminated EvaluationScore)
+  session-storage.ts     IndexedDB persistence (save/load/delete)
+  session-lifecycle.ts   create/switch/close/markDone orchestration
+  migration.ts           legacy localStorage → IDB migration (idempotent)
+  capture.ts             screenshot + HTML archiver (inlines CSS, strips scripts)
+  export.ts              zip/csv pipeline + HTML report generation
+  html-report.ts         standalone HTML report builder
+  logos.ts               base64-encoded logos (TRUST, LISA-EIS, UT)
+  principles.ts          TRUST principle color map
+  rubric.ts              rubric data + helpers
+  hooks.ts               shared React hooks
 public/
   trust.svg / lisa-eis.svg  brand logos
   icon-*.png                 extension icons (16–128px)
@@ -58,20 +75,31 @@ All colors and typography live in `lib/tokens.css` as CSS custom properties, sur
 
 Four font families: `display` (Nunito Sans, brand hero), `heading` (Arial Narrow, uppercase labels), `body` (Inter, prose), `mono` (JetBrains Mono, metadata).
 
+## Persistence
+
+Two-store architecture:
+- **Registry store** (`stores/registry.ts`) — Zustand + `persist` middleware → `localStorage`. Holds session index, active session ID, settings.
+- **Session store** (`stores/session.ts`) — in-memory Zustand (no persist). Active session data only. Auto-saved to IndexedDB via `useActiveSession` hook (debounced 300ms, flush on `visibilitychange`).
+
+`useActiveSession` is the single coordination point — loads from IDB on `activeSessionId` change, debounced auto-save during edits, flush on panel hide.
+
 ## Data Flow
 
-1. User starts session → `SessionMetadata` saved to Zustand (persisted to localStorage)
-2. Captures tagged to rubric IDs → `Capture.linkedRubricIds`
-3. Evaluations reference captures → `Evaluation.explicitEvidenceIds`
-4. Export compiles all state into `.zip` (evidence/, CSVs, PDF report)
+1. User creates session → `NewSessionModal` → `lifecycle.createSession()` → registry + IDB
+2. `useActiveSession` loads from IDB when `activeSessionId` changes
+3. Captures linked to rubric items via `Evaluation.explicitEvidenceIds` (one-directional)
+4. Auto-save to IDB on every change (debounced), flush on visibility hidden
+5. Export compiles active session state into `.zip` (evidence/, CSVs, HTML report)
 
 ## Key Decisions
 
 - TRUST rubric is hardcoded in `lib/rubric.ts` (not user-configurable yet)
 - All data stays local — no server calls
-- Zustand `persist` middleware uses localStorage for session continuity
+- Zustand `persist` middleware uses localStorage for registry only (session data in IndexedDB)
 - Path alias `@/` maps to project root
 - Extension icons configured in `wxt.config.ts` under `manifest.action.default_icon`
+- Capture HTML archiver inlines stylesheets, strips scripts, resolves relative URLs
+- Legacy migration (`migration.ts`) runs once on first load after upgrade
 
 ## Rubric Structure
 
@@ -94,3 +122,12 @@ Default triage label vocabulary (needs-triage, needs-info, ready-for-agent, read
 ### Domain docs
 
 Single-context layout — one CONTEXT.md + docs/adr/ at repo root. See `docs/agents/domain.md`.
+
+### Impeccable design skill
+
+- **Status:** fully set up and accessible from OMP. Skill resolved via `skill://impeccable`, scripts at `~/.claude/skills/impeccable/`.
+- **Register:** `product` (design serves the product — correct for this evaluation instrument).
+- **Context files:** `PRODUCT.md` (users, brand, principles) and `DESIGN.md` (full design system: colors, typography, elevation, components, do's/don'ts) are both present and substantive at the project root.
+- **Path note:** the skill's SKILL.md references `node .claude/skills/impeccable/scripts/load-context.mjs` (relative), but the project's `.claude/skills/` has no `impeccable` symlink. Use the resolved absolute path instead: `node /home/sam/.claude/skills/impeccable/scripts/load-context.mjs`. Alternatively, add a symlink: `ln -s ~/.claude/skills/impeccable .claude/skills/impeccable`.
+- **Commands available:** 22 commands across build (craft, shape, teach, document, extract), evaluate (critique, audit), refine (polish, bolder, quieter, distill, harden, onboard), enhance (animate, colorize, typeset, layout, delight, overdrive), fix (clarify, adapt, optimize), and iterate (live). Plus pin/unpin management.
+- **No `.impeccable.md`** — not needed; the native PRODUCT.md/DESIGN.md pair is richer.

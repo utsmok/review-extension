@@ -1,14 +1,35 @@
+export type SessionStatus = "started" | "done";
+export type StoreStatus = "empty" | "loading" | "active";
+
+export interface Settings {
+  reviewerName: string;
+  reviewerEmail: string;
+  preferredRubric: string;
+}
+
 export interface SessionMetadata {
+  id: string;             // uuid
   toolName: string;
   toolUrl: string;
   startTime: string;
   rubricId?: string;
   usesAi?: boolean;
+  status: SessionStatus;
+  faviconUrl?: string;
   company?: string;
   pricing?: string;
   availability?: string;
   termsConditionsUrl?: string;
   notes?: string;
+  finalizedAt?: string;
+}
+
+export interface SessionData {
+  metadata: SessionMetadata;
+  captures: Capture[];
+  evaluations: Evaluation[];
+  questionModes?: Record<string, "expert" | "standard">;
+  finalization: ReviewFinalization | null;
 }
 
 export interface Capture {
@@ -20,24 +41,43 @@ export interface Capture {
   annotatedScreenshotBase64?: string;
   htmlContent: string;
   notes: string;
-  linkedRubricIds: string[];
 }
+
+export type QualityGateScore = "pass" | "fail" | "na" | "unsure" | "";
+export type ScoringScore = 0 | 1 | 2 | 3 | "na" | "unsure" | "";
+export type EvaluationScore = QualityGateScore | ScoringScore;
 
 export interface Evaluation {
   rubricId: string;
-  score: string | number;
+  score: EvaluationScore;
   notes: string;
   explicitEvidenceIds: string[];
 }
 
-export type PassFailScore = "pass" | "fail" | "na" | "";
-export type RubricScore = 0 | 1 | 2 | 3 | "na" | "";
+export type FinalizationGrade = "pass" | "conditional" | "fail";
+
+export interface ReviewFinalization {
+  conclusion: string;
+  grade: FinalizationGrade;
+  strengths: string[];
+  weaknesses: string[];
+  recommendations: string;
+  finalizedAt: string;
+}
+
+export type PassFailScore = QualityGateScore;
+export type RubricScore = ScoringScore;
 
 export interface PassFailQuestion {
   type: "pass_fail";
   title: string;
   requirement: string;
-  basic_requirement: string;
+  background?: string;
+  examples?: {
+    pass: string;
+    fail: string;
+    na?: string;
+  };
   ai_only?: boolean;
 }
 
@@ -47,10 +87,13 @@ export interface ScoringQuestion {
   "1": string;
   "2": string;
   "3": string;
-  "0_basic"?: string;
-  "1_basic"?: string;
-  "2_basic"?: string;
-  "3_basic"?: string;
+  background?: string;
+  examples?: {
+    "0": string;
+    "1": string;
+    "2": string;
+    "3": string;
+  };
   ai_only?: boolean;
 }
 

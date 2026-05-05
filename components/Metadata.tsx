@@ -1,49 +1,67 @@
 import { useState } from "react";
-import { exportSession } from "@/lib/export";
+import { useActiveSession } from "@/hooks/useActiveSession";
 import { useRubric } from "@/lib/rubric-context";
-import { useSessionStore } from "@/stores/session";
+import { useTabNavigation } from "@/lib/tab-navigation-context";
+import { toastError } from "@/stores/toast";
+import ConfirmDialog from "./ConfirmDialog";
+import ExportCompleteScreen from "./ExportCompleteScreen";
 
 export default function Metadata() {
   const { rubric } = useRubric();
-  const session = useSessionStore((s) => s.session);
-  const updateMetadata = useSessionStore((s) => s.updateMetadata);
-  const endSession = useSessionStore((s) => s.endSession);
-  const captures = useSessionStore((s) => s.captures);
-  const evaluations = useSessionStore((s) => s.evaluations);
+  const setActiveTab = useTabNavigation();
+  const {
+    session,
+    updateMetadata,
+    captures,
+    evaluations,
+    finalization,
+    exportAndClose,
+    deleteSession,
+    closeSession,
+  } = useActiveSession();
   const [exporting, setExporting] = useState(false);
-  const [confirmClear, setConfirmClear] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [exportComplete, setExportComplete] = useState(false);
+  const [exportFilename, setExportFilename] = useState("");
 
   if (!session) return null;
 
   const handleExport = async () => {
     setExporting(true);
     try {
-      const blob = await exportSession(session, captures, evaluations, rubric);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `TRUST_Review_${session.toolName}.zip`;
-      a.click();
-      URL.revokeObjectURL(url);
-      endSession();
+      await exportAndClose(rubric);
+      setExportFilename(`TRUST_Review_${session.toolName}.zip`);
+      setExportComplete(true);
     } catch (err) {
       console.error("Export failed:", err);
+      toastError(err instanceof Error ? err.message : "Export failed. Please try again.");
     } finally {
       setExporting(false);
     }
   };
 
-  const handleClearSession = () => {
-    if (confirmClear) {
-      endSession();
-      setConfirmClear(false);
-    } else {
-      setConfirmClear(true);
-      setTimeout(() => setConfirmClear(false), 3000);
-    }
+  const handleDiscardSession = () => {
+    setShowDiscardConfirm(true);
   };
 
   const scoredCount = evaluations.filter((e) => e.score !== "" && e.score !== undefined).length;
+
+  const handleDone = () => {
+    closeSession();
+  };
+
+  // Export completion overlay
+  if (exportComplete) {
+    return (
+      <ExportCompleteScreen
+        captures={captures.length}
+        scoredCount={scoredCount}
+        finalization={finalization}
+        filename={exportFilename}
+        onDone={handleDone}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-ut-3 p-ut-4">
@@ -94,7 +112,7 @@ export default function Metadata() {
 
       <label className="flex flex-col gap-1">
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Availability
+          Access Level
         </span>
         <input
           className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
@@ -118,7 +136,7 @@ export default function Metadata() {
 
       <label className="flex flex-col gap-1">
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Session Notes
+          Review Notes
         </span>
         <textarea
           className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text resize-y focus:outline-none focus:ring-2 focus:ring-ut-blue"
@@ -129,7 +147,7 @@ export default function Metadata() {
         />
       </label>
 
-      {/* Session summary */}
+      {/* Review summary */}
       <div className="border-t-2 border-ut-border pt-ut-3 mt-1">
         <div className="flex justify-between text-ut-xs text-ut-muted font-mono mb-1">
           <span>Started</span>
@@ -159,26 +177,63 @@ export default function Metadata() {
           </p>
         )}
 
+        {!finalization && (
+          <div className="border border-score-1/40 bg-score-1/5 rounded-ut-sm px-ut-3 py-ut-2 mb-ut-2">
+            <p className="text-ut-xs text-score-1 font-heading font-bold uppercase tracking-ut-label">
+              Review not finalized
+            </p>
+            <p className="text-ut-xs text-ut-muted mt-0.5">
+              Conclusions will not be included in the report.
+            </p>
+            <button
+              type="button"
+              className="mt-1 text-ut-xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta hover:text-trust-magenta-strong transition-colors"
+              onClick={() => setActiveTab("Finalize")}
+            >
+              Finalize review &rarr;
+            </button>
+          </div>
+        )}
+        {finalization && (
+          <p className="text-ut-xs text-ut-muted font-mono mb-ut-2">
+            Finalized {new Date(finalization.finalizedAt).toLocaleString()}
+          </p>
+        )}
+
         <button
           type="button"
           className="w-full bg-trust-magenta text-white rounded-ut-sm px-ut-4 py-ut-3 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase hover:bg-trust-magenta-strong disabled:opacity-50 transition-colors"
           disabled={exporting}
           onClick={handleExport}
         >
-          {exporting ? "Exporting..." : "End Session & Export"}
+          {exporting ? "Exporting..." : "End Review & Export"}
         </button>
 
         <button
           type="button"
-          aria-live="polite"
-          className={`w-full mt-ut-2 rounded-ut-sm px-ut-4 py-2 text-ut-sm transition-colors font-heading font-bold uppercase tracking-ut-uppercase ${
-            confirmClear ? "bg-ut-red text-white" : "text-ut-slate hover:text-ut-red"
-          }`}
-          onClick={handleClearSession}
+          className="w-full mt-ut-2 rounded-ut-sm px-ut-4 py-2 text-ut-sm transition-colors font-heading font-bold uppercase tracking-ut-uppercase text-ut-slate hover:text-ut-red"
+          onClick={handleDiscardSession}
         >
-          {confirmClear ? "Click again to discard" : "Discard session"}
+          Discard review
         </button>
       </div>
+
+      {showDiscardConfirm && (
+        <ConfirmDialog
+          message="This will permanently delete all captures, scores, and notes for this review."
+          actions={[
+            { label: "Cancel", handler: () => setShowDiscardConfirm(false), variant: "cancel" },
+            {
+              label: "Discard",
+              handler: () => {
+                deleteSession(session.id);
+                setShowDiscardConfirm(false);
+              },
+              variant: "danger",
+            },
+          ]}
+        />
+      )}
     </div>
   );
 }

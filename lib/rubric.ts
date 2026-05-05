@@ -1,4 +1,4 @@
-import type { RubricData } from "./types";
+import type { Evaluation, RubricData } from "./types";
 
 export function getRubricQuestionIds(rubric: RubricData): string[] {
   const ids: string[] = [];
@@ -15,7 +15,7 @@ export function getRubricQuestionIds(rubric: RubricData): string[] {
   return ids;
 }
 
-const CATEGORY_ORDER = ["TR", "RE", "US", "SE", "TC"];
+const _CATEGORY_ORDER = ["TR", "RE", "US", "SE", "TC"];
 
 export function getQuestionCode(categoryKey: string, questionIndex: number): string {
   return `${categoryKey}${questionIndex + 1}`;
@@ -51,8 +51,20 @@ export function getCategoryLabel(categoryId: string): string {
     TR: "TR — Transparent",
     RE: "RE — Reliable",
     US: "US — User-Centric",
-    SE: "SE — Secure",
+    SE: "SE — Sound",
     TC: "TC — Traceable",
   };
   return labels[categoryId] ?? categoryId;
+}
+
+export function computeCompletion(evaluations: Evaluation[], rubric: RubricData): number {
+  const totalQuestions = getRubricQuestionIds(rubric).length;
+  const scored = evaluations.filter((e) => e.score !== "" && e.score !== undefined).length;
+  return totalQuestions > 0 ? Math.round((scored / totalQuestions) * 100) : 0;
+}
+
+export function getLinkedRubricIdsForCapture(captureId: string, evaluations: Evaluation[]): string[] {
+  return evaluations
+    .filter((e) => e.explicitEvidenceIds.includes(captureId))
+    .map((e) => e.rubricId);
 }

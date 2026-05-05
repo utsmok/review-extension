@@ -2,6 +2,7 @@ import type { ParseResult } from "papaparse";
 import Papa from "papaparse";
 import { describe, expect, it } from "vitest";
 import { exportSession } from "@/lib/export";
+import { buildHtmlReport } from "@/lib/html-report";
 import trustFull from "@/data/rubrics/trust-full.json";
 import type { Capture, Evaluation, RubricData, SessionMetadata } from "@/lib/types";
 
@@ -15,11 +16,13 @@ function parseCsv(csv: string): CsvRow[] {
 
 function makeMetadata(overrides?: Partial<SessionMetadata>): SessionMetadata {
   return {
+    id: crypto.randomUUID(),
     toolName: "TestSearch",
     toolUrl: "https://testsearch.example.com",
     startTime: "2025-06-15T10:00:00.000Z",
     company: "TestCorp",
     pricing: "Free",
+    status: "started",
     ...overrides,
   };
 }
@@ -37,7 +40,6 @@ function makeCapture(overrides?: Partial<Capture>): Capture {
     screenshotBase64: TINY_PNG,
     htmlContent: "<html><body>Test page</body></html>",
     notes: "",
-    linkedRubricIds: [],
     ...overrides,
   };
 }
@@ -144,20 +146,19 @@ describe("exportSession", () => {
     expect(rows[0].Linked_Capture_IDs).toBe("cap-001; cap-002");
   });
 
-  it("falls back to capture.linkedRubricIds when explicitEvidenceIds is empty", async () => {
+  it("populates Linked_Capture_IDs from explicitEvidenceIds only", async () => {
     const c1 = makeCapture({ id: "cap-001" });
-    const c1Linked = { ...c1, linkedRubricIds: ["TR.data_source_clarity"] };
 
     const evaluations: Evaluation[] = [
       {
         rubricId: "TR.data_source_clarity",
         score: 2,
         notes: "",
-        explicitEvidenceIds: [],
+        explicitEvidenceIds: ["cap-001"],
       },
     ];
 
-    const blob = await exportSession(makeMetadata(), [c1Linked], evaluations, RUBRIC);
+    const blob = await exportSession(makeMetadata(), [c1], evaluations, RUBRIC);
     const files = await unzipToFiles(blob);
     const csv = files.get("rubric_scores.csv") as string;
 
@@ -169,7 +170,6 @@ describe("exportSession", () => {
     const c = makeCapture({
       id: "cap-001",
       notes: "Homepage screenshot",
-      linkedRubricIds: ["TR.data_source_clarity"],
     });
 
     const blob = await exportSession(makeMetadata(), [c], [], RUBRIC);
@@ -180,20 +180,20 @@ describe("exportSession", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].Capture_ID).toBe("cap-001");
     expect(rows[0].User_Notes).toBe("Homepage screenshot");
-    expect(rows[0].Tagged_Rubric_IDs).toBe("TR.data_source_clarity");
   });
 
-  it("includes a PDF report", async () => {
+  it("includes an HTML report", async () => {
     const blob = await exportSession(makeMetadata(), [], [], RUBRIC);
     const files = await unzipToFiles(blob);
 
-    const pdfPath = "Evaluation_Report_TestSearch.pdf";
-    expect(files.has(pdfPath)).toBe(true);
+    const htmlPath = "Evaluation_Report_TestSearch.html";
+    expect(files.has(htmlPath)).toBe(true);
 
-    const pdfData = files.get(pdfPath) as Uint8Array;
-    // PDF files start with %PDF
-    const header = new TextDecoder().decode(pdfData.slice(0, 4));
-    expect(header).toBe("%PDF");
+    const html = files.get(htmlPath) as string;
+    expect(html).toContain("<!DOCTYPE html>");
+    expect(html).toContain("TestSearch");
+    expect(html).toContain("TRUST");
+    expect(html).toContain("@media print");
   });
 
   it("handles empty session (no captures, no evaluations)", async () => {
@@ -203,14 +203,14 @@ describe("exportSession", () => {
     expect(files.has("session_metadata.csv")).toBe(true);
     expect(files.has("rubric_scores.csv")).toBe(true);
     expect(files.has("capture_log.csv")).toBe(true);
-    expect(files.has("Evaluation_Report_TestSearch.pdf")).toBe(true);
+    expect(files.has("Evaluation_Report_TestSearch.html")).toBe(true);
 
     const captureCsv = files.get("capture_log.csv") as string;
     const rows = parseCsv(captureCsv);
     expect(rows).toHaveLength(0);
   });
 
-  it("handles N/A scores in CSV and PDF", async () => {
+  it("handles N/A scores in CSV and HTML report", async () => {
     const evaluations: Evaluation[] = [
       {
         rubricId: "TR.methodology_disclosure",
@@ -228,9 +228,111 @@ describe("exportSession", () => {
     const row = rows.find((r) => r.Question_ID === "TR.methodology_disclosure");
     expect(row!.Score).toBe("na");
 
-    const pdfData = files.get("Evaluation_Report_TestSearch.pdf") as Uint8Array;
-    const header = new TextDecoder().decode(pdfData.slice(0, 4));
-    expect(header).toBe("%PDF");
+    const html = files.get("Evaluation_Report_TestSearch.html") as string;
+    expect(html).toContain("N/A");
   });
 
+  it("includes review_conclusions.csv when finalization is provided", async () => {
+    const finalization = {
+      grade: "pass" as const,
+      conclusion: "Solid tool overall",
+      strengths: ["Transparent methodology", "Good documentation"],
+      weaknesses: ["Slow response times"],
+      recommendations: "Improve performance",
+      finalizedAt: "2025-06-01T12:00:00.000Z",
+    };
+
+    const blob = await exportSession(makeMetadata(), [], [], RUBRIC, finalization);
+    const files = await unzipToFiles(blob);
+    const csv = files.get("review_conclusions.csv") as string;
+    expect(csv).toBeDefined();
+
+    const rows = parseCsv(csv);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].Grade).toBe("pass");
+    expect(rows[0].Conclusion).toBe("Solid tool overall");
+    expect(rows[0].Strengths).toBe("Transparent methodology; Good documentation");
+    expect(rows[0].Weaknesses).toBe("Slow response times");
+  });
+
+  it("does not include review_conclusions.csv when no finalization", async () => {
+    const blob = await exportSession(makeMetadata(), [], [], RUBRIC);
+    const files = await unzipToFiles(blob);
+    expect(files.has("review_conclusions.csv")).toBe(false);
+  });
+
+  it("includes finalization grade in HTML report", async () => {
+    const finalization = {
+      grade: "conditional" as const,
+      conclusion: "Needs improvement",
+      strengths: [],
+      weaknesses: ["Limited docs"],
+      recommendations: "Add documentation",
+      finalizedAt: "2025-06-01T12:00:00.000Z",
+    };
+
+    const blob = await exportSession(makeMetadata(), [], [], RUBRIC, finalization);
+    const files = await unzipToFiles(blob);
+    const html = files.get("Evaluation_Report_TestSearch.html") as string;
+    expect(html).toContain("CONDITIONAL");
+    expect(html).toContain("Needs improvement");
+    expect(html).toContain("Limited docs");
+  });
+
+});
+
+describe("buildHtmlReport", () => {
+  it("produces valid HTML with tool name", async () => {
+    const html = await buildHtmlReport(makeMetadata(), [], [], RUBRIC);
+    expect(html).toContain("<!DOCTYPE html>");
+    expect(html).toContain("TestSearch");
+    expect(html).toContain("Quality Gate Status");
+    expect(html).toContain("</html>");
+  });
+
+  it("includes evaluation scores with color coding", async () => {
+    const evaluations: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 3, notes: "Excellent", explicitEvidenceIds: [] },
+      { rubricId: "RE.result_accuracy", score: 1, notes: "Needs work", explicitEvidenceIds: [] },
+    ];
+    const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
+    expect(html).toContain("#4a8355");
+    expect(html).toContain("#ea580c");
+  });
+
+  it("renders finalization verdict", async () => {
+    const finalization = {
+      grade: "pass" as const,
+      conclusion: "Solid tool",
+      strengths: ["Good docs"],
+      weaknesses: [],
+      recommendations: "",
+      finalizedAt: "2025-06-01T12:00:00.000Z",
+    };
+    const html = await buildHtmlReport(makeMetadata(), [], [], RUBRIC, finalization);
+    expect(html).toContain("PASSED");
+    expect(html).toContain("Solid tool");
+    expect(html).toContain("Good docs");
+  });
+
+  it("renders evidence images linked to evaluations", async () => {
+    const c = makeCapture({ id: "cap-001", pageTitle: "Results Page" });
+    const evaluations: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: ["cap-001"] },
+    ];
+    const html = await buildHtmlReport(makeMetadata(), [c], evaluations, RUBRIC);
+    expect(html).toContain("Results Page");
+    expect(html).toContain("evidence-item");
+  });
+
+  it("escapes HTML in user-generated content", async () => {
+    const html = await buildHtmlReport(
+      makeMetadata({ notes: '<script>alert("xss")</script>' }),
+      [],
+      [],
+      RUBRIC,
+    );
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("&lt;script&gt;");
+  });
 });

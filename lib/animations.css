@@ -1,11 +1,1 @@
-@keyframes ratingBorderConfirm {
-  0% {
-    border-bottom-width: 2px;
-  }
-  40% {
-    border-bottom-width: 5px;
-  }
-  100% {
-    border-bottom-width: 3px;
-  }
-}
+/* Animations — currently empty. Keyframes will be added here as needed. */
