@@ -76,6 +76,15 @@ export default {
         "ut-kicker": "var(--ls-kicker)",
         "ut-panel-title": "var(--ls-panel-title)",
       },
+      animation: {
+        "pulse-capture": "pulse-capture 1s ease-in-out infinite",
+      },
+      keyframes: {
+        "pulse-capture": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
+      },
     },
   },
   plugins: [],
