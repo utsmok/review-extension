@@ -36,7 +36,15 @@ export function buildHtmlReport(
   }
 
   const ratio = totalMax > 0 ? totalActual / totalMax : 0;
-  const computedFailed = anyFail || ratio < 0.5;
+  const principleFail = PRINCIPLES.some((p) => {
+    if (!(p.id in rubric.scoring_rubric)) return false;
+    const scores = catScores.get(p.id) ?? [];
+    const numeric = scores.filter((s): s is number => typeof s === "number");
+    if (numeric.length === 0) return false;
+    const avg = numeric.reduce((a, b) => a + b, 0) / numeric.length;
+    return avg < 1.0;
+  });
+  const computedFailed = anyFail || ratio < 0.6 || principleFail;
   let verdict: string;
   let verdictColor: string;
   if (finalization) {
@@ -677,7 +685,7 @@ export function buildHtmlReport(
     ? esc(finalization.conclusion.length > 120 ? `${finalization.conclusion.slice(0, 120)}...` : finalization.conclusion)
     : anyFail
       ? "Quality gate failure"
-      : `Score ${Math.round(ratio * 100)}%${ratio >= 0.5 ? " meets threshold" : " below threshold"}`}</div>
+      : `Score ${Math.round(ratio * 100)}%${computedFailed ? " — " + (anyFail ? "quality gate failure" : principleFail ? "principle below minimum" : "below threshold") : " meets threshold"}`}</div>
 </div>
 
 <div class="bottom-bar"></div>

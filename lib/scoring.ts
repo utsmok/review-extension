@@ -51,3 +51,14 @@ export function distributionBar(scores: (number | "na" | "unsure" | "" | undefin
   }).join("");
   return `<div class="dist-bar">${segments}</div>`;
 }
+
+export function principleAverage(
+  categoryId: string,
+  evaluations: Evaluation[],
+  rubric: RubricData,
+): number | null {
+  const scores = getCategoryScores(categoryId, evaluations, rubric);
+  const numeric = scores.filter((s): s is number => typeof s === "number");
+  if (numeric.length === 0) return null;
+  return numeric.reduce((a, b) => a + b, 0) / numeric.length;
+}
