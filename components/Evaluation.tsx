@@ -57,10 +57,10 @@ export default function Evaluation() {
   const [viewCapture, setViewCapture] = useState<Capture | null>(null);
 
   const progress = useMemo(() => {
-    if (!rubric) return { scored: 0, total: 0 };
+    if (!rubric) return { scored: 0, total: 0, complete: false };
     const total = getRubricQuestionIds(rubric).length;
     const scored = evaluations.filter((e) => e.score !== "" && e.score !== undefined).length;
-    return { scored, total };
+    return { scored, total, complete: total > 0 && scored >= total };
   }, [evaluations, rubric]);
 
   const handleConfirmRemove = (capture: Capture, rubricId: string) => {
@@ -95,8 +95,20 @@ export default function Evaluation() {
             </button>
           ))}
         </div>
-        <span className="text-ut-xs font-mono text-ut-muted pb-ut-2 whitespace-nowrap pl-ut-2">
-          {progress.scored}/{progress.total} scored
+        <span
+          className={`text-ut-xs font-mono pb-ut-2 whitespace-nowrap pl-ut-2 transition-colors ${
+            progress.complete ? "text-ut-green font-bold" : "text-ut-muted"
+          }`}
+        >
+          {progress.complete ? (
+            <>
+              {progress.scored}/{progress.total} scored — All complete!
+            </>
+          ) : (
+            <>
+              {progress.scored}/{progress.total} scored
+            </>
+          )}
         </span>
       </div>
 
