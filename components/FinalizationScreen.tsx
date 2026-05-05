@@ -3,10 +3,10 @@ import { useActiveSession } from "@/hooks/useActiveSession";
 import { useTabNavigation } from "@/lib/tab-navigation-context";
 import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
 
-const GRADES: { value: FinalizationGrade; label: string; color: string }[] = [
-  { value: "pass", label: "Pass", color: "bg-ut-green" },
-  { value: "conditional", label: "Conditional", color: "bg-score-1" },
-  { value: "fail", label: "Fail", color: "bg-ut-red" },
+const GRADES: { value: FinalizationGrade; label: string; color: string; tint: string }[] = [
+  { value: "pass", label: "Pass", color: "bg-ut-green", tint: "bg-grade-pass-tint" },
+  { value: "conditional", label: "Conditional", color: "bg-score-1", tint: "bg-grade-conditional-tint" },
+  { value: "fail", label: "Fail", color: "bg-ut-red", tint: "bg-grade-fail-tint" },
 ];
 
 export default function FinalizationScreen() {
@@ -18,7 +18,10 @@ export default function FinalizationScreen() {
   const [strengths, setStrengths] = useState<string[]>(finalization?.strengths ?? [""]);
   const [weaknesses, setWeaknesses] = useState<string[]>(finalization?.weaknesses ?? [""]);
   const [recommendations, setRecommendations] = useState(finalization?.recommendations ?? "");
-  const [justSaved, setJustSaved] = useState(false);
+  const [saved, setSaved] = useState(!!finalization);
+
+  // Track if user has edited since last save (to clear persistent "Saved" indicator)
+  const lastSavedData = useRef<ReviewFinalization | null>(finalization ?? null);
 
   // C8: Sync local state when store finalization changes externally
   useEffect(() => {
@@ -28,12 +31,16 @@ export default function FinalizationScreen() {
       setStrengths(finalization.strengths.length > 0 ? finalization.strengths : [""]);
       setWeaknesses(finalization.weaknesses.length > 0 ? finalization.weaknesses : [""]);
       setRecommendations(finalization.recommendations);
+      setSaved(true);
+      lastSavedData.current = finalization;
     } else {
       setGrade("");
       setConclusion("");
       setStrengths([""]);
       setWeaknesses([""]);
       setRecommendations("");
+      setSaved(false);
+      lastSavedData.current = null;
     }
   }, [finalization]);
 
@@ -49,8 +56,8 @@ export default function FinalizationScreen() {
       finalizedAt: new Date().toISOString(),
     };
     setFinalization(data);
-    setJustSaved(true);
-    setTimeout(() => setJustSaved(false), 2000);
+    lastSavedData.current = data;
+    setSaved(true);
   };
 
   const handleClear = () => {
@@ -60,26 +67,30 @@ export default function FinalizationScreen() {
     setWeaknesses([""]);
     setRecommendations("");
     setFinalization(null);
-    setJustSaved(false);
+    setSaved(false);
+    lastSavedData.current = null;
   };
 
-  const _updateListItem = (
-    list: string[],
-    setter: (v: string[]) => void,
-    idx: number,
-    value: string,
-  ) => {
-    const next = [...list];
-    next[idx] = value;
-    setter(next);
+  // Detect edits to mark unsaved state
+  const handleGradeChange = (g: FinalizationGrade) => {
+    setGrade(g);
+    setSaved(false);
   };
-
-  const _removeListItem = (list: string[], setter: (v: string[]) => void, idx: number) => {
-    setter(list.filter((_, i) => i !== idx));
+  const handleConclusionChange = (v: string) => {
+    setConclusion(v);
+    setSaved(false);
   };
-
-  const _addListItem = (list: string[], setter: (v: string[]) => void) => {
-    setter([...list, ""]);
+  const handleStrengthsChange = (items: string[]) => {
+    setStrengths(items);
+    setSaved(false);
+  };
+  const handleWeaknessesChange = (items: string[]) => {
+    setWeaknesses(items);
+    setSaved(false);
+  };
+  const handleRecommendationsChange = (v: string) => {
+    setRecommendations(v);
+    setSaved(false);
   };
 
   return (
@@ -93,20 +104,18 @@ export default function FinalizationScreen() {
           <p className="text-ut-xs text-ut-muted font-mono">
             Finalized {new Date(finalization.finalizedAt).toLocaleString()}
           </p>
-          {(justSaved || finalization) && (
-            <div className="flex items-center gap-ut-2 mt-1">
-              <span className="text-ut-xs text-ut-muted font-heading uppercase tracking-ut-label">
-                Ready to export
-              </span>
-              <button
-                type="button"
-                className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta hover:text-trust-magenta-strong transition-colors"
-                onClick={() => setActiveTab("Metadata")}
-              >
-                Export review &rarr;
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-ut-2 mt-1">
+            <span className="text-ut-xs text-ut-muted font-heading uppercase tracking-ut-label">
+              Ready to export
+            </span>
+            <button
+              type="button"
+              className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta hover:text-trust-magenta-strong transition-colors"
+              onClick={() => setActiveTab("Metadata")}
+            >
+              Export review &rarr;
+            </button>
+          </div>
         </div>
       )}
 
@@ -120,11 +129,11 @@ export default function FinalizationScreen() {
             <button
               key={g.value}
               type="button"
-              onClick={() => setGrade(g.value)}
+              onClick={() => handleGradeChange(g.value)}
               className={`flex-1 px-ut-3 py-ut-2 rounded-ut-sm text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase transition-colors ${
                 grade === g.value
                   ? `${g.color} text-white`
-                  : "border border-ut-border bg-ut-grey text-ut-text hover:bg-neutral-100"
+                  : `border border-ut-border ${g.tint} text-ut-text hover:brightness-95`
               }`}
             >
               {g.label}
@@ -143,7 +152,7 @@ export default function FinalizationScreen() {
           rows={4}
           placeholder="Overall summary of the review..."
           value={conclusion}
-          onChange={(e) => setConclusion(e.target.value)}
+          onChange={(e) => handleConclusionChange(e.target.value)}
         />
       </label>
 
@@ -151,7 +160,7 @@ export default function FinalizationScreen() {
       <BulletListEditor
         label="Strengths"
         items={strengths}
-        onChange={(items) => setStrengths(items)}
+        onChange={handleStrengthsChange}
         placeholder="Describe a strength..."
       />
 
@@ -159,7 +168,7 @@ export default function FinalizationScreen() {
       <BulletListEditor
         label="Weaknesses"
         items={weaknesses}
-        onChange={(items) => setWeaknesses(items)}
+        onChange={handleWeaknessesChange}
         placeholder="Describe a weakness..."
       />
 
@@ -173,34 +182,38 @@ export default function FinalizationScreen() {
           rows={3}
           placeholder="Suggestions for improvement..."
           value={recommendations}
-          onChange={(e) => setRecommendations(e.target.value)}
+          onChange={(e) => handleRecommendationsChange(e.target.value)}
         />
       </label>
 
       {/* Actions */}
-      <div className="border-t-2 border-ut-border pt-ut-3 mt-1">
+      <div className="border-t-2 border-ut-border pt-ut-3 mt-1 flex items-center gap-ut-2">
         <button
           type="button"
-          className={`w-full rounded-ut-sm px-ut-4 py-ut-3 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase disabled:opacity-50 transition-colors ${
-            justSaved
-              ? "bg-ut-green text-white"
-              : "bg-trust-magenta text-white hover:bg-trust-magenta-strong"
-          }`}
-          disabled={!grade || justSaved}
+          className="flex-1 rounded-ut-sm px-ut-4 py-ut-3 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase disabled:opacity-50 bg-trust-magenta text-white hover:bg-trust-magenta-strong transition-colors"
+          disabled={!grade}
           onClick={handleSave}
         >
-          {justSaved ? "Saved" : "Save Finalization"}
+          Save Finalization
         </button>
-        {finalization && (
-          <button
-            type="button"
-            className="w-full mt-ut-2 rounded-ut-sm px-ut-4 py-2 text-ut-sm transition-colors font-heading font-bold uppercase tracking-ut-uppercase text-ut-slate hover:text-ut-red"
-            onClick={handleClear}
-          >
-            Clear Finalization
-          </button>
+        {saved && (
+          <span className="flex items-center gap-1 text-ut-green text-ut-xs font-heading font-bold uppercase tracking-ut-label shrink-0">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M3 7.5l3 3 6-6" />
+            </svg>
+            Saved
+          </span>
         )}
       </div>
+      {finalization && (
+        <button
+          type="button"
+          className="w-full rounded-ut-sm px-ut-4 py-2 text-ut-sm transition-colors font-heading font-bold uppercase tracking-ut-uppercase text-ut-slate hover:text-ut-red"
+          onClick={handleClear}
+        >
+          Clear Finalization
+        </button>
+      )}
     </div>
   );
 }
