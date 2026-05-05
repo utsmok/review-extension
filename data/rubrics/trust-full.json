@@ -129,6 +129,18 @@
         "2_basic": "The tool either shows diverse results in practice or documents how it tries to be fair.",
         "3_basic": "The tool both shows diverse results and publishes reports about its fairness efforts and source coverage.",
         "ai_only": false
+      },
+      "data_handling": {
+        "title": "Data handling practices",
+        "0": "No transparency about data retention, encryption, or breach notification — privacy policy is vague or missing on these topics.",
+        "1": "Privacy policy exists but provides only generic statements about data protection without specifics on retention or security.",
+        "2": "Clearly states data retention periods and encryption practices (e.g., 'data stored for 30 days', 'encrypted at rest').",
+        "3": "Comprehensive data handling documentation: retention periods, encryption standards, breach notification policy, data residency, and user data export/deletion options.",
+        "0_basic": "No clear information about how long your data is kept or how it's protected.",
+        "1_basic": "The privacy policy exists but is vague about data retention and security.",
+        "2_basic": "The tool clearly states how long it keeps your data and that it uses encryption.",
+        "3_basic": "The tool provides full details: how long data is kept, how it's encrypted, what happens if there's a data breach, and how you can delete your data.",
+        "ai_only": false
       }
     },
     "TC": {

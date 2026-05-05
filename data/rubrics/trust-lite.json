@@ -129,6 +129,18 @@
         "2_basic": "You can see diverse results in the tool, or it documents how it works to be fair.",
         "3_basic": "The tool both shows diverse results and publishes reports about how it tries to be fair.",
         "ai_only": false
+      },
+      "data_handling": {
+        "title": "How does the tool protect your data?",
+        "0": "No clear information about data retention or security.",
+        "1": "The privacy policy mentions data protection but doesn't give specifics.",
+        "2": "The tool clearly states how long it keeps your data and that it uses encryption.",
+        "3": "The tool provides full details: how long data is kept, how it's encrypted, and how you can delete your data.",
+        "0_basic": "It's unclear what happens to your data after you use the tool.",
+        "1_basic": "The tool says your data is 'protected' but doesn't explain how.",
+        "2_basic": "The tool tells you how long it stores your data and that it's encrypted.",
+        "3_basic": "The tool explains everything: storage time, encryption, what happens if there's a security breach, and how to delete your data.",
+        "ai_only": false
       }
     },
     "TC": {
