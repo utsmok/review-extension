@@ -7,8 +7,8 @@
       "data_privacy": {
         "type": "pass_fail",
         "title": "Data privacy",
-        "requirement": "Tool must comply with GDPR and SURF/institutional safety guidelines.",
-        "basic_requirement": "Does the tool have a clear privacy policy that explains how your data is handled?",
+        "requirement": "Tool must have a publicly accessible privacy policy that clearly states what user data is collected, how it is processed, and how long it is retained. The policy must reference GDPR, the right to erasure, or an equivalent data protection framework.",
+        "basic_requirement": "Can you find a privacy policy that explains what data the tool collects, what it does with your data, and whether it follows GDPR or similar protections? Provide a screenshot or link as evidence.",
         "ai_only": false
       },
       "training_policy": {
@@ -23,17 +23,17 @@
       "citation_mechanism": {
         "type": "pass_fail",
         "title": "Citation mechanism",
-        "requirement": "Tool must use verifiable, inline citations for every AI-generated claim.",
-        "basic_requirement": "Does the tool show where each piece of information comes from (with clickable links)?",
+        "requirement": "Tool must provide inline citations as its standard output format for AI-generated claims. Occasional uncited claims are acceptable but must be the exception, not the rule. Cited claims must link to real, accessible sources.",
+        "basic_requirement": "Does the tool show where its information comes from? Look for clickable references that actually work. It's okay if a few claims lack citations, but most should have them.",
         "ai_only": true
       }
     },
     "accessibility": {
       "compliance": {
         "type": "pass_fail",
-        "title": "Compliance",
-        "requirement": "Tool must meet baseline accessibility standards (e.g., WCAG 2.1) for university-wide recommendation.",
-        "basic_requirement": "Can people with disabilities use this tool? Look for screen reader support, keyboard navigation, and text resizing.",
+        "title": "Accessibility",
+        "requirement": "Tool must support keyboard navigation to all major features, allow text resizing to at least 200% without content loss, and provide alt text for images. An accessibility statement or conformance claim (e.g., WCAG 2.1 AA) is strong supporting evidence.",
+        "basic_requirement": "Can you use the tool with just a keyboard? Can you make the text bigger without breaking the layout? Do images have descriptions? Mark pass if you can confirm at least keyboard navigation works and the tool provides an accessibility statement.",
         "ai_only": false
       }
     }
