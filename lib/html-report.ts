@@ -1,19 +1,933 @@
 import { PRINCIPLES } from "./principles";
-import { getCategoryLabel } from "./rubric";
-import { distributionBar } from "./scoring";
+import { getCategoryLabel, getQuestionCode, distributionBar, scoreColor } from "./rubric";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
-import { computeReportScores } from "./report/compute-scores";
-import { REPORT_COLORS } from "./report/constants";
-import { REPORT_CSS } from "./report/styles";
-import {
-  buildCategorySections,
-  buildFinalizationSection,
-  buildGateRows,
-  buildScoreLegend,
-  buildToc,
-  buildUnlinkedSection,
-} from "./report/sections";
-import { compressScreenshot, esc, formatDate, safeLink } from "./report/utils";
+import { computeReportScores, type ReportScores } from "./report/compute-scores";
+
+// ── Constants ──────────────────────────────────────────────────────────
+
+/** Darkened report-local colors for WCAG AA contrast with white text */
+const REPORT_COLORS: Record<string, string> = Object.fromEntries(
+  PRINCIPLES.map((p) => [p.id, p.reportColor]),
+);
+
+/** Principle full names for display */
+const PRINCIPLE_NAMES: Record<string, string> = Object.fromEntries(
+  PRINCIPLES.map((p) => [p.id, p.fullName]),
+);
+
+/** Grade colors used in finalization verdict */
+const GRADE_COLORS: Record<string, string> = {
+  pass: "#4a8355",
+  conditional: "#ea580c",
+  fail: "#c60c30",
+};
+
+/** Grade labels used in finalization verdict */
+const GRADE_LABELS: Record<string, string> = {
+  pass: "PASSED",
+  conditional: "CONDITIONAL",
+  fail: "FAILED",
+};
+
+/** Fallback UI colors */
+const MUTED_COLOR = "#6b7f94";
+const DEFAULT_COLOR = "#4f5e73";
+
+/** All CSS for the standalone HTML evaluation report. */
+const REPORT_CSS = `
+  :root {
+    --magenta: #8e036c;
+    --navy: #002c5f;
+    --text: #172033;
+    --muted: #4f5e73;
+    --slate: #4c5e74;
+    --border: #bfc6cf;
+    --canvas: #eef0f3;
+    --panel: #f3f4f6;
+    --white: #fafbfc;
+    --link: #2563eb;
+    --ff-body: "Inter", system-ui, sans-serif;
+    --ff-heading: "Arial Narrow", Arial, sans-serif;
+    --ff-mono: "JetBrains Mono", monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 15px; }
+  body {
+    font-family: var(--ff-body);
+    color: var(--text);
+    background: var(--canvas);
+    line-height: 1.55;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* Top bar */
+  .top-bar { height: 6px; background: var(--magenta); margin: 0 -24px 24px; }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .header-tool {
+    font-family: var(--ff-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--magenta);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .header-meta {
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .divider { height: 4px; background: var(--navy); margin: 0 0 16px; }
+
+  /* TRUST letterform */
+  .letterform {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .letterform-letter {
+    font-family: var(--ff-heading);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.08em;
+  }
+  .letterform-letters {
+    display: flex;
+    gap: 2px;
+    padding: 6px 12px;
+    border: 2px solid var(--navy);
+    border-radius: 2px;
+    background: var(--white);
+  }
+  .letterform-score {
+    margin-left: auto;
+    text-align: right;
+  }
+  .letterform-score .total {
+    font-family: var(--ff-heading);
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+  .letterform-score .pct {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* Gate summary */
+  .gate-summary {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 4px solid var(--navy);
+    margin-bottom: 12px;
+    font-family: var(--ff-heading);
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .accent-bar { height: 3px; background: var(--navy); margin: 8px 0; }
+
+  /* Table of Contents */
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+  .toc-label {
+    font-family: var(--ff-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-right: 4px;
+    align-self: center;
+  }
+  .toc-item {
+    font-size: 0.8rem;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .toc-item:hover { text-decoration: underline; }
+  .toc-code {
+    font-family: var(--ff-mono);
+    font-weight: 700;
+  }
+
+  /* Score legend */
+  .score-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 0.78rem;
+  }
+  .legend-label {
+    font-family: var(--ff-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-right: 2px;
+  }
+
+  /* Category table (nutrition label style) */
+  .cat-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+  }
+  .cat-table td { padding: 6px 8px; vertical-align: middle; }
+  .cat-table .cat-code {
+    font-family: var(--ff-heading);
+    font-size: 1.3rem;
+    font-weight: 800;
+    width: 40px;
+  }
+  .cat-table .cat-label {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .cat-table .cat-indicators { width: 100px; }
+  .cat-table .cat-evidence {
+    width: 50px;
+    text-align: center;
+    font-family: var(--ff-mono);
+  }
+  .cat-table .cat-evidence .count {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+  .cat-table .cat-evidence .label {
+    font-size: 0.55rem;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .cat-table tr + tr { border-top: 1px solid var(--border); }
+
+  /* Distribution bar */
+  .dist-bar {
+    display: flex;
+    height: 10px;
+    background: var(--panel);
+    border-radius: 1px;
+    border: 1px solid rgba(0,0,0,0.12);
+    overflow: hidden;
+    margin-top: 4px;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .dist-seg { min-width: 2px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .dist-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    font-size: 0.7rem;
+    color: var(--slate);
+  }
+
+  /* Verdict */
+  .verdict-bar { height: 6px; margin-top: 12px; }
+  .verdict-block {
+    text-align: center;
+    padding: 24px 0;
+  }
+  .verdict-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .verdict-text {
+    font-family: var(--ff-heading);
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 700;
+  }
+  .verdict-reason {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .bottom-bar { height: 4px; background: var(--magenta); margin: 16px 0 8px; }
+
+  /* Footer */
+  .footer {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--slate);
+    margin-bottom: 32px;
+  }
+
+  /* Full report section */
+  .report-header {
+    padding-top: 24px;
+    border-top: 2px solid var(--magenta);
+    margin-top: 32px;
+  }
+  .report-header h1 {
+    font-family: var(--ff-heading);
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--magenta);
+    margin-bottom: 4px;
+  }
+  .report-meta-url { color: var(--link); }
+
+  /* Quality gates table */
+  .qg-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+    font-size: 0.85rem;
+  }
+  .qg-table th {
+    background: var(--navy);
+    color: #fff;
+    font-family: var(--ff-heading);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 2px solid #001a3a;
+  }
+  .qg-table td { padding: 5px 8px; border-bottom: 1px solid var(--panel); }
+  .qg-table .code {
+    font-family: var(--ff-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--muted);
+    width: 40px;
+  }
+  .qg-table .notes { color: var(--muted); font-size: 0.8rem; }
+
+  .gate-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    font-family: var(--ff-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 1px;
+  }
+
+  /* Category section */
+  .category-section {
+    margin-bottom: 32px;
+    border-top: 3px solid var(--accent);
+  }
+  .category-section.category-alt {
+    background: #fafafa;
+  }
+  .category-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    background: color-mix(in srgb, var(--accent) 6%, var(--white));
+  }
+  .category-letter-block { text-align: center; min-width: 48px; }
+  .category-letter {
+    font-family: var(--ff-heading);
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .category-letter-name {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    margin-top: 2px;
+  }
+  .category-info h2 {
+    font-family: var(--ff-heading);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+  }
+  .category-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: var(--ff-mono);
+    margin-bottom: 6px;
+  }
+  .category-table-wrap { overflow-x: auto; }
+  .category-section table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  .category-section th {
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--ff-heading);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    padding: 5px 8px;
+    text-align: left;
+    border-bottom: 2px solid color-mix(in srgb, var(--accent) 70%, black);
+  }
+  .category-section td { padding: 5px 8px; border-bottom: 1px solid var(--panel); vertical-align: top; }
+  .category-section .code {
+    font-family: var(--ff-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    width: 36px;
+  }
+  .category-section .score-cell { width: 44px; }
+  .category-section .level { width: 180px; color: var(--muted); font-size: 0.78rem; }
+  .category-section .notes { font-size: 0.78rem; }
+
+  .score-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    font-family: var(--ff-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 1px;
+  }
+
+  .evidence-row td { padding: 0 8px 8px 52px !important; border-bottom: none !important; }
+  .evidence-list { display: flex; flex-direction: column; gap: 8px; }
+  .evidence-item {
+    display: flex;
+    gap: 12px;
+    padding: 8px;
+    background: var(--panel);
+    border-radius: 2px;
+  }
+  .evidence-item.evidence-weak {
+    border-left: 3px solid #c60c30;
+    background: #fef2f2;
+  }
+  .evidence-item img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--border);
+    border-radius: 1px;
+  }
+  .evidence-meta { font-size: 0.75rem; }
+  .evidence-meta strong { display: block; margin-bottom: 2px; }
+  .evidence-time { color: var(--muted); font-family: var(--ff-mono); font-size: 0.75rem; }
+
+  /* Finalization */
+  .finalization-section {
+    border-top: 4px solid var(--magenta);
+    padding-top: 16px;
+    margin-bottom: 32px;
+  }
+  .fin-bar { height: 4px; margin-bottom: 12px; }
+  .fin-grade {
+    text-align: center;
+    font-family: var(--ff-heading);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    padding: 16px 0;
+    margin-bottom: 16px;
+    letter-spacing: 0.03em;
+    border: 2px solid currentColor;
+    border-radius: 2px;
+    opacity: 0.95;
+  }
+  .fin-block { margin-bottom: 16px; }
+  .fin-block h3 {
+    font-family: var(--ff-heading);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 6px;
+  }
+  .fin-block p, .fin-block li { font-size: 0.85rem; line-height: 1.5; }
+  .fin-block ul { padding-left: 20px; }
+  .fin-timestamp { font-size: 0.75rem; color: var(--slate); text-align: right; }
+
+  /* Supplementary foldout rows */
+  .supplementary-row td { border-bottom: none !important; }
+  .supplementary-cell { padding: 2px 8px 2px 52px !important; }
+  .supplementary-cell details { font-size: 0.75rem; }
+  .supplementary-summary {
+    font-family: var(--ff-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--slate);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .supplementary-summary::-webkit-details-marker { display: none; }
+  .supplementary-summary::before { content: "▸"; font-size: 8px; }
+  .supplementary-cell details[open] .supplementary-summary::before { content: "▾"; }
+  .supplementary-cell p { color: var(--muted); line-height: 1.5; margin-top: 4px; }
+  .examples-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .examples-table td { padding: 3px 6px; font-size: 0.78rem; border-bottom: 1px solid var(--panel); }
+  .ex-level {
+    font-family: var(--ff-mono);
+    font-weight: 700;
+    color: var(--slate);
+    width: 36px;
+    vertical-align: top;
+  }
+
+  /* Unlinked evidence */
+  .unlinked-section {
+    border-top: 2px solid var(--magenta);
+    padding-top: 16px;
+    margin-bottom: 32px;
+  }
+  .unlinked-section h2 {
+    font-family: var(--ff-heading);
+    font-size: 1rem;
+    text-transform: uppercase;
+    color: var(--magenta);
+    margin-bottom: 12px;
+  }
+  .unlinked-item {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--panel);
+  }
+  .unlinked-item img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--border);
+    border-radius: 1px;
+  }
+  .unlinked-meta { font-size: 0.8rem; }
+  .unlinked-meta strong { display: block; margin-bottom: 4px; }
+  .unlinked-meta a { color: var(--link); font-size: 0.75rem; }
+  .unlinked-meta span { display: block; color: var(--muted); font-family: var(--ff-mono); font-size: 0.75rem; }
+
+  .url-plain { color: var(--muted); font-size: 0.75rem; word-break: break-all; }
+
+  @media (max-width: 640px) {
+    body { padding: 12px; }
+    .header { flex-direction: column; gap: 8px; }
+    .header-meta { text-align: left; }
+    .letterform { flex-wrap: wrap; }
+    .letterform-score { margin-left: 0; width: 100%; }
+    .gate-summary { flex-wrap: wrap; }
+    .cat-table, .qg-table, .category-section table { display: block; overflow-x: auto; }
+    .category-header { flex-wrap: wrap; }
+    .unlinked-item { flex-wrap: wrap; }
+    .evidence-item { flex-wrap: wrap; }
+    .evidence-item img { max-width: 100%; }
+    .toc { flex-wrap: wrap; }
+  }
+
+  @media print {
+    html { font-size: 12px; }
+    body { max-width: none; padding: 0; background: #fff; }
+    .top-bar, .divider, .accent-bar, .bottom-bar, .verdict-bar, .fin-bar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .category-header, .gate-badge, .score-badge, .fin-grade { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    table th, .category-section th, .qg-table th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .dist-bar, .dist-seg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .report-header { page-break-before: always; border-top: none; padding-top: 0; margin-top: 0; }
+    .category-section { page-break-inside: avoid; }
+    .finalization-section { page-break-inside: avoid; }
+    .unlinked-item { page-break-inside: avoid; }
+    .evidence-item { page-break-inside: avoid; }
+    .evidence-item img { max-width: 250px; }
+    .unlinked-item img { max-width: 280px; }
+
+    /* Print footer with page numbering */
+    @page {
+      margin-bottom: 2cm;
+      @bottom-center {
+        content: "Page " counter(page) " of " counter(pages) · "TRUST Framework Evaluation Report · " "Confidential";
+        font-size: 8px;
+        color: #6b7f94;
+      }
+    }
+  }
+`;
+
+// ── Utilities ──────────────────────────────────────────────────────────
+
+/** HTML-escape a string for safe embedding in templates. */
+function esc(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/** Validate URL starts with http:// or https:// */
+function isSafeUrl(url: string): boolean {
+  return /^https?:\/\//i.test(url.trim());
+}
+
+/** Render a URL as a link if valid, otherwise as plain text */
+function safeLink(url: string, attrs: string = ""): string {
+  const escaped = esc(url);
+  if (isSafeUrl(url)) {
+    return `<a href="${escaped}" rel="noopener noreferrer" target="_blank" ${attrs}>${escaped}</a>`;
+  }
+  return `<span class="url-plain">${escaped}</span>`;
+}
+
+/** Format date consistently as YYYY-MM-DD HH:mm */
+function formatDate(isoString: string): string {
+  const d = new Date(isoString);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** Resize and compress a base64 data-URL image. Returns original if resize fails. */
+async function compressScreenshot(
+  dataUrl: string,
+  maxWidth = 800,
+  quality = 0.8,
+): Promise<string> {
+  try {
+    if (!dataUrl.startsWith("data:image/")) return dataUrl;
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("Image load failed"));
+      img.src = dataUrl;
+    });
+    if (img.width <= maxWidth) return dataUrl;
+    const scale = maxWidth / img.width;
+    const canvas = document.createElement("canvas");
+    canvas.width = maxWidth;
+    canvas.height = Math.round(img.height * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return dataUrl;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", quality);
+  } catch {
+    return dataUrl;
+  }
+}
+
+// ── Section builders ───────────────────────────────────────────────────
+
+function buildCategorySections(
+  captures: Capture[],
+  evaluations: Evaluation[],
+  rubric: RubricData,
+  compressedScreenshots: Map<string, string>,
+  scores: ReportScores,
+): string {
+  return PRINCIPLES.map((p, sectionIdx) => {
+    if (!(p.id in rubric.scoring_rubric)) return "";
+    const reportColor = REPORT_COLORS[p.id] ?? p.color;
+    const questions = rubric.scoring_rubric[p.id];
+    const catScores = scores.catScores.get(p.id) ?? [];
+    const catEvals = evaluations.filter((e) => e.rubricId.startsWith(`${p.id}.`));
+    const evidenceCount = captures.filter((c) =>
+      catEvals.some((e) => e.explicitEvidenceIds.includes(c.id)),
+    ).length;
+
+    const numeric = catScores.filter((s): s is number => typeof s === "number");
+    const avg =
+      numeric.length > 0 ? (numeric.reduce((a, b) => a + b, 0) / numeric.length).toFixed(1) : "—";
+    const catTotal = numeric.reduce((a, b) => a + b, 0);
+    const catMax = numeric.length * 3;
+
+    const rows = Object.entries(questions)
+      .map(([qId, levels], idx) => {
+        const rubricId = `${p.id}.${qId}`;
+        const ev = evaluations.find((e) => e.rubricId === rubricId);
+        const isNa = ev?.score === "na";
+        const isUnsure = ev?.score === "unsure";
+        const score = typeof ev?.score === "number" ? ev.score : -1;
+        const code = getQuestionCode(p.id, idx);
+        const levelDesc = isNa
+          ? "Not applicable"
+          : isUnsure
+            ? "Insufficient information"
+            : score >= 0
+              ? ((levels as unknown as Record<string, string>)[String(score)] ?? "—")
+              : "—";
+
+        const isWeakEvidence = score >= 0 && score <= 1;
+        const evidenceImgs = captures
+          .filter((c) => ev?.explicitEvidenceIds.includes(c.id))
+          .map(
+            (c) => `
+          <div class="evidence-item${isWeakEvidence ? " evidence-weak" : ""}">
+            <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
+            <div class="evidence-meta">
+              <strong>${esc(c.pageTitle || "Capture")}</strong>
+              <span class="evidence-time">${formatDate(c.timestamp)}</span>
+              ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
+            </div>
+          </div>
+        `,
+          )
+          .join("");
+
+        const backgroundRow = levels.background
+          ? `
+        <tr class="supplementary-row"><td colspan="4" class="supplementary-cell">
+          <details><summary class="supplementary-summary">Background</summary>
+          <p>${esc(levels.background)}</p></details>
+        </td></tr>
+      `
+          : "";
+
+        const examplesRow = levels.examples
+          ? `
+        <tr class="supplementary-row"><td colspan="4" class="supplementary-cell">
+          <details><summary class="supplementary-summary">Examples</summary>
+          <table class="examples-table">
+            ${(["0", "1", "2", "3"] as const)
+              .map((lvl) => {
+                const ex = (levels as unknown as { examples?: Record<string, string> }).examples?.[
+                  lvl
+                ];
+                return ex ? `<tr><td class="ex-level">${lvl}</td><td>${esc(ex)}</td></tr>` : "";
+              })
+              .join("")}
+          </table></details>
+        </td></tr>
+      `
+          : "";
+
+        return `
+        <tr class="score-row">
+          <td class="code" style="color:${reportColor}">${code}</td>
+          <td class="score-cell">
+            <span class="score-badge" style="background:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined)}20;color:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined)}">
+              ${isNa ? "N/A" : isUnsure ? "?" : score >= 0 ? score : "—"}
+            </span>
+          </td>
+          <td class="level">${esc(levelDesc)}</td>
+          <td class="notes">${esc(ev?.notes ?? "")}</td>
+        </tr>
+        ${backgroundRow}${examplesRow}
+        ${evidenceImgs ? `<tr class="evidence-row"><td colspan="4"><div class="evidence-list">${evidenceImgs}</div></td></tr>` : ""}
+      `;
+      })
+      .join("");
+
+    return `
+      <section id="category-${p.id}" class="category-section${sectionIdx % 2 === 1 ? " category-alt" : ""}" style="--accent:${reportColor}">
+        <div class="category-header">
+          <div class="category-letter-block">
+            <div class="category-letter">${p.code}</div>
+            <div class="category-letter-name">${PRINCIPLE_NAMES[p.id] ?? ""}</div>
+          </div>
+          <div class="category-info">
+            <h2>${esc(getCategoryLabel(p.id).replace(/^.*?— /, ""))}</h2>
+            <div class="category-meta">
+              <span class="cat-score">${catTotal} / ${catMax}</span>
+              <span class="cat-avg">avg ${avg}</span>
+              <span class="cat-evidence">${evidenceCount} evidence</span>
+            </div>
+            ${distributionBar(catScores)}
+          </div>
+        </div>
+        <div class="category-table-wrap">
+          <table>
+            <thead>
+              <tr><th>Code</th><th>Score</th><th>Level</th><th>Notes</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </section>
+    `;
+  }).join("");
+}
+
+function buildGateRows(evaluations: Evaluation[], rubric: RubricData): string {
+  return Object.entries(rubric.quality_gate)
+    .map(([cat, questions]) =>
+      Object.entries(questions)
+        .map(([qId, q]) => {
+          const ev = evaluations.find((e) => e.rubricId === `${cat}.${qId}`);
+          const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
+          const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#6b7f94";
+          const label = result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "—";
+
+          const qgBackgroundRow = q.background
+            ? `
+        <tr class="supplementary-row"><td colspan="4" class="supplementary-cell">
+          <details><summary class="supplementary-summary">Background</summary>
+          <p>${esc(q.background)}</p></details>
+        </td></tr>
+      `
+            : "";
+
+          const qgExamplesRow = q.examples
+            ? `
+        <tr class="supplementary-row"><td colspan="4" class="supplementary-cell">
+          <details><summary class="supplementary-summary">Examples</summary>
+          <table class="examples-table">
+            ${(Object.entries(q.examples) as [string, string][])
+              .map(
+                ([key, desc]) => `
+              <tr><td class="ex-level">${key === "pass" ? "Pass" : key === "fail" ? "Fail" : key === "na" ? "N/A" : esc(key)}</td><td>${esc(desc)}</td></tr>
+            `,
+              )
+              .join("")}
+          </table></details>
+        </td></tr>
+      `
+            : "";
+
+          return `
+        <tr>
+          <td class="code">${cat.toUpperCase()}${Object.keys(questions).indexOf(qId) + 1}</td>
+          <td><span class="gate-badge" style="background:${color}18;color:${color}">${label}</span></td>
+          <td>${esc(q.requirement)}</td>
+          <td class="notes">${esc(ev?.notes ?? "")}</td>
+        </tr>
+        ${qgBackgroundRow}${qgExamplesRow}
+      `;
+        })
+        .join(""),
+    )
+    .join("");
+}
+
+function buildFinalizationSection(
+  finalization: ReviewFinalization | null,
+  verdict: string,
+  verdictColor: string,
+): string {
+  if (!finalization) return "";
+
+  return `
+    <section class="finalization-section">
+      <div class="fin-bar" style="background:${verdictColor}"></div>
+      <div class="fin-grade" style="color:${verdictColor};background:${verdictColor}10">
+        ${verdict}
+      </div>
+      ${finalization.conclusion ? `<div class="fin-block"><h3>Conclusion</h3><p>${esc(finalization.conclusion)}</p></div>` : ""}
+      ${
+        finalization.strengths.length > 0
+          ? `
+        <div class="fin-block">
+          <h3 style="color:#4a8355">Strengths</h3>
+          <ul>${finalization.strengths.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
+        </div>
+      `
+          : ""
+      }
+      ${
+        finalization.weaknesses.length > 0
+          ? `
+        <div class="fin-block">
+          <h3 style="color:#c60c30">Weaknesses</h3>
+          <ul>${finalization.weaknesses.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>
+        </div>
+      `
+          : ""
+      }
+      ${
+        finalization.recommendations
+          ? `
+        <div class="fin-block">
+          <h3>Recommendations</h3>
+          <p>${esc(finalization.recommendations)}</p>
+        </div>
+      `
+          : ""
+      }
+      <div class="fin-timestamp">Finalized ${formatDate(finalization.finalizedAt)}</div>
+    </section>
+  `;
+}
+
+function buildUnlinkedSection(
+  captures: Capture[],
+  evaluations: Evaluation[],
+  compressedScreenshots: Map<string, string>,
+): string {
+  const unlinked = captures.filter(
+    (c) => !evaluations.some((e) => e.explicitEvidenceIds.includes(c.id)),
+  );
+
+  if (unlinked.length === 0) return "";
+
+  return `
+    <section class="unlinked-section">
+      <h2>Additional Evidence</h2>
+      ${unlinked
+        .map(
+          (c) => `
+        <div class="unlinked-item">
+          <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
+          <div class="unlinked-meta">
+            <strong>${esc(c.pageTitle || "Capture")}</strong>
+            ${safeLink(c.sourceUrl)}
+            <span>${formatDate(c.timestamp)}</span>
+            ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
+          </div>
+        </div>
+      `,
+        )
+        .join("")}
+    </section>
+  `;
+}
+
+function buildToc(rubric: RubricData): string {
+  return PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
+    .map((p) => {
+      const reportColor = REPORT_COLORS[p.id] ?? p.color;
+      return `<a href="#category-${p.id}" class="toc-item" style="color:${reportColor}"><span class="toc-code">${p.code}</span> ${esc(PRINCIPLE_NAMES[p.id] ?? getCategoryLabel(p.id).replace(/^.*?— /, ""))}</a>`;
+    })
+    .join("");
+}
+
+function buildScoreLegend(): string {
+  return `
+    <div class="score-legend">
+      <span class="legend-label">Score Legend:</span>
+      <span class="score-badge" style="background:#c60c3020;color:#c60c30">0 = No</span>
+      <span class="score-badge" style="background:#ea580c20;color:#ea580c">1 = Partially</span>
+      <span class="score-badge" style="background:#0e749020;color:#0e7490">2 = Mostly</span>
+      <span class="score-badge" style="background:#4a835520;color:#4a8355">3 = Yes</span>
+      <span class="score-badge" style="background:#6b7f9420;color:#6b7f94">N/A</span>
+      <span class="score-badge" style="background:#5a6e8220;color:#5a6e82">? = Unsure</span>
+    </div>
+  `;
+}
+
+// ── Main report ────────────────────────────────────────────────────────
 
 export async function buildHtmlReport(
   metadata: SessionMetadata,
