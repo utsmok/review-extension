@@ -3,7 +3,7 @@ import { getRubricById, RUBRIC_VARIANTS } from "@/data/rubrics";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useSidepanelZoom } from "@/hooks/useSidepanelZoom";
 import { migrateLegacySession } from "@/lib/migration";
-import { RubricContext } from "@/lib/rubric-context";
+import { RubricContext } from "@/lib/contexts"
 import ActiveSession from "./ActiveSession";
 import AppShell from "./AppShell";
 import SessionManager from "./SessionManager";

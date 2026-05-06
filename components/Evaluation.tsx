@@ -5,7 +5,7 @@ import QuestionSection from "@/components/QuestionSection";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useRovingTabIndex } from "@/lib/hooks";
 import { getRubricQuestionIds } from "@/lib/rubric";
-import { useRubric } from "@/lib/rubric-context";
+import { useRubric } from "@/lib/contexts"
 import { useCaptureQueue } from "@/hooks/useCaptureQueue";
 import type { Capture } from "@/lib/types";
 

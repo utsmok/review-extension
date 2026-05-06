@@ -7,7 +7,7 @@ import {
   getLinkedRubricIdsForCapture,
   getQuestionCode,
 } from "@/lib/rubric";
-import { useRubric } from "@/lib/rubric-context";
+import { useRubric } from "@/lib/contexts"
 import type {
   Capture,
   Evaluation,

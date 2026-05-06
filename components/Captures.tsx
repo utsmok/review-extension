@@ -6,7 +6,7 @@ import {
   getCategoryLabel,
   getLinkedRubricIdsForCapture,
 } from "@/lib/rubric";
-import { useRubric } from "@/lib/rubric-context";
+import { useRubric } from "@/lib/contexts"
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
 import RubricChipGroup from "./RubricChipGroup";

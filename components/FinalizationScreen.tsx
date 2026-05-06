@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { useTabNavigation } from "@/lib/tab-navigation-context";
+import { useTabNavigation } from "@/lib/contexts"
 import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
 
 const GRADES: { value: FinalizationGrade; label: string; color: string; tint: string }[] = [

@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useRovingTabIndex } from "@/lib/hooks";
 import { computeCompletion } from "@/lib/rubric";
-import { useRubric } from "@/lib/rubric-context";
-import { TabNavigationContext } from "@/lib/tab-navigation-context";
+import { useRubric } from "@/lib/contexts"
+import { TabNavigationContext } from "@/lib/contexts"
 import Captures from "./Captures";
 import Evaluation from "./Evaluation";
 import FinalizationScreen from "./FinalizationScreen";

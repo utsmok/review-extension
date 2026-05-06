@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { useRubric } from "@/lib/rubric-context";
-import { useTabNavigation } from "@/lib/tab-navigation-context";
+import { useRubric } from "@/lib/contexts"
+import { useTabNavigation } from "@/lib/contexts"
 
 import ConfirmDialog from "./ConfirmDialog";
 import ExportCompleteScreen from "./ExportCompleteScreen";
