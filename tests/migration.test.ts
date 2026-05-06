@@ -1,5 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import "fake-indexeddb/auto";
+import { afterEach, afterAll, beforeEach, describe, expect, it } from "vitest";
 
 // Polyfill localStorage for Node environment (migrateLegacySession uses it)
 // Node 22+ provides a partial localStorage that requires --localstorage-file,
@@ -15,11 +14,12 @@ const ls = {
 };
 Object.defineProperty(globalThis, "localStorage", { value: ls, writable: true });
 import { useRegistryStore } from "@/stores/registry";
-import { loadFromIDB } from "@/lib/session-storage";
+import { getRepository, InMemorySessionRepository, setRepository, resetRepository } from "@/lib/session-repository";
 import { migrateLegacySession } from "@/lib/migration";
 
 describe("migrateLegacySession", () => {
   beforeEach(() => {
+    setRepository(new InMemorySessionRepository());
     useRegistryStore.setState({
       sessionIndex: {},
       activeSessionId: null,
@@ -33,7 +33,11 @@ describe("migrateLegacySession", () => {
     localStorage.clear();
   });
 
-  it("migrates a legacy localStorage session to IDB and registry", async () => {
+  afterAll(() => {
+    resetRepository();
+  });
+
+  it("migrates a legacy localStorage session to repository and registry", async () => {
     const legacyState = {
       state: {
         session: {
@@ -60,10 +64,7 @@ describe("migrateLegacySession", () => {
 
     await migrateLegacySession();
 
-    // Should be in IDB now
-    const id = expect.any(String);
-    // The deterministic ID is computed from toolName, toolUrl, startTime
-    // We can find it in the registry
+    // Should be in repository now
     const registry = useRegistryStore.getState();
     const sessionIds = Object.keys(registry.sessionIndex);
     expect(sessionIds).toHaveLength(1);
@@ -73,7 +74,7 @@ describe("migrateLegacySession", () => {
     expect(meta.toolName).toBe("Legacy Tool");
     expect(meta.status).toBe("started");
 
-    const loaded = await loadFromIDB(sessionId);
+    const loaded = await getRepository().load(sessionId);
     expect(loaded).not.toBeNull();
     expect(loaded!.metadata.toolName).toBe("Legacy Tool");
 
@@ -106,7 +107,7 @@ describe("migrateLegacySession", () => {
     const registryAfterFirst = useRegistryStore.getState();
     const firstIds = Object.keys(registryAfterFirst.sessionIndex);
 
-    // Reset the migration flag but keep IDB data
+    // Reset the migration flag but keep repository data
     localStorage.setItem("trust-review-migrated", "0");
     localStorage.setItem("trust-review-session", JSON.stringify(legacyState));
 
@@ -157,7 +158,7 @@ describe("migrateLegacySession", () => {
 
     const registry = useRegistryStore.getState();
     const sessionId = Object.keys(registry.sessionIndex)[0];
-    const loaded = await loadFromIDB(sessionId);
+    const loaded = await getRepository().load(sessionId);
 
     expect(loaded!.captures).toHaveLength(1);
     const capture = loaded!.captures[0] as unknown as Record<string, unknown>;

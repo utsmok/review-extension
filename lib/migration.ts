@@ -1,6 +1,6 @@
 import { useRegistryStore } from "@/stores/registry";
 import type { SessionData, SessionMetadata } from "@/lib/types";
-import { loadFromIDB, saveToIDB } from "./session-storage";
+import { getRepository } from "./session-repository";
 
 export function deterministicId(toolName: string, toolUrl: string, startTime: string): string {
   const input = `trust-session:${toolName}:${toolUrl}:${startTime}`;
@@ -40,7 +40,7 @@ export async function migrateLegacySession(): Promise<void> {
   );
 
   // Idempotent: check if already migrated to IDB
-  const existing = await loadFromIDB(id);
+  const existing = await getRepository().load(id);
   if (existing) {
     const registry = useRegistryStore.getState();
     if (!registry.sessionIndex[id]) {
@@ -68,7 +68,7 @@ export async function migrateLegacySession(): Promise<void> {
     status: "started",
   };
 
-  await saveToIDB(id, {
+  await getRepository().save(id, {
     metadata,
     captures: captures as unknown as SessionData["captures"],
     evaluations: (state.evaluations ?? []) as SessionData["evaluations"],

@@ -1,11 +1,15 @@
-import { afterEach, afterAll, describe, expect, it, vi } from "vitest";
-import "fake-indexeddb/auto";
+import { afterEach, afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SessionMetadata, SessionData } from "@/lib/types";
 
 import { useSessionStore } from "@/stores/session";
 import { useRegistryStore } from "@/stores/registry";
-import { deleteFromIDB, loadFromIDB } from "@/lib/session-storage";
+import {
+  InMemorySessionRepository,
+  setRepository,
+  resetRepository,
+} from "@/lib/session-repository";
+import { getRepository } from "@/lib/session-repository";
 
 // Mock exportSession to avoid JSZip/papaparse dependency
 vi.mock("@/lib/export", async (importOriginal) => {
@@ -32,14 +36,9 @@ vi.mock("@/stores/toast", () => ({
   toastWarning: vi.fn(),
 }));
 
-// Track created IDs for cleanup
-const createdIds: string[] = [];
-
 function makeMetadata(overrides?: Partial<SessionMetadata>): SessionMetadata {
-  const id = crypto.randomUUID();
-  createdIds.push(id);
   return {
-    id,
+    id: crypto.randomUUID(),
     toolName: "Test Tool",
     toolUrl: "https://example.com",
     startTime: new Date().toISOString(),
@@ -47,6 +46,13 @@ function makeMetadata(overrides?: Partial<SessionMetadata>): SessionMetadata {
     ...overrides,
   };
 }
+
+let repo: InMemorySessionRepository;
+
+beforeEach(() => {
+  repo = new InMemorySessionRepository();
+  setRepository(repo);
+});
 
 // Must import after mocks are set up
 const { createSession, loadSessionById, deleteSession, switchToSession, markDoneAndClose, exportSessionById } =
@@ -57,24 +63,18 @@ afterEach(() => {
   useRegistryStore.setState({ sessionIndex: {}, activeSessionId: null });
 });
 
-afterAll(async () => {
-  for (const id of createdIds) {
-    try {
-      await deleteFromIDB(id);
-    } catch {
-      // ignore if already deleted
-    }
-  }
+afterAll(() => {
+  resetRepository();
 });
 
 describe("createSession", () => {
-  it("saves to IDB, registers in registry, and sets activeSessionId", async () => {
+  it("saves to repository, registers in registry, and sets activeSessionId", async () => {
     const meta = makeMetadata();
 
     await createSession(meta);
 
-    // Verify IDB
-    const loaded = await loadFromIDB(meta.id);
+    // Verify repository
+    const loaded = await getRepository().load(meta.id);
     expect(loaded).not.toBeNull();
     expect(loaded!.metadata.id).toBe(meta.id);
     expect(loaded!.captures).toEqual([]);
@@ -90,7 +90,7 @@ describe("createSession", () => {
 });
 
 describe("loadSessionById", () => {
-  it("loads session from IDB into store and returns true", async () => {
+  it("loads session from repository into store and returns true", async () => {
     const meta = makeMetadata();
     const sessionData: SessionData = {
       metadata: meta,
@@ -99,9 +99,8 @@ describe("loadSessionById", () => {
       finalization: null,
     };
 
-    // Directly save to IDB to simulate a pre-existing session
-    const { saveToIDB } = await import("@/lib/session-storage");
-    await saveToIDB(meta.id, sessionData);
+    // Directly save to repository to simulate a pre-existing session
+    await getRepository().save(meta.id, sessionData);
 
     // Register in registry so the lifecycle can reference it
     useRegistryStore.getState().addSession(meta);
@@ -131,7 +130,7 @@ describe("loadSessionById", () => {
 });
 
 describe("deleteSession", () => {
-  it("clears session store if session is active, deletes from IDB and registry", async () => {
+  it("clears session store if session is active, deletes from repository and registry", async () => {
     const meta = makeMetadata();
     await createSession(meta);
 
@@ -146,8 +145,8 @@ describe("deleteSession", () => {
     expect(store.status).toBe("empty");
     expect(store.session).toBeNull();
 
-    // IDB should be gone
-    const loaded = await loadFromIDB(meta.id);
+    // Repository should be gone
+    const loaded = await getRepository().load(meta.id);
     expect(loaded).toBeNull();
 
     // Registry should be cleaned
@@ -156,7 +155,7 @@ describe("deleteSession", () => {
     expect(activeSessionId).toBeNull();
   });
 
-  it("deletes from IDB and registry even if session is not active", async () => {
+  it("deletes from repository and registry even if session is not active", async () => {
     const meta = makeMetadata();
     await createSession(meta);
 
@@ -166,7 +165,7 @@ describe("deleteSession", () => {
 
     await deleteSession(meta.id);
 
-    const loaded = await loadFromIDB(meta.id);
+    const loaded = await getRepository().load(meta.id);
     expect(loaded).toBeNull();
 
     const { sessionIndex } = useRegistryStore.getState();
@@ -201,8 +200,8 @@ describe("switchToSession", () => {
     expect(store.status).toBe("empty");
     expect(store.session).toBeNull();
 
-    // Verify previous session was saved to IDB (it had an evaluation)
-    const savedA = await loadFromIDB(metaA.id);
+    // Verify previous session was saved to repository (it had an evaluation)
+    const savedA = await getRepository().load(metaA.id);
     expect(savedA).not.toBeNull();
     expect(savedA!.evaluations).toHaveLength(1);
     expect(savedA!.evaluations[0].rubricId).toBe("transparency.1");
@@ -230,15 +229,15 @@ describe("markDoneAndClose", () => {
     expect(store.status).toBe("empty");
     expect(store.session).toBeNull();
 
-    // Session data should still be in IDB (saved before clear)
-    const saved = await loadFromIDB(meta.id);
+    // Session data should still be in repository (saved before clear)
+    const saved = await getRepository().load(meta.id);
     expect(saved).not.toBeNull();
     expect(saved!.metadata.id).toBe(meta.id);
   });
 });
 
 describe("exportSessionById", () => {
-  it("returns a Blob when session exists in registry and IDB", async () => {
+  it("returns a Blob when session exists in registry and repository", async () => {
     const meta = makeMetadata();
     await createSession(meta);
 
@@ -254,9 +253,9 @@ describe("exportSessionById", () => {
     );
   });
 
-  it("throws if session in registry but not in IDB", async () => {
+  it("throws if session in registry but not in repository", async () => {
     const meta = makeMetadata();
-    // Register in registry but don't save to IDB
+    // Register in registry but don't save to repository
     useRegistryStore.getState().addSession(meta);
 
     await expect(exportSessionById(meta.id)).rejects.toThrow(

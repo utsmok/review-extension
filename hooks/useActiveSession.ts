@@ -1,9 +1,8 @@
 import { useEffect } from "react";
 import { initAutoSave } from "@/lib/auto-save";
-import { downloadBlob, exportSession } from "@/lib/export";
-import { sanitizeFilename } from "@/lib/filename";
+import { downloadBlob, exportSession, sanitizeFilename } from "@/lib/export";
 import * as lifecycle from "@/lib/session-lifecycle";
-import { saveToIDB } from "@/lib/session-storage";
+import { getRepository } from "@/lib/session-repository";
 import type { RubricData } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
@@ -42,7 +41,7 @@ export function useActiveSession(migrationReady = true) {
         finalization: curFinalization,
       } = useSessionStore.getState();
       if (curSession) {
-        saveToIDB(curSession.id, {
+        getRepository().save(curSession.id, {
           metadata: curSession,
           captures: curCaptures,
           evaluations: curEvaluations,

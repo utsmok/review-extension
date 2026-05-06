@@ -7,21 +7,27 @@
  */
 import { useSessionStore } from "@/stores/session";
 import { useRegistryStore } from "@/stores/registry";
-import { saveToIDB } from "@/lib/session-storage";
+import { getRepository } from "@/lib/session-repository";
 import { toastWarning } from "@/stores/toast";
 
 let timerRef: ReturnType<typeof setTimeout> | undefined;
 let unsub: (() => void) | null = null;
 let visibilityHandler: (() => void) | null = null;
-let initialized = false;
 
 async function flush(): Promise<void> {
   const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
   const activeId = useRegistryStore.getState().activeSessionId;
   if (s && activeId) {
-    const ok = await saveToIDB(activeId, { metadata: s, captures: c, evaluations: e, finalization: f });
+    const ok = await getRepository().save(activeId, {
+      metadata: s,
+      captures: c,
+      evaluations: e,
+      finalization: f,
+    });
     if (ok) {
-      document.dispatchEvent(new CustomEvent("trust-save-succeeded", { detail: { timestamp: Date.now() } }));
+      document.dispatchEvent(
+        new CustomEvent("trust-save-succeeded", { detail: { timestamp: Date.now() } }),
+      );
     } else {
       toastWarning("Auto-save failed — your work may not be saved.");
       document.dispatchEvent(new CustomEvent("trust-save-failed"));
@@ -35,7 +41,6 @@ async function flush(): Promise<void> {
  */
 export function initAutoSave(): void {
   teardownAutoSave();
-  initialized = true;
 
   // Effect 2: Debounced auto-save on every store change
   unsub = useSessionStore.subscribe(() => {
@@ -77,5 +82,4 @@ export function teardownAutoSave(): void {
     clearTimeout(timerRef);
     timerRef = undefined;
   }
-  initialized = false;
 }

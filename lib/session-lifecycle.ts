@@ -1,11 +1,6 @@
 import { useSessionStore } from "@/stores/session";
 import { useRegistryStore } from "@/stores/registry";
-import {
-  loadFromIDB,
-  saveToIDB,
-  deleteFromIDB,
-  saveToIDBFireAndForget,
-} from "@/lib/session-storage";
+import { getRepository } from "@/lib/session-repository";
 import { toastError } from "@/stores/toast";
 import { getRubricById } from "@/data/rubrics";
 import { exportSession } from "@/lib/export";
@@ -22,7 +17,7 @@ function snapshot(): SessionData | null {
 export async function loadSessionById(id: string): Promise<boolean> {
   useSessionStore.getState().setStatus("loading");
   try {
-    const data = await loadFromIDB(id);
+    const data = await getRepository().load(id);
     if (data) {
       useSessionStore.getState().loadSession(data);
       return true;
@@ -42,12 +37,12 @@ export async function loadSessionById(id: string): Promise<boolean> {
 /** Save current session data to IDB (fire-and-forget). */
 export function saveCurrentSession(): void {
   const data = snapshot();
-  if (data) saveToIDBFireAndForget(data.metadata.id, data);
+  if (data) getRepository().save(data.metadata.id, data).catch((err) => console.error("Fire-and-forget IDB save failed:", err));
 }
 
 /** Create a new session: save to IDB, register in registry. */
 export async function createSession(metadata: SessionMetadata): Promise<void> {
-  await saveToIDB(metadata.id, {
+  await getRepository().save(metadata.id, {
     metadata,
     captures: [],
     evaluations: [],
@@ -63,7 +58,7 @@ export async function deleteSession(id: string): Promise<void> {
     useSessionStore.getState().clear();
   }
   // Delete from IDB first — if this fails, the registry entry stays valid
-  await deleteFromIDB(id);
+  await getRepository().delete(id);
   useRegistryStore.getState().deleteSession(id);
 }
 
@@ -86,7 +81,7 @@ export function markDoneAndClose(id: string): void {
 export async function exportSessionById(id: string): Promise<Blob> {
   const meta = useRegistryStore.getState().sessionIndex[id];
   if (!meta) throw new Error(`Review ${id} not found in registry`);
-  const data = await loadFromIDB(id);
+  const data = await getRepository().load(id);
   if (!data) throw new Error(`Session ${id} not found in storage`);
   const variant = getRubricById(meta.rubricId);
   const blob = await exportSession(meta, data.captures, data.evaluations, variant.data, data.finalization);

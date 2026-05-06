@@ -4,9 +4,10 @@ import { initAutoSave, teardownAutoSave } from "@/lib/auto-save";
 
 // --- Mocks ---
 
-const mockSaveToIDB = vi.fn();
-vi.mock("@/lib/session-storage", () => ({
-  saveToIDB: (...args: unknown[]) => mockSaveToIDB(...args),
+const mockSave = vi.fn().mockResolvedValue(true);
+const mockGetRepository = vi.fn(() => ({ save: mockSave }));
+vi.mock("@/lib/session-repository", () => ({
+  getRepository: () => mockGetRepository(),
 }));
 
 const mockToastError = vi.fn();
@@ -58,7 +59,7 @@ function advanceTimer(ms: number) {
 describe("auto-save", () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    mockSaveToIDB.mockReset();
+    mockSave.mockReset();
     mockToastError.mockReset();
     mockToastWarning.mockReset();
 
@@ -83,7 +84,7 @@ describe("auto-save", () => {
   it("triggers debounced saveToIDB 300ms after store change", () => {
     sessionGetState.mockReturnValueOnce(defaultSessionState());
     registryGetState.mockReturnValueOnce({ activeSessionId: "sess-1" });
-    mockSaveToIDB.mockResolvedValue(true);
+    mockSave.mockResolvedValue(true);
 
     // For flush()
     sessionGetState.mockReturnValueOnce(defaultSessionState());
@@ -95,11 +96,11 @@ describe("auto-save", () => {
     listener();
 
     // Not yet called — debounce window
-    expect(mockSaveToIDB).not.toHaveBeenCalled();
+    expect(mockSave).not.toHaveBeenCalled();
 
     advanceTimer(300);
 
-    expect(mockSaveToIDB).toHaveBeenCalledExactlyOnceWith("sess-1", {
+    expect(mockSave).toHaveBeenCalledExactlyOnceWith("sess-1", {
       metadata: expect.any(Object),
       captures: [],
       evaluations: [],
@@ -111,7 +112,7 @@ describe("auto-save", () => {
     // subscribe listener setup
     sessionGetState.mockReturnValue(defaultSessionState());
     registryGetState.mockReturnValue({ activeSessionId: "sess-1" });
-    mockSaveToIDB.mockResolvedValue(true);
+    mockSave.mockResolvedValue(true);
 
     initAutoSave();
 
@@ -122,18 +123,18 @@ describe("auto-save", () => {
     }
 
     // Still within debounce window (500ms elapsed, timer reset each time)
-    expect(mockSaveToIDB).not.toHaveBeenCalled();
+    expect(mockSave).not.toHaveBeenCalled();
 
     advanceTimer(300);
 
     // Only one save after final debounce settles
-    expect(mockSaveToIDB).toHaveBeenCalledTimes(1);
+    expect(mockSave).toHaveBeenCalledTimes(1);
   });
 
   it("flushes immediately on visibilitychange to hidden", () => {
     sessionGetState.mockReturnValue(defaultSessionState());
     registryGetState.mockReturnValue({ activeSessionId: "sess-1" });
-    mockSaveToIDB.mockResolvedValue(true);
+    mockSave.mockResolvedValue(true);
 
     initAutoSave();
 
@@ -148,11 +149,11 @@ describe("auto-save", () => {
     });
     document.dispatchEvent(new Event("visibilitychange"));
 
-    expect(mockSaveToIDB).toHaveBeenCalledTimes(1);
+    expect(mockSave).toHaveBeenCalledTimes(1);
 
     // Advance past the debounce window — should NOT double-save
     advanceTimer(300);
-    expect(mockSaveToIDB).toHaveBeenCalledTimes(1);
+    expect(mockSave).toHaveBeenCalledTimes(1);
 
     // Restore
     Object.defineProperty(document, "visibilityState", {
@@ -170,7 +171,7 @@ describe("auto-save", () => {
     });
     sessionGetState.mockReturnValue(defaultSessionState());
     registryGetState.mockReturnValue({ activeSessionId: "sess-1" });
-    mockSaveToIDB.mockResolvedValue(true);
+    mockSave.mockResolvedValue(true);
 
     initAutoSave();
     teardownAutoSave();
@@ -190,7 +191,7 @@ describe("auto-save", () => {
     listener();
     advanceTimer(300);
 
-    expect(mockSaveToIDB).toHaveBeenCalledTimes(1); // Only from the second init
+    expect(mockSave).toHaveBeenCalledTimes(1); // Only from the second init
   });
 
   it("does not save when status is 'empty'", () => {
@@ -201,11 +202,11 @@ describe("auto-save", () => {
     listener();
     advanceTimer(300);
 
-    expect(mockSaveToIDB).not.toHaveBeenCalled();
+    expect(mockSave).not.toHaveBeenCalled();
   });
 
   it("handles saveToIDB failure — calls toastWarning and dispatches trust-save-failed", async () => {
-    mockSaveToIDB.mockResolvedValue(false);
+    mockSave.mockResolvedValue(false);
     mockToastWarning.mockImplementation(() => {});
 
     sessionGetState.mockReturnValue(defaultSessionState());
@@ -221,7 +222,7 @@ describe("auto-save", () => {
     // Wait for the async flush to complete
     await vi.runAllTimersAsync();
 
-    expect(mockSaveToIDB).toHaveBeenCalled();
+    expect(mockSave).toHaveBeenCalled();
     expect(mockToastWarning).toHaveBeenCalledWith("Auto-save failed — your work may not be saved.");
     expect(failedListener).toHaveBeenCalled();
 
@@ -229,7 +230,7 @@ describe("auto-save", () => {
   });
 
   it("dispatches trust-save-succeeded on successful save", async () => {
-    mockSaveToIDB.mockResolvedValue(true);
+    mockSave.mockResolvedValue(true);
 
     sessionGetState.mockReturnValue(defaultSessionState());
     registryGetState.mockReturnValue({ activeSessionId: "sess-1" });
@@ -243,7 +244,7 @@ describe("auto-save", () => {
 
     await vi.runAllTimersAsync();
 
-    expect(mockSaveToIDB).toHaveBeenCalled();
+    expect(mockSave).toHaveBeenCalled();
     expect(successListener).toHaveBeenCalled();
     const event = successListener.mock.calls[0][0] as CustomEvent;
     expect(event.detail).toHaveProperty("timestamp");
@@ -253,7 +254,7 @@ describe("auto-save", () => {
   });
 
   it("dispatches trust-save-failed on failed save", async () => {
-    mockSaveToIDB.mockResolvedValue(false);
+    mockSave.mockResolvedValue(false);
 
     sessionGetState.mockReturnValue(defaultSessionState());
     registryGetState.mockReturnValue({ activeSessionId: "sess-1" });
@@ -267,7 +268,7 @@ describe("auto-save", () => {
 
     await vi.runAllTimersAsync();
 
-    expect(mockSaveToIDB).toHaveBeenCalled();
+    expect(mockSave).toHaveBeenCalled();
     expect(failedListener).toHaveBeenCalled();
 
     document.removeEventListener("trust-save-failed", failedListener);
