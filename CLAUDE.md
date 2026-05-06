@@ -38,16 +38,22 @@ components/
   Captures.tsx           capture list, notes, evidence linking
   Evaluation.tsx         quality gates + scoring rubric (delegates to QuestionSection)
   QuestionSection.tsx    individual rubric question with score/evidence
+  FinalizationScreen.tsx manual grade + notes before export
+  ExportCompleteScreen.tsx post-export confirmation + return home
   Metadata.tsx           tool metadata form + export trigger
   SettingsScreen.tsx     reviewer name/email/rubric preferences
   EvidenceThumbnails.tsx inline evidence preview in questions
+  EvidenceModal.tsx      full-size evidence viewer
   ProgressCircle.tsx     circular score indicator
   ConfirmDialog.tsx      generic confirm dialog
+  Toast.tsx              toast notification component
+  ErrorBoundary.tsx      React error boundary
 hooks/
   useActiveSession.ts    lifecycle orchestration (load/save/flush/auto-save)
 stores/
   registry.ts            Zustand+persist — session index, active ID, settings
   session.ts             in-memory Zustand — active session data (captures, evaluations)
+  toast.ts               toast notification state
 lib/
   types.ts               data model (SessionData, discriminated EvaluationScore)
   session-storage.ts     IndexedDB persistence (save/load/delete)
@@ -56,6 +62,9 @@ lib/
   capture.ts             screenshot + HTML archiver (inlines CSS, strips scripts)
   export.ts              zip/csv pipeline + HTML report generation
   html-report.ts         standalone HTML report builder
+  scoring.ts             score computation, distribution bars, per-principle checks
+  filename.ts            safe filename generation
+  auto-save.ts           debounced auto-save subscriber
   logos.ts               base64-encoded logos (TRUST, LISA-EIS, UT)
   principles.ts          TRUST principle color map
   rubric.ts              rubric data + helpers
@@ -63,7 +72,6 @@ lib/
 public/
   trust.svg / lisa-eis.svg  brand logos
   icon-*.png                 extension icons (16–128px)
-```
 
 ## Design Tokens
 
@@ -79,7 +87,7 @@ Four font families: `display` (Nunito Sans, brand hero), `heading` (Arial Narrow
 
 Two-store architecture:
 - **Registry store** (`stores/registry.ts`) — Zustand + `persist` middleware → `localStorage`. Holds session index, active session ID, settings.
-- **Session store** (`stores/session.ts`) — in-memory Zustand (no persist). Active session data only. Auto-saved to IndexedDB via `useActiveSession` hook (debounced 300ms, flush on `visibilitychange`).
+- **Session store** (`stores/session.ts`) — in-memory Zustand (no persist). Active session data only. Auto-saved to IndexedDB via `lib/auto-save.ts` singleton (debounced 300ms, flush on `visibilitychange`).
 
 `useActiveSession` is the single coordination point — loads from IDB on `activeSessionId` change, debounced auto-save during edits, flush on panel hide.
 
@@ -93,7 +101,7 @@ Two-store architecture:
 
 ## Key Decisions
 
-- TRUST rubric is hardcoded in `lib/rubric.ts` (not user-configurable yet)
+- Rubric data in `data/rubrics/` (trust-full.json, trust-lite.json), helpers in `lib/rubric.ts`
 - All data stays local — no server calls
 - Zustand `persist` middleware uses localStorage for registry only (session data in IndexedDB)
 - Path alias `@/` maps to project root
@@ -104,10 +112,10 @@ Two-store architecture:
 ## Rubric Structure
 
 The TRUST rubric has two sections:
-- **Quality gates** — pass/fail prerequisites (privacy, traceability, accessibility)
-- **Scoring rubric** — 0-3 scale across T_R_U_S_T categories (transparent, reliable, user-centric, secure, traceable)
+- **Quality gates** — pass/fail prerequisites (data privacy, training policy, citation mechanism, accessibility)
+- **Scoring rubric** — 0-3 scale across T_R_U_S_T categories (transparent, reliable, user-centric, sound, traceable)
 
-See `docs/rubric.json` for the full JSON and `docs/spec.md` for the implementation spec.
+See `data/rubrics/trust-full.json` for the full rubric data and `docs/TRUST-FRAMEWORK.md` for the framework reference.
 
 ## Agent skills
 
