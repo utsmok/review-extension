@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import EvidenceModal from "@/components/EvidenceModal";
 import QuestionSection from "@/components/QuestionSection";
@@ -6,43 +6,10 @@ import { useActiveSession } from "@/hooks/useActiveSession";
 import { useRovingTabIndex } from "@/lib/hooks";
 import { getRubricQuestionIds } from "@/lib/rubric";
 import { useRubric } from "@/lib/rubric-context";
+import { useCaptureQueue } from "@/hooks/useCaptureQueue";
 import type { Capture } from "@/lib/types";
 
 const evalTabs = ["Quality Gates", "Scoring Rubric"] as const;
-
-/**
- * Serial capture queue — prevents concurrent captures from interleaving.
- * Queues up to MAX_QUEUE captures; additional clicks are rejected.
- */
-const MAX_QUEUE = 4;
-
-function useCaptureQueue() {
-  const queueRef = useRef<(() => Promise<void>)[]>([]);
-  const runningRef = useRef(false);
-
-  function enqueue(fn: () => Promise<void>) {
-    if (queueRef.current.length >= MAX_QUEUE) return;
-    queueRef.current.push(fn);
-    drain();
-  }
-
-  async function drain() {
-    if (runningRef.current) return;
-    const next = queueRef.current.shift();
-    if (!next) return;
-    runningRef.current = true;
-    try {
-      await next();
-    } finally {
-      runningRef.current = false;
-      drain();
-    }
-  }
-
-  const isCapturing = () => runningRef.current || queueRef.current.length > 0;
-
-  return { enqueue, isCapturing };
-}
 
 export default function Evaluation() {
   const { evaluations, removeCapture, unlinkCaptureFromRubric } = useActiveSession();

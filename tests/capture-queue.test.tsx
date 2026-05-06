@@ -2,47 +2,8 @@
  * @vitest-environment jsdom
  */
 import { act, renderHook } from "@testing-library/react";
-import { useRef } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-/**
- * The useCaptureQueue hook is defined inline in components/Evaluation.tsx.
- * To test it in isolation we duplicate the implementation here.
- * This avoids importing the full Evaluation component (which has many deep dependencies)
- * while keeping the test faithful to the actual logic.
- *
- * If the hook is ever extracted to its own module, replace this copy with an import.
- */
-
-const MAX_QUEUE = 4;
-
-function useCaptureQueue() {
-  const queueRef = useRef<(() => Promise<void>)[]>([]);
-  const runningRef = useRef(false);
-
-  function enqueue(fn: () => Promise<void>) {
-    if (queueRef.current.length >= MAX_QUEUE) return;
-    queueRef.current.push(fn);
-    drain();
-  }
-
-  async function drain() {
-    if (runningRef.current) return;
-    const next = queueRef.current.shift();
-    if (!next) return;
-    runningRef.current = true;
-    try {
-      await next();
-    } finally {
-      runningRef.current = false;
-      drain();
-    }
-  }
-
-  const isCapturing = () => runningRef.current || queueRef.current.length > 0;
-
-  return { enqueue, isCapturing };
-}
+import { MAX_QUEUE, useCaptureQueue } from "@/hooks/useCaptureQueue";
 
 /** Creates a controllable async fn that resolves when `resolve` is called. */
 function createControllableFn() {
