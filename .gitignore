@@ -32,3 +32,9 @@ npm-debug.log*
 
 # Test artifacts
 tests/artifacts/
+
+# Agent/tooling artifacts
+.agents/
+.claude/
+.superpowers/
+skills-lock.json
