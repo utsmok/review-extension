@@ -81,11 +81,15 @@ export function useActiveSession(migrationReady = true) {
   };
 
   const doExportAndClose = async (rubric: RubricData) => {
-    const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
-    if (!s) throw new Error("No active session");
-    const blob = await exportSession(s, c, e, rubric, f);
-    downloadBlob(blob, `TRUST_Review_${sanitizeFilename(s.toolName)}.zip`);
-    lifecycle.markDoneAndClose(s.id);
+    try {
+      const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
+      if (!s) throw new Error("No active session");
+      const blob = await exportSession(s, c, e, rubric, f);
+      downloadBlob(blob, `TRUST_Review_${sanitizeFilename(s.toolName)}.zip`);
+      lifecycle.markDoneAndClose(s.id);
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : "Export failed. Please try again.");
+    }
   };
 
   return {

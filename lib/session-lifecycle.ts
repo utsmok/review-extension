@@ -7,6 +7,8 @@ import {
   saveToIDBFireAndForget,
 } from "@/lib/session-storage";
 import { toastError } from "@/stores/toast";
+import { getRubricById } from "@/data/rubrics";
+import { exportSession } from "@/lib/export";
 import type { SessionData, SessionMetadata } from "@/lib/types";
 
 /** Snapshot current session store state as SessionData */
@@ -32,7 +34,7 @@ export async function loadSessionById(id: string): Promise<boolean> {
     console.error("Failed to load session from IDB:", err);
     useSessionStore.setState({ status: "empty" });
     useRegistryStore.getState().setActiveSessionId(null);
-    toastError("Failed to load session. It may be corrupted or storage is unavailable.");
+    toastError("Failed to load review. It may be corrupted or storage is unavailable.");
     return false;
   }
 }
@@ -78,4 +80,15 @@ export function markDoneAndClose(id: string): void {
   saveCurrentSession();
   useSessionStore.getState().clear();
   useRegistryStore.getState().setActiveSessionId(null);
+}
+
+/** Export a session by ID, loading from IDB and building the ZIP blob. */
+export async function exportSessionById(id: string): Promise<Blob> {
+  const meta = useRegistryStore.getState().sessionIndex[id];
+  if (!meta) throw new Error(`Review ${id} not found in registry`);
+  const data = await loadFromIDB(id);
+  if (!data) throw new Error(`Session ${id} not found in storage`);
+  const variant = getRubricById(meta.rubricId);
+  const blob = await exportSession(meta, data.captures, data.evaluations, variant.data, data.finalization);
+  return blob;
 }

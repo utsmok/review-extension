@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { getRubricById } from "@/data/rubrics";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { downloadBlob, exportSession } from "@/lib/export";
+import { downloadBlob } from "@/lib/export";
 import { sanitizeFilename } from "@/lib/filename";
 import { loadFromIDB } from "@/lib/session-storage";
+import { exportSessionById } from "@/lib/session-lifecycle";
 import { useRegistryStore } from "@/stores/registry";
 import { toastError, toastSuccess } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
@@ -47,24 +47,16 @@ export default function SessionManager() {
   const handleExport = async (id: string) => {
     const meta = sessionIndex[id];
     if (!meta) return;
-    const data = await loadFromIDB(id);
-    if (!data) return;
-    const variant = getRubricById(meta.rubricId);
     try {
-      const blob = await exportSession(
-        meta,
-        data.captures,
-        data.evaluations,
-        variant.data,
-        data.finalization,
-      );
+      const blob = await exportSessionById(id);
       const sanitized = sanitizeFilename(meta.toolName).slice(0, 80);
       const filename = `TRUST_Review_${sanitized}.zip`.slice(0, 100);
       downloadBlob(blob, filename);
-      const scoredCount = data.evaluations.filter(
+      const data = await loadFromIDB(id);
+      const scoredCount = data?.evaluations.filter(
         (e) => e.score !== "" && e.score !== undefined,
-      ).length;
-      toastSuccess(`Review exported: ${data.captures.length} captures, ${scoredCount} scores`);
+      ).length ?? 0;
+      toastSuccess(`Review exported: ${data?.captures.length ?? 0} captures, ${scoredCount} scores`);
     } catch (err) {
       console.error("Export failed:", err);
       toastError(err instanceof Error ? err.message : "Export failed. Please try again.");

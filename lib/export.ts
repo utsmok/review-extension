@@ -12,6 +12,10 @@ export function downloadBlob(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
+// Cached dynamic imports
+let cachedJSZip: typeof import("jszip") | null = null;
+let cachedPapa: typeof import("papaparse") | null = null;
+
 export async function exportSession(
   metadata: SessionMetadata,
   captures: Capture[],
@@ -19,8 +23,11 @@ export async function exportSession(
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
 ): Promise<Blob> {
-  const JSZip = (await import("jszip")).default;
-  const Papa = (await import("papaparse")).default;
+  if (!cachedJSZip) cachedJSZip = (await import("jszip")).default;
+  const JSZip = cachedJSZip;
+
+  if (!cachedPapa) cachedPapa = (await import("papaparse")).default;
+  const Papa = cachedPapa;
 
   const zip = new JSZip();
   // biome-ignore lint/style/noNonNullAssertion: JSZip always returns

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useRubric } from "@/lib/rubric-context";
 import { useTabNavigation } from "@/lib/tab-navigation-context";
-import { toastError } from "@/stores/toast";
+
 import ConfirmDialog from "./ConfirmDialog";
 import ExportCompleteScreen from "./ExportCompleteScreen";
 
@@ -32,9 +32,6 @@ export default function Metadata() {
       await exportAndClose(rubric);
       setExportFilename(`TRUST_Review_${session.toolName}.zip`);
       setExportComplete(true);
-    } catch (err) {
-      console.error("Export failed:", err);
-      toastError(err instanceof Error ? err.message : "Export failed. Please try again.");
     } finally {
       setExporting(false);
     }
