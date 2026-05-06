@@ -5,11 +5,11 @@ import {
   getAccentKey,
   getCategoryLabel,
   getLinkedRubricIdsForCapture,
-  getQuestionCode,
 } from "@/lib/rubric";
 import { useRubric } from "@/lib/rubric-context";
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
+import RubricChipGroup from "./RubricChipGroup";
 
 export default function Captures() {
   const { rubric, usesAi } = useRubric();
@@ -169,33 +169,17 @@ export default function Captures() {
                             {Object.entries(rubric.quality_gate).map(([cat, questions]) => (
                               <div key={cat} className="ml-ut-1 mb-1" data-accent-key="control">
                                 <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
-                                <div className="flex flex-wrap gap-1">
-                                  {Object.entries(questions).map(([qId, question], qIdx) => {
-                                    const rubricId = `${cat}.${qId}`;
-                                    const linked = linkedRubricIds.includes(rubricId);
-                                    const isAutoNa = (question.ai_only ?? false) && !usesAi;
-                                    return (
-                                      <button
-                                        key={rubricId}
-                                        className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"} ${isAutoNa ? "opacity-40" : ""}`}
-                                        data-linked={linked ? "true" : "false"}
-                                        aria-label={`${getQuestionCode(cat, qIdx)} ${question.title} ${linked ? "linked" : "unlinked"}`}
-                                        type="button"
-                                        title={
-                                          isAutoNa ? "Not applicable — non-AI tool" : question.title
-                                        }
-                                        onClick={() =>
-                                          linked
-                                            ? unlinkCaptureFromRubric(capture.id, rubricId)
-                                            : linkCaptureToRubric(capture.id, rubricId)
-                                        }
-                                      >
-                                        {getQuestionCode(cat, qIdx)}
-                                        {isAutoNa ? "⁂" : ""}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
+                                <RubricChipGroup
+                                  questions={questions}
+                                  categoryKey={cat}
+                                  linkedIds={linkedRubricIds}
+                                  usesAi={usesAi}
+                                  onToggle={(rubricId, linked) =>
+                                    linked
+                                      ? unlinkCaptureFromRubric(capture.id, rubricId)
+                                      : linkCaptureToRubric(capture.id, rubricId)
+                                  }
+                                />
                               </div>
                             ))}
                           </div>
@@ -210,33 +194,17 @@ export default function Captures() {
                                 data-accent-key={getAccentKey(cat)}
                               >
                                 <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
-                                <div className="flex flex-wrap gap-1">
-                                  {Object.entries(questions).map(([qId, question], qIdx) => {
-                                    const rubricId = `${cat}.${qId}`;
-                                    const linked = linkedRubricIds.includes(rubricId);
-                                    const isAutoNa = (question.ai_only ?? false) && !usesAi;
-                                    return (
-                                      <button
-                                        key={rubricId}
-                                        className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"} ${isAutoNa ? "opacity-40" : ""}`}
-                                        data-linked={linked ? "true" : "false"}
-                                        aria-label={`${getQuestionCode(cat, qIdx)} ${question.title} ${linked ? "linked" : "unlinked"}`}
-                                        type="button"
-                                        title={
-                                          isAutoNa ? "Not applicable — non-AI tool" : question.title
-                                        }
-                                        onClick={() =>
-                                          linked
-                                            ? unlinkCaptureFromRubric(capture.id, rubricId)
-                                            : linkCaptureToRubric(capture.id, rubricId)
-                                        }
-                                      >
-                                        {getQuestionCode(cat, qIdx)}
-                                        {isAutoNa ? "⁂" : ""}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
+                                <RubricChipGroup
+                                  questions={questions}
+                                  categoryKey={cat}
+                                  linkedIds={linkedRubricIds}
+                                  usesAi={usesAi}
+                                  onToggle={(rubricId, linked) =>
+                                    linked
+                                      ? unlinkCaptureFromRubric(capture.id, rubricId)
+                                      : linkCaptureToRubric(capture.id, rubricId)
+                                  }
+                                />
                               </div>
                             ))}
                           </div>

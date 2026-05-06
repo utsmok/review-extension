@@ -233,14 +233,6 @@ export default function FinalizationScreen() {
   );
 }
 
-/**
- * Stable key counter — persists across renders so items keep their keys
- * when the list is modified.
- */
-let bulletIdCounter = 0;
-function nextBulletId(): string {
-  return `item-${++bulletIdCounter}`;
-}
 
 function BulletListEditor({
   label,
@@ -254,7 +246,12 @@ function BulletListEditor({
   placeholder: string;
 }) {
   // Track stable keys per item position
+  const nextIdRef = useRef(0);
   const keysRef = useRef<string[]>([]);
+
+  function nextBulletId(): string {
+    return `item-${++nextIdRef.current}`;
+  }
 
   // Ensure we have a key for every item
   if (keysRef.current.length < items.length) {
