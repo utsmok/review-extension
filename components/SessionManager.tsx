@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { downloadBlob } from "@/lib/export";
-import { sanitizeFilename } from "@/lib/filename";
-import { loadFromIDB } from "@/lib/session-storage";
+import { downloadBlob, sanitizeFilename } from "@/lib/export";
+import { getRepository } from "@/lib/session-repository";
 import { exportSessionById } from "@/lib/session-lifecycle";
 import { useRegistryStore } from "@/stores/registry";
 import { toastError, toastSuccess } from "@/stores/toast";
@@ -52,7 +51,7 @@ export default function SessionManager() {
       const sanitized = sanitizeFilename(meta.toolName).slice(0, 80);
       const filename = `TRUST_Review_${sanitized}.zip`.slice(0, 100);
       downloadBlob(blob, filename);
-      const data = await loadFromIDB(id);
+      const data = await getRepository().load(id);
       const scoredCount = data?.evaluations.filter(
         (e) => e.score !== "" && e.score !== undefined,
       ).length ?? 0;
