@@ -1,3 +1,13 @@
+/* ── Global focus-visible indicator ─────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--ut-blue);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
 /* ── Accent scoping ──────────────────────────────────────────── */
 
 [data-accent-key="tr"] {
