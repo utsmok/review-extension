@@ -26,7 +26,7 @@ export default function App() {
     return (
       <AppShell>
         <div className="flex items-center justify-center flex-1 h-full">
-          <p className="text-ut-md text-ut-muted">Loading session...</p>
+          <p className="text-ut-md text-ut-muted">Loading review...</p>
         </div>
       </AppShell>
     );
