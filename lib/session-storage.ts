@@ -2,10 +2,11 @@ import type { SessionData } from "@/lib/types";
 
 const DB_NAME = "trust-review-sessions";
 const STORE_NAME = "sessions";
+export const SCHEMA_VERSION = 2;
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(DB_NAME, 2);
     request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -45,15 +46,29 @@ function getDB(): Promise<IDBDatabase> {
   return dbPromise;
 }
 
-export async function saveToIDB(id: string, data: SessionData): Promise<void> {
-  const db = await getDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    tx.objectStore(STORE_NAME).put(data, id);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(new Error("Transaction aborted"));
-  });
+export async function isDBAvailable(): Promise<boolean> {
+  try {
+    await getDB();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function saveToIDB(id: string, data: SessionData): Promise<boolean> {
+  try {
+    const db = await getDB();
+    data.schemaVersion = SCHEMA_VERSION;
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      tx.objectStore(STORE_NAME).put(data, id);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(new Error("Transaction aborted"));
+    });
+  } catch {
+    return false;
+  }
 }
 
 export async function loadFromIDB(id: string): Promise<SessionData | null> {

@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import ToastContainer from "./Toast";
 
 interface AppShellProps {
@@ -7,9 +7,34 @@ interface AppShellProps {
   showSettingsButton?: boolean;
 }
 
+type SaveStatus = "idle" | "saved" | "failed";
+
 export default function AppShell({ children, onSettingsClick, showSettingsButton }: AppShellProps) {
   const [trustImgError, setTrustImgError] = useState(false);
   const [lisaImgError, setLisaImgError] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    function onSuccess(e: Event) {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      setSaveStatus("saved");
+      timeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
+    }
+    function onFailure() {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+      setSaveStatus("failed");
+    }
+
+    document.addEventListener("trust-save-succeeded", onSuccess);
+    document.addEventListener("trust-save-failed", onFailure);
+    return () => {
+      document.removeEventListener("trust-save-succeeded", onSuccess);
+      document.removeEventListener("trust-save-failed", onFailure);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   return (
     <div className="flex flex-col h-screen bg-ut-white">
@@ -27,7 +52,7 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
             onError={() => setTrustImgError(true)}
           />
         )}
-        <span className="text-ut-sm font-display font-bold uppercase tracking-ut-kicker text-trust-magenta">
+        <span className="text-ut-sm font-display font-bold uppercase tracking-ut-kicker text-trust-magenta" title="TRUST Framework — Transparent, Reliable, User-centric, Sound, Traceable">
           Information Tool Reviews
         </span>
         <div className="flex-1" />
@@ -76,6 +101,12 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
         >
           LISA-EIS / University of Twente
         </a>
+        {saveStatus === "saved" && (
+          <span data-testid="save-status" className="text-ut-xs text-ut-green ml-auto">Saved</span>
+        )}
+        {saveStatus === "failed" && (
+          <span data-testid="save-status" className="text-ut-xs text-ut-red ml-auto">Save failed</span>
+        )}
       </footer>
     </div>
   );

@@ -84,4 +84,36 @@ describe("IDB save/load/delete", () => {
     expect(loaded!.evaluations).toHaveLength(1);
     expect(loaded!.evaluations[0].explicitEvidenceIds).toEqual(["cap-1"]);
   });
+
+  it("stamps schemaVersion on save", async () => {
+    const data = makeSessionData();
+    await saveToIDB("test-id", data);
+
+    const loaded = await loadFromIDB("test-id");
+    expect(loaded).not.toBeNull();
+    expect(loaded!.schemaVersion).toBe(2);
+  });
+
+  it("returns false from saveToIDB when IDB fails", async () => {
+    // Force IDB to fail by deleting the database and closing connections
+    await new Promise<void>((resolve) => {
+      const req = indexedDB.deleteDatabase("trust-review-sessions");
+      req.onsuccess = () => resolve();
+      req.onerror = () => resolve();
+    });
+
+    // Patch: make openDB always fail by overriding indexedDB temporarily
+    const originalOpen = indexedDB.open;
+    indexedDB.open = () => {
+      throw new Error("IDB not available");
+    };
+
+    try {
+      const data = makeSessionData();
+      const result = await saveToIDB("test-id", data);
+      expect(result).toBe(false);
+    } finally {
+      indexedDB.open = originalOpen;
+    }
+  });
 });

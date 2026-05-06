@@ -8,17 +8,24 @@
 import { useSessionStore } from "@/stores/session";
 import { useRegistryStore } from "@/stores/registry";
 import { saveToIDB } from "@/lib/session-storage";
+import { toastWarning } from "@/stores/toast";
 
 let timerRef: ReturnType<typeof setTimeout> | undefined;
 let unsub: (() => void) | null = null;
 let visibilityHandler: (() => void) | null = null;
 let initialized = false;
 
-function flush(): void {
+async function flush(): Promise<void> {
   const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
   const activeId = useRegistryStore.getState().activeSessionId;
   if (s && activeId) {
-    saveToIDB(activeId, { metadata: s, captures: c, evaluations: e, finalization: f });
+    const ok = await saveToIDB(activeId, { metadata: s, captures: c, evaluations: e, finalization: f });
+    if (ok) {
+      document.dispatchEvent(new CustomEvent("trust-save-succeeded", { detail: { timestamp: Date.now() } }));
+    } else {
+      toastWarning("Auto-save failed — your work may not be saved.");
+      document.dispatchEvent(new CustomEvent("trust-save-failed"));
+    }
   }
 }
 
@@ -27,7 +34,7 @@ function flush(): void {
  * subsequent calls are no-ops. Call from a single root component (App.tsx).
  */
 export function initAutoSave(): void {
-  if (initialized) return;
+  teardownAutoSave();
   initialized = true;
 
   // Effect 2: Debounced auto-save on every store change

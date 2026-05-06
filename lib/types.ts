@@ -30,6 +30,7 @@ export interface SessionData {
   evaluations: Evaluation[];
   questionModes?: Record<string, "expert" | "standard">;
   finalization: ReviewFinalization | null;
+  schemaVersion?: number;
 }
 
 export interface Capture {
