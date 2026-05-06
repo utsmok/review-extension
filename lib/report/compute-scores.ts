@@ -1,7 +1,18 @@
 import { PRINCIPLES } from "../principles";
-import { getCategoryScores, qualityGateResults } from "../scoring";
-import { GRADE_COLORS, GRADE_LABELS, MUTED_COLOR } from "./constants";
+import { getCategoryScores, qualityGateResults } from "../rubric";
 import type { Evaluation, ReviewFinalization, RubricData } from "../types";
+
+const GRADE_COLORS: Record<string, string> = {
+  pass: "#4a8355",
+  conditional: "#ea580c",
+  fail: "#c60c30",
+};
+const GRADE_LABELS: Record<string, string> = {
+  pass: "PASSED",
+  conditional: "CONDITIONAL",
+  fail: "FAILED",
+};
+const MUTED_COLOR = "#6b7f94";
 
 export interface ReportScores {
   totalActual: number;
