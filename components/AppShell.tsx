@@ -37,7 +37,7 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-ut-white">
+    <div className="flex flex-col h-full bg-ut-white">
       <ToastContainer />
       <header className="border-b border-ut-border px-ut-4 py-ut-2 flex items-center gap-2 bg-ut-white shrink-0">
         {trustImgError ? (
@@ -52,7 +52,10 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
             onError={() => setTrustImgError(true)}
           />
         )}
-        <span className="text-ut-sm font-display font-bold uppercase tracking-ut-kicker text-trust-magenta" title="TRUST Framework — Transparent, Reliable, User-centric, Sound, Traceable">
+        <span
+          className="text-ut-sm font-display font-bold uppercase tracking-ut-kicker text-trust-magenta"
+          title="TRUST Framework — Transparent, Reliable, User-centric, Sound, Traceable"
+        >
           Information Tool Reviews
         </span>
         <div className="flex-1" />
@@ -66,21 +69,22 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
             <svg
               width="16"
               height="16"
-              viewBox="0 0 16 16"
+              viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.2"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             >
               <title>Settings</title>
-              <circle cx="8" cy="8" r="2.5" />
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+              <circle cx="12" cy="12" r="3" />
             </svg>
           </button>
         )}
       </header>
 
-      <main className="flex-1 overflow-y-auto">{children}</main>
+      <main className="flex-1 min-h-0">{children}</main>
 
       <footer className="border-t border-ut-border px-ut-4 py-ut-2 flex items-center gap-2 bg-ut-white shrink-0">
         {lisaImgError ? (
@@ -94,7 +98,7 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
           />
         )}
         <a
-          href="https://www.utwente.nl/en/library/"
+          href="https://www.utwente.nl/library/"
           target="_blank"
           rel="noopener noreferrer"
           className="text-ut-xs text-ut-slate hover:text-ut-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue transition-colors"
@@ -102,10 +106,14 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
           LISA-EIS / University of Twente
         </a>
         {saveStatus === "saved" && (
-          <span data-testid="save-status" className="text-ut-xs text-ut-green ml-auto">Saved</span>
+          <span data-testid="save-status" className="text-ut-xs text-ut-green ml-auto">
+            Saved
+          </span>
         )}
         {saveStatus === "failed" && (
-          <span data-testid="save-status" className="text-ut-xs text-ut-red ml-auto">Save failed</span>
+          <span data-testid="save-status" className="text-ut-xs text-ut-red ml-auto">
+            Save failed
+          </span>
         )}
       </footer>
     </div>
