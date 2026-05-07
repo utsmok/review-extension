@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { useTabNavigation } from "@/lib/contexts"
+import { useTabNavigation } from "@/lib/contexts";
 import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
 
 const GRADES: { value: FinalizationGrade; label: string; color: string; tint: string }[] = [
@@ -20,8 +20,8 @@ export default function FinalizationScreen() {
 
   const [grade, setGrade] = useState<FinalizationGrade | "">(finalization?.grade ?? "");
   const [conclusion, setConclusion] = useState(finalization?.conclusion ?? "");
-  const [strengths, setStrengths] = useState<string[]>(finalization?.strengths ?? [""]);
-  const [weaknesses, setWeaknesses] = useState<string[]>(finalization?.weaknesses ?? [""]);
+  const [strengths, setStrengths] = useState<string[]>(finalization?.strengths ?? []);
+  const [weaknesses, setWeaknesses] = useState<string[]>(finalization?.weaknesses ?? []);
   const [recommendations, setRecommendations] = useState(finalization?.recommendations ?? "");
   const [saved, setSaved] = useState(!!finalization);
 
@@ -33,16 +33,16 @@ export default function FinalizationScreen() {
     if (finalization) {
       setGrade(finalization.grade);
       setConclusion(finalization.conclusion);
-      setStrengths(finalization.strengths.length > 0 ? finalization.strengths : [""]);
-      setWeaknesses(finalization.weaknesses.length > 0 ? finalization.weaknesses : [""]);
+      setStrengths(finalization.strengths);
+      setWeaknesses(finalization.weaknesses);
       setRecommendations(finalization.recommendations);
       setSaved(true);
       lastSavedData.current = finalization;
     } else {
       setGrade("");
       setConclusion("");
-      setStrengths([""]);
-      setWeaknesses([""]);
+      setStrengths([]);
+      setWeaknesses([]);
       setRecommendations("");
       setSaved(false);
       lastSavedData.current = null;
@@ -68,8 +68,8 @@ export default function FinalizationScreen() {
   const handleClear = () => {
     setGrade("");
     setConclusion("");
-    setStrengths([""]);
-    setWeaknesses([""]);
+    setStrengths([]);
+    setWeaknesses([]);
     setRecommendations("");
     setFinalization(null);
     setSaved(false);
@@ -233,7 +233,6 @@ export default function FinalizationScreen() {
   );
 }
 
-
 function BulletListEditor({
   label,
   items,
@@ -245,34 +244,42 @@ function BulletListEditor({
   onChange: (items: string[]) => void;
   placeholder: string;
 }) {
-  // Track stable keys per item position
-  const nextIdRef = useRef(0);
-  const keysRef = useRef<string[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const editRef = useRef<HTMLInputElement>(null);
 
-  function nextBulletId(): string {
-    return `item-${++nextIdRef.current}`;
-  }
+  // Focus edit input when editing starts
+  useEffect(() => {
+    if (editingIndex !== null) editRef.current?.focus();
+  }, [editingIndex]);
 
-  // Ensure we have a key for every item
-  if (keysRef.current.length < items.length) {
-    while (keysRef.current.length < items.length) {
-      keysRef.current.push(nextBulletId());
-    }
-  }
-  // Trim if items were removed
-  if (keysRef.current.length > items.length) {
-    keysRef.current = keysRef.current.slice(0, items.length);
-  }
-
-  const handleRemove = (idx: number) => {
-    const next = items.filter((_, i) => i !== idx);
-    keysRef.current = keysRef.current.filter((_, i) => i !== idx);
-    onChange(next);
+  // Handle submit (Enter key or button click)
+  const handleSubmit = () => {
+    const trimmed = inputValue.trim();
+    if (!trimmed) return;
+    onChange([...items, trimmed]);
+    setInputValue("");
+    inputRef.current?.focus();
   };
 
-  const handleAdd = () => {
-    keysRef.current.push(nextBulletId());
-    onChange([...items, ""]);
+  // Handle edit confirmation
+  const handleEditConfirm = (idx: number) => {
+    const trimmed = editValue.trim();
+    if (!trimmed) {
+      // Remove if emptied during edit
+      handleRemove(idx);
+    } else {
+      const next = [...items];
+      next[idx] = trimmed;
+      onChange(next);
+    }
+    setEditingIndex(null);
+  };
+
+  const handleRemove = (idx: number) => {
+    onChange(items.filter((_, i) => i !== idx));
   };
 
   return (
@@ -280,36 +287,82 @@ function BulletListEditor({
       <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
         {label}
       </span>
-      {items.map((item, idx) => (
-        <div key={keysRef.current[idx]} className="flex gap-ut-1">
-          <input
-            className="flex-1 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
-            placeholder={placeholder}
-            value={item}
-            onChange={(e) => {
-              const next = [...items];
-              next[idx] = e.target.value;
-              onChange(next);
-            }}
-          />
-          {items.length > 1 && (
-            <button
-              type="button"
-              className="px-ut-2 text-ut-slate hover:text-ut-red transition-colors"
-              onClick={() => handleRemove(idx)}
-            >
-              &times;
-            </button>
-          )}
-        </div>
-      ))}
-      <button
-        type="button"
-        className="self-start text-ut-sm text-ut-blue hover:text-ut-navy font-heading font-bold uppercase tracking-ut-label"
-        onClick={handleAdd}
-      >
-        + Add {label.toLowerCase().slice(0, -1)}
-      </button>
+      {/* Input row */}
+      <div className="flex gap-ut-1">
+        <input
+          ref={inputRef}
+          className="flex-1 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+          placeholder={placeholder}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSubmit();
+            }
+          }}
+        />
+        <button
+          type="button"
+          className="px-ut-3 text-ut-sm text-ut-blue hover:text-ut-navy font-heading font-bold"
+          onClick={handleSubmit}
+          disabled={!inputValue.trim()}
+        >
+          Add
+        </button>
+      </div>
+      {/* Items list */}
+      {items.length > 0 && (
+        <ul className="flex flex-col gap-ut-1 ml-ut-1">
+          {items.map((item, idx) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: simple string list, index is sufficient
+            <li key={idx} className="flex items-start gap-ut-1 text-ut-sm">
+              <span className="text-ut-slate shrink-0">•</span>
+              {editingIndex === idx ? (
+                <input
+                  ref={editRef}
+                  className="flex-1 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-sm text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={() => handleEditConfirm(idx)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleEditConfirm(idx);
+                    }
+                    if (e.key === "Escape") {
+                      setEditingIndex(null);
+                    }
+                  }}
+                />
+              ) : (
+                <span className="flex-1 text-ut-text break-words">{item}</span>
+              )}
+              {editingIndex !== idx && (
+                <>
+                  <button
+                    type="button"
+                    className="text-ut-xs text-ut-slate hover:text-ut-blue shrink-0"
+                    onClick={() => {
+                      setEditingIndex(idx);
+                      setEditValue(item);
+                    }}
+                  >
+                    edit
+                  </button>
+                  <button
+                    type="button"
+                    className="text-ut-xs text-ut-slate hover:text-ut-red shrink-0"
+                    onClick={() => handleRemove(idx)}
+                  >
+                    remove
+                  </button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
