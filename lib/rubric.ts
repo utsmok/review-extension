@@ -15,9 +15,23 @@ export function getRubricQuestionIds(rubric: RubricData): string[] {
   return ids;
 }
 
-
 export function getQuestionCode(categoryKey: string, questionIndex: number): string {
   return `${categoryKey}${questionIndex + 1}`;
+}
+
+/** Map quality gate category keys to short display codes */
+const QG_CATEGORY_CODES: Record<string, string> = {
+  privacy_and_security: "PS",
+  traceability: "QT",
+  accessibility: "AC",
+};
+
+export function getQGCategoryCode(categoryKey: string): string {
+  return QG_CATEGORY_CODES[categoryKey] ?? categoryKey.toUpperCase().slice(0, 2);
+}
+
+export function getQGQuestionCode(categoryKey: string, questionIndex: number): string {
+  return `${getQGCategoryCode(categoryKey)}${questionIndex + 1}`;
 }
 
 export function getQuestionIndex(
@@ -25,8 +39,7 @@ export function getQuestionIndex(
   categoryKey: string,
   questionId: string,
 ): number {
-  const questions =
-    rubric.scoring_rubric[categoryKey] ?? rubric.quality_gate[categoryKey];
+  const questions = rubric.scoring_rubric[categoryKey] ?? rubric.quality_gate[categoryKey];
   if (!questions) return 0;
   return Object.keys(questions).indexOf(questionId);
 }
@@ -62,7 +75,10 @@ export function computeCompletion(evaluations: Evaluation[], rubric: RubricData)
   return totalQuestions > 0 ? Math.round((scored / totalQuestions) * 100) : 0;
 }
 
-export function getLinkedRubricIdsForCapture(captureId: string, evaluations: Evaluation[]): string[] {
+export function getLinkedRubricIdsForCapture(
+  captureId: string,
+  evaluations: Evaluation[],
+): string[] {
   return evaluations
     .filter((e) => e.explicitEvidenceIds.includes(captureId))
     .map((e) => e.rubricId);
@@ -73,14 +89,23 @@ export function getLinkedRubricIdsForCapture(captureId: string, evaluations: Eva
 export function qualityGateResults(
   evaluations: Evaluation[],
   rubric: RubricData,
-): { id: string; label: string; result: "pass" | "fail" | "na" | null }[] {
-  const results: { id: string; label: string; result: "pass" | "fail" | "na" | null }[] = [];
+): { id: string; label: string; result: "pass" | "fail" | "na" | "unsure" | null }[] {
+  const results: { id: string; label: string; result: "pass" | "fail" | "na" | "unsure" | null }[] =
+    [];
   for (const [cat, questions] of Object.entries(rubric.quality_gate)) {
     for (const [qId, q] of Object.entries(questions)) {
       const ev = evaluations.find((e) => e.rubricId === `${cat}.${qId}`);
       const score = ev?.score;
-      const result: "pass" | "fail" | "na" | null =
-        score === "pass" ? "pass" : score === "fail" ? "fail" : score === "na" ? "na" : null;
+      const result: "pass" | "fail" | "na" | "unsure" | null =
+        score === "pass"
+          ? "pass"
+          : score === "fail"
+            ? "fail"
+            : score === "na"
+              ? "na"
+              : score === "unsure"
+                ? "unsure"
+                : null;
       results.push({ id: `${cat}.${qId}`, label: q.title, result });
     }
   }

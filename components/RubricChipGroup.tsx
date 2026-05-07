@@ -1,4 +1,4 @@
-import { getQuestionCode } from "@/lib/rubric";
+import { getQuestionCode, getQGQuestionCode } from "@/lib/rubric";
 import type { PassFailQuestion, ScoringQuestion } from "@/lib/types";
 
 type RubricQuestion = PassFailQuestion | ScoringQuestion;
@@ -8,6 +8,7 @@ interface RubricChipGroupProps {
   categoryKey: string;
   linkedIds: string[];
   usesAi: boolean;
+  isQG?: boolean;
   onToggle: (rubricId: string, linked: boolean) => void;
 }
 
@@ -16,6 +17,7 @@ export default function RubricChipGroup({
   categoryKey,
   linkedIds,
   usesAi,
+  isQG = false,
   onToggle,
 }: RubricChipGroupProps) {
   return (
@@ -24,17 +26,20 @@ export default function RubricChipGroup({
         const rubricId = `${categoryKey}.${qId}`;
         const linked = linkedIds.includes(rubricId);
         const isAutoNa = (question.ai_only ?? false) && !usesAi;
+        const code = isQG
+          ? getQGQuestionCode(categoryKey, qIdx)
+          : getQuestionCode(categoryKey, qIdx);
         return (
           <button
             key={rubricId}
             className={`rubric-chip ${linked ? "" : "hover:border-ut-slate"} ${isAutoNa ? "opacity-40" : ""}`}
             data-linked={linked ? "true" : "false"}
-            aria-label={`${getQuestionCode(categoryKey, qIdx)} ${question.title} ${linked ? "linked" : "unlinked"}`}
+            aria-label={`${code} ${question.title} ${linked ? "linked" : "unlinked"}`}
             type="button"
             title={isAutoNa ? "Not applicable — non-AI tool" : question.title}
             onClick={() => onToggle(rubricId, linked)}
           >
-            {getQuestionCode(categoryKey, qIdx)}
+            {code}
             {isAutoNa ? "⁂" : ""}
           </button>
         );

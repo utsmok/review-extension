@@ -1,12 +1,8 @@
 import { useMemo, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureActiveTab } from "@/lib/capture";
-import {
-  getAccentKey,
-  getCategoryLabel,
-  getLinkedRubricIdsForCapture,
-} from "@/lib/rubric";
-import { useRubric } from "@/lib/contexts"
+import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/lib/rubric";
+import { useRubric } from "@/lib/contexts";
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
 import RubricChipGroup from "./RubricChipGroup";
@@ -174,6 +170,7 @@ export default function Captures() {
                                   categoryKey={cat}
                                   linkedIds={linkedRubricIds}
                                   usesAi={usesAi}
+                                  isQG
                                   onToggle={(rubricId, linked) =>
                                     linked
                                       ? unlinkCaptureFromRubric(capture.id, rubricId)
