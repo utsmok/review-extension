@@ -22,10 +22,11 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-
       - run: pnpm install --frozen-lockfile
+      - run: pnpm wxt prepare
 
       - run: pnpm typecheck
+      - run: pnpm lint
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm zip
