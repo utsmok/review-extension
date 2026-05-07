@@ -264,7 +264,7 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
     const conclRows = Papa.parse(await conclusionsCsv.async("string"), { header: true })
       .data as Record<string, string>[];
     const cr = conclRows[0];
-    if (cr && cr.Grade) {
+    if (cr?.Grade) {
       finalization = {
         grade: cr.Grade as import("./types").FinalizationGrade,
         conclusion: cr.Conclusion || "",

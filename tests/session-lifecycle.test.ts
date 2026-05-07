@@ -76,10 +76,10 @@ describe("createSession", () => {
     // Verify repository
     const loaded = await getRepository().load(meta.id);
     expect(loaded).not.toBeNull();
-    expect(loaded!.metadata.id).toBe(meta.id);
-    expect(loaded!.captures).toEqual([]);
-    expect(loaded!.evaluations).toEqual([]);
-    expect(loaded!.finalization).toBeNull();
+    expect(loaded?.metadata.id).toBe(meta.id);
+    expect(loaded?.captures).toEqual([]);
+    expect(loaded?.evaluations).toEqual([]);
+    expect(loaded?.finalization).toBeNull();
 
     // Verify registry
     const { sessionIndex, activeSessionId } = useRegistryStore.getState();
@@ -112,7 +112,7 @@ describe("loadSessionById", () => {
     const store = useSessionStore.getState();
     expect(store.status).toBe("active");
     expect(store.session).not.toBeNull();
-    expect(store.session!.id).toBe(meta.id);
+    expect(store.session?.id).toBe(meta.id);
   });
 
   it("returns false and clears store when session not found", async () => {
@@ -203,8 +203,8 @@ describe("switchToSession", () => {
     // Verify previous session was saved to repository (it had an evaluation)
     const savedA = await getRepository().load(metaA.id);
     expect(savedA).not.toBeNull();
-    expect(savedA!.evaluations).toHaveLength(1);
-    expect(savedA!.evaluations[0].rubricId).toBe("transparency.1");
+    expect(savedA?.evaluations).toHaveLength(1);
+    expect(savedA?.evaluations[0].rubricId).toBe("transparency.1");
   });
 });
 
@@ -232,7 +232,7 @@ describe("markDoneAndClose", () => {
     // Session data should still be in repository (saved before clear)
     const saved = await getRepository().load(meta.id);
     expect(saved).not.toBeNull();
-    expect(saved!.metadata.id).toBe(meta.id);
+    expect(saved?.metadata.id).toBe(meta.id);
   });
 });
 

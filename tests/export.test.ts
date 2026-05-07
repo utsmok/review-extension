@@ -123,9 +123,9 @@ describe("exportSession", () => {
     expect(rows).toHaveLength(2);
 
     const row1 = rows.find((r) => r.Question_ID === "TR.data_source_clarity");
-    expect(row1!.Score).toBe("2");
-    expect(row1!.Notes).toBe("Good coverage");
-    expect(row1!.Rubric_Category).toBe("TR — Transparent");
+    expect(row1?.Score).toBe("2");
+    expect(row1?.Notes).toBe("Good coverage");
+    expect(row1?.Rubric_Category).toBe("TR — Transparent");
   });
 
   it("populates Linked_Capture_IDs from explicitEvidenceIds", async () => {
@@ -226,7 +226,7 @@ describe("exportSession", () => {
 
     const rows = parseCsv(csv);
     const row = rows.find((r) => r.Question_ID === "TR.methodology_disclosure");
-    expect(row!.Score).toBe("na");
+    expect(row?.Score).toBe("na");
 
     const html = files.get("Evaluation_Report_TestSearch.html") as string;
     expect(html).toContain("N/A");

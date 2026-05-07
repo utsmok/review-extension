@@ -1,10 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { computeCompletion, distributionBar, getCategoryLabel, getCategoryScores, getLinkedRubricIdsForCapture, getQuestionCode, getRubricQuestionIds, principleAverage, qualityGateResults, scoreColor } from "@/lib/rubric";
+import {
+  computeCompletion,
+  distributionBar,
+  getCategoryLabel,
+  getCategoryScores,
+  getLinkedRubricIdsForCapture,
+  getQuestionCode,
+  getRubricQuestionIds,
+  principleAverage,
+  qualityGateResults,
+  scoreColor,
+} from "@/lib/rubric";
 import trustFull from "@/data/rubrics/trust-full.json";
 import type { Evaluation, RubricData } from "@/lib/types";
 
 const TRUST_RUBRIC = trustFull as unknown as RubricData;
-
 
 describe("TRUST_RUBRIC (full)", () => {
   it("has correct framework name and version", () => {
@@ -21,13 +31,7 @@ describe("TRUST_RUBRIC (full)", () => {
 
   it("has 5 scoring rubric categories with two-letter codes", () => {
     const categories = Object.keys(TRUST_RUBRIC.scoring_rubric);
-    expect(categories).toEqual([
-      "TR",
-      "RE",
-      "US",
-      "SE",
-      "TC",
-    ]);
+    expect(categories).toEqual(["TR", "RE", "US", "SE", "TC"]);
   });
 
   it("all quality gate questions have title, requirement, background, and examples", () => {
@@ -36,10 +40,10 @@ describe("TRUST_RUBRIC (full)", () => {
         expect(q.type).toBe("pass_fail");
         expect(q.title.length).toBeGreaterThan(0);
         expect(q.requirement.length).toBeGreaterThan(0);
-        expect(q.background!.length).toBeGreaterThan(0);
+        expect(q.background?.length).toBeGreaterThan(0);
         expect(q.examples).toBeDefined();
-        expect(q.examples!.pass.length).toBeGreaterThan(0);
-        expect(q.examples!.fail.length).toBeGreaterThan(0);
+        expect(q.examples?.pass.length).toBeGreaterThan(0);
+        expect(q.examples?.fail.length).toBeGreaterThan(0);
       }
     }
   });
@@ -52,15 +56,14 @@ describe("TRUST_RUBRIC (full)", () => {
         expect(levels["1"].length).toBeGreaterThan(0);
         expect(levels["2"].length).toBeGreaterThan(0);
         expect(levels["3"].length).toBeGreaterThan(0);
-        expect(levels.background!.length).toBeGreaterThan(0);
+        expect(levels.background?.length).toBeGreaterThan(0);
         expect(levels.examples).toBeDefined();
-        expect(levels.examples!["0"].length).toBeGreaterThan(0);
-        expect(levels.examples!["3"].length).toBeGreaterThan(0);
+        expect(levels.examples?.["0"].length).toBeGreaterThan(0);
+        expect(levels.examples?.["3"].length).toBeGreaterThan(0);
       }
     }
   });
 });
-
 
 describe("getRubricQuestionIds", () => {
   it("returns all quality gate IDs first", () => {
@@ -174,8 +177,18 @@ describe("computeCompletion", () => {
 describe("getLinkedRubricIdsForCapture", () => {
   it("returns rubric IDs where capture is in explicitEvidenceIds", () => {
     const evaluations: Evaluation[] = [
-      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: ["cap-1", "cap-2"] },
-      { rubricId: "RE.accuracy_and_hallucination", score: 1, notes: "", explicitEvidenceIds: ["cap-1"] },
+      {
+        rubricId: "TR.data_source_clarity",
+        score: 2,
+        notes: "",
+        explicitEvidenceIds: ["cap-1", "cap-2"],
+      },
+      {
+        rubricId: "RE.accuracy_and_hallucination",
+        score: 1,
+        notes: "",
+        explicitEvidenceIds: ["cap-1"],
+      },
       { rubricId: "US.workflow_integration", score: "", notes: "", explicitEvidenceIds: [] },
     ];
 
@@ -266,7 +279,12 @@ describe("principleAverage", () => {
 
   it("ignores non-numeric scores (na, unsure, empty string)", () => {
     const evals: Evaluation[] = [
-      { rubricId: "TR.data_source_clarity", score: "na" as const, notes: "", explicitEvidenceIds: [] },
+      {
+        rubricId: "TR.data_source_clarity",
+        score: "na" as const,
+        notes: "",
+        explicitEvidenceIds: [],
+      },
       { rubricId: "TR.methodology_disclosure", score: 2, notes: "", explicitEvidenceIds: [] },
     ];
     expect(principleAverage("TR", evals, RUBRIC)).toBe(2);
@@ -274,8 +292,18 @@ describe("principleAverage", () => {
 
   it("returns null when all answers are non-numeric", () => {
     const evals: Evaluation[] = [
-      { rubricId: "TR.data_source_clarity", score: "na" as const, notes: "", explicitEvidenceIds: [] },
-      { rubricId: "TR.methodology_disclosure", score: "unsure" as const, notes: "", explicitEvidenceIds: [] },
+      {
+        rubricId: "TR.data_source_clarity",
+        score: "na" as const,
+        notes: "",
+        explicitEvidenceIds: [],
+      },
+      {
+        rubricId: "TR.methodology_disclosure",
+        score: "unsure" as const,
+        notes: "",
+        explicitEvidenceIds: [],
+      },
     ];
     expect(principleAverage("TR", evals, RUBRIC)).toBeNull();
   });
@@ -302,8 +330,18 @@ describe("getCategoryScores", () => {
 
   it("includes na/unsure/empty string scores", () => {
     const evals: Evaluation[] = [
-      { rubricId: "TR.data_source_clarity", score: "na" as const, notes: "", explicitEvidenceIds: [] },
-      { rubricId: "TR.methodology_disclosure", score: "unsure" as const, notes: "", explicitEvidenceIds: [] },
+      {
+        rubricId: "TR.data_source_clarity",
+        score: "na" as const,
+        notes: "",
+        explicitEvidenceIds: [],
+      },
+      {
+        rubricId: "TR.methodology_disclosure",
+        score: "unsure" as const,
+        notes: "",
+        explicitEvidenceIds: [],
+      },
     ];
     expect(getCategoryScores("TR", evals, RUBRIC)).toEqual(["na", "unsure"]);
   });
@@ -322,7 +360,7 @@ describe("qualityGateResults", () => {
   it("any fail → that specific gate shows fail", () => {
     const evals = allGateEvals("pass");
     const failEntry = evals.find((e) => e.rubricId === "privacy_and_security.data_privacy")!;
-    failEntry.score = "fail";
+    failEntry!.score = "fail";
     const results = qualityGateResults(evals, RUBRIC);
     const failed = results.find((r) => r.id === "privacy_and_security.data_privacy");
     expect(failed?.result).toBe("fail");

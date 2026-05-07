@@ -16,7 +16,7 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    function onSuccess(e: Event) {
+    function onSuccess(_e: Event) {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       setSaveStatus("saved");
       timeoutRef.current = setTimeout(() => setSaveStatus("idle"), 3000);

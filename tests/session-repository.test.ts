@@ -44,9 +44,9 @@ describe("IdbSessionRepository", () => {
 
     const loaded = await repo.load("test-id");
     expect(loaded).not.toBeNull();
-    expect(loaded!.metadata.toolName).toBe("Test Tool");
-    expect(loaded!.captures).toEqual([]);
-    expect(loaded!.evaluations).toEqual([]);
+    expect(loaded?.metadata.toolName).toBe("Test Tool");
+    expect(loaded?.captures).toEqual([]);
+    expect(loaded?.evaluations).toEqual([]);
   });
 
   it("load returns null for non-existent ID", async () => {
@@ -84,10 +84,10 @@ describe("IdbSessionRepository", () => {
     await repo.save("test-id", data);
     const loaded = await repo.load("test-id");
 
-    expect(loaded!.captures).toHaveLength(1);
-    expect(loaded!.captures[0].id).toBe("cap-1");
-    expect(loaded!.evaluations).toHaveLength(1);
-    expect(loaded!.evaluations[0].explicitEvidenceIds).toEqual(["cap-1"]);
+    expect(loaded?.captures).toHaveLength(1);
+    expect(loaded?.captures[0].id).toBe("cap-1");
+    expect(loaded?.evaluations).toHaveLength(1);
+    expect(loaded?.evaluations[0].explicitEvidenceIds).toEqual(["cap-1"]);
   });
 
   it("stamps schemaVersion on save", async () => {
@@ -96,7 +96,7 @@ describe("IdbSessionRepository", () => {
 
     const loaded = await repo.load("test-id");
     expect(loaded).not.toBeNull();
-    expect(loaded!.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(loaded?.schemaVersion).toBe(SCHEMA_VERSION);
   });
 
   it("returns false from save when IDB fails", async () => {
@@ -127,7 +127,7 @@ describe("InMemorySessionRepository", () => {
 
     const loaded = await repo.load("test-id");
     expect(loaded).not.toBeNull();
-    expect(loaded!.metadata.toolName).toBe("Test Tool");
+    expect(loaded?.metadata.toolName).toBe("Test Tool");
   });
 
   it("load returns null for non-existent ID", async () => {
@@ -152,10 +152,10 @@ describe("InMemorySessionRepository", () => {
     await repo.save("test-id", data);
 
     const loaded = await repo.load("test-id");
-    loaded!.metadata.toolName = "Mutated";
+    if (loaded) loaded.metadata.toolName = "Mutated";
 
     const reloaded = await repo.load("test-id");
-    expect(reloaded!.metadata.toolName).toBe("Test Tool");
+    expect(reloaded?.metadata.toolName).toBe("Test Tool");
   });
 });
 

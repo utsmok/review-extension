@@ -1,7 +1,12 @@
-import { beforeEach, afterEach, afterAll, describe, expect, it } from "vitest";
+import { beforeEach, afterAll, describe, expect, it } from "vitest";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
-import { getRepository, InMemorySessionRepository, setRepository, resetRepository } from "@/lib/session-repository";
+import {
+  getRepository,
+  InMemorySessionRepository,
+  setRepository,
+  resetRepository,
+} from "@/lib/session-repository";
 import * as lifecycle from "@/lib/session-lifecycle";
 import type { SessionData, SessionMetadata } from "@/lib/types";
 
@@ -49,7 +54,9 @@ describe("lifecycle.loadSessionById", () => {
     const data: SessionData = {
       metadata: meta,
       captures: [],
-      evaluations: [{ rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] }],
+      evaluations: [
+        { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
+      ],
       finalization: null,
     };
     await getRepository().save("sess-1", data);
@@ -83,8 +90,8 @@ describe("lifecycle.createSession", () => {
 
     const saved = await getRepository().load("sess-new");
     expect(saved).not.toBeNull();
-    expect(saved!.metadata.toolName).toBe("Test Tool");
-    expect(saved!.captures).toHaveLength(0);
+    expect(saved?.metadata.toolName).toBe("Test Tool");
+    expect(saved?.captures).toHaveLength(0);
 
     expect(useRegistryStore.getState().sessionIndex["sess-new"]).toBeDefined();
     expect(useRegistryStore.getState().activeSessionId).toBe("sess-new");
@@ -94,7 +101,12 @@ describe("lifecycle.createSession", () => {
 describe("lifecycle.deleteSession", () => {
   it("deletes from registry and repository", async () => {
     const meta = makeMetadata({ id: "sess-del" });
-    await getRepository().save("sess-del", { metadata: meta, captures: [], evaluations: [], finalization: null });
+    await getRepository().save("sess-del", {
+      metadata: meta,
+      captures: [],
+      evaluations: [],
+      finalization: null,
+    });
     useRegistryStore.getState().addSession(meta);
 
     await lifecycle.deleteSession("sess-del");
@@ -123,11 +135,18 @@ describe("lifecycle.deleteSession", () => {
 describe("lifecycle.switchToSession", () => {
   it("saves current session, clears store, and sets new activeSessionId", async () => {
     const meta1 = makeMetadata({ id: "sess-a" });
-    const meta2 = makeMetadata({ id: "sess-b" });
-    await getRepository().save("sess-a", { metadata: meta1, captures: [], evaluations: [], finalization: null });
+    const _meta2 = makeMetadata({ id: "sess-b" });
+    await getRepository().save("sess-a", {
+      metadata: meta1,
+      captures: [],
+      evaluations: [],
+      finalization: null,
+    });
     useRegistryStore.getState().addSession(meta1);
     useSessionStore.getState().loadSession((await getRepository().load("sess-a")) as SessionData);
-    useSessionStore.getState().setEvaluation("TR.data_source_clarity", { score: 3, notes: "", explicitEvidenceIds: [] });
+    useSessionStore
+      .getState()
+      .setEvaluation("TR.data_source_clarity", { score: 3, notes: "", explicitEvidenceIds: [] });
 
     lifecycle.switchToSession("sess-b");
 
@@ -137,8 +156,8 @@ describe("lifecycle.switchToSession", () => {
     // Original saved with evaluation (fire-and-forget needs a tick)
     await new Promise((r) => setTimeout(r, 50));
     const saved = await getRepository().load("sess-a");
-    expect(saved!.evaluations).toHaveLength(1);
-    expect(saved!.evaluations[0].score).toBe(3);
+    expect(saved?.evaluations).toHaveLength(1);
+    expect(saved?.evaluations[0].score).toBe(3);
   });
 });
 
@@ -148,7 +167,9 @@ describe("lifecycle.markDoneAndClose", () => {
     const data: SessionData = {
       metadata: meta,
       captures: [],
-      evaluations: [{ rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] }],
+      evaluations: [
+        { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
+      ],
       finalization: null,
     };
     await getRepository().save("sess-done", data);
@@ -166,7 +187,7 @@ describe("lifecycle.markDoneAndClose", () => {
     await new Promise((r) => setTimeout(r, 50));
     const saved = await getRepository().load("sess-done");
     expect(saved).not.toBeNull();
-    expect(saved!.evaluations).toHaveLength(1);
+    expect(saved?.evaluations).toHaveLength(1);
   });
 });
 
@@ -177,14 +198,16 @@ describe("lifecycle.saveCurrentSession", () => {
     await getRepository().save("sess-save", data);
     useRegistryStore.getState().addSession(meta);
     useSessionStore.getState().loadSession(data);
-    useSessionStore.getState().setEvaluation("SE.algorithmic_fairness", { score: 2, notes: "", explicitEvidenceIds: [] });
+    useSessionStore
+      .getState()
+      .setEvaluation("SE.algorithmic_fairness", { score: 2, notes: "", explicitEvidenceIds: [] });
 
     lifecycle.saveCurrentSession();
 
     await new Promise((r) => setTimeout(r, 50));
     const saved = await getRepository().load("sess-save");
-    expect(saved!.evaluations).toHaveLength(1);
-    expect(saved!.evaluations[0].rubricId).toBe("SE.algorithmic_fairness");
+    expect(saved?.evaluations).toHaveLength(1);
+    expect(saved?.evaluations[0].rubricId).toBe("SE.algorithmic_fairness");
   });
 
   it("is a no-op when no session is active", () => {
@@ -203,10 +226,18 @@ describe("hook Effect 1 simulation: save on activeSessionId clear", () => {
     await getRepository().save("sess-2", data);
     useRegistryStore.getState().addSession(meta);
     useSessionStore.getState().loadSession(data);
-    useSessionStore.getState().setEvaluation("RE.variance_consistency", { score: 1, notes: "", explicitEvidenceIds: [] });
+    useSessionStore
+      .getState()
+      .setEvaluation("RE.variance_consistency", { score: 1, notes: "", explicitEvidenceIds: [] });
 
     const { session: s, captures: c, evaluations: e } = useSessionStore.getState();
-    await getRepository().save(s!.id, { metadata: s!, captures: c, evaluations: e, finalization: null });
+    const session = s as NonNullable<typeof s>;
+    await getRepository().save(session.id, {
+      metadata: session,
+      captures: c,
+      evaluations: e,
+      finalization: null,
+    });
     useSessionStore.getState().clear();
     useRegistryStore.getState().setActiveSessionId(null);
 
@@ -215,8 +246,8 @@ describe("hook Effect 1 simulation: save on activeSessionId clear", () => {
 
     const saved = await getRepository().load("sess-2");
     expect(saved).not.toBeNull();
-    expect(saved!.evaluations).toHaveLength(1);
-    expect(saved!.evaluations[0].score).toBe(1);
+    expect(saved?.evaluations).toHaveLength(1);
+    expect(saved?.evaluations[0].score).toBe(1);
   });
 });
 
@@ -231,13 +262,21 @@ describe("hook Effect 2 simulation: debounced auto-save", () => {
       finalization: null,
     });
 
-    useSessionStore.getState().setEvaluation("SE.algorithmic_fairness", { score: 2, notes: "", explicitEvidenceIds: [] });
+    useSessionStore
+      .getState()
+      .setEvaluation("SE.algorithmic_fairness", { score: 2, notes: "", explicitEvidenceIds: [] });
 
     const { session: s, captures: c, evaluations: e } = useSessionStore.getState();
-    await getRepository().save(s!.id, { metadata: s!, captures: c, evaluations: e, finalization: null });
+    const session = s as NonNullable<typeof s>;
+    await getRepository().save(session.id, {
+      metadata: session,
+      captures: c,
+      evaluations: e,
+      finalization: null,
+    });
 
     const saved = await getRepository().load("sess-d");
-    expect(saved!.evaluations).toHaveLength(1);
-    expect(saved!.evaluations[0].rubricId).toBe("SE.algorithmic_fairness");
+    expect(saved?.evaluations).toHaveLength(1);
+    expect(saved?.evaluations[0].rubricId).toBe("SE.algorithmic_fairness");
   });
 });

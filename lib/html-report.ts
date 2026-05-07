@@ -23,24 +23,7 @@ const PRINCIPLE_NAMES: Record<string, string> = Object.fromEntries(
   PRINCIPLES.map((p) => [p.id, p.fullName]),
 );
 
-/** Grade colors used in finalization verdict */
-const GRADE_COLORS: Record<string, string> = {
-  pass: "#4a8355",
-  conditional: "#ea580c",
-  fail: "#c60c30",
-};
-
-/** Grade labels used in finalization verdict */
-const GRADE_LABELS: Record<string, string> = {
-  pass: "RECOMMENDED",
-  conditional: "CAUTION",
-  fail: "NOT RECOMMENDED",
-};
-
-/** Fallback UI colors */
-const MUTED_COLOR = "#6b7f94";
-const DEFAULT_COLOR = "#4f5e73";
-
+/** All CSS for the standalone HTML evaluation report. */
 /** All CSS for the standalone HTML evaluation report. */
 const REPORT_CSS = `
   :root {
@@ -1003,20 +986,6 @@ function buildToc(rubric: RubricData): string {
     .join("");
 }
 
-function buildScoreLegend(): string {
-  return `
-    <div class="score-legend">
-      <span class="legend-label">Score Legend:</span>
-      <span class="score-badge" style="background:#c60c3020;color:#c60c30">0 = No</span>
-      <span class="score-badge" style="background:#ea580c20;color:#ea580c">1 = Partially</span>
-      <span class="score-badge" style="background:#0e749020;color:#0e7490">2 = Mostly</span>
-      <span class="score-badge" style="background:#4a835520;color:#4a8355">3 = Yes</span>
-      <span class="score-badge" style="background:#6b7f9420;color:#6b7f94">N/A</span>
-      <span class="score-badge" style="background:#5a6e8220;color:#5a6e82">? = Unsure</span>
-    </div>
-  `;
-}
-
 // ── Main report ────────────────────────────────────────────────────────
 
 function buildNutritionLabelHtml(
@@ -1038,10 +1007,10 @@ function buildNutritionLabelHtml(
 
   // Strengths & weaknesses
   const strengthsHtml = finalization?.strengths?.length
-    ? finalization.strengths.map((s) => "<li>" + esc(s) + "</li>").join("")
+    ? finalization.strengths.map((s) => `<li>${esc(s)}</li>`).join("")
     : "";
   const weaknessesHtml = finalization?.weaknesses?.length
-    ? finalization.weaknesses.map((w) => "<li>" + esc(w) + "</li>").join("")
+    ? finalization.weaknesses.map((w) => `<li>${esc(w)}</li>`).join("")
     : "";
   const swRow =
     strengthsHtml || weaknessesHtml
@@ -1208,11 +1177,9 @@ export async function buildHtmlReport(
     }),
   );
 
-  const date = new Date(metadata.startTime).toISOString().split("T")[0];
   const scores = computeReportScores(evaluations, rubric, finalization);
 
   // Build section parts
-  const scoreLegend = buildScoreLegend();
   const gateRows = buildGateRows(evaluations, rubric);
   const categorySections = buildCategorySections(
     captures,

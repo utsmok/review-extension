@@ -8,7 +8,7 @@ const ls = {
   getItem: (key: string): string | null => lsStore[key] ?? null,
   setItem: (key: string, value: string): void => { lsStore[key] = value; },
   removeItem: (key: string): void => { delete lsStore[key]; },
-  clear: (): void => { Object.keys(lsStore).forEach((k) => delete lsStore[k]); },
+  clear: (): void => { Object.keys(lsStore).forEach((k) => { void delete lsStore[k]; }); },
   get length(): number { return Object.keys(lsStore).length; },
   key: (index: number): string | null => Object.keys(lsStore)[index] ?? null,
 };
@@ -76,11 +76,11 @@ describe("migrateLegacySession", () => {
 
     const loaded = await getRepository().load(sessionId);
     expect(loaded).not.toBeNull();
-    expect(loaded!.metadata.toolName).toBe("Legacy Tool");
+    expect(loaded?.metadata.toolName).toBe("Legacy Tool");
 
     // linkedRubricIds should be stripped from captures
-    expect(loaded!.captures).toHaveLength(1);
-    const capture = loaded!.captures[0] as unknown as Record<string, unknown>;
+    expect(loaded?.captures).toHaveLength(1);
+    const capture = loaded?.captures[0] as unknown as Record<string, unknown>;
     expect(capture.linkedRubricIds).toBeUndefined();
     expect(capture.id).toBe("cap-old");
 
@@ -160,8 +160,8 @@ describe("migrateLegacySession", () => {
     const sessionId = Object.keys(registry.sessionIndex)[0];
     const loaded = await getRepository().load(sessionId);
 
-    expect(loaded!.captures).toHaveLength(1);
-    const capture = loaded!.captures[0] as unknown as Record<string, unknown>;
+    expect(loaded?.captures).toHaveLength(1);
+    const capture = loaded?.captures[0] as unknown as Record<string, unknown>;
     expect(capture.linkedRubricIds).toBeUndefined();
     expect(capture.id).toBe("cap-1");
   });
