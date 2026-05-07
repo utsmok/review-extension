@@ -1,21 +1,37 @@
-# TRUST Review Extension
+# TRUST Review
 
-Browser extension for systematic evaluation of academic search engines and databases. Captures screenshots and DOM, tags evidence to rubric items, and exports a `.zip` with CSVs, evidence files, and a PDF report — all processed locally.
+Browser extension for systematic evaluation of academic search tools using the [TRUST Framework](https://www.utwente.nl/library/).
 
-Based on the **TRUST framework** (Transparent, Reliable, User-centric, Secure, Traceable) with quality gates (pass/fail) and a 0-3 scoring rubric.
+Captures screenshots, tags evidence to rubric items, and exports a ZIP with CSV data, evidence screenshots, an HTML report, and a standalone nutrition label — all processed locally in the browser.
 
-## Getting Started
+Based on the five TRUST principles (Transparent, Reliable, User-centric, Secure, Traceable) with quality gates and a 0–3 scoring rubric.
+
+## Install
+
+1. Download the latest `trust-review-extension-*.zip` from [Releases](https://github.com/utsmok/review-extension/releases)
+2. Unzip it
+3. Open `chrome://extensions` and enable **Developer mode** (top right)
+4. Click **Load unpacked** and select the unzipped folder
+5. Click the extension icon in the toolbar to open the side panel
+
+## Develop
 
 ```bash
 pnpm install
-pnpm dev
+pnpm dev          # dev build with HMR
+pnpm build        # production build
+pnpm zip          # production ZIP for distribution
+pnpm test         # run tests
+pnpm typecheck    # type check
+pnpm lint         # lint
 ```
 
-Then load the extension from `.output/chrome-mv3` in `chrome://extensions` (developer mode). Click the extension icon to open the side panel and start a review session.
+Load the dev build from `.output/chrome-mv3-dev` in `chrome://extensions`.
 
-## Usage
+## Workflow
 
-1. **Start** — enter tool name and URL
-2. **Capture** — screenshot + DOM of the active tab, tag to rubric items
-3. **Evaluate** — score against quality gates and rubric criteria
-4. **Export** — end session to download a `.zip` with evidence, CSVs, and PDF report
+1. **Start** — enter tool name, URL, and metadata
+2. **Capture** — screenshot the active tab, tag evidence to rubric items
+3. **Evaluate** — score against quality gates and scoring rubric
+4. **Finalize** — add strengths, weaknesses, and a verdict
+5. **Export** — download a ZIP with evidence, CSV, HTML report, and nutrition label
