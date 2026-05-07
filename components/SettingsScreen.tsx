@@ -1,4 +1,3 @@
-import { RUBRIC_VARIANTS } from "@/data/rubrics";
 import { useRegistryStore } from "@/stores/registry";
 
 export default function SettingsScreen({ onBack }: { onBack: () => void }) {
@@ -7,6 +6,7 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex flex-col h-full">
+      {/* Header */}
       <div className="border-b border-ut-border px-ut-4 py-ut-2 flex items-center gap-2">
         <button
           type="button"
@@ -33,11 +33,16 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
         </h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-ut-4 py-ut-4 space-y-ut-4">
-        <div>
-          <h2 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-ut-2">
-            Reviewer
+      {/* Scrollable content */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-ut-4 py-ut-4 space-y-ut-5">
+        {/* ── Section: Reviewer Profile ────────────────────── */}
+        <section>
+          <h2 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-ut-1">
+            Reviewer Profile
           </h2>
+          <p className="text-ut-xs text-ut-muted mb-ut-2">
+            Included in exported reports to identify the reviewer.
+          </p>
           <div className="space-y-ut-2">
             <label className="flex flex-col gap-0.5">
               <span className="text-ut-xs text-ut-muted">Name</span>
@@ -59,27 +64,38 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
               />
             </label>
           </div>
-        </div>
+        </section>
 
-        <div>
-          <h2 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-ut-2">
-            Defaults
+        {/* ── Section: Data & Privacy ─────────────────────── */}
+        <section>
+          <h2 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-ut-1">
+            Data &amp; Privacy
           </h2>
-          <label className="flex flex-col gap-0.5">
-            <span className="text-ut-xs text-ut-muted">Default rubric variant</span>
-            <select
-              className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-xs text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
-              value={settings.preferredRubric}
-              onChange={(e) => updateSettings({ preferredRubric: e.target.value })}
-            >
-              {RUBRIC_VARIANTS.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+          <p className="text-ut-xs text-ut-muted mb-ut-2">
+            All review data is stored locally in your browser. Nothing is sent to external servers.
+          </p>
+          <div className="space-y-ut-2">
+            <div className="flex items-center justify-between py-ut-1">
+              <div>
+                <p className="text-ut-xs text-ut-text">Storage</p>
+                <p className="text-ut-xs text-ut-muted">IndexedDB + localStorage</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Section: About ──────────────────────────────── */}
+        <section>
+          <h2 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-ut-1">
+            About
+          </h2>
+          <p className="text-ut-xs text-ut-muted mb-ut-2">
+            TRUST Review Extension for evaluating academic information tools.
+          </p>
+          <div className="text-ut-xs text-ut-muted space-y-0.5">
+            <p>LISA-EIS / University of Twente</p>
+          </div>
+        </section>
       </div>
     </div>
   );

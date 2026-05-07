@@ -169,6 +169,7 @@
       },
       "data_handling": {
         "title": "Data handling practices",
+        "related_gate": "privacy_and_security.data_privacy",
         "background": "Beyond the basic privacy policy (covered by the quality gate), this question evaluates the depth and specificity of the tool's data handling practices. Researchers need to know exactly how long their data is retained, whether it is encrypted, what happens in case of a breach, and whether they can export or delete their data. Strong data handling practices are especially important for tools used in institutional settings where data governance policies may apply. Look for specifics — not just 'we protect your data' but actual retention periods, encryption standards, and breach notification timelines.",
         "0": "No transparency about data retention, encryption, or breach notification — privacy policy is vague or missing on these topics.",
         "1": "Privacy policy exists but provides only generic statements about data protection without specifics on retention or security.",
@@ -186,6 +187,7 @@
     "TC": {
       "source_attribution_depth": {
         "title": "Source attribution depth",
+        "related_gate": "traceability.citation_mechanism",
         "background": "The depth of source linking determines how efficiently a researcher can verify claims and locate original material. A tool that links to a journal homepage requires the user to manually search for the specific article; a tool that links directly to the relevant passage saves significant time and enables precise verification. This question evaluates the granularity of citation links — from broken links (worst) to paragraph-level deep links (best). Test by clicking citations in the tool's output and noting where they lead.",
         "0": "Broken or missing links.",
         "1": "Links to journal landing pages only.",

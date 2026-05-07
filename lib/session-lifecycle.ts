@@ -2,8 +2,8 @@ import { useSessionStore } from "@/stores/session";
 import { useRegistryStore } from "@/stores/registry";
 import { getRepository } from "@/lib/session-repository";
 import { toastError } from "@/stores/toast";
-import { getRubricById } from "@/data/rubrics";
-import { exportSession } from "@/lib/export";
+import { RUBRIC_DATA } from "@/data/rubrics";
+import { exportSession, importSessionFromZip } from "@/lib/export";
 import type { SessionData, SessionMetadata } from "@/lib/types";
 
 /** Snapshot current session store state as SessionData */
@@ -37,7 +37,10 @@ export async function loadSessionById(id: string): Promise<boolean> {
 /** Save current session data to IDB (fire-and-forget). */
 export function saveCurrentSession(): void {
   const data = snapshot();
-  if (data) getRepository().save(data.metadata.id, data).catch((err) => console.error("Fire-and-forget IDB save failed:", err));
+  if (data)
+    getRepository()
+      .save(data.metadata.id, data)
+      .catch((err) => console.error("Fire-and-forget IDB save failed:", err));
 }
 
 /** Create a new session: save to IDB, register in registry. */
@@ -83,7 +86,30 @@ export async function exportSessionById(id: string): Promise<Blob> {
   if (!meta) throw new Error(`Review ${id} not found in registry`);
   const data = await getRepository().load(id);
   if (!data) throw new Error(`Session ${id} not found in storage`);
-  const variant = getRubricById(meta.rubricId);
-  const blob = await exportSession(meta, data.captures, data.evaluations, variant.data, data.finalization);
+  const blob = await exportSession(
+    meta,
+    data.captures,
+    data.evaluations,
+    RUBRIC_DATA,
+    data.finalization,
+  );
   return blob;
+}
+
+/** Import a session from an exported ZIP file. Saves to IDB and registers. */
+export async function importSessionFromZipFile(zipBlob: Blob): Promise<string> {
+  const data = await importSessionFromZip(zipBlob);
+  const id = data.metadata.id;
+
+  // Check if session already exists
+  const existing = useRegistryStore.getState().sessionIndex[id];
+  if (existing) {
+    throw new Error(
+      `A review of "${existing.toolName}" already exists. Delete it first if you want to re-import.`,
+    );
+  }
+
+  await getRepository().save(id, data);
+  useRegistryStore.getState().addSession(data.metadata);
+  return id;
 }

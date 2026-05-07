@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getRubricById, RUBRIC_VARIANTS } from "@/data/rubrics";
+import { RUBRIC_DATA } from "@/data/rubrics";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useSidepanelZoom } from "@/hooks/useSidepanelZoom";
 import { migrateLegacySession } from "@/lib/migration";
@@ -41,17 +41,9 @@ export default function App() {
   }
 
   if (status === "active" && session) {
-    const variant = getRubricById(session.rubricId ?? RUBRIC_VARIANTS[0].id);
-    if (!variant?.data) {
-      return (
-        <AppShell showSettingsButton onSettingsClick={() => setShowSettings(true)}>
-          <SessionManager />
-        </AppShell>
-      );
-    }
     return (
       <AppShell showSettingsButton onSettingsClick={() => setShowSettings(true)}>
-        <RubricContext.Provider value={{ rubric: variant.data, usesAi: session.usesAi ?? true }}>
+        <RubricContext.Provider value={{ rubric: RUBRIC_DATA, usesAi: session.usesAi ?? true }}>
           <ActiveSession />
         </RubricContext.Provider>
       </AppShell>
