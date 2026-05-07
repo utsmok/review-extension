@@ -8,7 +8,7 @@ export interface Settings {
 }
 
 export interface SessionMetadata {
-  id: string;             // uuid
+  id: string; // uuid
   toolName: string;
   toolUrl: string;
   startTime: string;
@@ -16,10 +16,20 @@ export interface SessionMetadata {
   usesAi?: boolean;
   status: SessionStatus;
   faviconUrl?: string;
+  /** URL or data URL for the reviewed tool's logo */
+  toolLogoUrl?: string;
+  /** One-line to one-paragraph summary of the tool */
+  description?: string;
   company?: string;
   pricing?: string;
   availability?: string;
   termsConditionsUrl?: string;
+  /** Structured data sources the tool indexes */
+  dataSources?: string[];
+  /** Search methods the tool supports */
+  searchMethods?: string[];
+  /** Academic discipline context */
+  discipline?: string;
   notes?: string;
   finalizedAt?: string;
 }
@@ -53,6 +63,10 @@ export interface Evaluation {
   score: EvaluationScore;
   notes: string;
   explicitEvidenceIds: string[];
+  customScore?: {
+    score: 0 | 1 | 2 | 3;
+    reasoning: string;
+  };
 }
 
 export type FinalizationGrade = "pass" | "conditional" | "fail";
@@ -96,6 +110,7 @@ export interface ScoringQuestion {
     "3": string;
   };
   ai_only?: boolean;
+  related_gate?: string;
 }
 
 export interface RubricData {

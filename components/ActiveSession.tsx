@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useRovingTabIndex } from "@/lib/hooks";
 import { computeCompletion } from "@/lib/rubric";
-import { useRubric } from "@/lib/contexts"
-import { TabNavigationContext } from "@/lib/contexts"
+import { useRubric } from "@/lib/contexts";
+import { TabNavigationContext } from "@/lib/contexts";
 import Captures from "./Captures";
 import Evaluation from "./Evaluation";
 import FinalizationScreen from "./FinalizationScreen";
@@ -166,7 +166,7 @@ export default function ActiveSession() {
           role="tabpanel"
           id={tabIds[activeTab]}
           aria-labelledby={`tab-${activeTab.toLowerCase()}`}
-          className="flex-1 overflow-y-auto bg-ut-offwhite"
+          className="flex-1 min-h-0 overflow-y-auto bg-ut-offwhite"
         >
           {activeTab === "Captures" && <Captures />}
           {activeTab === "Evaluation" && <Evaluation />}

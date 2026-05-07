@@ -1,10 +1,34 @@
 import { useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { useRubric } from "@/lib/contexts"
-import { useTabNavigation } from "@/lib/contexts"
+import { useRubric } from "@/lib/contexts";
+import { useTabNavigation } from "@/lib/contexts";
 
 import ConfirmDialog from "./ConfirmDialog";
 import ExportCompleteScreen from "./ExportCompleteScreen";
+
+const DATA_SOURCE_OPTIONS = [
+  "CrossRef",
+  "OpenCitations",
+  "DataCite",
+  "Scopus",
+  "Web of Science",
+  "PubMed",
+  "Semantic Scholar",
+  "Google Scholar",
+  "IEEE Xplore",
+  "JSTOR",
+  "Other",
+] as const;
+
+const SEARCH_METHOD_OPTIONS = [
+  "Keywords",
+  "Semantic search",
+  "Boolean queries",
+  "Natural language",
+  "Citation chaining",
+  "Faceted filtering",
+  "Other",
+] as const;
 
 export default function Metadata() {
   const { rubric } = useRubric();
@@ -23,6 +47,8 @@ export default function Metadata() {
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [exportComplete, setExportComplete] = useState(false);
   const [exportFilename, setExportFilename] = useState("");
+  const [customSource, setCustomSource] = useState("");
+  const [customMethod, setCustomMethod] = useState("");
 
   if (!session) return null;
 
@@ -85,6 +111,18 @@ export default function Metadata() {
 
       <label className="flex flex-col gap-1">
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          Tool Description
+        </span>
+        <input
+          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+          placeholder="e.g. Citation-based searching through a visual interface"
+          value={session.description ?? ""}
+          onChange={(e) => updateMetadata({ description: e.target.value })}
+        />
+      </label>
+
+      <label className="flex flex-col gap-1">
+        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
           Company
         </span>
         <input
@@ -92,6 +130,18 @@ export default function Metadata() {
           placeholder="e.g. Elsevier"
           value={session.company ?? ""}
           onChange={(e) => updateMetadata({ company: e.target.value })}
+        />
+      </label>
+
+      <label className="flex flex-col gap-1">
+        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          Tool Logo URL
+        </span>
+        <input
+          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+          placeholder="https://... (leave empty to use favicon)"
+          value={session.toolLogoUrl ?? ""}
+          onChange={(e) => updateMetadata({ toolLogoUrl: e.target.value })}
         />
       </label>
 
@@ -128,6 +178,104 @@ export default function Metadata() {
           placeholder="https://..."
           value={session.termsConditionsUrl ?? ""}
           onChange={(e) => updateMetadata({ termsConditionsUrl: e.target.value })}
+        />
+      </label>
+
+      <label className="flex flex-col gap-1">
+        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          Data Sources
+        </span>
+        <div className="flex flex-wrap gap-ut-1 mb-ut-1">
+          {DATA_SOURCE_OPTIONS.map((opt) => {
+            const isSelected = (session.dataSources ?? []).includes(opt);
+            return (
+              <button
+                key={opt}
+                type="button"
+                className={`text-ut-xs px-ut-2 py-ut-1 border rounded-ut-sm transition-colors ${isSelected ? "bg-trust-magenta text-white border-trust-magenta" : "border-ut-border text-ut-muted hover:border-ut-slate"}`}
+                onClick={() => {
+                  const current = session.dataSources ?? [];
+                  const next = isSelected ? current.filter((v) => v !== opt) : [...current, opt];
+                  updateMetadata({ dataSources: next });
+                }}
+              >
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex gap-ut-1">
+          <input
+            className="flex-1 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-xs text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+            placeholder="Add custom source..."
+            value={customSource}
+            onChange={(e) => setCustomSource(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const val = customSource.trim();
+                if (val && !(session.dataSources ?? []).includes(val)) {
+                  updateMetadata({ dataSources: [...(session.dataSources ?? []), val] });
+                  setCustomSource("");
+                }
+              }
+            }}
+          />
+        </div>
+      </label>
+
+      <label className="flex flex-col gap-1">
+        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          Search Methods
+        </span>
+        <div className="flex flex-wrap gap-ut-1 mb-ut-1">
+          {SEARCH_METHOD_OPTIONS.map((opt) => {
+            const isSelected = (session.searchMethods ?? []).includes(opt);
+            return (
+              <button
+                key={opt}
+                type="button"
+                className={`text-ut-xs px-ut-2 py-ut-1 border rounded-ut-sm transition-colors ${isSelected ? "bg-trust-magenta text-white border-trust-magenta" : "border-ut-border text-ut-muted hover:border-ut-slate"}`}
+                onClick={() => {
+                  const current = session.searchMethods ?? [];
+                  const next = isSelected ? current.filter((v) => v !== opt) : [...current, opt];
+                  updateMetadata({ searchMethods: next });
+                }}
+              >
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex gap-ut-1">
+          <input
+            className="flex-1 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-xs text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+            placeholder="Add custom method..."
+            value={customMethod}
+            onChange={(e) => setCustomMethod(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const val = customMethod.trim();
+                if (val && !(session.searchMethods ?? []).includes(val)) {
+                  updateMetadata({ searchMethods: [...(session.searchMethods ?? []), val] });
+                  setCustomMethod("");
+                }
+              }
+            }}
+          />
+        </div>
+      </label>
+
+      <label className="flex flex-col gap-1">
+        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          Discipline
+        </span>
+        <input
+          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+          placeholder="e.g. Computer Science, Medicine"
+          value={session.discipline ?? ""}
+          onChange={(e) => updateMetadata({ discipline: e.target.value })}
         />
       </label>
 
