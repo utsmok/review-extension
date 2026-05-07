@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { computeCompletion, distributionBar, getCategoryLabel, getCategoryScores, getLinkedRubricIdsForCapture, getQuestionCode, getRubricQuestionIds, principleAverage, qualityGateResults, scoreColor } from "@/lib/rubric";
 import trustFull from "@/data/rubrics/trust-full.json";
-import trustLite from "@/data/rubrics/trust-lite.json";
 import type { Evaluation, RubricData } from "@/lib/types";
 
 const TRUST_RUBRIC = trustFull as unknown as RubricData;
-const TRUST_LITE = trustLite as unknown as RubricData;
+
 
 describe("TRUST_RUBRIC (full)", () => {
   it("has correct framework name and version", () => {
@@ -62,32 +61,6 @@ describe("TRUST_RUBRIC (full)", () => {
   });
 });
 
-describe("TRUST_LITE (simplified)", () => {
-  it("has correct framework name", () => {
-    expect(TRUST_LITE.framework_name).toContain("TRUST Lite");
-  });
-
-  it("has same quality gate structure as full", () => {
-    const fullCats = Object.keys(TRUST_RUBRIC.quality_gate);
-    const liteCats = Object.keys(TRUST_LITE.quality_gate);
-    expect(liteCats).toEqual(fullCats);
-  });
-
-  it("has same scoring category keys as full", () => {
-    const fullCats = Object.keys(TRUST_RUBRIC.scoring_rubric);
-    const liteCats = Object.keys(TRUST_LITE.scoring_rubric);
-    expect(liteCats).toEqual(fullCats);
-  });
-
-  it("all questions have background and examples", () => {
-    for (const questions of Object.values(TRUST_LITE.quality_gate)) {
-      for (const q of Object.values(questions)) {
-        expect(q.background!.length).toBeGreaterThan(0);
-        expect(q.examples).toBeDefined();
-      }
-    }
-  });
-});
 
 describe("getRubricQuestionIds", () => {
   it("returns all quality gate IDs first", () => {

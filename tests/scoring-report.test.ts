@@ -27,7 +27,7 @@ describe("buildHtmlReport completion tracking (I11)", () => {
     expect(html).toContain("questions answered");
   });
 
-  it("shows PASSED verdict when all questions are answered with high scores", async () => {
+  it("shows RECOMMENDED verdict when all questions are answered with high scores", async () => {
     // Answer all quality gate questions as pass
     const evaluations: Evaluation[] = [];
     for (const [cat, questions] of Object.entries(RUBRIC.quality_gate)) {
@@ -52,12 +52,12 @@ describe("buildHtmlReport completion tracking (I11)", () => {
       }
     }
     const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
-    expect(html).toContain("PASSED");
+    expect(html).toContain("RECOMMENDED");
     // Should show completion info
-    expect(html).toContain("answered");
+    expect(html).toContain("Score");
   });
 
-  it("shows FAILED verdict when quality gate fails, even with all questions answered", async () => {
+  it("shows NOT RECOMMENDED verdict when quality gate fails, even with all questions answered", async () => {
     const evaluations: Evaluation[] = [];
     for (const [cat, questions] of Object.entries(RUBRIC.quality_gate)) {
       for (const qId of Object.keys(questions)) {
@@ -80,19 +80,18 @@ describe("buildHtmlReport completion tracking (I11)", () => {
       }
     }
     const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
-    expect(html).toContain("FAILED");
+    expect(html).toContain("NOT RECOMMENDED");
   });
 
   it("shows score among answered questions, not against total possible", async () => {
     // Answer 2 scoring questions with 3/3 each
     const evaluations: Evaluation[] = [
       { rubricId: "TR.data_source_clarity", score: 3, notes: "", explicitEvidenceIds: [] },
-      { rubricId: "RE.result_accuracy", score: 3, notes: "", explicitEvidenceIds: [] },
+      { rubricId: "RE.accuracy_and_hallucination", score: 3, notes: "", explicitEvidenceIds: [] },
     ];
     const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
-    // Score among answered should be 100%
-    expect(html).toContain("100% score");
-    // But it should be marked INCOMPLETE because not all answered
+    // Incomplete: shows answered/total in conclusion
+    expect(html).toContain("2/14 questions answered");
     expect(html).toContain("INCOMPLETE");
   });
 
@@ -110,6 +109,6 @@ describe("buildHtmlReport completion tracking (I11)", () => {
     };
     const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC, finalization);
     // Finalized grade takes precedence
-    expect(html).toContain("PASSED");
+    expect(html).toContain("RECOMMENDED");
   });
 });

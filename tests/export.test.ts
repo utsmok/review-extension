@@ -274,7 +274,7 @@ describe("exportSession", () => {
     const blob = await exportSession(makeMetadata(), [], [], RUBRIC, finalization);
     const files = await unzipToFiles(blob);
     const html = files.get("Evaluation_Report_TestSearch.html") as string;
-    expect(html).toContain("CONDITIONAL");
+    expect(html).toContain("CAUTION");
     expect(html).toContain("Needs improvement");
     expect(html).toContain("Limited docs");
   });
@@ -286,7 +286,7 @@ describe("buildHtmlReport", () => {
     const html = await buildHtmlReport(makeMetadata(), [], [], RUBRIC);
     expect(html).toContain("<!DOCTYPE html>");
     expect(html).toContain("TestSearch");
-    expect(html).toContain("Quality Gate Status");
+    expect(html).toContain("NOT EVALUATED");
     expect(html).toContain("</html>");
   });
 
@@ -310,7 +310,7 @@ describe("buildHtmlReport", () => {
       finalizedAt: "2025-06-01T12:00:00.000Z",
     };
     const html = await buildHtmlReport(makeMetadata(), [], [], RUBRIC, finalization);
-    expect(html).toContain("PASSED");
+    expect(html).toContain("RECOMMENDED");
     expect(html).toContain("Solid tool");
     expect(html).toContain("Good docs");
   });
