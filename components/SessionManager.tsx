@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { downloadBlob, sanitizeFilename } from "@/lib/export";
 import { getRepository } from "@/lib/session-repository";
-import { exportSessionById } from "@/lib/session-lifecycle";
+import { exportSessionById, importSessionFromZipFile } from "@/lib/session-lifecycle";
 import { useRegistryStore } from "@/stores/registry";
 import { toastError, toastSuccess } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
@@ -34,6 +34,8 @@ export default function SessionManager() {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const sessionIndex = useRegistryStore((s) => s.sessionIndex);
   const { switchToSession, deleteSession } = useActiveSession();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
 
   const sessions = useMemo(
     () =>
@@ -52,13 +54,33 @@ export default function SessionManager() {
       const filename = `TRUST_Review_${sanitized}.zip`.slice(0, 100);
       downloadBlob(blob, filename);
       const data = await getRepository().load(id);
-      const scoredCount = data?.evaluations.filter(
-        (e) => e.score !== "" && e.score !== undefined,
-      ).length ?? 0;
-      toastSuccess(`Review exported: ${data?.captures.length ?? 0} captures, ${scoredCount} scores`);
+      const scoredCount =
+        data?.evaluations.filter((e) => e.score !== "" && e.score !== undefined).length ?? 0;
+      toastSuccess(
+        `Review exported: ${data?.captures.length ?? 0} captures, ${scoredCount} scores`,
+      );
     } catch (err) {
       console.error("Export failed:", err);
       toastError(err instanceof Error ? err.message : "Export failed. Please try again.");
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const id = await importSessionFromZipFile(file);
+      const meta = sessionIndex[id];
+      toastSuccess(`Review imported: ${meta?.toolName ?? "unknown tool"}`);
+      switchToSession(id);
+    } catch (err) {
+      console.error("Import failed:", err);
+      toastError(err instanceof Error ? err.message : "Import failed.");
+    } finally {
+      setImporting(false);
+      // Reset input so the same file can be re-selected
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -89,10 +111,25 @@ export default function SessionManager() {
         >
           Start New Review
         </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".zip"
+          className="hidden"
+          onChange={handleImport}
+        />
+        <button
+          type="button"
+          className="border border-ut-border text-ut-navy rounded-ut-sm px-ut-4 py-ut-2 text-ut-xs font-heading font-bold uppercase tracking-ut-uppercase hover:bg-ut-grey transition-all w-full mt-ut-2 disabled:opacity-50"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={importing}
+        >
+          {importing ? "Importing..." : "Import from Export"}
+        </button>
       </div>
 
       {/* Session list */}
-      <div className="flex-1 overflow-y-auto px-ut-4">
+      <div className="flex-1 min-h-0 overflow-y-auto px-ut-4">
         {sessions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-ut-8 text-center">
             <svg
