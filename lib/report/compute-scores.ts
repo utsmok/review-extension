@@ -8,9 +8,9 @@ const GRADE_COLORS: Record<string, string> = {
   fail: "#c60c30",
 };
 const GRADE_LABELS: Record<string, string> = {
-  pass: "PASSED",
-  conditional: "CONDITIONAL",
-  fail: "FAILED",
+  pass: "RECOMMENDED",
+  conditional: "CAUTION",
+  fail: "NOT RECOMMENDED",
 };
 const MUTED_COLOR = "#6b7f94";
 
@@ -96,7 +96,7 @@ export function computeReportScores(
     verdict = "INCOMPLETE";
     verdictColor = MUTED_COLOR;
   } else {
-    verdict = computedFailed ? "FAILED" : "PASSED";
+    verdict = computedFailed ? "NOT RECOMMENDED" : "RECOMMENDED";
     verdictColor = computedFailed ? "#c60c30" : "#4a8355";
   }
 

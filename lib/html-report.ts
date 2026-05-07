@@ -1,5 +1,13 @@
 import { PRINCIPLES } from "./principles";
-import { getCategoryLabel, getQuestionCode, distributionBar, scoreColor } from "./rubric";
+import {
+  getCategoryLabel,
+  getQuestionCode,
+  getQGQuestionCode,
+  distributionBar,
+  scoreColor,
+  qualityGateResults,
+  principleAverage,
+} from "./rubric";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 import { computeReportScores, type ReportScores } from "./report/compute-scores";
 
@@ -24,9 +32,9 @@ const GRADE_COLORS: Record<string, string> = {
 
 /** Grade labels used in finalization verdict */
 const GRADE_LABELS: Record<string, string> = {
-  pass: "PASSED",
-  conditional: "CONDITIONAL",
-  fail: "FAILED",
+  pass: "RECOMMENDED",
+  conditional: "CAUTION",
+  fail: "NOT RECOMMENDED",
 };
 
 /** Fallback UI colors */
@@ -285,9 +293,9 @@ const REPORT_CSS = `
 
   /* Full report section */
   .report-header {
-    padding-top: 24px;
-    border-top: 2px solid var(--magenta);
-    margin-top: 32px;
+    padding-top: 32px;
+    border-top: 4px solid var(--magenta);
+    margin-top: 48px;
   }
   .report-header h1 {
     font-family: var(--ff-heading);
@@ -537,6 +545,68 @@ const REPORT_CSS = `
 
   .url-plain { color: var(--muted); font-size: 0.75rem; word-break: break-all; }
 
+
+  /* Nutrition label */
+  .nutrition-label { border: 3px solid var(--text); padding: 0; margin-bottom: 24px; }
+  .trust-branding { text-align: center; padding: 20px 20px 12px; }
+  .trust-branding img { height: 28px; }
+  .trust-branding-tagline { font-family: var(--ff-heading); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--magenta); margin-top: 4px; }
+  .nutrition-header { display: flex; justify-content: center; align-items: center; padding: 16px 20px 12px; }
+  .nutrition-header-center { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .nutrition-header-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .nutrition-header a { color: inherit; text-decoration: none; }
+  .nutrition-header a:hover { text-decoration: underline; }
+  .nutrition-tool-name { font-family: var(--ff-heading); font-size: 1.3rem; font-weight: 700; color: var(--magenta); text-transform: uppercase; letter-spacing: 0.03em; }
+  .nutrition-tool-url { font-size: 0.8rem; color: var(--muted); }
+  .nutrition-tool-url a { color: var(--muted); }
+  .nutrition-sep { color: var(--muted); font-size: 1rem; }
+  .nutrition-tool-logo { width: 40px; height: 40px; object-fit: contain; border-radius: 4px; flex-shrink: 0; }
+  .nutrition-description { font-size: 0.85rem; color: var(--muted); line-height: 1.45; font-style: italic; text-align: center; max-width: 400px; }
+  .nutrition-status { font-size: 0.72rem; color: var(--slate); text-align: center; margin-top: 2px; font-style: italic; }
+  .nutrition-divider { height: 2px; background: var(--text); margin: 0; }
+  .nutrition-divider-thin { height: 1px; background: var(--border); margin: 0; }
+  .nutrition-verdict { padding: 20px; text-align: center; }
+  .nutrition-verdict-stamp {
+    display: inline-block;
+    border: 3px solid;
+    border-radius: 6px;
+    padding: 8px 24px;
+    transform: rotate(-2deg);
+    font-family: var(--ff-heading);
+    font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    line-height: 1.1;
+  }
+  .nutrition-verdict-stamp span { display: block; font-size: 0.55em; font-weight: 600; letter-spacing: 0.04em; opacity: 0.75; margin-top: 2px; }
+  .nutrition-verdict-sub img { vertical-align: middle; }
+  .nutrition-gates { padding: 8px 20px 12px; }
+  .nutrition-gates-title { font-family: var(--ff-heading); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text); margin-bottom: 4px; }
+  .nutrition-gate-item { font-size: 0.8rem; color: var(--muted); margin-bottom: 2px; padding-left: 12px; }
+  .nutrition-gate-item .fail { color: #c60c30; font-weight: 700; }
+  .nutrition-gate-item .unsure { color: #5a6e82; font-weight: 700; }
+  .nutrition-principles { padding: 16px 20px; }
+  .nutrition-principles-table { width: 100%; border-collapse: collapse; }
+  .nutrition-principles-table td { padding: 4px 8px; vertical-align: middle; text-align: center; }
+  .nutrition-principle-code { font-family: var(--ff-heading); font-size: 1.1rem; font-weight: 800; }
+  .nutrition-principle-name { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  .nutrition-overall-cell { text-align: center; vertical-align: middle; padding-left: 16px; border-left: 1px solid var(--border); }
+  .nutrition-overall-label { font-family: var(--ff-heading); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 4px; }
+  .circles { display: inline-flex; gap: 3px; }
+  .circle { font-size: 1.1rem; line-height: 1; }
+  .circle.filled { color: inherit; }
+  .circle.empty { color: var(--border); }
+  .nutrition-sw { display: flex; padding: 12px 20px; gap: 0; }
+  .nutrition-sw-col { flex: 1; min-width: 0; }
+  .nutrition-sw-title { font-family: var(--ff-heading); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text); margin-bottom: 6px; }
+  .nutrition-sw-list { margin: 0; padding-left: 28px; font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+  .nutrition-sw-divider { width: 1px; background: var(--border); margin: 0 16px; flex-shrink: 0; }
+  .nutrition-footer { padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; border-top: 2px solid var(--text); }
+  .nutrition-footer-text { font-size: 0.75rem; color: var(--slate); }
+  .nutrition-footer a { color: inherit; text-decoration: none; }
+  .nutrition-footer a:hover { text-decoration: underline; }
+
   @media (max-width: 640px) {
     body { padding: 12px; }
     .header { flex-direction: column; gap: 8px; }
@@ -612,11 +682,7 @@ function formatDate(isoString: string): string {
 }
 
 /** Resize and compress a base64 data-URL image. Returns original if resize fails. */
-async function compressScreenshot(
-  dataUrl: string,
-  maxWidth = 800,
-  quality = 0.8,
-): Promise<string> {
+async function compressScreenshot(dataUrl: string, maxWidth = 800, quality = 0.8): Promise<string> {
   try {
     if (!dataUrl.startsWith("data:image/")) return dataUrl;
     const img = new Image();
@@ -637,6 +703,27 @@ async function compressScreenshot(
   } catch {
     return dataUrl;
   }
+}
+
+function scoreCircles(avg: number | null): string {
+  if (avg === null)
+    return (
+      '<span class="circles">' +
+      [0, 1, 2, 3].map(() => '<span class="circle empty">&#9675;</span>').join("") +
+      "</span>"
+    );
+  const filled = avg < 1 ? 1 : avg < 2 ? 2 : avg < 3 ? 3 : 4;
+  return (
+    '<span class="circles">' +
+    [0, 1, 2, 3]
+      .map((i) =>
+        i < filled
+          ? '<span class="circle filled">&#9679;</span>'
+          : '<span class="circle empty">&#9675;</span>',
+      )
+      .join("") +
+    "</span>"
+  );
 }
 
 // ── Section builders ───────────────────────────────────────────────────
@@ -672,13 +759,16 @@ function buildCategorySections(
         const isUnsure = ev?.score === "unsure";
         const score = typeof ev?.score === "number" ? ev.score : -1;
         const code = getQuestionCode(p.id, idx);
+        const customReasoning = ev?.customScore?.reasoning;
         const levelDesc = isNa
           ? "Not applicable"
           : isUnsure
             ? "Insufficient information"
-            : score >= 0
-              ? ((levels as unknown as Record<string, string>)[String(score)] ?? "—")
-              : "—";
+            : customReasoning
+              ? esc(customReasoning)
+              : score >= 0
+                ? ((levels as unknown as Record<string, string>)[String(score)] ?? "—")
+                : "—";
 
         const isWeakEvidence = score >= 0 && score <= 1;
         const evidenceImgs = captures
@@ -729,7 +819,7 @@ function buildCategorySections(
           <td class="code" style="color:${reportColor}">${code}</td>
           <td class="score-cell">
             <span class="score-badge" style="background:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined)}20;color:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined)}">
-              ${isNa ? "N/A" : isUnsure ? "?" : score >= 0 ? score : "—"}
+              ${isNa ? "N/A" : isUnsure ? "?" : score >= 0 ? score : "—"}${customReasoning ? "*" : ""}
             </span>
           </td>
           <td class="level">${esc(levelDesc)}</td>
@@ -809,7 +899,7 @@ function buildGateRows(evaluations: Evaluation[], rubric: RubricData): string {
 
           return `
         <tr>
-          <td class="code">${cat.toUpperCase()}${Object.keys(questions).indexOf(qId) + 1}</td>
+          <td class="code">${getQGQuestionCode(cat, Object.keys(questions).indexOf(qId))}</td>
           <td><span class="gate-badge" style="background:${color}18;color:${color}">${label}</span></td>
           <td>${esc(q.requirement)}</td>
           <td class="notes">${esc(ev?.notes ?? "")}</td>
@@ -929,6 +1019,179 @@ function buildScoreLegend(): string {
 
 // ── Main report ────────────────────────────────────────────────────────
 
+function buildNutritionLabelHtml(
+  metadata: SessionMetadata,
+  evaluations: Evaluation[],
+  rubric: RubricData,
+  finalization: ReviewFinalization | null,
+  scores: ReportScores,
+  TRUST_LOGO: string,
+  LISA_EIS_LOGO: string,
+  UT_LOGO: string,
+): string {
+  const date = new Date(metadata.startTime).toISOString().split("T")[0];
+  const toolUrl = esc(metadata.toolUrl);
+  const toolName = esc(metadata.toolName);
+  const toolLink = `<a href="${toolUrl}" target="_blank" rel="noopener noreferrer">`;
+  const toolLinkClose = "</a>";
+  const logo = metadata.toolLogoUrl || metadata.faviconUrl;
+
+  // Strengths & weaknesses
+  const strengthsHtml = finalization?.strengths?.length
+    ? finalization.strengths.map((s) => "<li>" + esc(s) + "</li>").join("")
+    : "";
+  const weaknessesHtml = finalization?.weaknesses?.length
+    ? finalization.weaknesses.map((w) => "<li>" + esc(w) + "</li>").join("")
+    : "";
+  const swRow =
+    strengthsHtml || weaknessesHtml
+      ? `<div class="nutrition-divider-thin"></div>
+<div class="nutrition-sw">
+  <div class="nutrition-sw-col">
+    <div class="nutrition-sw-title">Strengths</div>
+    <ul class="nutrition-sw-list">${strengthsHtml}</ul>
+  </div>
+  <div class="nutrition-sw-divider"></div>
+  <div class="nutrition-sw-col">
+    <div class="nutrition-sw-title">Weaknesses</div>
+    <ul class="nutrition-sw-list">${weaknessesHtml}</ul>
+  </div>
+</div>`
+      : "";
+
+  return `
+<div class="nutrition-label">
+  <div class="trust-branding">
+    <img src="${TRUST_LOGO}" alt="TRUST" />
+    <div class="trust-branding-tagline">Information Tool Reviews</div>
+  </div>
+  <div class="nutrition-divider"></div>
+
+  <div class="nutrition-header">
+    <div class="nutrition-header-center">
+      <div class="nutrition-header-line">
+        ${logo ? `${toolLink}<img class="nutrition-tool-logo" src="${esc(logo)}" alt="${toolName}" />${toolLinkClose}` : ""}
+        ${logo ? '<span class="nutrition-sep">&middot;</span>' : ""}
+        ${toolLink}<span class="nutrition-tool-name">${toolName}</span>${toolLinkClose}
+        <span class="nutrition-sep">&middot;</span>
+        ${toolLink}<span class="nutrition-tool-url">${safeLink(metadata.toolUrl)}</span>${toolLinkClose}
+      </div>
+      ${metadata.description ? `<div class="nutrition-description">${esc(metadata.description)}</div>` : ""}
+    </div>
+  </div>
+
+  <div class="nutrition-divider"></div>
+
+  <div class="nutrition-verdict">
+    <div class="nutrition-verdict-stamp" style="color:${scores.verdictColor};border-color:${scores.verdictColor}">
+      ${scores.verdict}
+      <span class="nutrition-verdict-sub">
+        <img src="${TRUST_LOGO}" alt="TRUST" style="height:0.9em;vertical-align:middle;margin-right:2px" />
+        Framework Verdict
+      </span>
+    </div>
+    ${!scores.noEvaluation && !scores.isComplete ? `<div class="nutrition-status">${scores.answeredQuestions}/${scores.totalQuestions} questions answered</div>` : ""}
+  </div>
+
+  ${(() => {
+    const gr = qualityGateResults(evaluations, rubric);
+    const issues = gr.filter((g) => g.result === "fail" || g.result === "unsure");
+    if (issues.length === 0) return "";
+    const items = issues
+      .map(
+        (g) =>
+          '<div class="nutrition-gate-item">' +
+          esc(g.label) +
+          ': <span class="' +
+          (g.result === "fail" ? "fail" : "unsure") +
+          '">' +
+          (g.result === "fail" ? "FAIL" : "UNSURE") +
+          "</span></div>",
+      )
+      .join("");
+    return (
+      '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gates-title">Quality Gate Issues</div>' +
+      items +
+      "</div>"
+    );
+  })()}
+
+  <div class="nutrition-divider-thin"></div>
+
+  <div class="nutrition-principles">
+    <table class="nutrition-principles-table">
+      <tr>
+        ${PRINCIPLES.map((p) => {
+          if (!(p.id in rubric.scoring_rubric)) return "";
+          const reportColor = REPORT_COLORS[p.id] ?? p.color;
+          const avg = principleAverage(p.id, evaluations, rubric);
+          return (
+            '<td style="color:' +
+            reportColor +
+            '"><div class="nutrition-principle-code">' +
+            p.code +
+            '</div><div class="nutrition-principle-name">' +
+            (PRINCIPLE_NAMES[p.id] ?? "") +
+            "</div><div>" +
+            scoreCircles(avg) +
+            "</div></td>"
+          );
+        }).join("")}
+        <td class="nutrition-overall-cell" style="color:var(--magenta)">
+          <div class="nutrition-overall-label">Overall</div>
+          <div>${scoreCircles(scores.totalMax > 0 ? (scores.totalActual / scores.totalMax) * 3 : null)}</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  ${swRow}
+
+  <div class="nutrition-divider"></div>
+
+  <div class="nutrition-footer">
+    <img src="${LISA_EIS_LOGO}" alt="LISA-EIS" style="height:24px" />
+    <a href="https://www.utwente.nl/library/" target="_blank" rel="noopener noreferrer">
+      <span class="nutrition-footer-text">LISA-EIS / University of Twente / ${date}</span>
+    </a>
+    <img src="${UT_LOGO}" alt="University of Twente" style="height:22px" />
+  </div>
+</div>`;
+}
+
+export async function buildNutritionLabel(
+  metadata: SessionMetadata,
+  evaluations: Evaluation[],
+  rubric: RubricData,
+  finalization: ReviewFinalization | null = null,
+): Promise<string> {
+  const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = await import("./logos");
+  const scores = computeReportScores(evaluations, rubric, finalization);
+  const labelHtml = buildNutritionLabelHtml(
+    metadata,
+    evaluations,
+    rubric,
+    finalization,
+    scores,
+    TRUST_LOGO,
+    LISA_EIS_LOGO,
+    UT_LOGO,
+  );
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="TRUST Framework Evaluation Label" />
+<title>TRUST Label: ${esc(metadata.toolName)}</title>
+<style>${REPORT_CSS}</style>
+</head>
+<body>
+${labelHtml}
+</body>
+</html>`;
+}
+
 export async function buildHtmlReport(
   metadata: SessionMetadata,
   captures: Capture[],
@@ -980,111 +1243,25 @@ export async function buildHtmlReport(
 </head>
 <body>
 
-<div class="top-bar"></div>
 
-<div class="header">
-  <div>
-    <img src="${TRUST_LOGO}" alt="TRUST" style="height:32px;margin-bottom:4px" />
-    <div class="header-tool">${esc(metadata.toolName)}</div>
-  </div>
-  <div class="header-meta">
-    Review ID: REV-${date.slice(2, 4)}-${date.slice(5, 7)}<br />
-    Date: ${date}
-  </div>
-</div>
 
-<div class="divider"></div>
-
-<div class="letterform">
-  <div class="letterform-letters">
-    ${PRINCIPLES.map((p) => {
-      const reportColor = REPORT_COLORS[p.id] ?? p.color;
-      return `<span class="letterform-letter" style="color:${reportColor}">${p.code}</span>`;
-    }).join("")}
-  </div>
-  <div class="letterform-score">
-    <div class="total">${scores.totalActual} / ${scores.totalMax}</div>
-    <div class="pct">${Math.round(scores.ratio * 100)}% score · ${scores.answeredQuestions}/${scores.totalQuestions} answered</div>
-  </div>
-</div>
-
-${scoreLegend}
-
-<div class="gate-summary">
-  <span>Quality Gate Status</span>
-  <span style="color:${scores.allPassed ? "#4a8355" : scores.anyFail ? "#c60c30" : "#6b7f94"}">
-    ${scores.allPassed ? "PASSED" : scores.anyFail ? "FAILED" : "INCOMPLETE"}
-  </span>
-</div>
-
-<div class="accent-bar"></div>
-
-<table class="cat-table">
-  ${PRINCIPLES.map((p) => {
-    if (!(p.id in rubric.scoring_rubric)) return "";
-    const reportColor = REPORT_COLORS[p.id] ?? p.color;
-    const catScores = scores.catScores.get(p.id) ?? [];
-    const numeric = catScores.filter((s): s is number => typeof s === "number");
-    const avg =
-      numeric.length > 0 ? (numeric.reduce((a, b) => a + b, 0) / numeric.length).toFixed(1) : "—";
-    const catTotal = numeric.reduce((a, b) => a + b, 0);
-    const catMax = numeric.length * 3;
-    const catEvals = evaluations.filter((e) => e.rubricId.startsWith(`${p.id}.`));
-    const evidenceCount = captures.filter((c) =>
-      catEvals.some((e) => e.explicitEvidenceIds.includes(c.id)),
-    ).length;
-    return `
-      <tr>
-        <td class="cat-code" style="color:${reportColor}">${p.code}</td>
-        <td class="cat-label">${esc(getCategoryLabel(p.id).replace(/^.*?— /, ""))}<br />
-          <span style="font-size:0.7rem;color:var(--muted);font-family:var(--ff-mono)">${catTotal}/${catMax} avg ${avg}</span>
-        </td>
-        <td class="cat-indicators">
-          ${distributionBar(catScores)}
-        </td>
-        <td class="cat-evidence">
-          <div class="count" style="color:${evidenceCount > 0 ? "var(--text)" : "var(--border)"}">${evidenceCount}</div>
-          <div class="label">evidence</div>
-        </td>
-      </tr>
-    `;
-  }).join("")}
-</table>
-
-<div class="verdict-bar" style="background:${scores.verdictColor}"></div>
-<div class="verdict-block">
-  <div class="verdict-label">Verdict</div>
-  <div class="verdict-text" style="color:${scores.verdictColor}">${scores.verdict}</div>
-  <div class="verdict-reason">${
-    scores.noEvaluation
-      ? "No questions have been answered — review not started"
-      : finalization?.conclusion
-        ? esc(
-            finalization.conclusion.length > 120
-              ? `${finalization.conclusion.slice(0, 120)}...`
-              : finalization.conclusion,
-          )
-        : !scores.isComplete
-          ? `${scores.answeredQuestions}/${scores.totalQuestions} questions answered — evaluation incomplete`
-          : scores.anyFail
-            ? "Quality gate failure (one or more required checks did not pass)"
-            : `Score ${Math.round(scores.ratio * 100)}%${scores.computedFailed ? ` — ${scores.anyFail ? "quality gate failure (required check did not pass)" : scores.principleFail ? "principle below minimum (at least one principle scored too low)" : "below threshold (overall score too low to pass)"}` : " meets threshold"}`
-  }</div>
-</div>
-
-<div class="bottom-bar"></div>
-<div class="footer">
-  <img src="${LISA_EIS_LOGO}" alt="LISA-EIS" style="height:28px" />
-  <img src="${UT_LOGO}" alt="University of Twente" style="height:20px;margin-top:4px" />
-</div>
+${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, scores, TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO)}
 
 <!-- Full Report -->
 
 <div class="report-header">
+  <div class="trust-branding" style="margin-bottom:12px">
+    <img src="${TRUST_LOGO}" alt="TRUST" />
+    <div class="trust-branding-tagline">Information Tool Reviews</div>
+  </div>
   <h1>Detailed Report</h1>
   <div style="font-size:0.85rem;color:var(--muted)">
     ${esc(metadata.toolName)} &middot; ${safeLink(metadata.toolUrl, 'class="report-meta-url"')} &middot; Evaluated ${formatDate(metadata.startTime)}
   </div>
+  ${metadata.description ? `<div style="font-size:0.85rem;color:var(--text);font-style:italic;margin-top:2px">${esc(metadata.description)}</div>` : ""}
+  ${metadata.dataSources?.length ? `<div style="font-size:0.8rem;color:var(--muted)">Data sources: ${esc(metadata.dataSources.join(", "))}</div>` : ""}
+  ${metadata.searchMethods?.length ? `<div style="font-size:0.8rem;color:var(--muted)">Search methods: ${esc(metadata.searchMethods.join(", "))}</div>` : ""}
+  ${metadata.discipline ? `<div style="font-size:0.8rem;color:var(--muted)">Discipline: ${esc(metadata.discipline)}</div>` : ""}
   ${metadata.notes ? `<div style="font-size:0.8rem;color:var(--muted);font-style:italic;margin-top:4px">${esc(metadata.notes)}</div>` : ""}
 </div>
 
