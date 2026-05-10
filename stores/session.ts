@@ -1,5 +1,12 @@
 import { create } from "zustand";
-import type { Capture, Evaluation, ReviewFinalization, SessionData, SessionMetadata, StoreStatus } from "@/lib/types";
+import type {
+  Capture,
+  Evaluation,
+  ReviewFinalization,
+  SessionData,
+  SessionMetadata,
+  StoreStatus,
+} from "@/lib/types";
 
 interface SessionState {
   status: StoreStatus;
@@ -69,6 +76,8 @@ export const useSessionStore = create<SessionState>()((set) => ({
       })),
     })),
 
+  // Shallow-merges patch into existing evaluation (preserves notes, explicitEvidenceIds, etc.).
+  // Callers may pass partial updates — only the supplied fields are overwritten.
   setEvaluation: (rubricId, patch) =>
     set((s) => {
       const existing = s.evaluations.findIndex((e) => e.rubricId === rubricId);
@@ -128,8 +137,6 @@ export const useSessionStore = create<SessionState>()((set) => ({
   setFinalization: (data) =>
     set((s) => ({
       finalization: data,
-      session: s.session
-        ? { ...s.session, finalizedAt: data?.finalizedAt }
-        : null,
+      session: s.session ? { ...s.session, finalizedAt: data?.finalizedAt } : null,
     })),
 }));

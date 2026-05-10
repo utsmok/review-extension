@@ -330,6 +330,12 @@
   font-weight: 400;
   --badge-color: var(--ut-slate);
 }
+.score-row[data-score="unsure"].is-selected {
+  background: color-mix(in srgb, var(--ut-slate) 12%, transparent);
+  color: var(--ut-slate);
+  border-left-color: var(--ut-slate);
+}
+
 .score-row[data-score="0"].is-selected {
   background: var(--score-0-tint);
   color: var(--score-0);
