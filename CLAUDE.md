@@ -91,6 +91,11 @@ Two-store architecture:
 
 `useActiveSession` is the single coordination point — loads from IDB on `activeSessionId` change, debounced auto-save during edits, flush on panel hide.
 
+**Performance criteria:**
+- Session switch: renders loaded state within 200ms of IDB read
+- Auto-save debounce: 300ms; visibility flush fires immediately on `visibilitychange`
+- IDB write must never silently fail — errors surface as toast warnings
+
 ## Data Flow
 
 1. User creates session → `NewSessionModal` → `lifecycle.createSession()` → registry + IDB
@@ -101,13 +106,15 @@ Two-store architecture:
 
 ## Key Decisions
 
-- Rubric data in `data/rubrics/` (trust-full.json, trust-lite.json), helpers in `lib/rubric.ts`
+- Rubric data in `data/rubrics/` (single rubric: `trust-full.json`), helpers in `lib/rubric.ts`
 - All data stays local — no server calls
 - Zustand `persist` middleware uses localStorage for registry only (session data in IndexedDB)
 - Path alias `@/` maps to project root
 - Extension icons configured in `wxt.config.ts` under `manifest.action.default_icon`
 - Capture HTML archiver inlines stylesheets, strips scripts, resolves relative URLs
 - Legacy migration (`migration.ts`) runs once on first load after upgrade
+- IDB schema migrations are one-way; `SCHEMA_VERSION` in `session-repository.ts` tracks the current version
+- Large feature work should land in feature branches with review gates between phases (not single large merges)
 
 ## Rubric Structure
 
@@ -139,3 +146,18 @@ Single-context layout — one CONTEXT.md + docs/adr/ at repo root. See `docs/age
 - **Path note:** the skill's SKILL.md references `node .claude/skills/impeccable/scripts/load-context.mjs` (relative), but the project's `.claude/skills/` has no `impeccable` symlink. Use the resolved absolute path instead: `node /home/sam/.claude/skills/impeccable/scripts/load-context.mjs`. Alternatively, add a symlink: `ln -s ~/.claude/skills/impeccable .claude/skills/impeccable`.
 - **Commands available:** 22 commands across build (craft, shape, teach, document, extract), evaluate (critique, audit), refine (polish, bolder, quieter, distill, harden, onboard), enhance (animate, colorize, typeset, layout, delight, overdrive), fix (clarify, adapt, optimize), and iterate (live). Plus pin/unpin management.
 - **No `.impeccable.md`** — not needed; the native PRODUCT.md/DESIGN.md pair is richer.
+
+### Roborev (automated code review)
+
+- **Status:** initialized and active. Config at `.roborev.toml` (repo) and `~/.roborev/config.toml` (global).
+- **Agent:** `pi` (mapped to `omp` binary via global `pi_cmd=omp`). **Note:** roborev doesn't have a native `omp` agent driver; it uses the `pi` agent type with the `pi_cmd` config pointing to the `omp` binary.
+- **Model:** `glm-5.1` (set repo-local).
+- **Hooks:** post-commit and post-rewrite hooks installed. Every commit triggers an automatic review.
+- **Review guidelines** in `.roborev.toml` include tech stack and verification commands.
+- **Skills installed** for Claude Code and Codex agents: `/roborev-review`, `/roborev-review-branch`, `/roborev-design-review`, `/roborev-design-review-branch`, `/roborev-fix`, `/roborev-respond`, `/roborev-refine`.
+- **Useful commands:**
+  - `roborev status` — daemon and queue status
+  - `roborev show HEAD` — view review for latest commit
+  - `roborev tui` — interactive terminal UI
+  - `roborev review --dirty` — review uncommitted changes
+  - `roborev refine` — iterative review-fix loop

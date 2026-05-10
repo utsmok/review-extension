@@ -11,12 +11,16 @@ import { getRepository } from "@/lib/session-repository";
 import { toastWarning } from "@/stores/toast";
 
 let timerRef: ReturnType<typeof setTimeout> | undefined;
+let scheduledSessionId: string | null = null;
 let unsub: (() => void) | null = null;
 let visibilityHandler: (() => void) | null = null;
 
-async function flush(): Promise<void> {
+async function flush(scheduledId?: string | null): Promise<void> {
   const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
   const activeId = useRegistryStore.getState().activeSessionId;
+  // Guard: skip if session switched between schedule and flush to prevent
+  // a stale debounced save from overwriting the new session's data.
+  if (scheduledId && activeId !== scheduledId) return;
   if (s && activeId) {
     const ok = await getRepository().save(activeId, {
       metadata: s,
@@ -49,8 +53,9 @@ export function initAutoSave(): void {
     if (status !== "active" || !activeId) return;
 
     if (timerRef !== undefined) clearTimeout(timerRef);
+    scheduledSessionId = activeId;
     timerRef = setTimeout(() => {
-      flush();
+      flush(scheduledSessionId);
     }, 300);
   });
 
@@ -60,7 +65,7 @@ export function initAutoSave(): void {
       // Cancel pending debounce — we're flushing now
       if (timerRef !== undefined) clearTimeout(timerRef);
       timerRef = undefined;
-      flush();
+      flush(scheduledSessionId);
     }
   };
   document.addEventListener("visibilitychange", visibilityHandler);
@@ -82,4 +87,5 @@ export function teardownAutoSave(): void {
     clearTimeout(timerRef);
     timerRef = undefined;
   }
+  scheduledSessionId = null;
 }

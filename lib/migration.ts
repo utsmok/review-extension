@@ -2,6 +2,9 @@ import { useRegistryStore } from "@/stores/registry";
 import type { SessionData, SessionMetadata } from "@/lib/types";
 import { getRepository } from "./session-repository";
 
+// NOTE: Migration is one-way. Downgrading after migration will orphan IDB data
+// (the legacy localStorage key is deleted on successful migration).
+
 export function deterministicId(toolName: string, toolUrl: string, startTime: string): string {
   const input = `trust-session:${toolName}:${toolUrl}:${startTime}`;
   let hash = 0;

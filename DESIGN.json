@@ -50,7 +50,7 @@
         ]
       },
       "navy-primary": {
-        "role": "primary",
+        "role": "structural",
         "displayName": "UT Navy",
         "canonical": "oklch(23% 0.08 260)",
         "tonalRamp": [

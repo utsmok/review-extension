@@ -37,9 +37,9 @@ const REPORT_CSS = `
     --panel: #f3f4f6;
     --white: #fafbfc;
     --link: #2563eb;
-    --ff-body: "Inter", system-ui, sans-serif;
-    --ff-heading: "Arial Narrow", Arial, sans-serif;
-    --ff-mono: "JetBrains Mono", monospace;
+    --ff-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --ff-heading: "Arial Narrow", Arial, Helvetica, sans-serif;
+    --ff-mono: "JetBrains Mono", "Cascadia Code", "Fira Code", ui-monospace, monospace;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { font-size: 15px; }
