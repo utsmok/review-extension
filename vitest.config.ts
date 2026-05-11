@@ -4,6 +4,7 @@ import { WxtVitest } from "wxt/testing/vitest-plugin";
 export default defineConfig({
   plugins: [WxtVitest()],
   test: {
+    exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],
