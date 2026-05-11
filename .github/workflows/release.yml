@@ -29,9 +29,12 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm zip
+      - run: pnpm zip -- --browser firefox
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: .output/trust-review-extension-*-chrome.zip
+          files: |
+            .output/trust-review-extension-*-chrome.zip
+            .output/trust-review-extension-*-firefox.zip
