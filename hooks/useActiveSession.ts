@@ -8,7 +8,7 @@ import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
 import { toastError } from "@/stores/toast";
 
-export function useActiveSession(migrationReady = true) {
+export function useActiveSession() {
   // --- State from both stores (individual selectors for re-render safety) ---
   const activeSessionId = useRegistryStore((s) => s.activeSessionId);
   const status = useSessionStore((s) => s.status);
@@ -19,9 +19,8 @@ export function useActiveSession(migrationReady = true) {
 
   // --- Lifecycle orchestration ---
 
-  // Effect 1: Load/save on activeSessionId change (gated on migration)
+  // Effect 1: Load/save on activeSessionId change
   useEffect(() => {
-    if (!migrationReady) return;
     if (activeSessionId && status === "empty") {
       lifecycle
         .loadSessionById(activeSessionId)
@@ -50,14 +49,13 @@ export function useActiveSession(migrationReady = true) {
       }
       useSessionStore.getState().clear();
     }
-  }, [activeSessionId, migrationReady, status]);
+  }, [activeSessionId, status]);
 
   // Effect 2+3: Init auto-save singleton (debounced auto-save + visibility flush)
   // This replaces the per-consumer subscriptions that caused N-way amplification.
   useEffect(() => {
-    if (!migrationReady) return;
     initAutoSave();
-  }, [migrationReady]);
+  }, []);
 
   // --- Forwarded actions ---
   // Session store actions
@@ -81,7 +79,12 @@ export function useActiveSession(migrationReady = true) {
 
   const doExportAndClose = async (rubric: RubricData) => {
     try {
-      const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
+      const {
+        session: s,
+        captures: c,
+        evaluations: e,
+        finalization: f,
+      } = useSessionStore.getState();
       if (!s) throw new Error("No active session");
       const blob = await exportSession(s, c, e, rubric, f);
       downloadBlob(blob, `TRUST_Review_${sanitizeFilename(s.toolName)}.zip`);

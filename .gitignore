@@ -34,6 +34,7 @@ npm-debug.log*
 tests/artifacts/
 test-results/
 playwright-report/
+coverage/
 
 # Agent/tooling artifacts
 .agents/

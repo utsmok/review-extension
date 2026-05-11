@@ -148,135 +148,19 @@ export async function exportSession(
 
 export async function importSessionFromZip(zipBlob: Blob): Promise<import("./types").SessionData> {
   if (!cachedJSZip) cachedJSZip = (await import("jszip")).default;
-  if (!cachedPapa) cachedPapa = (await import("papaparse")).default;
   const JSZip = cachedJSZip;
-  const Papa = cachedPapa;
 
   const zip = await JSZip.loadAsync(zipBlob);
 
-  // Try session.json first (newer exports)
   const sessionFile = zip.file("session.json");
-  if (sessionFile) {
-    const raw = await sessionFile.async("string");
-    const data = JSON.parse(raw) as import("./types").SessionData;
-    if (data.metadata && data.captures && data.evaluations) return data;
+  if (!sessionFile) {
+    throw new Error("No session.json found in archive. Not a valid TRUST Review export.");
   }
 
-  // Fallback: reconstruct from CSV files (older exports)
-  const metaCsv = zip.file("session_metadata.csv");
-  const scoresCsv = zip.file("rubric_scores.csv");
-  const capturesCsv = zip.file("capture_log.csv");
-  const conclusionsCsv = zip.file("review_conclusions.csv");
-
-  if (!metaCsv || !scoresCsv || !capturesCsv) {
-    throw new Error(
-      "No session.json or CSV data found in archive. Not a valid TRUST Review export.",
-    );
+  const raw = await sessionFile.async("string");
+  const data = JSON.parse(raw) as import("./types").SessionData;
+  if (!data.metadata || !data.captures || !data.evaluations) {
+    throw new Error("session.json is missing required fields (metadata, captures, evaluations).");
   }
-
-  // Parse metadata
-  const metaRows = Papa.parse(await metaCsv.async("string"), { header: true }).data as Record<
-    string,
-    string
-  >[];
-  const mr = metaRows[0];
-  if (!mr) throw new Error("Empty session_metadata.csv");
-
-  const sessionId = crypto.randomUUID();
-  const metadata: import("./types").SessionMetadata = {
-    id: sessionId,
-    toolName: mr.Tool_Name || "Unknown Tool",
-    toolUrl: mr.Tool_URL || "",
-    startTime: mr.Start_Time || new Date().toISOString(),
-    status: "started",
-    usesAi: mr.Uses_AI === "true",
-    rubricId: mr.Rubric_Variant || "trust-full",
-    company: mr.Company || undefined,
-    pricing: mr.Pricing || undefined,
-    availability: mr.Availability || undefined,
-    termsConditionsUrl: mr.Terms_Conditions_URL || undefined,
-    dataSources: mr.Data_Sources ? mr.Data_Sources.split("; ").filter(Boolean) : undefined,
-    searchMethods: mr.Search_Methods ? mr.Search_Methods.split("; ").filter(Boolean) : undefined,
-    discipline: mr.Discipline || undefined,
-    notes: mr.Notes || undefined,
-    toolLogoUrl: mr.Tool_Logo_URL || undefined,
-    description: mr.Tool_Description || undefined,
-  };
-
-  // Parse captures — reconstruct from evidence/ folder
-  const captureRows = Papa.parse(await capturesCsv.async("string"), { header: true })
-    .data as Record<string, string>[];
-  const captures: import("./types").Capture[] = [];
-  for (const cr of captureRows) {
-    const captureId = cr.Capture_ID;
-    if (!captureId) continue;
-
-    // Read screenshot PNG and convert to data URL
-    const pngFile = zip.file(`evidence/capture_${captureId}.png`);
-    let screenshotBase64 = "";
-    if (pngFile) {
-      const pngData = await pngFile.async("base64");
-      screenshotBase64 = `data:image/png;base64,${pngData}`;
-    }
-
-    // Read HTML content
-    const htmlFile = zip.file(`evidence/capture_${captureId}.html`);
-    const htmlContent = htmlFile ? await htmlFile.async("string") : "";
-
-    captures.push({
-      id: captureId,
-      timestamp: cr.Timestamp || new Date().toISOString(),
-      pageTitle: cr.Page_Title || "",
-      sourceUrl: cr.URL_Captured || "",
-      screenshotBase64,
-      htmlContent,
-      notes: cr.User_Notes || "",
-    });
-  }
-
-  // Parse evaluations
-  const scoreRows = Papa.parse(await scoresCsv.async("string"), { header: true }).data as Record<
-    string,
-    string
-  >[];
-  const evaluations: import("./types").Evaluation[] = scoreRows.map((sr) => {
-    const rawScore = sr.Score || "";
-    let score: import("./types").EvaluationScore = "";
-    if (["pass", "fail", "na", "unsure"].includes(rawScore)) {
-      score = rawScore as import("./types").QualityGateScore;
-    } else if (["0", "1", "2", "3"].includes(rawScore)) {
-      score = Number(rawScore) as import("./types").ScoringScore;
-    }
-
-    return {
-      rubricId: sr.Question_ID || "",
-      score,
-      notes: sr.Notes || "",
-      explicitEvidenceIds: sr.Linked_Capture_IDs
-        ? sr.Linked_Capture_IDs.split("; ").filter(Boolean)
-        : [],
-    };
-  });
-
-  // Parse finalization
-  let finalization: import("./types").ReviewFinalization | null = null;
-  if (conclusionsCsv) {
-    const conclRows = Papa.parse(await conclusionsCsv.async("string"), { header: true })
-      .data as Record<string, string>[];
-    const cr = conclRows[0];
-    if (cr?.Grade) {
-      finalization = {
-        grade: cr.Grade as import("./types").FinalizationGrade,
-        conclusion: cr.Conclusion || "",
-        strengths: cr.Strengths ? cr.Strengths.split("; ").filter(Boolean) : [],
-        weaknesses: cr.Weaknesses ? cr.Weaknesses.split("; ").filter(Boolean) : [],
-        recommendations: cr.Recommendations || "",
-        finalizedAt: cr.Finalized_At || new Date().toISOString(),
-      };
-      metadata.status = "done";
-      metadata.finalizedAt = cr.Finalized_At;
-    }
-  }
-
-  return { metadata, captures, evaluations, finalization };
+  return data;
 }
