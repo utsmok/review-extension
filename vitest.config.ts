@@ -9,13 +9,13 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "html", "lcov"],
       include: ["lib/**/*.ts", "stores/**/*.ts", "hooks/**/*.ts"],
-      exclude: [
-        "**/*.css",
-        "**/types.ts",
-        "**/logos.ts",
-        "**/principles.ts",
-        "**/contexts.tsx",
-      ],
+      exclude: ["**/*.css", "**/types.ts", "**/logos.ts", "**/principles.ts", "**/contexts.tsx"],
+      thresholds: {
+        statements: 65,
+        branches: 60,
+        functions: 70,
+        lines: 65,
+      },
     },
   },
 });
