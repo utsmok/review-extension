@@ -72,18 +72,24 @@ export async function exportSession(
   const imgExtensions = new Map<string, "jpg" | "png">();
   const { pngToJpeg } = await import("./image-convert");
 
+  /** Short ID: first 8 hex chars of capture UUID, unique within a session. */
+  const shortId = (id: string) => id.replace(/-/g, "").substring(0, 8);
+  const idMap = new Map(captures.map((c) => [c.id, shortId(c.id)]));
+
   for (const capture of captures) {
+    const sid = idMap.get(capture.id)!;
     const { dataUrl: converted, extension } = await pngToJpeg(capture.screenshotBase64, 0.8);
     const base64Data = converted.split(",")[1] ?? "";
-    evidenceFolder.file(`${capture.id}.${extension}`, base64Data, {
+    evidenceFolder.file(`${sid}.${extension}`, base64Data, {
       base64: true,
     });
-    evidenceFolder.file(`${capture.id}.html`, capture.htmlContent);
+    evidenceFolder.file(`${sid}.html`, capture.htmlContent);
+    imgExtensions.set(capture.id, extension);
   }
 
   // Build capture map for HTML reports: reference evidence/ files instead of embedding base64
   const capturePathMap = new Map(
-    captures.map((c) => [c.id, `evidence/${c.id}.${imgExtensions.get(c.id) ?? "png"}`]),
+    captures.map((c) => [c.id, `evidence/${idMap.get(c.id)}.${imgExtensions.get(c.id) ?? "png"}`]),
   );
   const capturesWithPaths = captures.map((c) => ({
     ...c,
@@ -247,12 +253,18 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
   }
 
   // Reassemble screenshot and HTML data from evidence/ folder
+  const shortId = (id: string) => id.replace(/-/g, "").substring(0, 8);
   for (const capture of data.captures) {
+    const sid = shortId(capture.id);
     if (!capture.screenshotBase64) {
       const jpgFile =
-        zip.file(`evidence/${capture.id}.jpg`) ?? zip.file(`evidence/capture_${capture.id}.jpg`);
+        zip.file(`evidence/${sid}.jpg`) ??
+        zip.file(`evidence/${capture.id}.jpg`) ??
+        zip.file(`evidence/capture_${capture.id}.jpg`);
       const pngFile =
-        zip.file(`evidence/${capture.id}.png`) ?? zip.file(`evidence/capture_${capture.id}.png`);
+        zip.file(`evidence/${sid}.png`) ??
+        zip.file(`evidence/${capture.id}.png`) ??
+        zip.file(`evidence/capture_${capture.id}.png`);
       const imgFile = jpgFile ?? pngFile;
       if (imgFile) {
         const base64 = await imgFile.async("base64");
@@ -262,7 +274,9 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
     }
     if (!capture.htmlContent) {
       const htmlFile =
-        zip.file(`evidence/${capture.id}.html`) ?? zip.file(`evidence/capture_${capture.id}.html`);
+        zip.file(`evidence/${sid}.html`) ??
+        zip.file(`evidence/${capture.id}.html`) ??
+        zip.file(`evidence/capture_${capture.id}.html`);
       if (htmlFile) {
         capture.htmlContent = await htmlFile.async("string");
       }
