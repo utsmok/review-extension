@@ -1150,7 +1150,7 @@ export async function buildNutritionLabel(
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="TRUST Framework Evaluation Label" />
+
 <title>TRUST Label: ${esc(metadata.toolName)}</title>
 <link rel="stylesheet" href="report.css" />
 </head>
