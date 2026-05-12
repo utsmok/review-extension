@@ -67,7 +67,7 @@ export async function exportSession(
 
   const zip = new JSZip();
   // biome-ignore lint/style/noNonNullAssertion: JSZip always returns
-  const evidenceFolder = zip.folder("evidence")!;
+  const evidenceFolder = zip.folder("e")!;
 
   const imgExtensions = new Map<string, "jpg" | "png">();
   const { pngToJpeg } = await import("./image-convert");
@@ -89,7 +89,7 @@ export async function exportSession(
 
   // Build capture map for HTML reports: reference evidence/ files instead of embedding base64
   const capturePathMap = new Map(
-    captures.map((c) => [c.id, `evidence/${idMap.get(c.id)}.${imgExtensions.get(c.id) ?? "png"}`]),
+    captures.map((c) => [c.id, `e/${idMap.get(c.id)}.${imgExtensions.get(c.id) ?? "png"}`]),
   );
   const capturesWithPaths = captures.map((c) => ({
     ...c,
@@ -252,20 +252,31 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
     throw new Error("session.json is missing required fields (metadata, captures, evaluations).");
   }
 
-  // Reassemble screenshot and HTML data from evidence/ folder
+  // Reassemble screenshot and HTML data — try e/ (current), evidence/ (legacy), capture_ prefix (oldest)
   const shortId = (id: string) => id.replace(/-/g, "").substring(0, 8);
+  const findFile = (patterns: string[]) => {
+    for (const p of patterns) {
+      const f = zip.file(p);
+      if (f) return f;
+    }
+    return undefined;
+  };
   for (const capture of data.captures) {
     const sid = shortId(capture.id);
     if (!capture.screenshotBase64) {
-      const jpgFile =
-        zip.file(`evidence/${sid}.jpg`) ??
-        zip.file(`evidence/${capture.id}.jpg`) ??
-        zip.file(`evidence/capture_${capture.id}.jpg`);
-      const pngFile =
-        zip.file(`evidence/${sid}.png`) ??
-        zip.file(`evidence/${capture.id}.png`) ??
-        zip.file(`evidence/capture_${capture.id}.png`);
-      const imgFile = jpgFile ?? pngFile;
+      const imgFile =
+        findFile([
+          `e/${sid}.jpg`,
+          `evidence/${sid}.jpg`,
+          `evidence/${capture.id}.jpg`,
+          `evidence/capture_${capture.id}.jpg`,
+        ]) ??
+        findFile([
+          `e/${sid}.png`,
+          `evidence/${sid}.png`,
+          `evidence/${capture.id}.png`,
+          `evidence/capture_${capture.id}.png`,
+        ]);
       if (imgFile) {
         const base64 = await imgFile.async("base64");
         const mime = imgFile.name.endsWith(".jpg") ? "image/jpeg" : "image/png";
@@ -273,10 +284,12 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
       }
     }
     if (!capture.htmlContent) {
-      const htmlFile =
-        zip.file(`evidence/${sid}.html`) ??
-        zip.file(`evidence/${capture.id}.html`) ??
-        zip.file(`evidence/capture_${capture.id}.html`);
+      const htmlFile = findFile([
+        `e/${sid}.html`,
+        `evidence/${sid}.html`,
+        `evidence/${capture.id}.html`,
+        `evidence/capture_${capture.id}.html`,
+      ]);
       if (htmlFile) {
         capture.htmlContent = await htmlFile.async("string");
       }
