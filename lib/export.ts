@@ -107,7 +107,7 @@ export async function exportSession(
     zip.file(`${sid}.${extension}`, base64Data, {
       base64: true,
     });
-    zip.file(`${sid}.html`, capture.htmlContent);
+    zip.file(`${sid}.html`, minifyHtml(capture.htmlContent));
     imgExtensions.set(capture.id, extension);
   }
 
