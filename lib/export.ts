@@ -38,25 +38,11 @@ function minifyHtml(html: string): string {
     .trim();
 }
 
-/** Strip whitespace, comments, and resolve CSS variables for smaller ZIP entries. */
+/** Strip whitespace and comments from CSS for smaller ZIP entries. */
 function minifyCss(css: string): string {
-  let result = css
+  return css
     .replace(/\/\*[\s\S]*?\*\//g, "") // remove block comments
-    .replace(/\/\/.*$/gm, ""); // remove line comments;
-
-  // Resolve CSS custom properties: var(--name) → value, then remove :root block
-  const vars = new Map<string, string>();
-  result = result.replace(/--([a-z-]+)\s*:\s*([^;{}]+)/g, (_, name, value) => {
-    vars.set(name, value.trim());
-    return "";
-  });
-  for (const [name, value] of vars) {
-    result = result.replaceAll(`var(--${name})`, value);
-  }
-  // Remove empty :root{} block
-  result = result.replace(/:root\s*\{\s*\}/g, "");
-
-  return result
+    .replace(/\/\/.*$/gm, "") // remove line comments
     .replace(/\s*([{}:;,])\s*/g, "$1") // strip around delimiters
     .replace(/;\}/g, "}") // remove trailing semicolons
     .replace(/\s+/g, " ") // collapse whitespace
