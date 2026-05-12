@@ -195,9 +195,9 @@ export async function exportSession(
   const { TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO } = await import("./logos");
   const logoReplacements: [string, string][] = [];
   for (const [name, dataUrl] of [
-    ["logos/trust.jpg", TRUST_LOGO],
-    ["logos/lisa-eis.jpg", LISA_EIS_LOGO],
-    ["logos/ut.jpg", UT_LOGO],
+    ["l/trust.jpg", TRUST_LOGO],
+    ["l/lisa-eis.jpg", LISA_EIS_LOGO],
+    ["l/ut.jpg", UT_LOGO],
   ] as const) {
     const { dataUrl: jpegUrl } = await pngToJpeg(dataUrl, 0.95);
     const base64 = jpegUrl.split(",")[1] ?? "";
