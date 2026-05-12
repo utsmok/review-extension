@@ -35,6 +35,17 @@ function minifyHtml(html: string): string {
     .replace(/ (<|\/>)/g, "$1")
     .trim();
 }
+
+/** Strip whitespace and comments from CSS for smaller ZIP entries. */
+function minifyCss(css: string): string {
+  return css
+    .replace(/\/\*[\s\S]*?\*\//g, "") // remove block comments
+    .replace(/\/\/.*$/gm, "") // remove line comments
+    .replace(/\s*([{}:;,])\s*/g, "$1") // strip around delimiters
+    .replace(/;\}/g, "}") // remove trailing semicolons
+    .replace(/\s+/g, " ") // collapse whitespace
+    .trim();
+}
 // Cached dynamic imports
 let cachedJSZip: typeof import("jszip") | null = null;
 let cachedPapa: typeof import("papaparse") | null = null;
@@ -80,7 +91,7 @@ export async function exportSession(
 
   // Extract shared CSS to a single file instead of duplicating in each HTML report
   const { REPORT_CSS } = await import("./html-report");
-  zip.file("report.css", REPORT_CSS.trim());
+  zip.file("report.css", minifyCss(REPORT_CSS));
   zip.file(
     "session_metadata.csv",
     Papa.unparse([
