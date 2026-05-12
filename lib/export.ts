@@ -184,15 +184,16 @@ export async function exportSession(
   };
   zip.file("session.json", JSON.stringify(sessionData));
 
-  // Extract logo files — avoid embedding 17KB+ of base64 in both HTML reports
+  // Extract logo files as JPEG — avoid embedding 17KB+ of base64 in both HTML reports
   const { TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO } = await import("./logos");
   const logoReplacements: [string, string][] = [];
   for (const [name, dataUrl] of [
-    ["logos/trust.png", TRUST_LOGO],
-    ["logos/lisa-eis.png", LISA_EIS_LOGO],
-    ["logos/ut.png", UT_LOGO],
+    ["logos/trust.jpg", TRUST_LOGO],
+    ["logos/lisa-eis.jpg", LISA_EIS_LOGO],
+    ["logos/ut.jpg", UT_LOGO],
   ] as const) {
-    const base64 = dataUrl.split(",")[1] ?? "";
+    const { dataUrl: jpegUrl } = await pngToJpeg(dataUrl, 0.95);
+    const base64 = jpegUrl.split(",")[1] ?? "";
     zip.file(name, base64, { base64: true });
     logoReplacements.push([dataUrl, name]);
   }
