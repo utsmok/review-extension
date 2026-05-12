@@ -1200,10 +1200,7 @@ export async function buildHtmlReport(
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="TRUST Framework Evaluation Report" />
-<meta property="og:title" content="TRUST Review: ${esc(metadata.toolName)}" />
-<meta property="og:description" content="TRUST Framework Evaluation Report" />
-<meta property="og:type" content="article" />
+
 <title>TRUST Review: ${esc(metadata.toolName)}</title>
 <link rel="stylesheet" href="report.css" />
 </head>
