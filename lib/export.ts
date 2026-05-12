@@ -62,6 +62,9 @@ export async function exportSession(
     screenshotBase64: capturePathMap.get(c.id) ?? c.screenshotBase64,
   }));
 
+  // Extract shared CSS to a single file instead of duplicating in each HTML report
+  const { REPORT_CSS } = await import("./html-report");
+  zip.file("report.css", REPORT_CSS.trim());
   zip.file(
     "session_metadata.csv",
     Papa.unparse([

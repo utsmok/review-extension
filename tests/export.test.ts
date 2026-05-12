@@ -52,7 +52,12 @@ async function unzipToFiles(blob: Blob): Promise<Map<string, string | Uint8Array
 
   for (const [path, entry] of Object.entries(zip.files)) {
     if (entry.dir) continue;
-    if (path.endsWith(".csv") || path.endsWith(".html") || path.endsWith(".json") || path.endsWith(".svg")) {
+    if (
+      path.endsWith(".csv") ||
+      path.endsWith(".html") ||
+      path.endsWith(".json") ||
+      path.endsWith(".svg")
+    ) {
       files.set(path, await entry.async("string"));
     } else {
       files.set(path, await entry.async("uint8array"));
@@ -193,7 +198,7 @@ describe("exportSession", () => {
     expect(html).toContain("<!DOCTYPE html>");
     expect(html).toContain("TestSearch");
     expect(html).toContain("TRUST");
-    expect(html).toContain("@media print");
+    expect(html).toContain('<link rel="stylesheet" href="report.css"');
   });
 
   it("handles empty session (no captures, no evaluations)", async () => {
@@ -278,7 +283,6 @@ describe("exportSession", () => {
     expect(html).toContain("Needs improvement");
     expect(html).toContain("Limited docs");
   });
-
 });
 
 describe("buildHtmlReport", () => {

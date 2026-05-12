@@ -24,8 +24,7 @@ const PRINCIPLE_NAMES: Record<string, string> = Object.fromEntries(
 );
 
 /** All CSS for the standalone HTML evaluation report. */
-/** All CSS for the standalone HTML evaluation report. */
-const REPORT_CSS = `
+export const REPORT_CSS = `
   :root {
     --magenta: #8e036c;
     --navy: #002c5f;
@@ -1153,7 +1152,7 @@ export async function buildNutritionLabel(
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="description" content="TRUST Framework Evaluation Label" />
 <title>TRUST Label: ${esc(metadata.toolName)}</title>
-<style>${REPORT_CSS}</style>
+<link rel="stylesheet" href="report.css" />
 </head>
 <body>
 ${labelHtml}
@@ -1206,7 +1205,7 @@ export async function buildHtmlReport(
 <meta property="og:description" content="TRUST Framework Evaluation Report" />
 <meta property="og:type" content="article" />
 <title>TRUST Review: ${esc(metadata.toolName)}</title>
-<style>${REPORT_CSS}</style>
+<link rel="stylesheet" href="report.css" />
 </head>
 <body>
 
