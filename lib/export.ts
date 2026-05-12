@@ -55,6 +55,13 @@ export async function exportSession(
     evidenceFolder.file(`capture_${capture.id}.html`, capture.htmlContent);
   }
 
+  // Build capture map for HTML reports: reference evidence/ files instead of embedding base64
+  const capturePathMap = new Map(captures.map((c) => [c.id, `evidence/capture_${c.id}.png`]));
+  const capturesWithPaths = captures.map((c) => ({
+    ...c,
+    screenshotBase64: capturePathMap.get(c.id) ?? c.screenshotBase64,
+  }));
+
   zip.file(
     "session_metadata.csv",
     Papa.unparse([
@@ -147,7 +154,13 @@ export async function exportSession(
   };
   zip.file("session.json", JSON.stringify(sessionData));
 
-  const htmlReport = await buildHtmlReport(metadata, captures, evaluations, rubric, finalization);
+  const htmlReport = await buildHtmlReport(
+    metadata,
+    capturesWithPaths,
+    evaluations,
+    rubric,
+    finalization,
+  );
   zip.file(`Evaluation_Report_${sanitizeFilename(metadata.toolName)}.html`, htmlReport);
 
   const labelHtml = await buildNutritionLabel(metadata, evaluations, rubric, finalization);

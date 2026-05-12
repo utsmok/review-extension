@@ -204,12 +204,31 @@ describe("export size benchmark", () => {
 
     const screenshotsTotal = captures.reduce((sum, c) => sum + c.screenshotBase64.length, 0);
     const htmlTotal = captures.reduce((sum, c) => sum + c.htmlContent.length, 0);
-    const sessionJson = JSON.stringify({ metadata, captures, evaluations, finalization });
+
+    // Analyze per-entry compression
+    const JSZip = (await import("jszip")).default;
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    let pngCompressed = 0;
+    let htmlCompressed = 0;
+    let otherCompressed = 0;
+    zip.forEach((_path, file) => {
+      const d = (file as any)._data;
+      if (!d) return;
+      const comp = d.compressedSize ?? 0;
+      const uncomp = d.uncompressedSize ?? 0;
+      const ratio = uncomp ? ((comp / uncomp) * 100).toFixed(1) : "N/A";
+      console.log(`  ${_path}: ${uncomp} → ${comp} (${ratio}%)`);
+      if (_path.endsWith(".png")) pngCompressed += comp;
+      else if (_path.endsWith(".html")) htmlCompressed += comp;
+      else otherCompressed += comp;
+    });
 
     console.log(`METRIC zip_bytes=${blob.size}`);
-    console.log(`ASI session_json_bytes=${sessionJson.length}`);
     console.log(`ASI screenshots_uncompressed=${screenshotsTotal}`);
     console.log(`ASI html_uncompressed=${htmlTotal}`);
+    console.log(`ASI png_compressed=${pngCompressed}`);
+    console.log(`ASI html_compressed=${htmlCompressed}`);
+    console.log(`ASI other_compressed=${otherCompressed}`);
     console.log(`  Captures: ${captures.length}`);
     console.log(`  Evaluations: ${evaluations.length}`);
 
