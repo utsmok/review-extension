@@ -38,11 +38,38 @@ function minifyHtml(html: string): string {
     .trim();
 }
 
-/** Strip whitespace and comments from CSS for smaller ZIP entries. */
+/** Strip whitespace, comments, and resolve CSS variables for smaller ZIP entries.
+ *  Keeps vars needed by HTML inline styles (--magenta, --muted, --text, --ff-heading)
+ *  in a compact :root block; resolves all others inline. */
 function minifyCss(css: string): string {
-  return css
+  // Vars used in HTML inline styles — must be kept in :root
+  const keepVars = new Set(["--magenta", "--muted", "--text", "--ff-heading"]);
+
+  let result = css
     .replace(/\/\*[\s\S]*?\*\//g, "") // remove block comments
-    .replace(/\/\/.*$/gm, "") // remove line comments
+    .replace(/\/\/.*$/gm, ""); // remove line comments
+
+  // Extract all CSS variable definitions
+  const vars = new Map<string, string>();
+  result = result.replace(/--([a-z-]+)\s*:\s*([^;{}]+)/g, (_, name, value) => {
+    vars.set(name, value.trim());
+    return "";
+  });
+
+  // Resolve all var() references in CSS rules
+  for (const [name, value] of vars) {
+    result = result.replaceAll(`var(--${name})`, value);
+  }
+
+  // Remove empty :root{} and re-add only the vars needed by inline HTML styles
+  result = result.replace(/:root\s*\{\s*\}/g, "");
+  const rootKeeps = [...vars.entries()]
+    .filter(([n]) => keepVars.has("--" + n))
+    .map(([n, v]) => `--${n}:${v}`)
+    .join(";");
+  if (rootKeeps) result = `:root{${rootKeeps}}${result}`;
+
+  return result
     .replace(/\s*([{}:;,])\s*/g, "$1") // strip around delimiters
     .replace(/;\}/g, "}") // remove trailing semicolons
     .replace(/\s+/g, " ") // collapse whitespace
