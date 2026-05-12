@@ -463,11 +463,10 @@ export const REPORT_CSS = `
   .fin-block ul { padding-left: 20px; }
   .fin-timestamp { font-size: 0.75rem; color: var(--slate); text-align: right; }
 
-  /* Supplementary foldout rows */
-  .supplementary-row td { border-bottom: none !important; }
-  .supplementary-cell { padding: 2px 8px 2px 52px !important; }
-  .supplementary-cell details { font-size: 0.75rem; }
-  .supplementary-summary {
+  .sr td { border-bottom: none !important; }
+  .sc { padding: 2px 8px 2px 52px !important; }
+  .sc details { font-size: 0.75rem; }
+  .ss {
     font-family: var(--ff-mono);
     font-size: 0.75rem;
     font-weight: 700;
@@ -480,13 +479,13 @@ export const REPORT_CSS = `
     align-items: center;
     gap: 4px;
   }
-  .supplementary-summary::-webkit-details-marker { display: none; }
-  .supplementary-summary::before { content: "▸"; font-size: 8px; }
-  .supplementary-cell details[open] .supplementary-summary::before { content: "▾"; }
-  .supplementary-cell p { color: var(--muted); line-height: 1.5; margin-top: 4px; }
-  .examples-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-  .examples-table td { padding: 3px 6px; font-size: 0.78rem; border-bottom: 1px solid var(--panel); }
-  .ex-level {
+  .ss::-webkit-details-marker { display: none; }
+  .ss::before { content: "▸"; font-size: 8px; }
+  .sc details[open] .ss::before { content: "▾"; }
+  .sc p { color: var(--muted); line-height: 1.5; margin-top: 4px; }
+  .et { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .et td { padding: 3px 6px; font-size: 0.78rem; border-bottom: 1px solid var(--panel); }
+  .el {
     font-family: var(--ff-mono);
     font-weight: 700;
     color: var(--slate);
@@ -771,8 +770,8 @@ function buildCategorySections(
 
         const backgroundRow = levels.background
           ? `
-        <tr class="supplementary-row"><td colspan="4" class="supplementary-cell">
-          <details><summary class="supplementary-summary">Background</summary>
+        <tr class="sr"><td colspan="4" class="sc">
+          <details><summary class="ss">Background</summary>
           <p>${esc(levels.background)}</p></details>
         </td></tr>
       `
@@ -780,15 +779,15 @@ function buildCategorySections(
 
         const examplesRow = levels.examples
           ? `
-        <tr class="supplementary-row"><td colspan="4" class="supplementary-cell">
-          <details><summary class="supplementary-summary">Examples</summary>
-          <table class="examples-table">
+        <tr class="sr"><td colspan="4" class="sc">
+          <details><summary class="ss">Examples</summary>
+          <table class="et">
             ${(["0", "1", "2", "3"] as const)
               .map((lvl) => {
                 const ex = (levels as unknown as { examples?: Record<string, string> }).examples?.[
                   lvl
                 ];
-                return ex ? `<tr><td class="ex-level">${lvl}</td><td>${esc(ex)}</td></tr>` : "";
+                return ex ? `<tr><td class="el">${lvl}</td><td>${esc(ex)}</td></tr>` : "";
               })
               .join("")}
           </table></details>
@@ -855,8 +854,8 @@ function buildGateRows(evaluations: Evaluation[], rubric: RubricData): string {
 
           const qgBackgroundRow = q.background
             ? `
-        <tr class="supplementary-row"><td colspan="4" class="supplementary-cell">
-          <details><summary class="supplementary-summary">Background</summary>
+        <tr class="sr"><td colspan="4" class="sc">
+          <details><summary class="ss">Background</summary>
           <p>${esc(q.background)}</p></details>
         </td></tr>
       `
@@ -864,13 +863,13 @@ function buildGateRows(evaluations: Evaluation[], rubric: RubricData): string {
 
           const qgExamplesRow = q.examples
             ? `
-        <tr class="supplementary-row"><td colspan="4" class="supplementary-cell">
-          <details><summary class="supplementary-summary">Examples</summary>
-          <table class="examples-table">
+        <tr class="sr"><td colspan="4" class="sc">
+          <details><summary class="ss">Examples</summary>
+          <table class="et">
             ${(Object.entries(q.examples) as [string, string][])
               .map(
                 ([key, desc]) => `
-              <tr><td class="ex-level">${key === "pass" ? "Pass" : key === "fail" ? "Fail" : key === "na" ? "N/A" : esc(key)}</td><td>${esc(desc)}</td></tr>
+              <tr><td class="el">${key === "pass" ? "Pass" : key === "fail" ? "Fail" : key === "na" ? "N/A" : esc(key)}</td><td>${esc(desc)}</td></tr>
             `,
               )
               .join("")}
