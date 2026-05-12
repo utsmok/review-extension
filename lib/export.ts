@@ -174,18 +174,19 @@ export async function exportSession(
 
   // Full session data for re-import — strip heavy capture blobs since they're
   // already stored as separate files in evidence/. Import reassembles from there.
-  const lightweightCaptures = captures.map((c) => ({
-    id: c.id,
-    timestamp: c.timestamp,
-    sourceUrl: c.sourceUrl,
-    pageTitle: c.pageTitle,
-    screenshotBase64: "",
-    htmlContent: "",
-    notes: c.notes,
-  }));
+  const lightweightCaptures = captures.map((c) => {
+    const entry: Record<string, unknown> = {
+      id: c.id,
+      timestamp: c.timestamp,
+      sourceUrl: c.sourceUrl,
+      pageTitle: c.pageTitle,
+    };
+    if (c.notes) entry.notes = c.notes;
+    return entry;
+  });
   const sessionData: import("./types").SessionData = {
     metadata,
-    captures: lightweightCaptures,
+    captures: lightweightCaptures as unknown as import("./types").Capture[],
     evaluations,
     finalization,
   };
