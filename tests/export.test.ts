@@ -95,9 +95,9 @@ describe("exportSession", () => {
     const blob = await exportSession(makeMetadata(), [c1, c2], [], RUBRIC);
     const files = await unzipToFiles(blob);
 
-    expect(files.has("evidence/capture_cap-001.png")).toBe(true);
+    expect(files.has("evidence/capture_cap-001.jpg")).toBe(true);
     expect(files.has("evidence/capture_cap-001.html")).toBe(true);
-    expect(files.has("evidence/capture_cap-002.png")).toBe(true);
+    expect(files.has("evidence/capture_cap-002.jpg")).toBe(true);
     expect(files.has("evidence/capture_cap-002.html")).toBe(true);
 
     const html = files.get("evidence/capture_cap-001.html") as string;

@@ -218,7 +218,7 @@ describe("export size benchmark", () => {
       const uncomp = d.uncompressedSize ?? 0;
       const ratio = uncomp ? ((comp / uncomp) * 100).toFixed(1) : "N/A";
       console.log(`  ${_path}: ${uncomp} → ${comp} (${ratio}%)`);
-      if (_path.endsWith(".png")) pngCompressed += comp;
+      if (_path.endsWith(".png") || _path.endsWith(".jpg")) pngCompressed += comp;
       else if (_path.endsWith(".html")) htmlCompressed += comp;
       else otherCompressed += comp;
     });

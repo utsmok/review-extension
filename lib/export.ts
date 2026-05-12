@@ -47,16 +47,23 @@ export async function exportSession(
   // biome-ignore lint/style/noNonNullAssertion: JSZip always returns
   const evidenceFolder = zip.folder("evidence")!;
 
+  const imgExtensions = new Map<string, "jpg" | "png">();
+  const { pngToJpeg } = await import("./image-convert");
+
   for (const capture of captures) {
-    const base64Data = capture.screenshotBase64.split(",")[1] ?? "";
-    evidenceFolder.file(`capture_${capture.id}.png`, base64Data, {
+    const { dataUrl: converted, extension } = await pngToJpeg(capture.screenshotBase64, 0.8);
+    const base64Data = converted.split(",")[1] ?? "";
+    evidenceFolder.file(`capture_${capture.id}.${extension}`, base64Data, {
       base64: true,
     });
     evidenceFolder.file(`capture_${capture.id}.html`, capture.htmlContent);
+    imgExtensions.set(capture.id, extension);
   }
 
   // Build capture map for HTML reports: reference evidence/ files instead of embedding base64
-  const capturePathMap = new Map(captures.map((c) => [c.id, `evidence/capture_${c.id}.png`]));
+  const capturePathMap = new Map(
+    captures.map((c) => [c.id, `evidence/capture_${c.id}.${imgExtensions.get(c.id) ?? "png"}`]),
+  );
   const capturesWithPaths = captures.map((c) => ({
     ...c,
     screenshotBase64: capturePathMap.get(c.id) ?? c.screenshotBase64,
@@ -196,10 +203,13 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
   // Reassemble screenshot and HTML data from evidence/ folder
   for (const capture of data.captures) {
     if (!capture.screenshotBase64) {
+      const jpgFile = zip.file(`evidence/capture_${capture.id}.jpg`);
       const pngFile = zip.file(`evidence/capture_${capture.id}.png`);
-      if (pngFile) {
-        const base64 = await pngFile.async("base64");
-        capture.screenshotBase64 = `data:image/png;base64,${base64}`;
+      const imgFile = jpgFile ?? pngFile;
+      if (imgFile) {
+        const base64 = await imgFile.async("base64");
+        const mime = imgFile.name.endsWith(".jpg") ? "image/jpeg" : "image/png";
+        capture.screenshotBase64 = `data:${mime};base64,${base64}`;
       }
     }
     if (!capture.htmlContent) {
