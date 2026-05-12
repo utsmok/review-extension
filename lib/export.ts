@@ -143,7 +143,11 @@ export async function exportSession(
   const labelHtml = await buildNutritionLabel(metadata, evaluations, rubric, finalization);
   zip.file(`TRUST_Label_${sanitizeFilename(metadata.toolName)}.html`, labelHtml);
 
-  return zip.generateAsync({ type: "blob" });
+  return zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+    compressionOptions: { level: 9 },
+  });
 }
 
 export async function importSessionFromZip(zipBlob: Blob): Promise<import("./types").SessionData> {
