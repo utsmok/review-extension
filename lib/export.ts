@@ -197,7 +197,7 @@ export async function exportSession(
     ["2.jpg", LISA_EIS_LOGO],
     ["3.jpg", UT_LOGO],
   ] as const) {
-    const { dataUrl: jpegUrl } = await pngToJpeg(dataUrl, 0.95);
+    const { dataUrl: jpegUrl } = await pngToJpeg(dataUrl, 0.95, 56);
     const base64 = jpegUrl.split(",")[1] ?? "";
     zip.file(name, base64, { base64: true });
     logoReplacements.push([dataUrl, name]);

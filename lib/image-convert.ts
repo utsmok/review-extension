@@ -11,6 +11,7 @@
 export async function pngToJpeg(
   dataUrl: string,
   quality = 0.8,
+  maxDimension?: number,
 ): Promise<{ dataUrl: string; extension: "jpg" | "png" }> {
   if (!dataUrl.startsWith("data:image/png;base64,")) {
     return { dataUrl, extension: "png" };
@@ -18,7 +19,7 @@ export async function pngToJpeg(
 
   // Try browser canvas path
   try {
-    const result = await canvasConvert(dataUrl, quality);
+    const result = await canvasConvert(dataUrl, quality, maxDimension);
     if (result) return { dataUrl: result, extension: "jpg" };
   } catch {
     // canvas not available, fall through
@@ -26,7 +27,7 @@ export async function pngToJpeg(
 
   // Try Node pngjs + jpeg-js path
   try {
-    const result = await nodeConvert(dataUrl, quality);
+    const result = await nodeConvert(dataUrl, quality, maxDimension);
     if (result) return { dataUrl: result, extension: "jpg" };
   } catch {
     // pngjs / jpeg-js not available, fall through
@@ -42,7 +43,11 @@ function extractBase64(dataUrl: string): string {
 
 /* ── Browser path ─────────────────────────────────────────────────────── */
 
-async function canvasConvert(dataUrl: string, quality: number): Promise<string | null> {
+async function canvasConvert(
+  dataUrl: string,
+  quality: number,
+  maxDimension?: number,
+): Promise<string | null> {
   if (typeof Image === "undefined") return null;
   if (typeof document === "undefined") return null;
 
@@ -53,18 +58,30 @@ async function canvasConvert(dataUrl: string, quality: number): Promise<string |
     img.src = dataUrl;
   });
 
+  let w = img.width;
+  let h = img.height;
+  if (maxDimension && Math.max(w, h) > maxDimension) {
+    const scale = maxDimension / Math.max(w, h);
+    w = Math.round(w * scale);
+    h = Math.round(h * scale);
+  }
+
   const canvas = document.createElement("canvas");
-  canvas.width = img.width;
-  canvas.height = img.height;
+  canvas.width = w;
+  canvas.height = h;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
-  ctx.drawImage(img, 0, 0);
+  ctx.drawImage(img, 0, 0, w, h);
   return canvas.toDataURL("image/jpeg", quality);
 }
 
 /* ── Node path ────────────────────────────────────────────────────────── */
 
-async function nodeConvert(dataUrl: string, quality: number): Promise<string | null> {
+async function nodeConvert(
+  dataUrl: string,
+  quality: number,
+  maxDimension?: number,
+): Promise<string | null> {
   const pngjs = await import("pngjs");
   const { encode } = await import("jpeg-js");
 
@@ -72,7 +89,34 @@ async function nodeConvert(dataUrl: string, quality: number): Promise<string | n
   const pngBuffer = base64ToUint8Array(raw);
   const png = pngjs.PNG.sync.read(BufferFrom(pngBuffer));
 
-  const jpegResult = encode({ data: png.data, width: png.width, height: png.height }, quality);
+  let w = png.width;
+  let h = png.height;
+  let data: Uint8Array = png.data;
+
+  if (maxDimension && Math.max(w, h) > maxDimension) {
+    const scale = maxDimension / Math.max(w, h);
+    const nw = Math.round(w * scale);
+    const nh = Math.round(h * scale);
+    // Simple nearest-neighbor downscale
+    const nd = new Uint8Array(nw * nh * 4);
+    for (let y = 0; y < nh; y++) {
+      for (let x = 0; x < nw; x++) {
+        const sx = Math.round(x / scale);
+        const sy = Math.round(y / scale);
+        const si = (sy * w + sx) * 4;
+        const di = (y * nw + x) * 4;
+        nd[di] = png.data[si];
+        nd[di + 1] = png.data[si + 1];
+        nd[di + 2] = png.data[si + 2];
+        nd[di + 3] = png.data[si + 3];
+      }
+    }
+    w = nw;
+    h = nh;
+    data = nd;
+  }
+
+  const jpegResult = encode({ data, width: w, height: h }, quality);
 
   const jpegBase64 = uint8ArrayToBase64(jpegResult.data);
   return `data:image/jpeg;base64,${jpegBase64}`;
