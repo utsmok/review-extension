@@ -128,10 +128,20 @@ export async function exportSession(
     );
   }
 
-  // Full session data for re-import
+  // Full session data for re-import — strip heavy capture blobs since they're
+  // already stored as separate files in evidence/. Import reassembles from there.
+  const lightweightCaptures = captures.map((c) => ({
+    id: c.id,
+    timestamp: c.timestamp,
+    sourceUrl: c.sourceUrl,
+    pageTitle: c.pageTitle,
+    screenshotBase64: "",
+    htmlContent: "",
+    notes: c.notes,
+  }));
   const sessionData: import("./types").SessionData = {
     metadata,
-    captures,
+    captures: lightweightCaptures,
     evaluations,
     finalization,
   };
@@ -166,5 +176,23 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
   if (!data.metadata || !data.captures || !data.evaluations) {
     throw new Error("session.json is missing required fields (metadata, captures, evaluations).");
   }
+
+  // Reassemble screenshot and HTML data from evidence/ folder
+  for (const capture of data.captures) {
+    if (!capture.screenshotBase64) {
+      const pngFile = zip.file(`evidence/capture_${capture.id}.png`);
+      if (pngFile) {
+        const base64 = await pngFile.async("base64");
+        capture.screenshotBase64 = `data:image/png;base64,${base64}`;
+      }
+    }
+    if (!capture.htmlContent) {
+      const htmlFile = zip.file(`evidence/capture_${capture.id}.html`);
+      if (htmlFile) {
+        capture.htmlContent = await htmlFile.async("string");
+      }
+    }
+  }
+
   return data;
 }
