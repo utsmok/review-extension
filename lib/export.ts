@@ -1,6 +1,10 @@
 import { getCategoryLabel } from "./rubric";
 import { buildHtmlReport, buildNutritionLabel } from "./html-report";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
+/** Subset of Capture written to session.json inside the ZIP — heavy blobs stored separately. */
+type LightweightCapture = Pick<Capture, "id" | "timestamp" | "sourceUrl" | "pageTitle"> & {
+  notes?: Capture["notes"];
+};
 
 /**
  * Sanitize a string for use as a filename. Strips path separators, parent
@@ -61,10 +65,10 @@ function minifyCss(css: string): string {
     result = result.replaceAll(`var(--${name})`, value);
   }
 
-  // Remove empty :root{} and re-add only the vars needed by inline HTML styles
-  result = result.replace(/:root\s*\{\s*\}/g, "");
+  // Remove :root block (now empty after var extraction) — handles leftover semicolons
+  result = result.replace(/:root\s*\{[^}]*\}/g, "");
   const rootKeeps = [...vars.entries()]
-    .filter(([n]) => keepVars.has("--" + n))
+    .filter(([n]) => keepVars.has(`--${n}`))
     .map(([n, v]) => `--${n}:${v}`)
     .join(";");
   if (rootKeeps) result = `:root{${rootKeeps}}${result}`;
@@ -198,8 +202,8 @@ export async function exportSession(
 
   // Full session data for re-import — strip heavy capture blobs since they're
   // already stored as separate files in evidence/. Import reassembles from there.
-  const lightweightCaptures = captures.map((c) => {
-    const entry: Record<string, unknown> = {
+  const lightweightCaptures = captures.map((c): LightweightCapture => {
+    const entry: LightweightCapture = {
       id: c.id,
       timestamp: c.timestamp,
       sourceUrl: c.sourceUrl,
@@ -210,7 +214,7 @@ export async function exportSession(
   });
   const sessionData: import("./types").SessionData = {
     metadata,
-    captures: lightweightCaptures as unknown as import("./types").Capture[],
+    captures: lightweightCaptures as import("./types").Capture[],
     evaluations,
     finalization,
   };

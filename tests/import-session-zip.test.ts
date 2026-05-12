@@ -144,4 +144,199 @@ describe("importSessionFromZip", () => {
     expect(imported.evaluations).toEqual(evaluations);
     expect(imported.finalization).toEqual(finalization);
   });
+
+  // --- Evidence reassembly cascade tests ---
+
+  // 10. Reassembly: captures without blobs are populated from root-level evidence files
+  it("reassembles screenshot and HTML from root-level evidence files", async () => {
+    const metadata = makeMetadata();
+    const captureId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+    const sid = "aaaaaaaa"; // first 8 hex chars of UUID
+
+    const blob = await buildZip({
+      "session.json": {
+        metadata,
+        captures: [
+          {
+            id: captureId,
+            timestamp: "2025-01-01",
+            sourceUrl: "https://example.com",
+            pageTitle: "Test",
+          },
+        ],
+        evaluations: [],
+      },
+      [`${sid}.jpg`]: "fake-jpeg-data",
+      [`${sid}.html`]: "<html><body>Captured page</body></html>",
+    });
+
+    const result = await importSessionFromZip(blob);
+    expect(result.captures[0].screenshotBase64).toBe("data:image/jpeg;base64,ZmFrZS1qcGVnLWRhdGE=");
+    expect(result.captures[0].htmlContent).toBe("<html><body>Captured page</body></html>");
+  });
+
+  // 11. Reassembly cascade: tries e/ folder when root files missing
+  it("falls back to e/ folder when root evidence files absent", async () => {
+    const metadata = makeMetadata();
+    const captureId = "12345678-abcd-efgh-ijkl-mnopqrstuvwx";
+    const sid = "12345678";
+
+    const blob = await buildZip({
+      "session.json": {
+        metadata,
+        captures: [
+          {
+            id: captureId,
+            timestamp: "2025-01-01",
+            sourceUrl: "https://example.com",
+            pageTitle: "Test",
+          },
+        ],
+        evaluations: [],
+      },
+      [`e/${sid}.jpg`]: "fake-jpeg",
+      [`e/${sid}.html`]: "<html>e-folder</html>",
+    });
+
+    const result = await importSessionFromZip(blob);
+    expect(result.captures[0].screenshotBase64).toContain("data:image/jpeg;base64,");
+    expect(result.captures[0].htmlContent).toBe("<html>e-folder</html>");
+  });
+
+  // 12. Reassembly cascade: tries evidence/ folder
+  it("falls back to evidence/ folder with short ID", async () => {
+    const metadata = makeMetadata();
+    const captureId = "abcdef01-2345-6789-abcd-ef0123456789";
+    const sid = "abcdef01";
+
+    const blob = await buildZip({
+      "session.json": {
+        metadata,
+        captures: [
+          {
+            id: captureId,
+            timestamp: "2025-01-01",
+            sourceUrl: "https://example.com",
+            pageTitle: "Test",
+          },
+        ],
+        evaluations: [],
+      },
+      [`evidence/${sid}.jpg`]: "ev-jpeg",
+      [`evidence/${sid}.html`]: "<html>evidence-folder</html>",
+    });
+
+    const result = await importSessionFromZip(blob);
+    expect(result.captures[0].screenshotBase64).toContain("data:image/jpeg;base64,");
+    expect(result.captures[0].htmlContent).toBe("<html>evidence-folder</html>");
+  });
+
+  // 13. Reassembly cascade: tries evidence/ with full UUID
+  it("falls back to evidence/ with full UUID when short ID not found", async () => {
+    const metadata = makeMetadata();
+    const captureId = "deadbeef-0000-0000-0000-000000000000";
+
+    const blob = await buildZip({
+      "session.json": {
+        metadata,
+        captures: [
+          {
+            id: captureId,
+            timestamp: "2025-01-01",
+            sourceUrl: "https://example.com",
+            pageTitle: "Test",
+          },
+        ],
+        evaluations: [],
+      },
+      [`evidence/${captureId}.jpg`]: "full-uuid-jpeg",
+      [`evidence/${captureId}.html`]: "<html>full-uuid</html>",
+    });
+
+    const result = await importSessionFromZip(blob);
+    expect(result.captures[0].screenshotBase64).toContain("data:image/jpeg;base64,");
+    expect(result.captures[0].htmlContent).toBe("<html>full-uuid</html>");
+  });
+
+  // 14. Reassembly cascade: tries legacy capture_ prefix
+  it("falls back to evidence/capture_ prefix for oldest exports", async () => {
+    const metadata = makeMetadata();
+    const captureId = "cafecafe-1111-2222-3333-444444444444";
+
+    const blob = await buildZip({
+      "session.json": {
+        metadata,
+        captures: [
+          {
+            id: captureId,
+            timestamp: "2025-01-01",
+            sourceUrl: "https://example.com",
+            pageTitle: "Test",
+          },
+        ],
+        evaluations: [],
+      },
+      [`evidence/capture_${captureId}.jpg`]: "legacy-jpeg",
+      [`evidence/capture_${captureId}.html`]: "<html>legacy</html>",
+    });
+
+    const result = await importSessionFromZip(blob);
+    expect(result.captures[0].screenshotBase64).toContain("data:image/jpeg;base64,");
+    expect(result.captures[0].htmlContent).toBe("<html>legacy</html>");
+  });
+
+  // 15. Reassembly cascade: tries PNG when JPG not found
+  it("falls back to PNG when JPG files not found", async () => {
+    const metadata = makeMetadata();
+    const captureId = "bbbbbbbb-cccc-dddd-eeee-ffffffffffff";
+    const sid = "bbbbbbb" + "b"; // 8 chars
+
+    const blob = await buildZip({
+      "session.json": {
+        metadata,
+        captures: [
+          {
+            id: captureId,
+            timestamp: "2025-01-01",
+            sourceUrl: "https://example.com",
+            pageTitle: "Test",
+          },
+        ],
+        evaluations: [],
+      },
+      [`${sid}.png`]: "fake-png-data",
+      [`${sid}.html`]: "<html>png-page</html>",
+    });
+
+    const result = await importSessionFromZip(blob);
+    expect(result.captures[0].screenshotBase64).toBe("data:image/png;base64,ZmFrZS1wbmctZGF0YQ==");
+    expect(result.captures[0].htmlContent).toBe("<html>png-page</html>");
+  });
+
+  // 16. Captures with existing blobs are left untouched
+  it("skips reassembly when capture already has screenshotBase64", async () => {
+    const metadata = makeMetadata();
+    const captureId = "11111111-2222-3333-4444-555555555555";
+
+    const blob = await buildZip({
+      "session.json": {
+        metadata,
+        captures: [
+          {
+            id: captureId,
+            timestamp: "2025-01-01",
+            sourceUrl: "https://example.com",
+            pageTitle: "Test",
+            screenshotBase64: "data:image/png;base64,EXISTING",
+            htmlContent: "<html>existing</html>",
+          },
+        ],
+        evaluations: [],
+      },
+    });
+
+    const result = await importSessionFromZip(blob);
+    expect(result.captures[0].screenshotBase64).toBe("data:image/png;base64,EXISTING");
+    expect(result.captures[0].htmlContent).toBe("<html>existing</html>");
+  });
 });
