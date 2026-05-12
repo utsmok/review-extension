@@ -26,6 +26,15 @@ export function downloadBlob(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
+/** Strip whitespace from HTML output for smaller ZIP entries. */
+function minifyHtml(html: string): string {
+  return html
+    .replace(/\n\s*\n/g, "\n")
+    .replace(/>\s+</g, "><")
+    .replace(/\s+/g, " ")
+    .replace(/ (<|\/>)/g, "$1")
+    .trim();
+}
 // Cached dynamic imports
 let cachedJSZip: typeof import("jszip") | null = null;
 let cachedPapa: typeof import("papaparse") | null = null;
@@ -171,10 +180,10 @@ export async function exportSession(
     rubric,
     finalization,
   );
-  zip.file(`Evaluation_Report_${sanitizeFilename(metadata.toolName)}.html`, htmlReport);
+  zip.file(`Evaluation_Report_${sanitizeFilename(metadata.toolName)}.html`, minifyHtml(htmlReport));
 
   const labelHtml = await buildNutritionLabel(metadata, evaluations, rubric, finalization);
-  zip.file(`TRUST_Label_${sanitizeFilename(metadata.toolName)}.html`, labelHtml);
+  zip.file(`TRUST_Label_${sanitizeFilename(metadata.toolName)}.html`, minifyHtml(labelHtml));
 
   return zip.generateAsync({
     type: "blob",
