@@ -66,9 +66,6 @@ export async function exportSession(
   const Papa = cachedPapa;
 
   const zip = new JSZip();
-  // biome-ignore lint/style/noNonNullAssertion: JSZip always returns
-  const evidenceFolder = zip.folder("e")!;
-
   const imgExtensions = new Map<string, "jpg" | "png">();
   const { pngToJpeg } = await import("./image-convert");
 
@@ -80,16 +77,16 @@ export async function exportSession(
     const sid = idMap.get(capture.id)!;
     const { dataUrl: converted, extension } = await pngToJpeg(capture.screenshotBase64, 0.8);
     const base64Data = converted.split(",")[1] ?? "";
-    evidenceFolder.file(`${sid}.${extension}`, base64Data, {
+    zip.file(`${sid}.${extension}`, base64Data, {
       base64: true,
     });
-    evidenceFolder.file(`${sid}.html`, capture.htmlContent);
+    zip.file(`${sid}.html`, capture.htmlContent);
     imgExtensions.set(capture.id, extension);
   }
 
-  // Build capture map for HTML reports: reference evidence/ files instead of embedding base64
+  // Build capture map for HTML reports: reference files instead of embedding base64
   const capturePathMap = new Map(
-    captures.map((c) => [c.id, `e/${idMap.get(c.id)}.${imgExtensions.get(c.id) ?? "png"}`]),
+    captures.map((c) => [c.id, `${idMap.get(c.id)}.${imgExtensions.get(c.id) ?? "png"}`]),
   );
   const capturesWithPaths = captures.map((c) => ({
     ...c,
@@ -253,7 +250,7 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
     throw new Error("session.json is missing required fields (metadata, captures, evaluations).");
   }
 
-  // Reassemble screenshot and HTML data — try e/ (current), evidence/ (legacy), capture_ prefix (oldest)
+  // Reassemble screenshot and HTML data — try root (current), e/, evidence/, capture_ prefix (legacy)
   const shortId = (id: string) => id.replace(/-/g, "").substring(0, 8);
   const findFile = (patterns: string[]) => {
     for (const p of patterns) {
@@ -267,12 +264,14 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
     if (!capture.screenshotBase64) {
       const imgFile =
         findFile([
+          `${sid}.jpg`,
           `e/${sid}.jpg`,
           `evidence/${sid}.jpg`,
           `evidence/${capture.id}.jpg`,
           `evidence/capture_${capture.id}.jpg`,
         ]) ??
         findFile([
+          `${sid}.png`,
           `e/${sid}.png`,
           `evidence/${sid}.png`,
           `evidence/${capture.id}.png`,
@@ -286,6 +285,7 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
     }
     if (!capture.htmlContent) {
       const htmlFile = findFile([
+        `${sid}.html`,
         `e/${sid}.html`,
         `evidence/${sid}.html`,
         `evidence/${capture.id}.html`,
