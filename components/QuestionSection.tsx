@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureActiveTab } from "@/lib/capture";
 import { useRubric } from "@/lib/contexts";
@@ -20,7 +20,6 @@ import type {
 import { toastError } from "@/stores/toast";
 import EvidenceThumbnails from "./EvidenceThumbnails";
 import { getProgressState, ProgressCircle } from "./ProgressCircle";
-
 function renderQGScores(
   rubricId: string,
   ev: Evaluation | undefined,
@@ -217,6 +216,238 @@ function renderScoringScores(
   );
 }
 
+// ---------------------------------------------------------------------------
+// QuestionRow — memoised per-question row extracted from QuestionSection
+// ---------------------------------------------------------------------------
+
+interface QuestionRowProps {
+  rubricId: string;
+  qId: string;
+  code: string;
+  question: PassFailQuestion | ScoringQuestion;
+  section: "quality_gate" | "scoring_rubric";
+  category: string;
+  evaluation: Evaluation | undefined;
+  evidence: Capture[];
+  allCaptures: Capture[];
+  usesAi: boolean;
+  capturingFor: string | null;
+  isCapturing: boolean;
+  linkPopoverFor: string | null;
+  setLinkPopoverFor: (id: string | null) => void;
+  setEvaluation: (rubricId: string, patch: Partial<Evaluation>) => void;
+  linkCaptureToRubric: (captureId: string, rubricId: string) => void;
+  handleCaptureEvidence: (rubricId: string) => void;
+  onConfirmRemove: (capture: Capture, rubricId: string) => void;
+  onViewEvidence: (capture: Capture) => void;
+}
+
+export const QuestionRow = React.memo(function QuestionRow({
+  rubricId,
+  qId,
+  code,
+  question,
+  section,
+  category,
+  evaluation,
+  evidence,
+  allCaptures,
+  usesAi,
+  capturingFor,
+  isCapturing,
+  linkPopoverFor,
+  setLinkPopoverFor,
+  setEvaluation,
+  linkCaptureToRubric,
+  handleCaptureEvidence,
+  onConfirmRemove,
+  onViewEvidence,
+}: QuestionRowProps) {
+  const isQG = section === "quality_gate";
+  const ev = evaluation;
+  const isAiOnly = question.ai_only ?? false;
+  const isAutoNa = isAiOnly && !usesAi;
+
+  // Compute progress based on section type
+  let hasScore: boolean;
+  if (isQG) {
+    hasScore =
+      ev?.score === "pass" ||
+      ev?.score === "fail" ||
+      ev?.score === "na" ||
+      ev?.score === "unsure";
+  } else {
+    const sn = typeof ev?.score === "number" ? (ev.score as number) : -1;
+    hasScore = sn >= 0 || ev?.score === "na" || ev?.score === "unsure";
+  }
+  const hasNotes = !!ev?.notes?.trim();
+  const hasEvidence = evidence.length > 0;
+  const progress = getProgressState(hasScore, hasEvidence, hasNotes);
+
+  // For scoring: determine scoreNum and isNa
+  const scoreNum = typeof ev?.score === "number" ? (ev.score as number) : -1;
+  const isNa = ev?.score === "na" || isAutoNa;
+
+  return (
+    <details
+      key={qId}
+      className="question-details"
+      data-accent-key={isQG ? "control" : getAccentKey(category)}
+      style={isAutoNa ? { opacity: 0.5 } : undefined}
+    >
+      <summary>
+        <ProgressCircle state={progress} />
+        <span className="font-mono text-ut-slate text-ut-xs">{code}</span>
+        <span>{question.title}</span>
+        {isAutoNa && (
+          <span className="text-ut-xs text-ut-muted font-mono ml-1">
+            N/A &mdash; tool does not use AI
+          </span>
+        )}
+      </summary>
+      <div className="question-body">
+        {/* QG: requirement text. Scoring: nothing extra. */}
+        {isQG && (
+          <p className="text-ut-xs text-ut-muted leading-relaxed mb-ut-2">
+            {(question as PassFailQuestion).requirement}
+          </p>
+        )}
+
+        {/* Score UI */}
+        {isQG
+          ? renderQGScores(rubricId, ev, isAutoNa, setEvaluation)
+          : renderScoringScores(
+              rubricId,
+              scoreNum,
+              isNa,
+              ev?.score === "unsure",
+              isAutoNa,
+              question as ScoringQuestion,
+              setEvaluation,
+              ev,
+            )}
+
+        {/* Related quality gate cross-reference */}
+        {!isQG && (question as ScoringQuestion).related_gate && (
+          <p className="text-ut-xs text-ut-slate italic mt-ut-1">
+            Builds on quality gate:{" "}
+            <span className="font-mono font-bold not-italic">
+              {(question as ScoringQuestion).related_gate}
+            </span>
+          </p>
+        )}
+
+        {/* Background foldout */}
+        {question.background && (
+          <details className="question-foldout">
+            <summary className="question-foldout-summary">Background</summary>
+            <p className="question-foldout-content">{question.background}</p>
+          </details>
+        )}
+
+        {/* Examples foldout */}
+        {question.examples && (
+          <details className="question-foldout">
+            <summary className="question-foldout-summary">Examples</summary>
+            <div className="question-foldout-content">
+              {isQG
+                ? Object.entries((question as PassFailQuestion).examples ?? {}).map(
+                    ([key, desc]) => (
+                      <div key={key} className="example-row">
+                        <span className="example-label">
+                          {key === "pass" ? "Pass" : key === "fail" ? "Fail" : "N/A"}
+                        </span>
+                        <span className="example-desc">{desc}</span>
+                      </div>
+                    ),
+                  )
+                : (["0", "1", "2", "3"] as const).map((level) => {
+                    const ex = (question as ScoringQuestion).examples?.[level];
+                    return ex ? (
+                      <div key={level} className="example-row">
+                        <span className="example-badge">{level}</span>
+                        <span className="example-desc">{ex}</span>
+                      </div>
+                    ) : null;
+                  })}
+            </div>
+          </details>
+        )}
+
+        <EvidenceThumbnails
+          captures={evidence}
+          rubricId={rubricId}
+          onConfirmRemove={onConfirmRemove}
+          onViewEvidence={onViewEvidence}
+        />
+
+        <button
+          type="button"
+          className="text-ut-xs text-ut-blue hover:text-ut-darkblue font-mono uppercase tracking-ut-label"
+          disabled={capturingFor === rubricId || isCapturing}
+          onClick={() => handleCaptureEvidence(rubricId)}
+        >
+          {capturingFor === rubricId ? "Capturing..." : "+ Capture Evidence"}
+        </button>
+
+        <button
+          type="button"
+          className="text-ut-xs text-ut-blue hover:text-ut-darkblue font-mono uppercase tracking-ut-label ml-ut-2"
+          onClick={() => setLinkPopoverFor(linkPopoverFor === rubricId ? null : rubricId)}
+        >
+          {linkPopoverFor === rubricId ? "Close" : "Link existing"}
+        </button>
+        {linkPopoverFor === rubricId && (
+          <div className="border border-ut-border bg-ut-white rounded-ut-sm mt-ut-1 max-h-40 overflow-y-auto">
+            {allCaptures.length === 0 ? (
+              <p className="text-ut-xs text-ut-muted p-ut-2">No captures yet</p>
+            ) : (
+              allCaptures.map((c) => {
+                const isLinked = ev?.explicitEvidenceIds?.includes(c.id) ?? false;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={`w-full flex items-center gap-ut-2 px-ut-2 py-ut-1 text-left hover:bg-ut-grey transition-colors ${isLinked ? "opacity-50" : ""}`}
+                    disabled={isLinked}
+                    onClick={() => {
+                      linkCaptureToRubric(c.id, rubricId);
+                      setLinkPopoverFor(null);
+                    }}
+                  >
+                    <img
+                      src={c.annotatedScreenshotBase64 ?? c.screenshotBase64}
+                      alt=""
+                      className="h-6 w-auto border border-ut-border"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-ut-xs font-bold truncate">
+                        {c.pageTitle || "Capture"}
+                      </p>
+                      <p className="text-ut-xs text-ut-muted truncate">
+                        {new Date(c.timestamp).toLocaleString()}
+                      </p>
+                    </div>
+                    {isLinked && <span className="text-ut-xs text-ut-green">✓</span>}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        <textarea
+          className="w-full border border-ut-border rounded-ut-sm text-ut-xs p-ut-2 mt-ut-2 resize-y bg-ut-grey"
+          rows={2}
+          placeholder={isQG ? "Notes / remarks..." : "Notes..."}
+          value={ev?.notes ?? ""}
+          onChange={(e) => setEvaluation(rubricId, { notes: e.target.value })}
+        />
+      </div>
+    </details>
+  );
+});
+
 interface QuestionSectionProps {
   section: "quality_gate" | "scoring_rubric";
   capturingFor: string | null;
@@ -300,188 +531,30 @@ export default function QuestionSection({
             const question = questionRaw as PassFailQuestion | ScoringQuestion;
             const rubricId = `${category}.${qId}`;
             const code = isQG ? getQGQuestionCode(category, qIdx) : getQuestionCode(category, qIdx);
-            const ev = evaluationMap.get(rubricId);
-            const evidence = captureMap.get(rubricId) ?? [];
-            const isAiOnly = question.ai_only ?? false;
-            const isAutoNa = isAiOnly && !usesAi;
-
-            // Compute progress based on section type
-            let hasScore: boolean;
-            if (isQG) {
-              hasScore =
-                ev?.score === "pass" ||
-                ev?.score === "fail" ||
-                ev?.score === "na" ||
-                ev?.score === "unsure";
-            } else {
-              const sn = typeof ev?.score === "number" ? (ev.score as number) : -1;
-              hasScore = sn >= 0 || ev?.score === "na" || ev?.score === "unsure";
-            }
-            const hasNotes = !!ev?.notes?.trim();
-            const hasEvidence = evidence.length > 0;
-            const progress = getProgressState(hasScore, hasEvidence, hasNotes);
-
-            // For scoring: determine scoreNum and isNa
-            const scoreNum = typeof ev?.score === "number" ? (ev.score as number) : -1;
-            const isNa = ev?.score === "na" || isAutoNa;
 
             return (
-              <details
+              <QuestionRow
                 key={qId}
-                className="question-details"
-                data-accent-key={isQG ? "control" : getAccentKey(category)}
-                style={isAutoNa ? { opacity: 0.5 } : undefined}
-              >
-                <summary>
-                  <ProgressCircle state={progress} />
-                  <span className="font-mono text-ut-slate text-ut-xs">{code}</span>
-                  <span>{question.title}</span>
-                  {isAutoNa && (
-                    <span className="text-ut-xs text-ut-muted font-mono ml-1">
-                      N/A &mdash; tool does not use AI
-                    </span>
-                  )}
-                </summary>
-                <div className="question-body">
-                  {/* QG: requirement text. Scoring: nothing extra. */}
-                  {isQG && (
-                    <p className="text-ut-xs text-ut-muted leading-relaxed mb-ut-2">
-                      {(question as PassFailQuestion).requirement}
-                    </p>
-                  )}
-
-                  {/* Score UI */}
-                  {isQG
-                    ? renderQGScores(rubricId, ev, isAutoNa, setEvaluation)
-                    : renderScoringScores(
-                        rubricId,
-                        scoreNum,
-                        isNa,
-                        ev?.score === "unsure",
-                        isAutoNa,
-                        question as ScoringQuestion,
-                        setEvaluation,
-                        ev,
-                      )}
-
-                  {/* Related quality gate cross-reference */}
-                  {!isQG && (question as ScoringQuestion).related_gate && (
-                    <p className="text-ut-xs text-ut-slate italic mt-ut-1">
-                      Builds on quality gate:{" "}
-                      <span className="font-mono font-bold not-italic">
-                        {(question as ScoringQuestion).related_gate}
-                      </span>
-                    </p>
-                  )}
-
-                  {/* Background foldout */}
-                  {question.background && (
-                    <details className="question-foldout">
-                      <summary className="question-foldout-summary">Background</summary>
-                      <p className="question-foldout-content">{question.background}</p>
-                    </details>
-                  )}
-
-                  {/* Examples foldout */}
-                  {question.examples && (
-                    <details className="question-foldout">
-                      <summary className="question-foldout-summary">Examples</summary>
-                      <div className="question-foldout-content">
-                        {isQG
-                          ? Object.entries((question as PassFailQuestion).examples ?? {}).map(
-                              ([key, desc]) => (
-                                <div key={key} className="example-row">
-                                  <span className="example-label">
-                                    {key === "pass" ? "Pass" : key === "fail" ? "Fail" : "N/A"}
-                                  </span>
-                                  <span className="example-desc">{desc}</span>
-                                </div>
-                              ),
-                            )
-                          : (["0", "1", "2", "3"] as const).map((level) => {
-                              const ex = (question as ScoringQuestion).examples?.[level];
-                              return ex ? (
-                                <div key={level} className="example-row">
-                                  <span className="example-badge">{level}</span>
-                                  <span className="example-desc">{ex}</span>
-                                </div>
-                              ) : null;
-                            })}
-                      </div>
-                    </details>
-                  )}
-
-                  <EvidenceThumbnails
-                    captures={evidence}
-                    rubricId={rubricId}
-                    onConfirmRemove={onConfirmRemove}
-                    onViewEvidence={onViewEvidence}
-                  />
-
-                  <button
-                    type="button"
-                    className="text-ut-xs text-ut-blue hover:text-ut-darkblue font-mono uppercase tracking-ut-label"
-                    disabled={capturingFor === rubricId || captureQueue.isCapturing()}
-                    onClick={() => handleCaptureEvidence(rubricId)}
-                  >
-                    {capturingFor === rubricId ? "Capturing..." : "+ Capture Evidence"}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="text-ut-xs text-ut-blue hover:text-ut-darkblue font-mono uppercase tracking-ut-label ml-ut-2"
-                    onClick={() => setLinkPopoverFor(linkPopoverFor === rubricId ? null : rubricId)}
-                  >
-                    {linkPopoverFor === rubricId ? "Close" : "Link existing"}
-                  </button>
-                  {linkPopoverFor === rubricId && (
-                    <div className="border border-ut-border bg-ut-white rounded-ut-sm mt-ut-1 max-h-40 overflow-y-auto">
-                      {captures.length === 0 ? (
-                        <p className="text-ut-xs text-ut-muted p-ut-2">No captures yet</p>
-                      ) : (
-                        captures.map((c) => {
-                          const isLinked = ev?.explicitEvidenceIds?.includes(c.id) ?? false;
-                          return (
-                            <button
-                              key={c.id}
-                              type="button"
-                              className={`w-full flex items-center gap-ut-2 px-ut-2 py-ut-1 text-left hover:bg-ut-grey transition-colors ${isLinked ? "opacity-50" : ""}`}
-                              disabled={isLinked}
-                              onClick={() => {
-                                linkCaptureToRubric(c.id, rubricId);
-                                setLinkPopoverFor(null);
-                              }}
-                            >
-                              <img
-                                src={c.annotatedScreenshotBase64 ?? c.screenshotBase64}
-                                alt=""
-                                className="h-6 w-auto border border-ut-border"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-ut-xs font-bold truncate">
-                                  {c.pageTitle || "Capture"}
-                                </p>
-                                <p className="text-ut-xs text-ut-muted truncate">
-                                  {new Date(c.timestamp).toLocaleString()}
-                                </p>
-                              </div>
-                              {isLinked && <span className="text-ut-xs text-ut-green">✓</span>}
-                            </button>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
-
-                  <textarea
-                    className="w-full border border-ut-border rounded-ut-sm text-ut-xs p-ut-2 mt-ut-2 resize-y bg-ut-grey"
-                    rows={2}
-                    placeholder={isQG ? "Notes / remarks..." : "Notes..."}
-                    value={ev?.notes ?? ""}
-                    onChange={(e) => setEvaluation(rubricId, { notes: e.target.value })}
-                  />
-                </div>
-              </details>
+                rubricId={rubricId}
+                qId={qId}
+                code={code}
+                question={question}
+                section={section}
+                category={category}
+                evaluation={evaluationMap.get(rubricId)}
+                evidence={captureMap.get(rubricId) ?? []}
+                allCaptures={captures}
+                usesAi={usesAi}
+                capturingFor={capturingFor}
+                isCapturing={captureQueue.isCapturing()}
+                linkPopoverFor={linkPopoverFor}
+                setLinkPopoverFor={setLinkPopoverFor}
+                setEvaluation={setEvaluation}
+                linkCaptureToRubric={linkCaptureToRubric}
+                handleCaptureEvidence={handleCaptureEvidence}
+                onConfirmRemove={onConfirmRemove}
+                onViewEvidence={onViewEvidence}
+              />
             );
           })}
         </div>
