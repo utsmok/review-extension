@@ -31,7 +31,7 @@ export function downloadBlob(blob: Blob, filename: string): void {
 }
 
 /** Strip whitespace, comments, and optional closing tags from HTML output for smaller ZIP entries. */
-function minifyHtml(html: string): string {
+export function minifyHtml(html: string): string {
   return html
     .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/<\/(?:li|dt|dd|p|tr|td|th|thead|tbody|tfoot|colgroup|option|optgroup)>/gi, "")
@@ -45,7 +45,7 @@ function minifyHtml(html: string): string {
 /** Strip whitespace, comments, and resolve CSS variables for smaller ZIP entries.
  *  Keeps vars needed by HTML inline styles (--magenta, --muted, --text, --ff-heading)
  *  in a compact :root block; resolves all others inline. */
-function minifyCss(css: string): string {
+export function minifyCss(css: string): string {
   // Vars used in HTML inline styles — must be kept in :root
   const keepVars = new Set(["--magenta", "--muted", "--text", "--ff-heading"]);
 

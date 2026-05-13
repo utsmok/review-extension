@@ -123,7 +123,7 @@ async function nodeConvert(
 }
 
 /** Portable base64 decode — works without Buffer. */
-function base64ToUint8Array(b64: string): Uint8Array {
+export function base64ToUint8Array(b64: string): Uint8Array {
   const bin = atob(b64);
   const arr = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
@@ -139,7 +139,7 @@ function BufferFrom(data: Uint8Array): Buffer {
 }
 
 /** Portable base64 encode — works without Buffer. */
-function uint8ArrayToBase64(arr: Uint8Array): string {
+export function uint8ArrayToBase64(arr: Uint8Array): string {
   let bin = "";
   for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
   return btoa(bin);
