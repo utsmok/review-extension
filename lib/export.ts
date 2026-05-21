@@ -34,7 +34,7 @@ export function downloadBlob(blob: Blob, filename: string): void {
 export function minifyHtml(html: string): string {
   return html
     .replace(
-      /<!--[\s\S]*?-->|<\/(?:li|dt|dd|p|tr|td|th|thead|tbody|tfoot|colgroup|option|optgroup)>/gi,
+      /<!--[\s\S]*?-->|<\/(?:li|dt|dd|p|tr|td|th|thead|tbody|tfoot|colgroup|option|optgroup)>/g,
       "",
     )
     .replace(/\s+/g, " ")
