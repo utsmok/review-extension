@@ -33,10 +33,10 @@ export function downloadBlob(blob: Blob, filename: string): void {
 /** Strip whitespace, comments, and optional closing tags from HTML output for smaller ZIP entries. */
 export function minifyHtml(html: string): string {
   return html
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<\/(?:li|dt|dd|p|tr|td|th|thead|tbody|tfoot|colgroup|option|optgroup)>/gi, "")
-    .replace(/\n\s*\n/g, "\n")
-    .replace(/>\s+</g, "><")
+    .replace(
+      /<!--[\s\S]*?-->|<\/(?:li|dt|dd|p|tr|td|th|thead|tbody|tfoot|colgroup|option|optgroup)>/gi,
+      "",
+    )
     .replace(/\s+/g, " ")
     .replace(/ (<|\/>)/g, "$1")
     .trim();
