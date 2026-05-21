@@ -147,7 +147,8 @@ function BufferFrom(data: Uint8Array): Buffer {
 
 /** Portable base64 encode — uses Buffer when available for native speed. */
 export function uint8ArrayToBase64(arr: Uint8Array): string {
-  if (typeof Buffer !== "undefined") return Buffer.from(arr).toString("base64");
+  if (typeof Buffer !== "undefined")
+    return Buffer.from(arr.buffer, arr.byteOffset, arr.length).toString("base64");
   let bin = "";
   for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
   return btoa(bin);
