@@ -86,8 +86,11 @@ async function nodeConvert(
   const { encode } = await import("jpeg-js");
 
   const raw = extractBase64(dataUrl);
-  const pngBuffer = base64ToUint8Array(raw);
-  const png = pngjs.PNG.sync.read(BufferFrom(pngBuffer));
+  const pngBuffer =
+    typeof Buffer !== "undefined"
+      ? Buffer.from(raw, "base64")
+      : BufferFrom(base64ToUint8Array(raw));
+  const png = pngjs.PNG.sync.read(pngBuffer);
 
   let w = png.width;
   let h = png.height;
@@ -124,7 +127,10 @@ async function nodeConvert(
 
 /** Portable base64 decode — uses Buffer when available for native speed. */
 export function base64ToUint8Array(b64: string): Uint8Array {
-  if (typeof Buffer !== "undefined") return new Uint8Array(Buffer.from(b64, "base64"));
+  if (typeof Buffer !== "undefined") {
+    const buf = Buffer.from(b64, "base64");
+    return new Uint8Array(buf.buffer, buf.byteOffset, buf.length);
+  }
   const bin = atob(b64);
   const arr = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
