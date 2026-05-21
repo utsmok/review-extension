@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 cd "$(dirname "$0")"
 
 # Time the full benchmark run
@@ -16,31 +16,33 @@ duration_ms=$(( end_ms - start_ms ))
 
 echo "METRIC bench_duration_ms=${duration_ms}"
 
-# Extract a bench mean from vitest tabular output.
-# Usage: extract_mean <section_pattern> <bench_name_pattern>
-# Sections are delimited by "✓ bench/..." headers.
+# Extract mean time from vitest bench output.
+# Each section starts with a header containing the describe block name.
+# Data rows follow with format: "   · <bench_name>  <hz>  <min>  <max>  <mean> ..."
+# The mean is the 4th numeric field (after hz, min, max).
+#
+# Usage: extract_mean <section_keyword> <bench_name_keyword>
+# Finds the section header, then the first data row matching bench_name after it.
+tmp=$(mktemp)
+echo "$output" > "$tmp"
+
 extract_mean() {
   local section="$1"
   local bench="$2"
-  echo "$output" \
-    | awk -v sec="$section" -v bnch="$bench" '
-      /✓ bench\// { cur = $0 }
-      cur ~ sec && $0 ~ bnch && /·/ {
-        # Split line by whitespace, find 4th number (mean)
-        n = split($0, fields)
-        num = 0
-        for (i = 1; i <= n; i++) {
-          if (fields[i] ~ /^[0-9]/) {
-            num++
-            if (num == 4) {
-              gsub(/,/, "", fields[i])
-              print fields[i]
-              exit
-            }
-          }
-        }
-      }
-    '
+  # Find the line number of the section header
+  local sec_line
+  sec_line=$(grep -n "$section" "$tmp" | head -1 | cut -d: -f1)
+  [ -z "$sec_line" ] && return
+  # Search from that line onward for the bench name in a data row (contains numbers)
+  local target_line
+  target_line=$(sed -n "${sec_line},\$p" "$tmp" | grep -n "$bench" | grep '[0-9]\.[0-9]' | head -1 | cut -d: -f1)
+  [ -z "$target_line" ] && return
+  # Absolute line number
+  local abs_line=$(( sec_line + target_line - 1 ))
+  # Extract the 4th decimal number from that line (mean = hz, min, max, mean)
+  local val
+  val=$(sed -n "${abs_line}p" "$tmp" | grep -oP '[\d,]+\.[\d]+' | tr -d ',' | sed -n '4p')
+  [ -n "$val" ] && echo "$val"
 }
 
 val=$(extract_mean "uint8ArrayToBase64" "large payload")
@@ -57,3 +59,5 @@ val=$(extract_mean "minifyCss" "large stylesheet")
 
 val=$(extract_mean "computeReportScores" "with finalization")
 [ -n "$val" ] && echo "METRIC compute_scores_ms=${val}"
+
+rm -f "$tmp"
