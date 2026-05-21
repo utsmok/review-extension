@@ -45,9 +45,9 @@ export function minifyHtml(html: string): string {
 /** Strip whitespace, comments, and resolve CSS variables for smaller ZIP entries.
  *  Keeps vars needed by HTML inline styles (--magenta, --muted, --text, --ff-heading)
  *  in a compact :root block; resolves all others inline. */
+const CSS_KEEP_VARS = new Set(["--magenta", "--muted", "--text", "--ff-heading"]);
 export function minifyCss(css: string): string {
-  // Vars used in HTML inline styles — must be kept in :root
-  const keepVars = new Set(["--magenta", "--muted", "--text", "--ff-heading"]);
+  // Vars used in HTML inline styles — must be kept in :root (see CSS_KEEP_VARS)
 
   let result = css
     .replace(/\/\*[\s\S]*?\*\//g, "") // remove block comments
@@ -68,7 +68,7 @@ export function minifyCss(css: string): string {
   // Remove :root block (now empty after var extraction) — handles leftover semicolons
   result = result.replace(/:root\s*\{[^}]*\}/g, "");
   const rootKeeps = [...vars.entries()]
-    .filter(([n]) => keepVars.has(`--${n}`))
+    .filter(([n]) => CSS_KEEP_VARS.has(`--${n}`))
     .map(([n, v]) => `--${n}:${v}`)
     .join(";");
   if (rootKeeps) result = `:root{${rootKeeps}}${result}`;
