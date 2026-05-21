@@ -1,5 +1,7 @@
 # TRUST Review
 
+[![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/utsmok/review-extension?utm_source=badge)
+
 Browser extension for systematic evaluation of academic search tools using the [TRUST Framework](https://www.utwente.nl/library/).
 
 Captures screenshots, tags evidence to rubric items, and exports a ZIP with CSV data, evidence screenshots, an HTML report, and a standalone nutrition label — all processed locally in the browser.
@@ -22,6 +24,7 @@ pnpm dev          # dev build with HMR
 pnpm build        # production build
 pnpm zip          # production ZIP for distribution
 pnpm test         # run tests
+pnpm bench        # run benchmarks
 pnpm typecheck    # type check
 pnpm lint         # lint
 ```

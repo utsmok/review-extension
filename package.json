@@ -19,7 +19,8 @@
     "lint:fix": "biome lint --write .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "bench": "vitest bench --config vitest.bench.config.ts"
   },
   "dependencies": {
     "jszip": "^3.10.1",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.13",
+    "@codspeed/vitest-plugin": "^5.4.0",
     "@playwright/test": "^1.59.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/react-hooks": "^8.0.1",
