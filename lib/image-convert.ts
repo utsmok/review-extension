@@ -122,8 +122,9 @@ async function nodeConvert(
   return `data:image/jpeg;base64,${jpegBase64}`;
 }
 
-/** Portable base64 decode — works without Buffer. */
+/** Portable base64 decode — uses Buffer when available for native speed. */
 export function base64ToUint8Array(b64: string): Uint8Array {
+  if (typeof Buffer !== "undefined") return new Uint8Array(Buffer.from(b64, "base64"));
   const bin = atob(b64);
   const arr = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
@@ -138,8 +139,9 @@ function BufferFrom(data: Uint8Array): Buffer {
   return data as unknown as Buffer;
 }
 
-/** Portable base64 encode — works without Buffer. */
+/** Portable base64 encode — uses Buffer when available for native speed. */
 export function uint8ArrayToBase64(arr: Uint8Array): string {
+  if (typeof Buffer !== "undefined") return Buffer.from(arr).toString("base64");
   let bin = "";
   for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
   return btoa(bin);
