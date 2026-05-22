@@ -706,9 +706,12 @@ function buildCategorySections(
   scores: ReportScores,
   evalMap: Map<string, Evaluation>,
 ): string {
-  // evalMap pre-built by caller
-  return PRINCIPLES.map((p, sectionIdx) => {
-    if (!(p.id in rubric.scoring_rubric)) return "";
+  let resultHtml = "";
+  let sectionIdx = 0;
+  for (const p of PRINCIPLES) {
+    if (!(p.id in rubric.scoring_rubric)) {
+      continue;
+    }
     const reportColor = REPORT_COLORS[p.id] ?? p.color;
     const questions = rubric.scoring_rubric[p.id];
     const catScores = scores.catScores.get(p.id) ?? [];
@@ -734,116 +737,119 @@ function buildCategorySections(
     const catTotal = numSum;
     const catMax = numCount * 3;
 
-    const rows = Object.entries(questions)
-      .map(([qId, levels], idx) => {
-        const rubricId = `${p.id}.${qId}`;
-        const ev = evalMap.get(rubricId);
-        const isNa = ev?.score === "na";
-        const isUnsure = ev?.score === "unsure";
-        const score = typeof ev?.score === "number" ? ev.score : -1;
-        const code = getQuestionCode(p.id, idx);
-        const customReasoning = ev?.customScore?.reasoning;
-        const levelDesc = isNa
-          ? "Not applicable"
-          : isUnsure
-            ? "Insufficient information"
-            : customReasoning
-              ? esc(customReasoning)
-              : score >= 0
-                ? ((levels as unknown as Record<string, string>)[String(score)] ?? "—")
-                : "—";
+    let rows = "";
+    let qIdx = 0;
+    for (const [qId, levels] of Object.entries(questions)) {
+      const rubricId = `${p.id}.${qId}`;
+      const ev = evalMap.get(rubricId);
+      const isNa = ev?.score === "na";
+      const isUnsure = ev?.score === "unsure";
+      const score = typeof ev?.score === "number" ? ev.score : -1;
+      const code = getQuestionCode(p.id, qIdx);
+      const customReasoning = ev?.customScore?.reasoning;
+      const levelDesc = isNa
+        ? "Not applicable"
+        : isUnsure
+          ? "Insufficient information"
+          : customReasoning
+            ? esc(customReasoning)
+            : score >= 0
+              ? ((levels as unknown as Record<string, string>)[String(score)] ?? "—")
+              : "—";
 
-        const isWeakEvidence = score >= 0 && score <= 1;
-        let evidenceImgs = "";
-        for (const c of captures) {
-          if (!ev?.explicitEvidenceIds.includes(c.id)) continue;
-          evidenceImgs += `
-          <div class="evidence-item${isWeakEvidence ? " evidence-weak" : ""}">
-            <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
-            <div class="evidence-meta">
-              <strong>${esc(c.pageTitle || "Capture")}</strong>
-              <span class="evidence-time">${formatDate(c.timestamp)}</span>
-              ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
-            </div>
+      const isWeakEvidence = score >= 0 && score <= 1;
+      let evidenceImgs = "";
+      for (const c of captures) {
+        if (!ev?.explicitEvidenceIds.includes(c.id)) continue;
+        evidenceImgs += `
+        <div class="evidence-item${isWeakEvidence ? " evidence-weak" : ""}">
+          <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
+          <div class="evidence-meta">
+            <strong>${esc(c.pageTitle || "Capture")}</strong>
+            <span class="evidence-time">${formatDate(c.timestamp)}</span>
+            ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
           </div>
-        `;
-        }
-
-        const backgroundRow = levels.background
-          ? `
-        <tr class="sr"><td colspan="4" class="sc">
-          <details><summary class="ss">Background</summary>
-          <p>${esc(levels.background)}</p></details>
-        </td></tr>
-      `
-          : "";
-
-        const examplesRow = levels.examples
-          ? `
-        <tr class="sr"><td colspan="4" class="sc">
-          <details><summary class="ss">Examples</summary>
-          <table class="et">
-            ${(["0", "1", "2", "3"] as const)
-              .map((lvl) => {
-                const ex = (levels as unknown as { examples?: Record<string, string> }).examples?.[
-                  lvl
-                ];
-                return ex ? `<tr><td class="el">${lvl}</td><td>${esc(ex)}</td></tr>` : "";
-              })
-              .join("")}
-          </table></details>
-        </td></tr>
-      `
-          : "";
-
-        const badgeColor = scoreColor(
-          isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined,
-        );
-        return `
-        <tr class="score-row">
-          <td class="code" style="color:${reportColor}">${code}</td>
-          <td class="score-cell">
-            <span class="score-badge" style="background:${badgeColor}20;color:${badgeColor}">
-              ${isNa ? "N/A" : isUnsure ? "?" : score >= 0 ? score : "—"}${customReasoning ? "*" : ""}
-            </span>
-          </td>
-          <td class="level">${esc(levelDesc)}</td>
-          <td class="notes">${esc(ev?.notes ?? "")}</td>
-        </tr>
-        ${backgroundRow}${examplesRow}
-        ${evidenceImgs ? `<tr class="evidence-row"><td colspan="4"><div class="evidence-list">${evidenceImgs}</div></td></tr>` : ""}
+        </div>
       `;
-      })
-      .join("");
+      }
 
-    return `
-      <section id="category-${p.id}" class="category-section${sectionIdx % 2 === 1 ? " category-alt" : ""}" style="--accent:${reportColor}">
-        <div class="category-header">
-          <div class="category-letter-block">
-            <div class="category-letter">${p.code}</div>
-            <div class="category-letter-name">${PRINCIPLE_NAMES[p.id] ?? ""}</div>
-          </div>
-          <div class="category-info">
-            <h2>${esc(PRINCIPLE_NAMES[p.id]!)}</h2>
-            <div class="category-meta">
-              <span class="cat-score">${catTotal} / ${catMax}</span>
-              <span class="cat-avg">avg ${avg}</span>
-              <span class="cat-evidence">${evidenceCount} evidence</span>
-            </div>
-            ${distributionBar(catScores)}
-          </div>
+      const backgroundRow = levels.background
+        ? `
+    <tr class="sr"><td colspan="4" class="sc">
+      <details><summary class="ss">Background</summary>
+      <p>${esc(levels.background)}</p></details>
+    </td></tr>
+  `
+        : "";
+
+      const examplesRow = levels.examples
+        ? `
+    <tr class="sr"><td colspan="4" class="sc">
+      <details><summary class="ss">Examples</summary>
+      <table class="et">
+        ${(() => {
+          let exHtml = "";
+          for (const lvl of ["0", "1", "2", "3"] as const) {
+            const ex = (levels as unknown as { examples?: Record<string, string> }).examples?.[lvl];
+            if (ex) exHtml += `<tr><td class="el">${lvl}</td><td>${esc(ex)}</td></tr>`;
+          }
+          return exHtml;
+        })()}
+      </table></details>
+    </td></tr>
+  `
+        : "";
+
+      const badgeColor = scoreColor(
+        isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined,
+      );
+      rows += `
+    <tr class="score-row">
+      <td class="code" style="color:${reportColor}">${code}</td>
+      <td class="score-cell">
+        <span class="score-badge" style="background:${badgeColor}20;color:${badgeColor}">
+          ${isNa ? "N/A" : isUnsure ? "?" : score >= 0 ? score : "—"}${customReasoning ? "*" : ""}
+        </span>
+      </td>
+      <td class="level">${esc(levelDesc)}</td>
+      <td class="notes">${esc(ev?.notes ?? "")}</td>
+    </tr>
+    ${backgroundRow}${examplesRow}
+    ${evidenceImgs ? `<tr class="evidence-row"><td colspan="4"><div class="evidence-list">${evidenceImgs}</div></td></tr>` : ""}
+  `;
+      qIdx++;
+    }
+
+    resultHtml += `
+    <section id="category-${p.id}" class="category-section${sectionIdx % 2 === 1 ? " category-alt" : ""}" style="--accent:${reportColor}">
+      <div class="category-header">
+        <div class="category-letter-block">
+          <div class="category-letter">${p.code}</div>
+          <div class="category-letter-name">${PRINCIPLE_NAMES[p.id] ?? ""}</div>
         </div>
-        <div class="category-table-wrap">
-          <table>
-            <thead>
-              <tr><th>Code</th><th>Score</th><th>Level</th><th>Notes</th></tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
+        <div class="category-info">
+          <h2>${esc(PRINCIPLE_NAMES[p.id]!)}</h2>
+          <div class="category-meta">
+            <span class="cat-score">${catTotal} / ${catMax}</span>
+            <span class="cat-avg">avg ${avg}</span>
+            <span class="cat-evidence">${evidenceCount} evidence</span>
+          </div>
+          ${distributionBar(catScores)}
         </div>
-      </section>
-    `;
-  }).join("");
+      </div>
+      <div class="category-table-wrap">
+        <table>
+          <thead>
+            <tr><th>Code</th><th>Score</th><th>Level</th><th>Notes</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </section>
+  `;
+    sectionIdx++;
+  }
+  return resultHtml;
 }
 
 function buildGateRows(
