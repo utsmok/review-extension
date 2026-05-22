@@ -109,13 +109,18 @@ async function nodeConvert(
     const scale = maxDimension / Math.max(w, h);
     const nw = Math.round(w * scale);
     const nh = Math.round(h * scale);
-    // Simple nearest-neighbor downscale using 32-bit pixel copies
+    // Pre-compute source coordinates to eliminate divisions from inner loop
     const nd = new Uint8Array(nw * nh * 4);
     const src32 = new Uint32Array(png.data.buffer, png.data.byteOffset, png.data.length >>> 2);
     const dst32 = new Uint32Array(nd.buffer, nd.byteOffset, nd.length >>> 2);
+    const colMap = new Int32Array(nw);
+    for (let x = 0; x < nw; x++) colMap[x] = Math.round(x / scale);
+    const rowMap = new Int32Array(nh);
+    for (let y = 0; y < nh; y++) rowMap[y] = Math.round(y / scale) * w;
     for (let y = 0; y < nh; y++) {
+      const srcRow = rowMap[y];
       for (let x = 0; x < nw; x++) {
-        dst32[y * nw + x] = src32[Math.round(y / scale) * w + Math.round(x / scale)];
+        dst32[y * nw + x] = src32[srcRow + colMap[x]];
       }
     }
     w = nw;
