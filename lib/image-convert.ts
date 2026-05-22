@@ -75,19 +75,32 @@ async function canvasConvert(
   return canvas.toDataURL("image/jpeg", quality);
 }
 
-/* ── Node path ────────────────────────────────────────────────────────── */
+/* ── Node path (cached dynamic imports) ──────────────────────────────────── */
+let _pngjs: typeof import("pngjs") | null = null;
+let _jpegEncode:
+  | ((
+      input: { data: Uint8Array; width: number; height: number },
+      quality?: number,
+    ) => { data: Uint8Array; width: number; height: number })
+  | null = null;
 
 async function nodeConvert(
   dataUrl: string,
   quality: number,
   maxDimension?: number,
 ): Promise<string | null> {
-  const pngjs = await import("pngjs");
-  const { encode } = await import("jpeg-js");
+  if (!_pngjs) _pngjs = await import("pngjs");
+  if (!_jpegEncode) _jpegEncode = (await import("jpeg-js")).encode;
+  const pngjs = _pngjs;
+// biome-ignore lint/style/noNonNullAssertion: guaranteed non-null by preceding guard
+  const encode = _jpegEncode!;
 
   const raw = extractBase64(dataUrl);
-  const pngBuffer = base64ToUint8Array(raw);
-  const png = pngjs.PNG.sync.read(BufferFrom(pngBuffer));
+  const pngBuffer =
+    typeof Buffer !== "undefined"
+      ? Buffer.from(raw, "base64")
+      : BufferFrom(base64ToUint8Array(raw));
+  const png = pngjs.PNG.sync.read(pngBuffer);
 
   let w = png.width;
   let h = png.height;
@@ -97,18 +110,22 @@ async function nodeConvert(
     const scale = maxDimension / Math.max(w, h);
     const nw = Math.round(w * scale);
     const nh = Math.round(h * scale);
-    // Simple nearest-neighbor downscale
+    // Pre-compute source coordinates to eliminate divisions from inner loop
     const nd = new Uint8Array(nw * nh * 4);
+    // Pooled Buffers may have non-4-byte-aligned byteOffset; copy to aligned view if needed
+    const srcBytes = png.data.byteOffset % 4 === 0
+      ? png.data
+      : new Uint8Array(png.data);
+    const src32 = new Uint32Array(srcBytes.buffer, srcBytes.byteOffset, srcBytes.length >>> 2);
+    const dst32 = new Uint32Array(nd.buffer, nd.byteOffset, nd.length >>> 2);
+    const colMap = new Int32Array(nw);
+    for (let x = 0; x < nw; x++) colMap[x] = Math.round(x / scale);
+    const rowMap = new Int32Array(nh);
+    for (let y = 0; y < nh; y++) rowMap[y] = Math.round(y / scale) * w;
     for (let y = 0; y < nh; y++) {
+      const srcRow = rowMap[y];
       for (let x = 0; x < nw; x++) {
-        const sx = Math.round(x / scale);
-        const sy = Math.round(y / scale);
-        const si = (sy * w + sx) * 4;
-        const di = (y * nw + x) * 4;
-        nd[di] = png.data[si];
-        nd[di + 1] = png.data[si + 1];
-        nd[di + 2] = png.data[si + 2];
-        nd[di + 3] = png.data[si + 3];
+        dst32[y * nw + x] = src32[srcRow + colMap[x]];
       }
     }
     w = nw;
@@ -122,8 +139,12 @@ async function nodeConvert(
   return `data:image/jpeg;base64,${jpegBase64}`;
 }
 
-/** Portable base64 decode — works without Buffer. */
+/** Portable base64 decode — uses Buffer when available for native speed. */
 export function base64ToUint8Array(b64: string): Uint8Array {
+  if (typeof Buffer !== "undefined") {
+    const buf = Buffer.from(b64, "base64");
+    return new Uint8Array(buf.buffer, buf.byteOffset, buf.length);
+  }
   const bin = atob(b64);
   const arr = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
@@ -138,8 +159,10 @@ function BufferFrom(data: Uint8Array): Buffer {
   return data as unknown as Buffer;
 }
 
-/** Portable base64 encode — works without Buffer. */
+/** Portable base64 encode — uses Buffer when available for native speed. */
 export function uint8ArrayToBase64(arr: Uint8Array): string {
+  if (typeof Buffer !== "undefined")
+    return Buffer.from(arr.buffer, arr.byteOffset, arr.length).toString("base64");
   let bin = "";
   for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
   return btoa(bin);

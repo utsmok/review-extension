@@ -1,6 +1,5 @@
 import { PRINCIPLES } from "./principles";
 import {
-  getCategoryLabel,
   getQuestionCode,
   getQGQuestionCode,
   distributionBar,
@@ -11,6 +10,8 @@ import {
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 import { computeReportScores, type ReportScores } from "./report/compute-scores";
 
+// Cached dynamic import for logos (used by buildHtmlReport and buildNutritionLabel)
+let _logos: typeof import("./logos") | null = null;
 // ── Constants ──────────────────────────────────────────────────────────
 
 /** Darkened report-local colors for WCAG AA contrast with white text */
@@ -633,17 +634,17 @@ export const REPORT_CSS = `
 // ── Utilities ──────────────────────────────────────────────────────────
 
 /** HTML-escape a string for safe embedding in templates. */
+const ESC_MAP: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
+const ESC_NEEDS_ESCAPE_RE = /[&<>"]/;
 function esc(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  if (!s || !ESC_NEEDS_ESCAPE_RE.test(s)) return s;
+  return s.replace(/[&<>"]/g, (c) => ESC_MAP[c]);
 }
 
 /** Validate URL starts with http:// or https:// */
+const SAFE_URL_RE = /^https?:\/\//i;
 function isSafeUrl(url: string): boolean {
-  return /^https?:\/\//i.test(url.trim());
+  return SAFE_URL_RE.test(url.trim());
 }
 
 /** Render a URL as a link if valid, otherwise as plain text */
@@ -657,9 +658,8 @@ function safeLink(url: string, attrs: string = ""): string {
 
 /** Format date consistently as YYYY-MM-DD HH:mm */
 function formatDate(isoString: string): string {
-  const d = new Date(isoString);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  // ISO 8601: "YYYY-MM-DDTHH:mm:..." — slice directly, no Date construction
+  return `${isoString.slice(0, 10)} ${isoString.slice(11, 16)}`;
 }
 
 /** Resize and compress a base64 data-URL image. Returns original if resize fails. */
@@ -686,25 +686,15 @@ async function compressScreenshot(dataUrl: string, maxWidth = 800, quality = 0.8
   }
 }
 
+const EMPTY_CIRCLE = '<span class="circle empty">&#9675;</span>';
+const FILLED_CIRCLE = '<span class="circle filled">&#9679;</span>';
+const ALL_EMPTY_CIRCLES = `<span class="circles">${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}</span>`;
+const EXAMPLE_LEVELS = ["0", "1", "2", "3"] as const;
+
 function scoreCircles(avg: number | null): string {
-  if (avg === null)
-    return (
-      '<span class="circles">' +
-      [0, 1, 2, 3].map(() => '<span class="circle empty">&#9675;</span>').join("") +
-      "</span>"
-    );
+  if (avg === null) return ALL_EMPTY_CIRCLES;
   const filled = avg < 1 ? 1 : avg < 2 ? 2 : avg < 3 ? 3 : 4;
-  return (
-    '<span class="circles">' +
-    [0, 1, 2, 3]
-      .map((i) =>
-        i < filled
-          ? '<span class="circle filled">&#9679;</span>'
-          : '<span class="circle empty">&#9675;</span>',
-      )
-      .join("") +
-    "</span>"
-  );
+  return `<span class="circles">${FILLED_CIRCLE.repeat(filled)}${EMPTY_CIRCLE.repeat(4 - filled)}</span>`;
 }
 
 // ── Section builders ───────────────────────────────────────────────────
@@ -715,178 +705,202 @@ function buildCategorySections(
   rubric: RubricData,
   compressedScreenshots: Map<string, string>,
   scores: ReportScores,
+  evalMap: Map<string, Evaluation>,
 ): string {
-  return PRINCIPLES.map((p, sectionIdx) => {
-    if (!(p.id in rubric.scoring_rubric)) return "";
-    const reportColor = REPORT_COLORS[p.id] ?? p.color;
-    const questions = rubric.scoring_rubric[p.id];
-    const catScores = scores.catScores.get(p.id) ?? [];
-    const catEvals = evaluations.filter((e) => e.rubricId.startsWith(`${p.id}.`));
-    const evidenceCount = captures.filter((c) =>
-      catEvals.some((e) => e.explicitEvidenceIds.includes(c.id)),
-    ).length;
+  // Pre-compute capture ID → capture map for O(1) lookups
+  const captureMap = new Map(captures.map((c) => [c.id, c]));
+  // Pre-compute evidence count per principle: O(captures × evaluations) once instead of per principle
+  const evidenceByPrinciple = new Map<string, Set<string>>();
+  for (const e of evaluations) {
+    const dot = e.rubricId.indexOf(".");
+    const prefix = dot === -1 ? e.rubricId : e.rubricId.substring(0, dot);
+    let captureSet = evidenceByPrinciple.get(prefix);
+    if (!captureSet) {
+      captureSet = new Set<string>();
+      evidenceByPrinciple.set(prefix, captureSet);
+    }
+    for (const cid of e.explicitEvidenceIds) {
+      captureSet.add(cid);
+    }
+  }
 
-    const numeric = catScores.filter((s): s is number => typeof s === "number");
-    const avg =
-      numeric.length > 0 ? (numeric.reduce((a, b) => a + b, 0) / numeric.length).toFixed(1) : "—";
-    const catTotal = numeric.reduce((a, b) => a + b, 0);
-    const catMax = numeric.length * 3;
+  return PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
+    .map((p, sectionIdx) => {
+      const reportColor = REPORT_COLORS[p.id] ?? p.color;
+      const questions = rubric.scoring_rubric[p.id];
+      const catScores = scores.catScores.get(p.id) ?? [];
+      const evidenceCount = evidenceByPrinciple.get(p.id)?.size ?? 0;
 
-    const rows = Object.entries(questions)
-      .map(([qId, levels], idx) => {
-        const rubricId = `${p.id}.${qId}`;
-        const ev = evaluations.find((e) => e.rubricId === rubricId);
-        const isNa = ev?.score === "na";
-        const isUnsure = ev?.score === "unsure";
-        const score = typeof ev?.score === "number" ? ev.score : -1;
-        const code = getQuestionCode(p.id, idx);
-        const customReasoning = ev?.customScore?.reasoning;
-        const levelDesc = isNa
-          ? "Not applicable"
-          : isUnsure
-            ? "Insufficient information"
-            : customReasoning
-              ? esc(customReasoning)
-              : score >= 0
-                ? ((levels as unknown as Record<string, string>)[String(score)] ?? "—")
-                : "—";
+      let numSum = 0;
+      let numCount = 0;
+      for (const s of catScores) {
+        if (typeof s === "number") {
+          numSum += s;
+          numCount++;
+        }
+      }
+      const avg = numCount > 0 ? (numSum / numCount).toFixed(1) : "—";
+      const catTotal = numSum;
+      const catMax = numCount * 3;
 
-        const isWeakEvidence = score >= 0 && score <= 1;
-        const evidenceImgs = captures
-          .filter((c) => ev?.explicitEvidenceIds.includes(c.id))
-          .map(
-            (c) => `
-          <div class="evidence-item${isWeakEvidence ? " evidence-weak" : ""}">
-            <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
-            <div class="evidence-meta">
-              <strong>${esc(c.pageTitle || "Capture")}</strong>
-              <span class="evidence-time">${formatDate(c.timestamp)}</span>
-              ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
-            </div>
+      const rows = Object.entries(questions)
+        .map(([qId, levels], qIdx) => {
+          const rubricId = `${p.id}.${qId}`;
+          const ev = evalMap.get(rubricId);
+          const isNa = ev?.score === "na";
+          const isUnsure = ev?.score === "unsure";
+          const score = typeof ev?.score === "number" ? ev.score : -1;
+          const code = getQuestionCode(p.id, qIdx);
+          const customReasoning = ev?.customScore?.reasoning;
+          const levelDesc = isNa
+            ? "Not applicable"
+            : isUnsure
+              ? "Insufficient information"
+              : customReasoning
+                ? esc(customReasoning)
+                : score >= 0
+                  ? ((levels as unknown as Record<string, string>)[String(score)] ?? "—")
+                  : "—";
+
+          const isWeakEvidence = score >= 0 && score <= 1;
+          const evidenceImgs = ev
+            ? ev.explicitEvidenceIds
+                .map((cid) => {
+                  const c = captureMap.get(cid);
+                  if (!c) return "";
+                  return `
+        <div class="evidence-item${isWeakEvidence ? " evidence-weak" : ""}">
+          <img src="${compressedScreenshots.get(cid) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
+          <div class="evidence-meta">
+            <strong>${esc(c.pageTitle || "Capture")}</strong>
+            <span class="evidence-time">${formatDate(c.timestamp)}</span>
+            ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
           </div>
-        `,
-          )
-          .join("");
-
-        const backgroundRow = levels.background
-          ? `
-        <tr class="sr"><td colspan="4" class="sc">
-          <details><summary class="ss">Background</summary>
-          <p>${esc(levels.background)}</p></details>
-        </td></tr>
-      `
-          : "";
-
-        const examplesRow = levels.examples
-          ? `
-        <tr class="sr"><td colspan="4" class="sc">
-          <details><summary class="ss">Examples</summary>
-          <table class="et">
-            ${(["0", "1", "2", "3"] as const)
-              .map((lvl) => {
-                const ex = (levels as unknown as { examples?: Record<string, string> }).examples?.[
-                  lvl
-                ];
-                return ex ? `<tr><td class="el">${lvl}</td><td>${esc(ex)}</td></tr>` : "";
-              })
-              .join("")}
-          </table></details>
-        </td></tr>
-      `
-          : "";
-
-        return `
-        <tr class="score-row">
-          <td class="code" style="color:${reportColor}">${code}</td>
-          <td class="score-cell">
-            <span class="score-badge" style="background:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined)}20;color:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined)}">
-              ${isNa ? "N/A" : isUnsure ? "?" : score >= 0 ? score : "—"}${customReasoning ? "*" : ""}
-            </span>
-          </td>
-          <td class="level">${esc(levelDesc)}</td>
-          <td class="notes">${esc(ev?.notes ?? "")}</td>
-        </tr>
-        ${backgroundRow}${examplesRow}
-        ${evidenceImgs ? `<tr class="evidence-row"><td colspan="4"><div class="evidence-list">${evidenceImgs}</div></td></tr>` : ""}
+        </div>
       `;
-      })
-      .join("");
+                })
+                .join("")
+            : "";
 
-    return `
-      <section id="category-${p.id}" class="category-section${sectionIdx % 2 === 1 ? " category-alt" : ""}" style="--accent:${reportColor}">
-        <div class="category-header">
-          <div class="category-letter-block">
-            <div class="category-letter">${p.code}</div>
-            <div class="category-letter-name">${PRINCIPLE_NAMES[p.id] ?? ""}</div>
-          </div>
-          <div class="category-info">
-            <h2>${esc(getCategoryLabel(p.id).replace(/^.*?— /, ""))}</h2>
-            <div class="category-meta">
-              <span class="cat-score">${catTotal} / ${catMax}</span>
-              <span class="cat-avg">avg ${avg}</span>
-              <span class="cat-evidence">${evidenceCount} evidence</span>
-            </div>
-            ${distributionBar(catScores)}
-          </div>
+          const backgroundRow = levels.background
+            ? `
+    <tr class="sr"><td colspan="4" class="sc">
+      <details><summary class="ss">Background</summary>
+      <p>${esc(levels.background)}</p></details>
+    </td></tr>
+  `
+            : "";
+
+          const examplesRow = levels.examples
+            ? `
+    <tr class="sr"><td colspan="4" class="sc">
+      <details><summary class="ss">Examples</summary>
+      <table class="et">
+        ${EXAMPLE_LEVELS.map((lvl) => {
+          const ex = (levels as unknown as { examples?: Record<string, string> }).examples?.[lvl];
+          return ex ? `<tr><td class="el">${lvl}</td><td>${esc(ex)}</td></tr>` : "";
+        }).join("")}
+      </table></details>
+    </td></tr>
+  `
+            : "";
+
+          const badgeColor = scoreColor(
+            isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined,
+          );
+          return `
+    <tr class="score-row">
+      <td class="code" style="color:${reportColor}">${code}</td>
+      <td class="score-cell">
+        <span class="score-badge" style="background:${badgeColor}20;color:${badgeColor}">
+          ${isNa ? "N/A" : isUnsure ? "?" : score >= 0 ? score : "—"}${customReasoning ? "*" : ""}
+        </span>
+      </td>
+      <td class="level">${esc(levelDesc)}</td>
+      <td class="notes">${esc(ev?.notes ?? "")}</td>
+    </tr>
+    ${backgroundRow}${examplesRow}
+    ${evidenceImgs ? `<tr class="evidence-row"><td colspan="4"><div class="evidence-list">${evidenceImgs}</div></td></tr>` : ""}
+  `;
+        })
+        .join("");
+
+      return `
+    <section id="category-${p.id}" class="category-section${sectionIdx % 2 === 1 ? " category-alt" : ""}" style="--accent:${reportColor}">
+      <div class="category-header">
+        <div class="category-letter-block">
+          <div class="category-letter">${p.code}</div>
+          <div class="category-letter-name">${PRINCIPLE_NAMES[p.id] ?? ""}</div>
         </div>
-        <div class="category-table-wrap">
-          <table>
-            <thead>
-              <tr><th>Code</th><th>Score</th><th>Level</th><th>Notes</th></tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
+        <div class="category-info">
+          <h2>${esc(PRINCIPLE_NAMES[p.id] ?? "")}</h2>
+          <div class="category-meta">
+            <span class="cat-score">${catTotal} / ${catMax}</span>
+            <span class="cat-avg">avg ${avg}</span>
+            <span class="cat-evidence">${evidenceCount} evidence</span>
+          </div>
+          ${distributionBar(catScores)}
         </div>
-      </section>
-    `;
-  }).join("");
+      </div>
+      <div class="category-table-wrap">
+        <table>
+          <thead>
+            <tr><th>Code</th><th>Score</th><th>Level</th><th>Notes</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </section>
+  `;
+    })
+    .join("");
 }
 
-function buildGateRows(evaluations: Evaluation[], rubric: RubricData): string {
+function buildGateRows(rubric: RubricData, evalMap: Map<string, Evaluation>): string {
   return Object.entries(rubric.quality_gate)
     .map(([cat, questions]) =>
-      Object.entries(questions)
-        .map(([qId, q]) => {
-          const ev = evaluations.find((e) => e.rubricId === `${cat}.${qId}`);
+      Object.keys(questions)
+        .map((qId, qIdx) => {
+          const q = questions[qId];
+          const ev = evalMap.get(`${cat}.${qId}`);
           const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
           const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#6b7f94";
           const label = result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "—";
 
           const qgBackgroundRow = q.background
             ? `
-        <tr class="sr"><td colspan="4" class="sc">
-          <details><summary class="ss">Background</summary>
-          <p>${esc(q.background)}</p></details>
-        </td></tr>
-      `
+    <tr class="sr"><td colspan="4" class="sc">
+      <details><summary class="ss">Background</summary>
+      <p>${esc(q.background)}</p></details>
+    </td></tr>
+  `
             : "";
 
           const qgExamplesRow = q.examples
             ? `
-        <tr class="sr"><td colspan="4" class="sc">
-          <details><summary class="ss">Examples</summary>
-          <table class="et">
-            ${(Object.entries(q.examples) as [string, string][])
-              .map(
-                ([key, desc]) => `
-              <tr><td class="el">${key === "pass" ? "Pass" : key === "fail" ? "Fail" : key === "na" ? "N/A" : esc(key)}</td><td>${esc(desc)}</td></tr>
-            `,
-              )
-              .join("")}
-          </table></details>
-        </td></tr>
-      `
+    <tr class="sr"><td colspan="4" class="sc">
+      <details><summary class="ss">Examples</summary>
+      <table class="et">
+        ${Object.keys(q.examples)
+          .map((key) => {
+            const desc = (q.examples as Record<string, string>)[key];
+            return `<tr><td class="el">${key === "pass" ? "Pass" : key === "fail" ? "Fail" : key === "na" ? "N/A" : esc(key)}</td><td>${esc(desc)}</td></tr>`;
+          })
+          .join("")}
+      </table></details>
+    </td></tr>
+  `
             : "";
 
           return `
-        <tr>
-          <td class="code">${getQGQuestionCode(cat, Object.keys(questions).indexOf(qId))}</td>
-          <td><span class="gate-badge" style="background:${color}18;color:${color}">${label}</span></td>
-          <td>${esc(q.requirement)}</td>
-          <td class="notes">${esc(ev?.notes ?? "")}</td>
-        </tr>
-        ${qgBackgroundRow}${qgExamplesRow}
-      `;
+    <tr>
+      <td class="code">${getQGQuestionCode(cat, qIdx)}</td>
+      <td><span class="gate-badge" style="background:${color}18;color:${color}">${label}</span></td>
+      <td>${esc(q.requirement)}</td>
+      <td class="notes">${esc(ev?.notes ?? "")}</td>
+    </tr>
+    ${qgBackgroundRow}${qgExamplesRow}
+  `;
         })
         .join(""),
     )
@@ -900,6 +914,9 @@ function buildFinalizationSection(
 ): string {
   if (!finalization) return "";
 
+  const strengthsList = finalization.strengths.map((s) => `<li>${esc(s)}</li>`).join("");
+  const weaknessesList = finalization.weaknesses.map((w) => `<li>${esc(w)}</li>`).join("");
+
   return `
     <section class="finalization-section">
       <div class="fin-bar" style="background:${verdictColor}"></div>
@@ -908,21 +925,21 @@ function buildFinalizationSection(
       </div>
       ${finalization.conclusion ? `<div class="fin-block"><h3>Conclusion</h3><p>${esc(finalization.conclusion)}</p></div>` : ""}
       ${
-        finalization.strengths.length > 0
+        strengthsList
           ? `
         <div class="fin-block">
           <h3 style="color:#4a8355">Strengths</h3>
-          <ul>${finalization.strengths.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
+          <ul>${strengthsList}</ul>
         </div>
       `
           : ""
       }
       ${
-        finalization.weaknesses.length > 0
+        weaknessesList
           ? `
         <div class="fin-block">
           <h3 style="color:#c60c30">Weaknesses</h3>
-          <ul>${finalization.weaknesses.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>
+          <ul>${weaknessesList}</ul>
         </div>
       `
           : ""
@@ -947,18 +964,16 @@ function buildUnlinkedSection(
   evaluations: Evaluation[],
   compressedScreenshots: Map<string, string>,
 ): string {
-  const unlinked = captures.filter(
-    (c) => !evaluations.some((e) => e.explicitEvidenceIds.includes(c.id)),
-  );
-
-  if (unlinked.length === 0) return "";
-
-  return `
-    <section class="unlinked-section">
-      <h2>Additional Evidence</h2>
-      ${unlinked
-        .map(
-          (c) => `
+  // Pre-compute set of linked capture IDs: O(evaluations × evidenceIds) once
+  const linkedIds = new Set<string>();
+  for (const e of evaluations) {
+    for (const cid of e.explicitEvidenceIds) {
+      linkedIds.add(cid);
+    }
+  }
+  const unlinkedHtml = captures
+    .filter((c) => !linkedIds.has(c.id))
+    .map((c) => `
         <div class="unlinked-item">
           <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
           <div class="unlinked-meta">
@@ -968,9 +983,15 @@ function buildUnlinkedSection(
             ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
           </div>
         </div>
-      `,
-        )
-        .join("")}
+      `)
+    .join("");
+
+  if (!unlinkedHtml) return "";
+
+  return `
+    <section class="unlinked-section">
+      <h2>Additional Evidence</h2>
+      ${unlinkedHtml}
     </section>
   `;
 }
@@ -979,7 +1000,7 @@ function buildToc(rubric: RubricData): string {
   return PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
     .map((p) => {
       const reportColor = REPORT_COLORS[p.id] ?? p.color;
-      return `<a href="#category-${p.id}" class="toc-item" style="color:${reportColor}"><span class="toc-code">${p.code}</span> ${esc(PRINCIPLE_NAMES[p.id] ?? getCategoryLabel(p.id).replace(/^.*?— /, ""))}</a>`;
+      return `<a href="#category-${p.id}" class="toc-item" style="color:${reportColor}"><span class="toc-code">${p.code}</span> ${esc(PRINCIPLE_NAMES[p.id] ?? "")}</a>`;
     })
     .join("");
 }
@@ -995,8 +1016,9 @@ function buildNutritionLabelHtml(
   TRUST_LOGO: string,
   LISA_EIS_LOGO: string,
   UT_LOGO: string,
+  evalMap: Map<string, Evaluation>,
 ): string {
-  const date = new Date(metadata.startTime).toISOString().split("T")[0];
+  const date = metadata.startTime.slice(0, 10);
   const toolUrl = esc(metadata.toolUrl);
   const toolName = esc(metadata.toolName);
   const toolLink = `<a href="${toolUrl}" target="_blank" rel="noopener noreferrer">`;
@@ -1061,26 +1083,23 @@ function buildNutritionLabelHtml(
   </div>
 
   ${(() => {
-    const gr = qualityGateResults(evaluations, rubric);
-    const issues = gr.filter((g) => g.result === "fail" || g.result === "unsure");
-    if (issues.length === 0) return "";
-    const items = issues
-      .map(
-        (g) =>
-          '<div class="nutrition-gate-item">' +
-          esc(g.label) +
-          ': <span class="' +
-          (g.result === "fail" ? "fail" : "unsure") +
-          '">' +
-          (g.result === "fail" ? "FAIL" : "UNSURE") +
-          "</span></div>",
+    const items = qualityGateResults(evaluations, rubric, evalMap)
+      .filter((g) => g.result === "fail" || g.result === "unsure")
+      .map((g) =>
+        '<div class="nutrition-gate-item">' +
+        esc(g.label) +
+        ': <span class="' +
+        (g.result === "fail" ? "fail" : "unsure") +
+        '">' +
+        (g.result === "fail" ? "FAIL" : "UNSURE") +
+        "</span></div>",
       )
       .join("");
-    return (
-      '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gates-title">Quality Gate Issues</div>' +
-      items +
-      "</div>"
-    );
+    return items
+      ? '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gates-title">Quality Gate Issues</div>' +
+          items +
+          "</div>"
+      : "";
   })()}
 
   <div class="nutrition-divider-thin"></div>
@@ -1088,22 +1107,23 @@ function buildNutritionLabelHtml(
   <div class="nutrition-principles">
     <table class="nutrition-principles-table">
       <tr>
-        ${PRINCIPLES.map((p) => {
-          if (!(p.id in rubric.scoring_rubric)) return "";
-          const reportColor = REPORT_COLORS[p.id] ?? p.color;
-          const avg = principleAverage(p.id, evaluations, rubric);
-          return (
-            '<td style="color:' +
-            reportColor +
-            '"><div class="nutrition-principle-code">' +
-            p.code +
-            '</div><div class="nutrition-principle-name">' +
-            (PRINCIPLE_NAMES[p.id] ?? "") +
-            "</div><div>" +
-            scoreCircles(avg) +
-            "</div></td>"
-          );
-        }).join("")}
+        ${PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
+          .map((p) => {
+            const reportColor = REPORT_COLORS[p.id] ?? p.color;
+            const avg = principleAverage(p.id, evaluations, rubric, evalMap);
+            return (
+              '<td style="color:' +
+              reportColor +
+              '"><div class="nutrition-principle-code">' +
+              p.code +
+              '</div><div class="nutrition-principle-name">' +
+              (PRINCIPLE_NAMES[p.id] ?? "") +
+              "</div><div>" +
+              scoreCircles(avg) +
+              "</div></td>"
+            );
+          })
+          .join("")}
         <td class="nutrition-overall-cell" style="color:var(--magenta)">
           <div class="nutrition-overall-label">Overall</div>
           <div>${scoreCircles(scores.totalMax > 0 ? (scores.totalActual / scores.totalMax) * 3 : null)}</div>
@@ -1132,8 +1152,10 @@ export async function buildNutritionLabel(
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
 ): Promise<string> {
-  const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = await import("./logos");
-  const scores = computeReportScores(evaluations, rubric, finalization);
+  if (!_logos) _logos = await import("./logos");
+  const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = _logos;
+  const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
+  const scores = computeReportScores(evaluations, rubric, finalization, evalMap);
   const labelHtml = buildNutritionLabelHtml(
     metadata,
     evaluations,
@@ -1143,6 +1165,7 @@ export async function buildNutritionLabel(
     TRUST_LOGO,
     LISA_EIS_LOGO,
     UT_LOGO,
+    evalMap,
   );
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1167,7 +1190,8 @@ export async function buildHtmlReport(
   finalization: ReviewFinalization | null = null,
 ): Promise<string> {
   // Compress all screenshots in parallel
-  const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = await import("./logos");
+  if (!_logos) _logos = await import("./logos");
+  const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = _logos;
   const compressedScreenshots = new Map<string, string>();
   await Promise.all(
     captures.map(async (c) => {
@@ -1175,16 +1199,18 @@ export async function buildHtmlReport(
     }),
   );
 
-  const scores = computeReportScores(evaluations, rubric, finalization);
+  const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
+  const scores = computeReportScores(evaluations, rubric, finalization, evalMap);
 
   // Build section parts
-  const gateRows = buildGateRows(evaluations, rubric);
+  const gateRows = buildGateRows(rubric, evalMap);
   const categorySections = buildCategorySections(
     captures,
     evaluations,
     rubric,
     compressedScreenshots,
     scores,
+    evalMap,
   );
   const finalizationSection = buildFinalizationSection(
     finalization,
@@ -1207,7 +1233,7 @@ export async function buildHtmlReport(
 
 
 
-${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, scores, TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO)}
+${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, scores, TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO, evalMap)}
 
 <!-- Full Report -->
 

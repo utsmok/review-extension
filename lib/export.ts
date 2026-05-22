@@ -1,11 +1,13 @@
 import { getCategoryLabel } from "./rubric";
-import { buildHtmlReport, buildNutritionLabel } from "./html-report";
+import { buildHtmlReport, buildNutritionLabel, REPORT_CSS } from "./html-report";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 /** Subset of Capture written to session.json inside the ZIP — heavy blobs stored separately. */
 type LightweightCapture = Pick<Capture, "id" | "timestamp" | "sourceUrl" | "pageTitle"> & {
   notes?: Capture["notes"];
 };
 
+// biome-ignore lint/complexity/useRegexLiterals: must use RegExp constructor to avoid noControlCharactersInRegex
+const INVALID_FILENAME_CHARS = new RegExp('[<>:"/\\\\|?*\u0000-\u001F]', "g");
 /**
  * Sanitize a string for use as a filename. Strips path separators, parent
  * directory references, and characters invalid on Windows.
@@ -14,10 +16,9 @@ type LightweightCapture = Pick<Capture, "id" | "timestamp" | "sourceUrl" | "page
  * entry names and download filenames.
  */
 export function sanitizeFilename(name: string): string {
-  // biome-ignore lint/complexity/useRegexLiterals: must use RegExp constructor to avoid noControlCharactersInRegex
-  const INVALID_CHARS = new RegExp('[<>:"/\\\\|?*\u0000-\u001F]', "g");
   return (
-    name.replace(INVALID_CHARS, "_").replace(/\.+/g, ".").replace(/^\.+/, "").trim() || "review"
+    name.replace(INVALID_FILENAME_CHARS, "_").replace(/\.+/g, ".").replace(/^\.+/, "").trim() ||
+    "review"
   );
 }
 
@@ -30,58 +31,66 @@ export function downloadBlob(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
+// ── Pre-compiled regex patterns (avoid per-call RegExp allocation) ──
+const HTML_COMMENT_OR_TAG =
+  /<!--[\s\S]*?-->|<\/(?:li|dt|dd|p|tr|td|th|thead|tbody|tfoot|colgroup|option|optgroup)>/gi;
+const HTML_WS_COLLAPSE = /\s+/g;
+const HTML_SPACE_BEFORE_TAG = / (?=<|\/>)/g;
+
+const CSS_COMMENTS = /\/\*[\s\S]*?\*\/|\/\/.*$/gm;
+const CSS_VAR_DEF = /--([a-z-]+)\s*:\s*([^;{}]+)/g;
+const CSS_VAR_REF = /var\(--([a-z-]+)\)/g;
+const CSS_ROOT = /:root\s*\{[^}]*\}/g;
+const CSS_DELIMITERS = /\s*([{}:;,])\s*/g;
+const CSS_TRAILING_SEMI = /;\}/g;
+const CSS_WS_COLLAPSE = /\s+/g;
+// ────────────────────────────────────────────────────────────────────
+
 /** Strip whitespace, comments, and optional closing tags from HTML output for smaller ZIP entries. */
 export function minifyHtml(html: string): string {
   return html
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<\/(?:li|dt|dd|p|tr|td|th|thead|tbody|tfoot|colgroup|option|optgroup)>/gi, "")
-    .replace(/\n\s*\n/g, "\n")
-    .replace(/>\s+</g, "><")
-    .replace(/\s+/g, " ")
-    .replace(/ (<|\/>)/g, "$1")
+    .replace(HTML_COMMENT_OR_TAG, "")
+    .replace(HTML_WS_COLLAPSE, " ")
+    .replace(HTML_SPACE_BEFORE_TAG, "")
     .trim();
 }
 
 /** Strip whitespace, comments, and resolve CSS variables for smaller ZIP entries.
  *  Keeps vars needed by HTML inline styles (--magenta, --muted, --text, --ff-heading)
  *  in a compact :root block; resolves all others inline. */
+const CSS_KEEP_VARS = new Set(["--magenta", "--muted", "--text", "--ff-heading"]);
 export function minifyCss(css: string): string {
-  // Vars used in HTML inline styles — must be kept in :root
-  const keepVars = new Set(["--magenta", "--muted", "--text", "--ff-heading"]);
+  let result = css.replace(CSS_COMMENTS, "");
 
-  let result = css
-    .replace(/\/\*[\s\S]*?\*\//g, "") // remove block comments
-    .replace(/\/\/.*$/gm, ""); // remove line comments
-
-  // Extract all CSS variable definitions
+  // Extract all CSS variable definitions and build root keeps in one pass
   const vars = new Map<string, string>();
-  result = result.replace(/--([a-z-]+)\s*:\s*([^;{}]+)/g, (_, name, value) => {
-    vars.set(name, value.trim());
+  const rootKeepParts: string[] = [];
+  result = result.replace(CSS_VAR_DEF, (_, name, value) => {
+    const trimmed = value.trim();
+    vars.set(name, trimmed);
+    if (CSS_KEEP_VARS.has(`--${name}`)) rootKeepParts.push(`--${name}:${trimmed}`);
     return "";
   });
 
-  // Resolve all var() references in CSS rules
-  for (const [name, value] of vars) {
-    result = result.replaceAll(`var(--${name})`, value);
-  }
+  // Resolve all var() references in a single pass
+  result = result.replace(CSS_VAR_REF, (_, name) => vars.get(name) ?? `var(--${name})`);
 
   // Remove :root block (now empty after var extraction) — handles leftover semicolons
-  result = result.replace(/:root\s*\{[^}]*\}/g, "");
-  const rootKeeps = [...vars.entries()]
-    .filter(([n]) => keepVars.has(`--${n}`))
-    .map(([n, v]) => `--${n}:${v}`)
-    .join(";");
-  if (rootKeeps) result = `:root{${rootKeeps}}${result}`;
+  result = result.replace(CSS_ROOT, "");
+  if (rootKeepParts.length > 0) result = `:root{${rootKeepParts.join(";")}}${result}`;
 
   return result
-    .replace(/\s*([{}:;,])\s*/g, "$1") // strip around delimiters
-    .replace(/;\}/g, "}") // remove trailing semicolons
-    .replace(/\s+/g, " ") // collapse whitespace
+    .replace(CSS_DELIMITERS, "$1")
+    .replace(CSS_TRAILING_SEMI, "}")
+    .replace(CSS_WS_COLLAPSE, " ")
     .trim();
 }
 // Cached dynamic imports
 let cachedJSZip: typeof import("jszip") | null = null;
 let cachedPapa: typeof import("papaparse") | null = null;
+let cachedPngToJpeg: typeof import("./image-convert").pngToJpeg | null = null;
+let cachedMinifiedCss: string | null = null;
+let cachedLogos: typeof import("./logos") | null = null;
 
 export async function exportSession(
   metadata: SessionMetadata,
@@ -96,15 +105,19 @@ export async function exportSession(
   if (!cachedPapa) cachedPapa = (await import("papaparse")).default;
   const Papa = cachedPapa;
 
+  if (!cachedPngToJpeg) cachedPngToJpeg = (await import("./image-convert")).pngToJpeg;
+// biome-ignore lint/style/noNonNullAssertion: guaranteed non-null by preceding guard
+  const pngToJpeg = cachedPngToJpeg!;
+
   const zip = new JSZip();
   const imgExtensions = new Map<string, "jpg" | "png">();
-  const { pngToJpeg } = await import("./image-convert");
 
   /** Short ID: first 8 hex chars of capture UUID, unique within a session. */
   const shortId = (id: string) => id.replace(/-/g, "").substring(0, 8);
   const idMap = new Map(captures.map((c) => [c.id, shortId(c.id)]));
 
   for (const capture of captures) {
+// biome-ignore lint/style/noNonNullAssertion: idMap built from same captures array being iterated
     const sid = idMap.get(capture.id)!;
     const { dataUrl: converted, extension } = await pngToJpeg(capture.screenshotBase64, 0.8);
     const base64Data = converted.split(",")[1] ?? "";
@@ -124,9 +137,11 @@ export async function exportSession(
     screenshotBase64: capturePathMap.get(c.id) ?? c.screenshotBase64,
   }));
 
-  // Extract shared CSS to a single file instead of duplicating in each HTML report
-  const { REPORT_CSS } = await import("./html-report");
-  zip.file("report.css", minifyCss(REPORT_CSS));
+  // Extract shared CSS to a single file — pre-minified on first call
+  if (!cachedMinifiedCss) {
+    cachedMinifiedCss = minifyCss(REPORT_CSS);
+  }
+  zip.file("report.css", cachedMinifiedCss);
   zip.file(
     "session_metadata.csv",
     Papa.unparse([
@@ -176,10 +191,13 @@ export async function exportSession(
         Page_Title: c.pageTitle,
         URL_Captured: c.sourceUrl,
         User_Notes: c.notes,
-        Tagged_Rubric_IDs: evaluations
-          .filter((e) => e.explicitEvidenceIds.includes(c.id))
-          .map((e) => e.rubricId)
-          .join("; "),
+        Tagged_Rubric_IDs: (() => {
+          const parts: string[] = [];
+          for (const e of evaluations) {
+            if (e.explicitEvidenceIds.includes(c.id)) parts.push(e.rubricId);
+          }
+          return parts.join("; ");
+        })(),
       })),
     ),
   );
@@ -221,7 +239,8 @@ export async function exportSession(
   zip.file("session.json", JSON.stringify(sessionData));
 
   // Extract logo files as JPEG — avoid embedding 17KB+ of base64 in both HTML reports
-  const { TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO } = await import("./logos");
+  if (!cachedLogos) cachedLogos = await import("./logos");
+  const { TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO } = cachedLogos;
   const logoReplacements: [string, string][] = [];
   for (const [name, dataUrl] of [
     ["1.jpg", TRUST_LOGO],
