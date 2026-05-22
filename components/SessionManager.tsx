@@ -100,10 +100,6 @@ export default function SessionManager() {
     <div className="flex flex-col h-full">
       {/* Hero section */}
       <div className="px-ut-4 pt-ut-6 pb-ut-4">
-        <h1 className="font-display text-ut-xl font-bold text-ut-navy mb-ut-1">Start a Review</h1>
-        <p className="text-ut-sm text-ut-muted mb-ut-4">
-          Evaluate an information tool against the TRUST framework.
-        </p>
         <button
           type="button"
           className="bg-trust-magenta text-white rounded-ut-sm px-ut-4 py-ut-3 text-ut-md font-heading font-bold uppercase tracking-ut-uppercase hover:bg-trust-magenta-strong active:scale-[0.98] disabled:opacity-50 transition-all w-full"
