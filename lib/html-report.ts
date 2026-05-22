@@ -795,11 +795,14 @@ function buildCategorySections(
       `
           : "";
 
+        const badgeColor = scoreColor(
+          isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined,
+        );
         return `
         <tr class="score-row">
           <td class="code" style="color:${reportColor}">${code}</td>
           <td class="score-cell">
-            <span class="score-badge" style="background:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined)}20;color:${scoreColor(isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined)}">
+            <span class="score-badge" style="background:${badgeColor}20;color:${badgeColor}">
               ${isNa ? "N/A" : isUnsure ? "?" : score >= 0 ? score : "—"}${customReasoning ? "*" : ""}
             </span>
           </td>
