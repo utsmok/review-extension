@@ -44,29 +44,31 @@ export function getQuestionIndex(
   return Object.keys(questions).indexOf(questionId);
 }
 
+const ACCENT_KEYS: Record<string, string> = {
+  TR: "tr",
+  RE: "re",
+  US: "uc",
+  SE: "se",
+  TC: "tc",
+};
+
 export function getAccentKey(categoryId: string): string {
-  const map: Record<string, string> = {
-    TR: "tr",
-    RE: "re",
-    US: "uc",
-    SE: "se",
-    TC: "tc",
-  };
-  return map[categoryId] ?? "control";
+  return ACCENT_KEYS[categoryId] ?? "control";
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  privacy_and_security: "Privacy & Security",
+  traceability: "Traceability",
+  accessibility: "Accessibility",
+  TR: "TR — Transparent",
+  RE: "RE — Reliable",
+  US: "US — User-Centric",
+  SE: "SE — Sound",
+  TC: "TC — Traceable",
+};
+
 export function getCategoryLabel(categoryId: string): string {
-  const labels: Record<string, string> = {
-    privacy_and_security: "Privacy & Security",
-    traceability: "Traceability",
-    accessibility: "Accessibility",
-    TR: "TR — Transparent",
-    RE: "RE — Reliable",
-    US: "US — User-Centric",
-    SE: "SE — Sound",
-    TC: "TC — Traceable",
-  };
-  return labels[categoryId] ?? categoryId;
+  return CATEGORY_LABELS[categoryId] ?? categoryId;
 }
 
 export function computeCompletion(evaluations: Evaluation[], rubric: RubricData): number {
