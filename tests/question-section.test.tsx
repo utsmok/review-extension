@@ -63,9 +63,7 @@ const _ls = vi.hoisted(() => {
 // ---------------------------------------------------------------------------
 
 const QG_IDS = [
-  "privacy_and_security.data_privacy",
   "privacy_and_security.training_policy",
-  "traceability.citation_mechanism",
   "accessibility.compliance",
 ];
 
@@ -201,7 +199,7 @@ describe("QuestionSection", () => {
       </AllProviders>,
     );
 
-    const details = getQuestionDetailsByRubricId("privacy_and_security.data_privacy");
+    const details = getQuestionDetailsByRubricId("accessibility.compliance");
     openDetails(details);
 
     const passLabel = details.querySelector('label[data-judgment="pass"]');
@@ -212,7 +210,7 @@ describe("QuestionSection", () => {
     await flush();
 
     const evals = useSessionStore.getState().evaluations;
-    const ev = evals.find((e) => e.rubricId === "privacy_and_security.data_privacy");
+    const ev = evals.find((e) => e.rubricId === "accessibility.compliance");
     expect(ev?.score).toBe("pass");
   });
 
@@ -251,7 +249,7 @@ describe("QuestionSection", () => {
       </AllProviders>,
     );
 
-    const details = getQuestionDetailsByRubricId("privacy_and_security.data_privacy");
+    const details = getQuestionDetailsByRubricId("accessibility.compliance");
     openDetails(details);
 
     const body = details.querySelector(".question-body")!;
@@ -261,13 +259,13 @@ describe("QuestionSection", () => {
     await flush();
 
     const evals = useSessionStore.getState().evaluations;
-    const ev = evals.find((e) => e.rubricId === "privacy_and_security.data_privacy");
+    const ev = evals.find((e) => e.rubricId === "accessibility.compliance");
     expect(ev?.notes).toBe("test note");
   });
 
   it("shows progress indicator for scored question", () => {
     seedAllEvaluations({
-      "privacy_and_security.data_privacy": { score: "pass" },
+      "accessibility.compliance": { score: "pass" },
     });
     const props = stubProps();
 
@@ -277,7 +275,7 @@ describe("QuestionSection", () => {
       </AllProviders>,
     );
 
-    const details = getQuestionDetailsByRubricId("privacy_and_security.data_privacy");
+    const details = getQuestionDetailsByRubricId("accessibility.compliance");
     const summary = details.querySelector("summary");
     expect(summary).toBeTruthy();
     const svg = summary!.querySelector("svg");
@@ -315,7 +313,7 @@ describe("QuestionSection", () => {
     await flush();
     await flush();
 
-    const details = getQuestionDetailsByRubricId("privacy_and_security.data_privacy");
+    const details = getQuestionDetailsByRubricId("accessibility.compliance");
     openDetails(details);
     renderCount = 0;
 
@@ -351,7 +349,7 @@ describe("QuestionSection", () => {
     await flush();
     await flush();
 
-    const details = getQuestionDetailsByRubricId("privacy_and_security.data_privacy");
+    const details = getQuestionDetailsByRubricId("accessibility.compliance");
     openDetails(details);
     renderCount = 0;
 
@@ -455,7 +453,7 @@ describe("QuestionRow memo isolation", () => {
     await flush();
 
     // Open two different questions
-    const q1Details = getQuestionDetailsByRubricId("privacy_and_security.data_privacy");
+    const q1Details = getQuestionDetailsByRubricId("accessibility.compliance");
     const q2Details = getQuestionDetailsByRubricId("privacy_and_security.training_policy");
     openDetails(q1Details);
     openDetails(q2Details);
@@ -483,7 +481,7 @@ describe("QuestionRow memo isolation", () => {
 
     // Verify store has both notes
     const evals = useSessionStore.getState().evaluations;
-    const q1Eval = evals.find((e) => e.rubricId === "privacy_and_security.data_privacy");
+    const q1Eval = evals.find((e) => e.rubricId === "accessibility.compliance");
     const q2Eval = evals.find((e) => e.rubricId === "privacy_and_security.training_policy");
     expect(q1Eval?.notes).toBe("hello from q1");
     expect(q2Eval?.notes).toBe("hello from q2");
@@ -503,7 +501,7 @@ describe("QuestionRow memo isolation", () => {
     await flush();
 
     // Open two questions
-    const q1Details = getQuestionDetailsByRubricId("privacy_and_security.data_privacy");
+    const q1Details = getQuestionDetailsByRubricId("accessibility.compliance");
     const q2Details = getQuestionDetailsByRubricId("privacy_and_security.training_policy");
     openDetails(q1Details);
     openDetails(q2Details);

@@ -22,10 +22,9 @@ describe("TRUST_RUBRIC (full)", () => {
     expect(TRUST_RUBRIC.version).toBe("1.0");
   });
 
-  it("has 3 quality gate categories", () => {
+  it("has 2 quality gate categories", () => {
     const categories = Object.keys(TRUST_RUBRIC.quality_gate);
     expect(categories).toContain("privacy_and_security");
-    expect(categories).toContain("traceability");
     expect(categories).toContain("accessibility");
   });
 
@@ -71,13 +70,10 @@ describe("getRubricQuestionIds", () => {
     const qualityGateIds = ids.filter(
       (id) =>
         id.startsWith("privacy_and_security.") ||
-        id.startsWith("traceability.") ||
         id.startsWith("accessibility."),
     );
     expect(qualityGateIds).toEqual([
-      "privacy_and_security.data_privacy",
       "privacy_and_security.training_policy",
-      "traceability.citation_mechanism",
       "accessibility.compliance",
     ]);
   });
@@ -106,11 +102,10 @@ describe("getRubricQuestionIds", () => {
     ]);
   });
 
-  it("returns 14 total question IDs", () => {
+  it("returns 12 total question IDs", () => {
     const ids = getRubricQuestionIds(TRUST_RUBRIC);
-    expect(ids).toHaveLength(14);
+    expect(ids).toHaveLength(12);
   });
-
   it("all IDs use category.question_id format", () => {
     const ids = getRubricQuestionIds(TRUST_RUBRIC);
     for (const id of ids) {
@@ -359,12 +354,12 @@ describe("qualityGateResults", () => {
 
   it("any fail → that specific gate shows fail", () => {
     const evals = allGateEvals("pass");
-    const failEntry = evals.find((e) => e.rubricId === "privacy_and_security.data_privacy")!;
+    const failEntry = evals.find((e) => e.rubricId === "accessibility.compliance")!;
     failEntry!.score = "fail";
     const results = qualityGateResults(evals, RUBRIC);
-    const failed = results.find((r) => r.id === "privacy_and_security.data_privacy");
+    const failed = results.find((r) => r.id === "accessibility.compliance");
     expect(failed?.result).toBe("fail");
-    const others = results.filter((r) => r.id !== "privacy_and_security.data_privacy");
+    const others = results.filter((r) => r.id !== "accessibility.compliance");
     for (const r of others) {
       expect(r.result).toBe("pass");
     }

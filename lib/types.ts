@@ -112,6 +112,7 @@ export interface ScoringQuestion {
   };
   ai_only?: boolean;
   related_gate?: string;
+  merged_gate?: boolean;
 }
 
 export interface RubricData {

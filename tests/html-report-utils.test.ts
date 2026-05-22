@@ -6,7 +6,7 @@ import {
   TINY_PNG,
   makeCapture,
   makeEvaluation,
-  makeFinalization,
+  type makeFinalization,
   makeMetadata,
 } from "@/tests/fixtures";
 

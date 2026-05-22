@@ -14,9 +14,7 @@ vi.mock("@/lib/logos", () => ({
 /** Helper: build evaluations that pass all quality gates. */
 function allPassQGEvaluations(): Evaluation[] {
   return [
-    makeEvaluation({ rubricId: "privacy_and_security.data_privacy", score: "pass" }),
     makeEvaluation({ rubricId: "privacy_and_security.training_policy", score: "pass" }),
-    makeEvaluation({ rubricId: "traceability.citation_mechanism", score: "pass" }),
     makeEvaluation({ rubricId: "accessibility.compliance", score: "pass" }),
   ];
 }
@@ -44,10 +42,8 @@ function allHighScoringEvaluations(): Evaluation[] {
 /** Helper: build evaluations that fail a quality gate. */
 function failQGEvaluations(): Evaluation[] {
   return [
-    makeEvaluation({ rubricId: "privacy_and_security.data_privacy", score: "fail" }),
     makeEvaluation({ rubricId: "privacy_and_security.training_policy", score: "pass" }),
-    makeEvaluation({ rubricId: "traceability.citation_mechanism", score: "pass" }),
-    makeEvaluation({ rubricId: "accessibility.compliance", score: "pass" }),
+    makeEvaluation({ rubricId: "accessibility.compliance", score: "fail" }),
   ];
 }
 
@@ -77,7 +73,7 @@ describe("buildNutritionLabel", () => {
 
   it("with partial evaluations and no finalization → verdict is INCOMPLETE", async () => {
     const partialEvals = [
-      makeEvaluation({ rubricId: "privacy_and_security.data_privacy", score: "pass" }),
+      makeEvaluation({ rubricId: "privacy_and_security.training_policy", score: "pass" }),
     ];
     const html = await buildNutritionLabel(makeMetadata(), partialEvals, RUBRIC);
     expect(html).toContain("INCOMPLETE");

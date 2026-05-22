@@ -518,6 +518,22 @@ export default function QuestionSection({
     ? "Mandatory pass/fail thresholds. Gate failures are flagged but you can continue scoring all questions."
     : "Score each criterion on a 0–3 scale.";
 
+  // Collect merged-gate scoring questions for display in QG section
+  const mergedGates = useMemo(() => {
+    if (!isQG) return [];
+    const result: { category: string; qId: string; question: ScoringQuestion; code: string }[] = [];
+    for (const [cat, questions] of Object.entries(rubric.scoring_rubric)) {
+      for (const [qId, q] of Object.entries(questions)) {
+        const sq = q as ScoringQuestion;
+        if (sq.merged_gate) {
+          const idx = Object.keys(questions).indexOf(qId);
+          result.push({ category: cat, qId, question: sq, code: getQuestionCode(cat, idx) });
+        }
+      }
+    }
+    return result;
+  }, [isQG, rubric.scoring_rubric]);
+
   return (
     <section>
       <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta mb-ut-2">
@@ -559,6 +575,61 @@ export default function QuestionSection({
           })}
         </div>
       ))}
+
+      {/* Merged gate questions shown in QG section */}
+      {isQG && mergedGates.length > 0 && (
+        <div className="mb-ut-3">
+          <h3 className="section-kicker mb-1">Merged Gates</h3>
+          {mergedGates.map(({ category, qId, question, code }) => {
+            const rubricId = `${category}.${qId}`;
+            const ev = evaluationMap.get(rubricId);
+            // Gate badge: score > 0 = pass, score === 0 = fail, no score = unanswered
+            const gateResult =
+              typeof ev?.score === "number" && ev.score > 0
+                ? "pass"
+                : typeof ev?.score === "number" && ev.score === 0
+                  ? "fail"
+                  : ev?.score === "na"
+                    ? "na"
+                    : null;
+
+            return (
+              <details
+                key={qId}
+                className="question-details"
+                data-accent-key="control"
+              >
+                <summary>
+                  {gateResult && (
+                    <span
+                      className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-ut-xs font-bold mr-1 ${
+                        gateResult === "pass"
+                          ? "bg-ut-green/20 text-ut-green"
+                          : gateResult === "fail"
+                            ? "bg-red-200 text-red-700"
+                            : "bg-ut-grey text-ut-slate"
+                      }`}
+                    >
+                      {gateResult === "pass" ? "✓" : gateResult === "fail" ? "✗" : "—"}
+                    </span>
+                  )}
+                  <span className="font-mono text-ut-slate text-ut-xs">{code}</span>
+                  <span>{question.title}</span>
+                  <span className="text-ut-xs text-ut-muted ml-1">(merged)</span>
+                </summary>
+                <div className="question-body">
+                  <p className="text-ut-xs text-ut-slate italic mt-ut-1">
+                    This gate is merged with the scoring rubric. Score it below in the Scoring Rubric section.
+                    {gateResult === "pass" && " Currently: PASS (score > 0)."}
+                    {gateResult === "fail" && " Currently: FAIL (score = 0)."}
+                    {gateResult === "na" && " Currently: N/A."}
+                  </p>
+                </div>
+              </details>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

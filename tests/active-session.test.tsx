@@ -24,7 +24,7 @@ const _lsStore: Record<string, string> = vi.hoisted(() => {
   return store;
 });
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getRubricQuestionIds } from "@/lib/rubric";
 import { useRegistryStore } from "@/stores/registry";
@@ -90,6 +90,24 @@ function seedCompleteSession() {
   useRegistryStore.getState().setActiveSessionId(metadata.id);
 }
 
+/** Seed a session with metadata populated (not fresh — no redirect). */
+function seedSessionWithMetadata() {
+  const metadata = makeMetadata({
+    toolName: "TestSearch",
+    toolUrl: "https://testsearch.example.com",
+    description: "A test search tool",
+    dataSources: ["PubMed"],
+  });
+  useSessionStore.getState().loadSession({
+    metadata,
+    captures: [],
+    evaluations: [],
+    finalization: null,
+    schemaVersion: 2,
+  });
+  useRegistryStore.getState().setActiveSessionId(metadata.id);
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -108,38 +126,77 @@ describe("ActiveSession", () => {
     cleanup();
   });
 
+  // §2c: Top bar shows "Reviewing:" label
+  it("displays 'Reviewing:' label in the header", () => {
+    seedActiveSession();
+    render(<ActiveSession />, { wrapper: AllProviders });
+    expect(screen.getByText("Reviewing:")).toBeDefined();
+  });
+
   it("displays the session tool name in the header", () => {
     seedActiveSession();
     render(<ActiveSession />, { wrapper: AllProviders });
     expect(screen.getByText("TestSearch")).toBeDefined();
   });
 
-  it("renders Captures panel by default", () => {
+  // §2c: URL shown in parentheses
+  it("displays tool URL in parentheses", () => {
     seedActiveSession();
     render(<ActiveSession />, { wrapper: AllProviders });
-    expect(screen.getByTestId("captures")).toBeDefined();
+    const link = screen.getByText("(https://testsearch.example.com)");
+    expect(link).toBeDefined();
+    expect(link.closest("a")?.getAttribute("href")).toBe("https://testsearch.example.com");
   });
 
-  it("switches to Evaluation tab on click", () => {
-    seedActiveSession();
+  // §2a: Default tab is Evaluation (for non-fresh sessions)
+  it("renders Evaluation panel by default for sessions with metadata", () => {
+    seedSessionWithMetadata();
+    render(<ActiveSession />, { wrapper: AllProviders });
+    expect(screen.getByTestId("evaluation")).toBeDefined();
+  });
+
+  // §2b: Fresh sessions redirect to Metadata tab
+  it("redirects to Metadata tab for fresh sessions (no description, no dataSources)", () => {
+    seedActiveSession(); // default: no description, no dataSources
+    render(<ActiveSession />, { wrapper: AllProviders });
+    expect(screen.getByTestId("metadata")).toBeDefined();
+    expect(screen.queryByTestId("evaluation")).toBeNull();
+  });
+
+  // §2a: Tab order is Evaluation, Metadata, Finalize, Captures
+  it("shows tabs in correct order: Evaluation, Metadata, Finalize, Captures", () => {
+    seedSessionWithMetadata();
+    render(<ActiveSession />, { wrapper: AllProviders });
+    const tablist = screen.getByRole("tablist", { name: /review sections/i });
+    const tabs = within(tablist).getAllByRole("tab");
+    expect(tabs.map((t) => t.textContent?.trim())).toEqual([
+      "Evaluation",
+      "Metadata",
+      "Finalize",
+      "Captures",
+    ]);
+  });
+
+  it("switches to Captures tab on click", () => {
+    seedSessionWithMetadata();
     render(<ActiveSession />, { wrapper: AllProviders });
 
-    const evalTab = screen.getByRole("tab", { name: /evaluation/i });
-    fireEvent.click(evalTab);
+    const capturesTab = screen.getByRole("tab", { name: /captures/i });
+    fireEvent.click(capturesTab);
 
-    expect(screen.getByTestId("evaluation")).toBeDefined();
-    expect(screen.queryByTestId("captures")).toBeNull();
+    expect(screen.getByTestId("captures")).toBeDefined();
+    expect(screen.queryByTestId("evaluation")).toBeNull();
   });
 
   it("switches to Metadata tab on click", () => {
-    seedActiveSession();
+    seedSessionWithMetadata();
     render(<ActiveSession />, { wrapper: AllProviders });
 
     const metaTab = screen.getByRole("tab", { name: /metadata/i });
     fireEvent.click(metaTab);
 
     expect(screen.getByTestId("metadata")).toBeDefined();
-    expect(screen.queryByTestId("captures")).toBeNull();
+    expect(screen.queryByTestId("evaluation")).toBeNull();
   });
 
   it("shows checkmark SVG on Evaluation tab when all questions are scored", () => {
@@ -154,7 +211,7 @@ describe("ActiveSession", () => {
   });
 
   it("does not show checkmark SVG on Evaluation tab when incomplete", () => {
-    seedActiveSession(); // no evaluations
+    seedSessionWithMetadata();
     render(<ActiveSession />, { wrapper: AllProviders });
 
     const evalTab = screen.getByRole("tab", { name: /evaluation/i });
@@ -174,18 +231,22 @@ describe("ActiveSession", () => {
   });
 
   it("unmounts inactive tab content when switching tabs", () => {
-    seedActiveSession();
+    seedSessionWithMetadata();
     render(<ActiveSession />, { wrapper: AllProviders });
+
+    // Default is Evaluation
+    expect(screen.getByTestId("evaluation")).toBeDefined();
 
     // Click to Metadata tab
     const metaTab = screen.getByRole("tab", { name: /metadata/i });
     fireEvent.click(metaTab);
     expect(screen.getByTestId("metadata")).toBeDefined();
+    expect(screen.queryByTestId("evaluation")).toBeNull();
 
-    // Switch to Evaluation — Metadata should be unmounted
-    const evalTab = screen.getByRole("tab", { name: /evaluation/i });
-    fireEvent.click(evalTab);
-    expect(screen.getByTestId("evaluation")).toBeDefined();
+    // Switch to Captures — Metadata should be unmounted
+    const capturesTab = screen.getByRole("tab", { name: /captures/i });
+    fireEvent.click(capturesTab);
+    expect(screen.getByTestId("captures")).toBeDefined();
     expect(screen.queryByTestId("metadata")).toBeNull();
   });
 });

@@ -4,17 +4,6 @@
   "version": "1.0",
   "quality_gate": {
     "privacy_and_security": {
-      "data_privacy": {
-        "type": "pass_fail",
-        "title": "Data privacy",
-        "requirement": "Tool must have a publicly accessible privacy policy that clearly states what user data is collected, how it is processed, and how long it is retained. The policy must reference GDPR, the right to erasure, or an equivalent data protection framework.",
-        "background": "Data privacy is a foundational gate because any tool that processes user queries — especially AI-powered tools — handles potentially sensitive information such as research topics, institutional affiliations, and personal interests. A clear, publicly accessible privacy policy is the minimum transparency requirement for tools used in academic settings. Reviewers should verify the policy exists, is current, and explicitly names the data protection frameworks it complies with.",
-        "examples": {
-          "pass": "The tool's website links to a dated privacy policy that lists specific data categories collected (search queries, account email, institutional domain), states a 90-day retention period, and explicitly references GDPR Article 17 (right to erasure). You capture a screenshot of the policy page as evidence.",
-          "fail": "The tool has no privacy policy link anywhere on its website, or the link leads to a generic placeholder page with no information about data collection or processing practices."
-        },
-        "ai_only": false
-      },
       "training_policy": {
         "type": "pass_fail",
         "title": "Training policy",
@@ -23,19 +12,6 @@
         "examples": {
           "pass": "The tool's documentation includes a section titled 'Data and AI Training' that states: 'User queries, uploaded documents, and search interactions are never used to train, fine-tune, or improve our AI models.' This is confirmed on the privacy policy page dated within the last 12 months.",
           "fail": "The terms of service state that 'interactions with the service may be used to improve our products and services' with no option to opt out, or there is no mention of training data practices at all."
-        },
-        "ai_only": true
-      }
-    },
-    "traceability": {
-      "citation_mechanism": {
-        "type": "pass_fail",
-        "title": "Citation mechanism",
-        "requirement": "Tool must provide inline citations as its standard output format for AI-generated claims. Occasional uncited claims are acceptable but must be the exception, not the rule. Cited claims must link to real, accessible sources.",
-        "background": "Without inline citations, users cannot verify the claims an AI tool makes — a critical requirement in academic contexts where accuracy and provenance matter. This quality gate checks that the tool treats source attribution as a core feature, not an afterthought. Reviewers should test with several queries and verify that the majority of factual claims come with clickable references to real, accessible sources.",
-        "examples": {
-          "pass": "Across five test queries, the tool consistently provides numbered inline citations for factual claims. Clicking a citation opens the source article in a new tab. At most one or two claims per response lack a citation, and the tool marks these with a 'source needed' indicator.",
-          "fail": "The tool generates paragraphs of factual claims without any source links, or clicking the provided citation links leads to 404 pages, paywalled content with no abstract, or generic search results rather than specific papers."
         },
         "ai_only": true
       }
@@ -181,7 +157,8 @@
           "2": "The tool's documentation states: 'Search queries are retained for 30 days and then permanently deleted. All data is encrypted at rest using AES-256 and in transit using TLS 1.3. Users can request data deletion via their account settings.'",
           "3": "A comprehensive 'Data Handling' page covers: retention periods per data type (queries: 30 days, account data: until deletion request), encryption standards (AES-256 at rest, TLS 1.3 in transit), breach notification within 72 hours per GDPR, data residency (EU servers for EU users), and a one-click 'Export my data' and 'Delete my data' feature in account settings."
         },
-        "ai_only": false
+        "ai_only": false,
+        "merged_gate": true
       }
     },
     "TC": {
@@ -199,7 +176,8 @@
           "2": "Each citation links directly to the article's abstract page on the publisher's site (e.g., doi.org/10.1038/s41586-023-12345). The user can immediately access the paper's metadata and abstract.",
           "3": "Citations link to the exact passage within the source document that supports the claim — for example, a specific page in a PDF or a highlighted paragraph in an open-access article. The tool uses RAG (Retrieval-Augmented Generation) with passage-level attribution."
         },
-        "ai_only": false
+        "ai_only": false,
+        "merged_gate": true
       },
       "bibliometric_credibility": {
         "title": "Source quality indicators",

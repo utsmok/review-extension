@@ -6,9 +6,7 @@ import { RUBRIC, makeEvaluation, makeFinalization } from "@/tests/fixtures";
 // ── Rubric question IDs (trust-full) ──────────────────────────────────────
 
 const QG_IDS = [
-  "privacy_and_security.data_privacy",
   "privacy_and_security.training_policy",
-  "traceability.citation_mechanism",
   "accessibility.compliance",
 ] as const;
 
@@ -54,9 +52,7 @@ function allFailEvals(): Evaluation[] {
 /** Mixed: some QG pass / some fail, mixed scoring */
 function mixedEvals(): Evaluation[] {
   return [
-    qgEval("privacy_and_security.data_privacy", "pass"),
     qgEval("privacy_and_security.training_policy", "fail"),
-    qgEval("traceability.citation_mechanism", "pass"),
     qgEval("accessibility.compliance", "pass"),
     scoringEval("TR.data_source_clarity", 3),
     scoringEval("TR.methodology_disclosure", 2),
@@ -74,8 +70,8 @@ function mixedEvals(): Evaluation[] {
 /** Only some questions answered (not all QG, not all scoring) */
 function partialEvals(): Evaluation[] {
   return [
-    qgEval("privacy_and_security.data_privacy", "pass"),
-    // missing: training_policy, citation_mechanism, compliance
+    qgEval("privacy_and_security.training_policy", "pass"),
+    // missing: compliance
     scoringEval("TR.data_source_clarity", 3),
     scoringEval("TR.methodology_disclosure", 2),
     // missing: all RE, US, SE, TC scoring
@@ -105,9 +101,9 @@ describe("computeReportScores", () => {
     expect(r.verdictColor).toBe("#6b7f94");
     expect(r.isComplete).toBe(false);
     expect(r.noEvaluation).toBe(false);
-    // We answered 1 QG + 2 scoring = 3 questions out of 4+10=14
+    // We answered 1 QG + 2 scoring = 3 questions out of 2+10=12
     expect(r.answeredQuestions).toBe(3);
-    expect(r.totalQuestions).toBe(14);
+    expect(r.totalQuestions).toBe(12);
   });
 
   // ── 3. RECOMMENDED (all pass, ratio >= 0.6, no principleFail) ────────
@@ -132,7 +128,7 @@ describe("computeReportScores", () => {
   it("returns NOT RECOMMENDED when any QG gate = fail", () => {
     const evals = allPassEvals();
     // Flip one QG to fail
-    evals[1] = qgEval("privacy_and_security.training_policy", "fail");
+    evals[0] = qgEval("privacy_and_security.training_policy", "fail");
     const r = computeReportScores(evals, RUBRIC, null);
     expect(r.verdict).toBe("NOT RECOMMENDED");
     expect(r.verdictColor).toBe("#c60c30");
@@ -294,9 +290,7 @@ describe("computeReportScores", () => {
         const evals: Evaluation[] = [];
 
         if (c.anyFail) {
-          evals.push(qgEval("privacy_and_security.data_privacy", "fail"));
-          evals.push(qgEval("privacy_and_security.training_policy", "pass"));
-          evals.push(qgEval("traceability.citation_mechanism", "pass"));
+          evals.push(qgEval("privacy_and_security.training_policy", "fail"));
           evals.push(qgEval("accessibility.compliance", "pass"));
         } else {
           evals.push(...QG_IDS.map((id) => qgEval(id, "pass")));
@@ -309,7 +303,7 @@ describe("computeReportScores", () => {
         // To get ratio < 0.6 with totalMax=30: need totalActual < 18
         // Setting 5 questions to 0 reduces actual by 15 → 15/30 = 0.5
         if (c.ratioBelow) {
-          scoring: for (const id of SCORING_IDS) {
+          for (const id of SCORING_IDS) {
             if (scores[id] === 3) {
               scores[id] = 0;
               // Check if we've reduced enough: need actual < 18
@@ -317,7 +311,7 @@ describe("computeReportScores", () => {
                 (a, v) => a + (typeof v === "number" ? (v as number) : 0),
                 0 as number,
               );
-              if ((actual as number) < 18) break scoring;
+              if ((actual as number) < 18) break;
             }
           }
         }
@@ -430,7 +424,7 @@ describe("computeReportScores", () => {
     expect(r.totalActual).toBe(0);
     expect(r.ratio).toBe(0);
     expect(r.isComplete).toBe(true);
-    // noEvaluation: answeredScoring=10 (all 'na') + answeredQG=4 (all 'na') → not 0
+    // noEvaluation: answeredScoring=10 (all 'na') + answeredQG=2 (all 'na') → not 0
     expect(r.noEvaluation).toBe(false);
     // computedFailed: anyFail=false (no 'fail'), ratio=0 < 0.6 → true
     // principleFail: no numeric scores in any category → numeric.length=0 → false
@@ -447,7 +441,7 @@ describe("computeReportScores", () => {
     const r = computeReportScores(evals, RUBRIC, null);
     expect(r.noEvaluation).toBe(false);
     expect(r.answeredScoringQuestions).toBe(0);
-    expect(r.answeredQGQuestions).toBe(4);
+    expect(r.answeredQGQuestions).toBe(2);
     // Not complete (no scoring answered)
     expect(r.isComplete).toBe(false);
     expect(r.verdict).toBe("INCOMPLETE");
@@ -465,12 +459,12 @@ describe("computeReportScores", () => {
 
   it("computes correct totals for mixed evals", () => {
     const r = computeReportScores(mixedEvals(), RUBRIC, null);
-    // 4 QG + 10 scoring = 14 total
-    expect(r.totalQuestions).toBe(14);
-    expect(r.totalQGQuestions).toBe(4);
+    // 2 QG + 10 scoring = 12 total
+    expect(r.totalQuestions).toBe(12);
+    expect(r.totalQGQuestions).toBe(2);
     expect(r.totalScoringQuestions).toBe(10);
-    // All 14 answered
-    expect(r.answeredQuestions).toBe(14);
+    // All 12 answered
+    expect(r.answeredQuestions).toBe(12);
     expect(r.isComplete).toBe(true);
     // Scoring: 3+2+1+0+3+2+1+0+3+2 = 17 actual, 10×3=30 max
     expect(r.totalActual).toBe(17);

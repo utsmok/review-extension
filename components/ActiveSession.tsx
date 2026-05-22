@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useRovingTabIndex } from "@/lib/hooks";
 import { computeCompletion } from "@/lib/rubric";
@@ -9,7 +9,7 @@ import Evaluation from "./Evaluation";
 import FinalizationScreen from "./FinalizationScreen";
 import Metadata from "./Metadata";
 
-const tabs = ["Captures", "Evaluation", "Metadata", "Finalize"] as const;
+const tabs = ["Evaluation", "Metadata", "Finalize", "Captures"] as const;
 
 const tabIds: Record<(typeof tabs)[number], string> = {
   Captures: "panel-captures",
@@ -39,7 +39,7 @@ function TabCheck() {
 }
 
 export default function ActiveSession() {
-  const { activeTab, setActiveTab, handleKeyDown } = useRovingTabIndex(tabs, "Captures");
+  const { activeTab, setActiveTab, handleKeyDown } = useRovingTabIndex(tabs, "Evaluation");
   const { session, closeSession, evaluations, finalization } = useActiveSession();
   const { rubric } = useRubric();
 
@@ -56,75 +56,73 @@ export default function ActiveSession() {
 
   const finalizeComplete = useMemo(() => !!finalization, [finalization]);
 
-  const faviconDisplayStyle = useMemo(
-    () => ({ display: session?.faviconUrl ? "none" : "flex" }),
-    [session?.faviconUrl],
-  );
+  // §2b: Redirect to Metadata tab on first open for fresh sessions
+  const redirectedRef = useRef(false);
+  useEffect(() => {
+    if (redirectedRef.current) return;
+    if (
+      session &&
+      !session.description?.trim() &&
+      (!session.dataSources || session.dataSources.length === 0)
+    ) {
+      redirectedRef.current = true;
+      setActiveTab("Metadata");
+    }
+  }, [session, setActiveTab]);
 
   return (
     <TabNavigationContext.Provider value={setActiveTab}>
       <div className="flex flex-col h-full overflow-hidden">
-        <header className="bg-trust-magenta-tint border-b-2 border-trust-magenta-border border-l-[3px] border-l-trust-magenta px-ut-4 py-ut-3 flex items-center justify-between">
-          <div className="flex items-center gap-ut-2 min-w-0">
-            <button
-              type="button"
-              className="shrink-0 p-1 rounded-ut-sm text-ut-slate hover:text-trust-magenta hover:bg-white/60 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue"
-              onClick={closeSession}
-              title="Close review and return to start"
-              aria-label="Close review"
+        <header className="bg-trust-magenta-tint border-b-2 border-trust-magenta-border border-l-[3px] border-l-trust-magenta px-ut-4 py-ut-2 flex items-center gap-ut-2 min-w-0">
+          <button
+            type="button"
+            className="shrink-0 p-1 rounded-ut-sm text-ut-slate hover:text-trust-magenta hover:bg-white/60 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue"
+            onClick={closeSession}
+            title="Close review and return to start"
+            aria-label="Close review"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 18 18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 18 18"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <title>Close</title>
-                <polyline points="12,14 7,9 12,4" />
-              </svg>
-            </button>
+              <title>Close</title>
+              <polyline points="12,14 7,9 12,4" />
+            </svg>
+          </button>
 
-            {session?.faviconUrl ? (
-              <img
-                src={session.faviconUrl}
-                alt=""
-                className="w-5 h-5 shrink-0"
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  target.style.display = "none";
-                  const next = target.nextElementSibling;
-                  if (next) (next as HTMLElement).style.display = "flex";
-                }}
-              />
-            ) : null}
-            <span
-              className="w-5 h-5 shrink-0 rounded-full bg-trust-magenta text-white text-ut-xs font-bold items-center justify-center leading-none"
-              style={faviconDisplayStyle}
-              aria-hidden="true"
+          <span className="text-ut-sm text-ut-slate shrink-0">Reviewing:</span>
+
+          {session?.faviconUrl ? (
+            <img
+              src={session.faviconUrl}
+              alt=""
+              className="w-4 h-4 shrink-0"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          ) : null}
+
+          <span className="text-ut-sm font-heading font-semibold text-trust-magenta truncate">
+            {session?.toolName}
+          </span>
+
+          {session?.toolUrl && (
+            <a
+              href={session.toolUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-ut-xs text-ut-muted font-mono truncate hover:text-ut-darkblue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue transition-colors shrink-0"
             >
-              {session?.toolName?.charAt(0)?.toUpperCase() ?? "?"}
-            </span>
-
-            <div className="min-w-0">
-              <h1 className="text-ut-body font-heading font-semibold text-trust-magenta truncate">
-                {session?.toolName}
-              </h1>
-              {session?.toolUrl && (
-                <a
-                  href={session.toolUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-ut-xs text-ut-muted font-mono overflow-hidden text-ellipsis whitespace-nowrap block hover:text-ut-darkblue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue transition-colors"
-                >
-                  {session.toolUrl}
-                </a>
-              )}
-            </div>
-          </div>
+              ({session.toolUrl})
+            </a>
+          )}
         </header>
 
         <div

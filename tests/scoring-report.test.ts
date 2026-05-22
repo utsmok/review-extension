@@ -91,7 +91,7 @@ describe("buildHtmlReport completion tracking (I11)", () => {
     ];
     const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
     // Incomplete: shows answered/total in conclusion
-    expect(html).toContain("2/14 questions answered");
+    expect(html).toContain("2/12 questions answered");
     expect(html).toContain("INCOMPLETE");
   });
 
