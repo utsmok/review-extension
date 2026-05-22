@@ -657,7 +657,6 @@ function safeLink(url: string, attrs: string = ""): string {
   return `<span class="url-plain">${escaped}</span>`;
 }
 
-const pad2 = (n: number) => String(n).padStart(2, "0");
 /** Format date consistently as YYYY-MM-DD HH:mm */
 function formatDate(isoString: string): string {
   // ISO 8601: "YYYY-MM-DDTHH:mm:..." — slice directly, no Date construction
