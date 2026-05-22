@@ -34,16 +34,6 @@ export function getQGQuestionCode(categoryKey: string, questionIndex: number): s
   return `${getQGCategoryCode(categoryKey)}${questionIndex + 1}`;
 }
 
-export function getQuestionIndex(
-  rubric: RubricData,
-  categoryKey: string,
-  questionId: string,
-): number {
-  const questions = rubric.scoring_rubric[categoryKey] ?? rubric.quality_gate[categoryKey];
-  if (!questions) return 0;
-  return Object.keys(questions).indexOf(questionId);
-}
-
 const ACCENT_KEYS: Record<string, string> = {
   TR: "tr",
   RE: "re",
