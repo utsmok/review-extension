@@ -119,34 +119,7 @@ export default function ActiveSession() {
             </svg>
           </button>
 
-          <span className="text-ut-sm text-ut-slate shrink-0">Reviewing:</span>
-
-          {session?.faviconUrl ? (
-            <img
-              src={session.faviconUrl}
-              alt=""
-              className="w-4 h-4 shrink-0"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-            />
-          ) : null}
-
-          <span className="text-ut-sm font-heading font-semibold text-trust-magenta truncate">
-            {session?.toolName}
-          </span>
-
-          {session?.toolUrl && (
-            <a
-              href={session.toolUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-ut-xs text-ut-muted font-mono truncate hover:text-ut-darkblue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue transition-colors shrink-0"
-            >
-              ({session.toolUrl})
-            </a>
-          )}
-          <div className="ml-auto flex items-center gap-1">
+          <div className="quick-action-group">
             {/* Quick Note */}
             <button
               type="button"
@@ -282,6 +255,36 @@ export default function ActiveSession() {
                 <polyline points="21 15 16 10 5 21" />
               </svg>
             </button>
+          </div>
+
+          <div className="ml-auto flex items-center gap-ut-2 min-w-0">
+            <span className="text-ut-sm text-ut-slate shrink-0">Reviewing:</span>
+
+            {session?.faviconUrl ? (
+              <img
+                src={session.faviconUrl}
+                alt=""
+                className="w-4 h-4 shrink-0"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            ) : null}
+
+            <span className="text-ut-sm font-heading font-semibold text-trust-magenta truncate">
+              {session?.toolName}
+            </span>
+
+            {session?.toolUrl && (
+              <a
+                href={session.toolUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-ut-xs text-ut-muted font-mono truncate hover:text-ut-darkblue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue transition-colors shrink-0"
+              >
+                ({session.toolUrl})
+              </a>
+            )}
           </div>
         </header>
 
