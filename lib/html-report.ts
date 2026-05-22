@@ -896,7 +896,7 @@ function buildGateRows(rubric: RubricData, evalMap: Map<string, Evaluation>): st
         ${(() => {
           let ex = "";
           for (const key of Object.keys(q.examples)) {
-            const desc = (q.examples as Record<string, string>)[key]!;
+            const desc = (q.examples as Record<string, string>)[key];
             ex += `<tr><td class="el">${key === "pass" ? "Pass" : key === "fail" ? "Fail" : key === "na" ? "N/A" : esc(key)}</td><td>${esc(desc)}</td></tr>`;
           }
           return ex;
