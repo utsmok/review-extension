@@ -79,6 +79,9 @@ export function minifyCss(css: string): string {
 // Cached dynamic imports
 let cachedJSZip: typeof import("jszip") | null = null;
 let cachedPapa: typeof import("papaparse") | null = null;
+let cachedPngToJpeg: typeof import("./image-convert").pngToJpeg | null = null;
+let cachedMinifiedCss: string | null = null;
+let cachedLogos: typeof import("./logos") | null = null;
 
 export async function exportSession(
   metadata: SessionMetadata,
@@ -93,9 +96,11 @@ export async function exportSession(
   if (!cachedPapa) cachedPapa = (await import("papaparse")).default;
   const Papa = cachedPapa;
 
+  if (!cachedPngToJpeg) cachedPngToJpeg = (await import("./image-convert")).pngToJpeg;
+  const pngToJpeg = cachedPngToJpeg!;
+
   const zip = new JSZip();
   const imgExtensions = new Map<string, "jpg" | "png">();
-  const { pngToJpeg } = await import("./image-convert");
 
   /** Short ID: first 8 hex chars of capture UUID, unique within a session. */
   const shortId = (id: string) => id.replace(/-/g, "").substring(0, 8);
@@ -121,9 +126,12 @@ export async function exportSession(
     screenshotBase64: capturePathMap.get(c.id) ?? c.screenshotBase64,
   }));
 
-  // Extract shared CSS to a single file instead of duplicating in each HTML report
-  const { REPORT_CSS } = await import("./html-report");
-  zip.file("report.css", minifyCss(REPORT_CSS));
+  // Extract shared CSS to a single file — pre-minified on first call
+  if (!cachedMinifiedCss) {
+    const { REPORT_CSS } = await import("./html-report");
+    cachedMinifiedCss = minifyCss(REPORT_CSS);
+  }
+  zip.file("report.css", cachedMinifiedCss);
   zip.file(
     "session_metadata.csv",
     Papa.unparse([
@@ -218,7 +226,8 @@ export async function exportSession(
   zip.file("session.json", JSON.stringify(sessionData));
 
   // Extract logo files as JPEG — avoid embedding 17KB+ of base64 in both HTML reports
-  const { TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO } = await import("./logos");
+  if (!cachedLogos) cachedLogos = await import("./logos");
+  const { TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO } = cachedLogos;
   const logoReplacements: [string, string][] = [];
   for (const [name, dataUrl] of [
     ["1.jpg", TRUST_LOGO],
