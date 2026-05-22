@@ -710,10 +710,15 @@ function buildCategorySections(
     const reportColor = REPORT_COLORS[p.id] ?? p.color;
     const questions = rubric.scoring_rubric[p.id];
     const catScores = scores.catScores.get(p.id) ?? [];
-    const catEvals = evaluations.filter((e) => e.rubricId.startsWith(`${p.id}.`));
-    const evidenceCount = captures.filter((c) =>
-      catEvals.some((e) => e.explicitEvidenceIds.includes(c.id)),
-    ).length;
+    let evidenceCount = 0;
+    for (const c of captures) {
+      for (const e of evaluations) {
+        if (e.rubricId.startsWith(`${p.id}.`) && e.explicitEvidenceIds.includes(c.id)) {
+          evidenceCount++;
+          break;
+        }
+      }
+    }
 
     let numSum = 0;
     let numCount = 0;
