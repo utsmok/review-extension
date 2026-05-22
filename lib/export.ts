@@ -52,10 +52,13 @@ export function minifyCss(css: string): string {
 
   let result = css.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, ""); // remove block + line comments
 
-  // Extract all CSS variable definitions
+  // Extract all CSS variable definitions and build root keeps in one pass
   const vars = new Map<string, string>();
+  const rootKeepParts: string[] = [];
   result = result.replace(/--([a-z-]+)\s*:\s*([^;{}]+)/g, (_, name, value) => {
-    vars.set(name, value.trim());
+    const trimmed = value.trim();
+    vars.set(name, trimmed);
+    if (CSS_KEEP_VARS.has(`--${name}`)) rootKeepParts.push(`--${name}:${trimmed}`);
     return "";
   });
 
@@ -64,11 +67,7 @@ export function minifyCss(css: string): string {
 
   // Remove :root block (now empty after var extraction) — handles leftover semicolons
   result = result.replace(/:root\s*\{[^}]*\}/g, "");
-  const rootKeeps = [...vars.entries()]
-    .filter(([n]) => CSS_KEEP_VARS.has(`--${n}`))
-    .map(([n, v]) => `--${n}:${v}`)
-    .join(";");
-  if (rootKeeps) result = `:root{${rootKeeps}}${result}`;
+  if (rootKeepParts.length > 0) result = `:root{${rootKeepParts.join(";")}}${result}`;
 
   return result
     .replace(/\s*([{}:;,])\s*/g, "$1") // strip around delimiters
