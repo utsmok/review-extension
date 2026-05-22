@@ -143,17 +143,20 @@ export function scoreColor(s: number | "na" | "unsure" | undefined): string {
 }
 
 export function distributionBar(scores: (number | "na" | "unsure" | "" | undefined)[]): string {
-  const numeric = scores.filter((s): s is number => typeof s === "number");
-  if (numeric.length === 0)
-    return '<div class="dist-bar"><div class="dist-empty">No scores</div></div>';
+  let numCount = 0;
   const counts = [0, 0, 0, 0];
-  for (const s of numeric) counts[s]++;
-  const segments = counts
-    .map((c, i) => {
-      const pct = (c / numeric.length) * 100;
-      return `<div class="dist-seg" style="width:${pct}%;background:${scoreColor(i as 0 | 1 | 2 | 3)}"></div>`;
-    })
-    .join("");
+  for (const s of scores) {
+    if (typeof s === "number") {
+      counts[s]++;
+      numCount++;
+    }
+  }
+  if (numCount === 0) return '<div class="dist-bar"><div class="dist-empty">No scores</div></div>';
+  let segments = "";
+  for (let i = 0; i < 4; i++) {
+    const pct = (counts[i] / numCount) * 100;
+    segments += `<div class="dist-seg" style="width:${pct}%;background:${scoreColor(i as 0 | 1 | 2 | 3)}"></div>`;
+  }
   return `<div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px">${segments}</div>`;
 }
 
