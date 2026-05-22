@@ -913,6 +913,11 @@ function buildFinalizationSection(
 ): string {
   if (!finalization) return "";
 
+  let strengthsList = "";
+  for (const s of finalization.strengths) strengthsList += `<li>${esc(s)}</li>`;
+  let weaknessesList = "";
+  for (const w of finalization.weaknesses) weaknessesList += `<li>${esc(w)}</li>`;
+
   return `
     <section class="finalization-section">
       <div class="fin-bar" style="background:${verdictColor}"></div>
@@ -921,21 +926,21 @@ function buildFinalizationSection(
       </div>
       ${finalization.conclusion ? `<div class="fin-block"><h3>Conclusion</h3><p>${esc(finalization.conclusion)}</p></div>` : ""}
       ${
-        finalization.strengths.length > 0
+        strengthsList
           ? `
         <div class="fin-block">
           <h3 style="color:#4a8355">Strengths</h3>
-          <ul>${finalization.strengths.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
+          <ul>${strengthsList}</ul>
         </div>
       `
           : ""
       }
       ${
-        finalization.weaknesses.length > 0
+        weaknessesList
           ? `
         <div class="fin-block">
           <h3 style="color:#c60c30">Weaknesses</h3>
-          <ul>${finalization.weaknesses.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>
+          <ul>${weaknessesList}</ul>
         </div>
       `
           : ""
