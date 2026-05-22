@@ -73,7 +73,8 @@ export function getCategoryLabel(categoryId: string): string {
 
 export function computeCompletion(evaluations: Evaluation[], rubric: RubricData): number {
   const totalQuestions = getRubricQuestionIds(rubric).length;
-  const scored = evaluations.filter((e) => e.score !== "" && e.score !== undefined).length;
+  let scored = 0;
+  for (const e of evaluations) if (e.score !== "" && e.score !== undefined) scored++;
   return totalQuestions > 0 ? Math.round((scored / totalQuestions) * 100) : 0;
 }
 
