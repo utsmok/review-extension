@@ -1062,20 +1062,19 @@ function buildNutritionLabelHtml(
 
   ${(() => {
     const gr = qualityGateResults(evaluations, rubric);
-    const issues = gr.filter((g) => g.result === "fail" || g.result === "unsure");
-    if (issues.length === 0) return "";
-    const items = issues
-      .map(
-        (g) =>
-          '<div class="nutrition-gate-item">' +
-          esc(g.label) +
-          ': <span class="' +
-          (g.result === "fail" ? "fail" : "unsure") +
-          '">' +
-          (g.result === "fail" ? "FAIL" : "UNSURE") +
-          "</span></div>",
-      )
-      .join("");
+    let items = "";
+    for (const g of gr) {
+      if (g.result !== "fail" && g.result !== "unsure") continue;
+      items +=
+        '<div class="nutrition-gate-item">' +
+        esc(g.label) +
+        ': <span class="' +
+        (g.result === "fail" ? "fail" : "unsure") +
+        '">' +
+        (g.result === "fail" ? "FAIL" : "UNSURE") +
+        "</span></div>";
+    }
+    if (items.length === 0) return "";
     return (
       '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gates-title">Quality Gate Issues</div>' +
       items +
