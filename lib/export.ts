@@ -190,10 +190,13 @@ export async function exportSession(
         Page_Title: c.pageTitle,
         URL_Captured: c.sourceUrl,
         User_Notes: c.notes,
-        Tagged_Rubric_IDs: evaluations
-          .filter((e) => e.explicitEvidenceIds.includes(c.id))
-          .map((e) => e.rubricId)
-          .join("; "),
+        Tagged_Rubric_IDs: (() => {
+          const parts: string[] = [];
+          for (const e of evaluations) {
+            if (e.explicitEvidenceIds.includes(c.id)) parts.push(e.rubricId);
+          }
+          return parts.join("; ");
+        })(),
       })),
     ),
   );
