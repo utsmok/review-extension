@@ -41,8 +41,14 @@ export function computeReportScores(
   finalization: ReviewFinalization | null,
 ): ReportScores {
   const gates = qualityGateResults(evaluations, rubric);
-  const allPassed = gates.length > 0 && gates.every((g) => g.result === "pass");
-  const anyFail = gates.some((g) => g.result === "fail");
+  let allPassed = gates.length > 0;
+  let anyFail = false;
+  let answeredQGQuestions = 0;
+  for (const g of gates) {
+    if (g.result !== "pass") allPassed = false;
+    if (g.result === "fail") anyFail = true;
+    if (g.result !== null) answeredQGQuestions++;
+  }
 
   let totalActual = 0;
   let totalMax = 0;
@@ -73,7 +79,6 @@ export function computeReportScores(
   }
 
   const totalQGQuestions = gates.length;
-  const answeredQGQuestions = gates.filter((g) => g.result !== null).length;
   const totalQuestions = totalScoringQuestions + totalQGQuestions;
   const answeredQuestions = answeredScoringQuestions + answeredQGQuestions;
   const isComplete = totalQuestions > 0 && answeredQuestions >= totalQuestions;
