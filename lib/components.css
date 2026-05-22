@@ -688,3 +688,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* ── tldraw evidence annotation container ──────────────────── */
+
+.tldraw-evidence-container {
+  position: relative;
+  width: 100%;
+  height: 50vh;
+  min-height: 200px;
+  overflow: hidden;
+  border-top: 1px solid var(--ut-border);
+  border-bottom: 1px solid var(--ut-border);
+}
+
+.tldraw-evidence-container .tl-container {
+  position: absolute;
+  inset: 0;
+}

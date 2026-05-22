@@ -1192,10 +1192,13 @@ export async function buildHtmlReport(
   // Compress all screenshots in parallel
   if (!_logos) _logos = await import("./logos");
   const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = _logos;
+
+  // Compress screenshots in parallel — prefer annotated version when available
   const compressedScreenshots = new Map<string, string>();
   await Promise.all(
     captures.map(async (c) => {
-      compressedScreenshots.set(c.id, await compressScreenshot(c.screenshotBase64));
+      const src = c.annotatedScreenshotBase64 ?? c.screenshotBase64;
+      compressedScreenshots.set(c.id, await compressScreenshot(src));
     }),
   );
 

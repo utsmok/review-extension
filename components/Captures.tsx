@@ -4,7 +4,9 @@ import { captureActiveTab } from "@/lib/capture";
 import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import { useRubric } from "@/lib/contexts";
 import { toastError } from "@/stores/toast";
+import type { Capture } from "@/lib/types";
 import ConfirmDialog from "./ConfirmDialog";
+import EvidenceModal from "./EvidenceModal";
 import RubricChipGroup from "./RubricChipGroup";
 
 export default function Captures() {
@@ -22,6 +24,7 @@ export default function Captures() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [viewCapture, setViewCapture] = useState<Capture | null>(null);
 
   const linkedIdsMap = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -93,124 +96,185 @@ export default function Captures() {
                   Showing {displayed.length} of {reversed.length} captures
                 </p>
               )}
-              {displayed.map((capture) => {
-                const linkedRubricIds = linkedIdsMap.get(capture.id) ?? [];
 
-                return (
-                  <div
-                    key={capture.id}
-                    className="border border-ut-border overflow-hidden bg-ut-white"
-                  >
-                    <button
-                      type="button"
-                      className="w-full border-b border-ut-border cursor-pointer block"
-                      onClick={() => setExpanded(expanded === capture.id ? null : capture.id)}
-                    >
-                      <img
-                        src={capture.annotatedScreenshotBase64 ?? capture.screenshotBase64}
-                        alt={`Screenshot of ${capture.pageTitle || capture.sourceUrl}`}
-                        loading="lazy"
-                        className="w-full block"
-                      />
-                    </button>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-ut-2">
+                {displayed.map((capture) => {
+                  const linkedRubricIds = linkedIdsMap.get(capture.id) ?? [];
+                  const isExpanded = expanded === capture.id;
 
-                    <div className="p-ut-2">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-ut-xs text-ut-muted font-mono truncate flex-1 mr-ut-2">
-                          {capture.sourceUrl}
-                        </p>
-                        <button
-                          type="button"
-                          className="text-ut-xs text-ut-slate hover:text-ut-red shrink-0"
-                          onClick={() => setDeleteTarget(capture.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                      {capture.pageTitle && (
-                        <p className="text-ut-xs font-bold text-ut-text truncate mb-0.5">
-                          {capture.pageTitle}
-                        </p>
-                      )}
-                      <p className="text-ut-xs text-ut-slate">
-                        {new Date(capture.timestamp).toLocaleString()} · {linkedRubricIds.length}{" "}
-                        tag
-                        {linkedRubricIds.length !== 1 && "s"}
-                      </p>
-
-                      <textarea
-                        className="w-full border border-ut-border rounded-ut-sm text-ut-xs p-ut-2 mt-ut-2 resize-y bg-ut-grey"
-                        rows={2}
-                        placeholder="Notes..."
-                        value={capture.notes}
-                        onChange={(e) => updateCapture(capture.id, { notes: e.target.value })}
-                      />
-
-                      {/* Rubric tagging */}
-                      <details
-                        open={expanded === capture.id}
-                        className="mt-ut-2"
-                        onToggle={(e) =>
-                          setExpanded((e.target as HTMLDetailsElement).open ? capture.id : null)
-                        }
+                  return (
+                    <div key={capture.id}>
+                      {/* Thumbnail card */}
+                      <button
+                        type="button"
+                        className="evidence-thumb-wrap cursor-pointer"
+                        onClick={() => setExpanded(isExpanded ? null : capture.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setExpanded(isExpanded ? null : capture.id);
+                          }
+                        }}
                       >
-                        <summary className="text-ut-xs font-heading font-bold uppercase tracking-ut-kicker text-ut-muted cursor-pointer hover:text-ut-navy">
-                          Tag to rubric items ({linkedRubricIds.length})
-                        </summary>
-
-                        <div className="mt-1 space-y-1.5">
-                          {/* Quality Gates */}
-                          <div>
-                            <p className="section-kicker mb-1">Quality Gates</p>
-                            {Object.entries(rubric.quality_gate).map(([cat, questions]) => (
-                              <div key={cat} className="ml-ut-1 mb-1" data-accent-key="control">
-                                <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
-                                <RubricChipGroup
-                                  questions={questions}
-                                  categoryKey={cat}
-                                  linkedIds={linkedRubricIds}
-                                  usesAi={usesAi}
-                                  isQG
-                                  onToggle={(rubricId, linked) =>
-                                    linked
-                                      ? unlinkCaptureFromRubric(capture.id, rubricId)
-                                      : linkCaptureToRubric(capture.id, rubricId)
-                                  }
-                                />
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Scoring Rubric */}
-                          <div>
-                            <p className="section-kicker mb-1">Scoring Rubric</p>
-                            {Object.entries(rubric.scoring_rubric).map(([cat, questions]) => (
-                              <div
-                                key={cat}
-                                className="ml-ut-1 mb-1"
-                                data-accent-key={getAccentKey(cat)}
-                              >
-                                <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
-                                <RubricChipGroup
-                                  questions={questions}
-                                  categoryKey={cat}
-                                  linkedIds={linkedRubricIds}
-                                  usesAi={usesAi}
-                                  onToggle={(rubricId, linked) =>
-                                    linked
-                                      ? unlinkCaptureFromRubric(capture.id, rubricId)
-                                      : linkCaptureToRubric(capture.id, rubricId)
-                                  }
-                                />
-                              </div>
-                            ))}
-                          </div>
+                        <img
+                          src={capture.annotatedScreenshotBase64 ?? capture.screenshotBase64}
+                          alt={`Screenshot of ${capture.pageTitle || capture.sourceUrl}`}
+                          loading="lazy"
+                          className="w-full aspect-video object-cover border border-ut-border"
+                        />
+                        <div className="evidence-thumb-overlay">
+                          <button
+                            type="button"
+                            className="btn-view"
+                            title="Annotate"
+                            aria-label="Annotate capture"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setViewCapture(capture);
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <path d="M12 20h9" />
+                              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-remove"
+                            title="Delete"
+                            aria-label="Delete capture"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTarget(capture.id);
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                          </button>
                         </div>
-                      </details>
+                        {/* Title overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-ut-1 py-0.5 pointer-events-none">
+                          <p className="text-ut-xs text-white truncate">
+                            {capture.pageTitle || capture.sourceUrl}
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* Expanded details */}
+                      {isExpanded && (
+                        <div className="border border-ut-border border-t-0 bg-ut-white p-ut-2">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-ut-xs text-ut-muted font-mono truncate flex-1 mr-ut-2">
+                              {capture.sourceUrl}
+                            </p>
+                            <div className="flex gap-ut-1 shrink-0">
+                              <button
+                                type="button"
+                                className="text-ut-xs text-ut-blue hover:text-ut-navy"
+                                onClick={() => setViewCapture(capture)}
+                              >
+                                Annotate
+                              </button>
+                              <button
+                                type="button"
+                                className="text-ut-xs text-ut-slate hover:text-ut-red"
+                                onClick={() => setDeleteTarget(capture.id)}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                          {capture.pageTitle && (
+                            <p className="text-ut-xs font-bold text-ut-text truncate mb-0.5">
+                              {capture.pageTitle}
+                            </p>
+                          )}
+                          <p className="text-ut-xs text-ut-slate">
+                            {new Date(capture.timestamp).toLocaleString()} · {linkedRubricIds.length}{" "}
+                            tag
+                            {linkedRubricIds.length !== 1 && "s"}
+                          </p>
+
+                          <textarea
+                            className="w-full border border-ut-border rounded-ut-sm text-ut-xs p-ut-2 mt-ut-2 resize-y bg-ut-grey"
+                            rows={2}
+                            placeholder="Notes..."
+                            value={capture.notes}
+                            onChange={(e) => updateCapture(capture.id, { notes: e.target.value })}
+                          />
+
+                          {/* Rubric tagging */}
+                          <details
+                            open
+                            className="mt-ut-2"
+                            onToggle={(e) => {
+                              if (!(e.target as HTMLDetailsElement).open) {
+                                setExpanded(null);
+                              }
+                            }}
+                          >
+                            <summary className="text-ut-xs font-heading font-bold uppercase tracking-ut-kicker text-ut-muted cursor-pointer hover:text-ut-navy">
+                              Tag to rubric items ({linkedRubricIds.length})
+                            </summary>
+
+                            <div className="mt-1 space-y-1.5">
+                              {/* Quality Gates */}
+                              <div>
+                                <p className="section-kicker mb-1">Quality Gates</p>
+                                {Object.entries(rubric.quality_gate).map(([cat, questions]) => (
+                                  <div key={cat} className="ml-ut-1 mb-1" data-accent-key="control">
+                                    <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
+                                    <RubricChipGroup
+                                      questions={questions}
+                                      categoryKey={cat}
+                                      linkedIds={linkedRubricIds}
+                                      usesAi={usesAi}
+                                      isQG
+                                      onToggle={(rubricId, linked) =>
+                                        linked
+                                          ? unlinkCaptureFromRubric(capture.id, rubricId)
+                                          : linkCaptureToRubric(capture.id, rubricId)
+                                      }
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Scoring Rubric */}
+                              <div>
+                                <p className="section-kicker mb-1">Scoring Rubric</p>
+                                {Object.entries(rubric.scoring_rubric).map(([cat, questions]) => (
+                                  <div
+                                    key={cat}
+                                    className="ml-ut-1 mb-1"
+                                    data-accent-key={getAccentKey(cat)}
+                                  >
+                                    <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
+                                    <RubricChipGroup
+                                      questions={questions}
+                                      categoryKey={cat}
+                                      linkedIds={linkedRubricIds}
+                                      usesAi={usesAi}
+                                      onToggle={(rubricId, linked) =>
+                                        linked
+                                          ? unlinkCaptureFromRubric(capture.id, rubricId)
+                                          : linkCaptureToRubric(capture.id, rubricId)
+                                      }
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </details>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+
               {needsPagination && (
                 <button
                   type="button"
@@ -238,6 +302,9 @@ export default function Captures() {
             },
           ]}
         />
+      )}
+      {viewCapture && (
+        <EvidenceModal capture={viewCapture} onClose={() => setViewCapture(null)} />
       )}
     </div>
   );

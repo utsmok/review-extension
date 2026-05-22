@@ -1,9 +1,12 @@
 import { getCategoryLabel } from "./rubric";
 import { buildHtmlReport, buildNutritionLabel, REPORT_CSS } from "./html-report";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
+
 /** Subset of Capture written to session.json inside the ZIP — heavy blobs stored separately. */
 type LightweightCapture = Pick<Capture, "id" | "timestamp" | "sourceUrl" | "pageTitle"> & {
   notes?: Capture["notes"];
+  /** Flag indicating an annotated version exists as `{shortId}_annotated.{ext}` in the ZIP. */
+  hasAnnotatedScreenshot?: boolean;
 };
 
 // biome-ignore lint/complexity/useRegexLiterals: must use RegExp constructor to avoid noControlCharactersInRegex
@@ -111,6 +114,7 @@ export async function exportSession(
 
   const zip = new JSZip();
   const imgExtensions = new Map<string, "jpg" | "png">();
+  const annotatedExtensions = new Map<string, "jpg" | "png">();
 
   /** Short ID: first 8 hex chars of capture UUID, unique within a session. */
   const shortId = (id: string) => id.replace(/-/g, "").substring(0, 8);
@@ -126,17 +130,38 @@ export async function exportSession(
     });
     zip.file(`${sid}.html`, minifyHtml(capture.htmlContent));
     imgExtensions.set(capture.id, extension);
+    // Export annotated screenshot alongside clean version
+    if (capture.annotatedScreenshotBase64) {
+      const { dataUrl: annConverted, extension: annExt } = await pngToJpeg(
+        capture.annotatedScreenshotBase64,
+        0.8,
+      );
+      const annBase64 = annConverted.split(",")[1] ?? "";
+      zip.file(`${sid}_annotated.${annExt}`, annBase64, { base64: true });
+      annotatedExtensions.set(capture.id, annExt);
+    }
   }
 
-  // Build capture map for HTML reports: reference files instead of embedding base64
+  // Build capture map for HTML reports: reference annotated images by default,
+  // with clean versions also available. Falls back to clean if no annotated version.
   const capturePathMap = new Map(
     captures.map((c) => [c.id, `${idMap.get(c.id)}.${imgExtensions.get(c.id) ?? "png"}`]),
+  );
+  const annotatedPathMap = new Map(
+    captures
+      .filter((c) => c.annotatedScreenshotBase64)
+      .map((c) => [
+        c.id,
+        `${idMap.get(c.id)}_annotated.${annotatedExtensions.get(c.id) ?? imgExtensions.get(c.id) ?? "png"}`,
+      ]),
   );
   const capturesWithPaths = captures.map((c) => ({
     ...c,
     screenshotBase64: capturePathMap.get(c.id) ?? c.screenshotBase64,
+    annotatedScreenshotBase64: annotatedPathMap.has(c.id)
+      ? (annotatedPathMap.get(c.id) as string)
+      : c.annotatedScreenshotBase64,
   }));
-
   // Extract shared CSS to a single file — pre-minified on first call
   if (!cachedMinifiedCss) {
     cachedMinifiedCss = minifyCss(REPORT_CSS);
@@ -220,6 +245,7 @@ export async function exportSession(
 
   // Full session data for re-import — strip heavy capture blobs since they're
   // already stored as separate files in evidence/. Import reassembles from there.
+
   const lightweightCaptures = captures.map((c): LightweightCapture => {
     const entry: LightweightCapture = {
       id: c.id,
@@ -228,8 +254,10 @@ export async function exportSession(
       pageTitle: c.pageTitle,
     };
     if (c.notes) entry.notes = c.notes;
+    if (c.annotatedScreenshotBase64) entry.hasAnnotatedScreenshot = true;
     return entry;
   });
+
   const sessionData: import("./types").SessionData = {
     metadata,
     captures: lightweightCaptures as import("./types").Capture[],
@@ -333,6 +361,7 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
         capture.screenshotBase64 = `data:${mime};base64,${base64}`;
       }
     }
+
     if (!capture.htmlContent) {
       const htmlFile = findFile([
         `${sid}.html`,
@@ -343,6 +372,17 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
       ]);
       if (htmlFile) {
         capture.htmlContent = await htmlFile.async("string");
+      }
+    }
+    // Reassemble annotated screenshot if flagged in session.json
+    const hasAnnotated = (capture as unknown as Record<string, unknown>).hasAnnotatedScreenshot;
+    if (hasAnnotated && !capture.annotatedScreenshotBase64) {
+      const annFile =
+        findFile([`${sid}_annotated.jpg`, `${sid}_annotated.png`]);
+      if (annFile) {
+        const base64 = await annFile.async("base64");
+        const mime = annFile.name.endsWith(".jpg") ? "image/jpeg" : "image/png";
+        capture.annotatedScreenshotBase64 = `data:${mime};base64,${base64}`;
       }
     }
   }

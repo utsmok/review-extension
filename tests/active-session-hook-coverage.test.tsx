@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { beforeAll, beforeEach, afterEach, afterAll, describe, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, afterAll, describe, expect, it, vi } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 
 // Zustand persist captures `window.localStorage` at import time.
