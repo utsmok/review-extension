@@ -6,6 +6,8 @@ type LightweightCapture = Pick<Capture, "id" | "timestamp" | "sourceUrl" | "page
   notes?: Capture["notes"];
 };
 
+// biome-ignore lint/complexity/useRegexLiterals: must use RegExp constructor to avoid noControlCharactersInRegex
+const INVALID_FILENAME_CHARS = new RegExp('[<>:"/\\\\|?*\u0000-\u001F]', "g");
 /**
  * Sanitize a string for use as a filename. Strips path separators, parent
  * directory references, and characters invalid on Windows.
@@ -14,10 +16,9 @@ type LightweightCapture = Pick<Capture, "id" | "timestamp" | "sourceUrl" | "page
  * entry names and download filenames.
  */
 export function sanitizeFilename(name: string): string {
-  // biome-ignore lint/complexity/useRegexLiterals: must use RegExp constructor to avoid noControlCharactersInRegex
-  const INVALID_CHARS = new RegExp('[<>:"/\\\\|?*\u0000-\u001F]', "g");
   return (
-    name.replace(INVALID_CHARS, "_").replace(/\.+/g, ".").replace(/^\.+/, "").trim() || "review"
+    name.replace(INVALID_FILENAME_CHARS, "_").replace(/\.+/g, ".").replace(/^\.+/, "").trim() ||
+    "review"
   );
 }
 

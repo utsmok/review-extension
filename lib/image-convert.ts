@@ -75,15 +75,24 @@ async function canvasConvert(
   return canvas.toDataURL("image/jpeg", quality);
 }
 
-/* ── Node path ────────────────────────────────────────────────────────── */
+/* ── Node path (cached dynamic imports) ──────────────────────────────────── */
+let _pngjs: typeof import("pngjs") | null = null;
+let _jpegEncode:
+  | ((
+      input: { data: Uint8Array; width: number; height: number },
+      quality?: number,
+    ) => { data: Uint8Array; width: number; height: number })
+  | null = null;
 
 async function nodeConvert(
   dataUrl: string,
   quality: number,
   maxDimension?: number,
 ): Promise<string | null> {
-  const pngjs = await import("pngjs");
-  const { encode } = await import("jpeg-js");
+  if (!_pngjs) _pngjs = await import("pngjs");
+  if (!_jpegEncode) _jpegEncode = (await import("jpeg-js")).encode;
+  const pngjs = _pngjs;
+  const encode = _jpegEncode!;
 
   const raw = extractBase64(dataUrl);
   const pngBuffer =
