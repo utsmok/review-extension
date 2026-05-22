@@ -641,8 +641,9 @@ function esc(s: string): string {
 }
 
 /** Validate URL starts with http:// or https:// */
+const SAFE_URL_RE = /^https?:\/\//i;
 function isSafeUrl(url: string): boolean {
-  return /^https?:\/\//i.test(url.trim());
+  return SAFE_URL_RE.test(url.trim());
 }
 
 /** Render a URL as a link if valid, otherwise as plain text */
@@ -654,11 +655,11 @@ function safeLink(url: string, attrs: string = ""): string {
   return `<span class="url-plain">${escaped}</span>`;
 }
 
+const pad2 = (n: number) => String(n).padStart(2, "0");
 /** Format date consistently as YYYY-MM-DD HH:mm */
 function formatDate(isoString: string): string {
   const d = new Date(isoString);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
 /** Resize and compress a base64 data-URL image. Returns original if resize fails. */
