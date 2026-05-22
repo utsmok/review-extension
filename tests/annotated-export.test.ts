@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
+import type { Evaluation } from "@/lib/types";
 import { exportSession } from "@/lib/export";
 import { buildHtmlReport } from "@/lib/html-report";
 import { TINY_PNG, RUBRIC, makeMetadata, makeCapture } from "./fixtures";

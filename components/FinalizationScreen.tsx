@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useTabNavigation } from "@/lib/contexts";
+import { useSessionStore } from "@/stores/session";
 import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
 
 const GRADES: { value: FinalizationGrade; label: string; color: string; tint: string }[] = [
@@ -23,20 +24,57 @@ export default function FinalizationScreen() {
   const [strengths, setStrengths] = useState<string[]>(finalization?.strengths ?? []);
   const [weaknesses, setWeaknesses] = useState<string[]>(finalization?.weaknesses ?? []);
   const [recommendations, setRecommendations] = useState(finalization?.recommendations ?? "");
-  const [saved, setSaved] = useState(!!finalization);
+  const [saved, setSaved] = useState(!!finalization?.finalizedAt);
 
-  // Track if user has edited since last save (to clear persistent "Saved" indicator)
+  // Track if user has edited since last explicit save (to clear "Saved" indicator)
   const lastSavedData = useRef<ReviewFinalization | null>(finalization ?? null);
 
-  // C8: Sync local state when store finalization changes externally
+  // Autosave debounce timer
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Guard: skip sync effect when the change originated from our own autosave/save/clear
+  const isLocalChange = useRef(false);
+
+  // ── Autosave: debounced 50ms, watches all fields ──────────────────────
   useEffect(() => {
+    // Don't autosave when grade is empty (incomplete data)
+    if (!grade) return;
+
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+
+    autosaveTimerRef.current = setTimeout(() => {
+      const currentFin = useSessionStore.getState().finalization;
+      const data: ReviewFinalization = {
+        grade,
+        conclusion: conclusion.trim(),
+        strengths: strengths.map((s) => s.trim()).filter(Boolean),
+        weaknesses: weaknesses.map((w) => w.trim()).filter(Boolean),
+        recommendations: recommendations.trim(),
+        // Autosave preserves existing finalizedAt — does NOT set it
+        finalizedAt: currentFin?.finalizedAt ?? "",
+      };
+      isLocalChange.current = true;
+      setFinalization(data);
+    }, 50);
+
+    return () => {
+      if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    };
+  }, [grade, conclusion, strengths, weaknesses, recommendations, setFinalization]);
+
+  // ── Sync local state when store finalization changes externally ───────
+  useEffect(() => {
+    if (isLocalChange.current) {
+      isLocalChange.current = false;
+      return;
+    }
     if (finalization) {
       setGrade(finalization.grade);
       setConclusion(finalization.conclusion);
       setStrengths(finalization.strengths);
       setWeaknesses(finalization.weaknesses);
       setRecommendations(finalization.recommendations);
-      setSaved(true);
+      setSaved(!!finalization.finalizedAt);
       lastSavedData.current = finalization;
     } else {
       setGrade("");
@@ -49,7 +87,8 @@ export default function FinalizationScreen() {
     }
   }, [finalization]);
 
-  const handleSave = () => {
+  // ── Explicit Save: sets finalizedAt timestamp ─────────────────────────
+  const handleSave = useCallback(() => {
     if (!grade) return;
 
     const data: ReviewFinalization = {
@@ -60,23 +99,25 @@ export default function FinalizationScreen() {
       recommendations: recommendations.trim(),
       finalizedAt: new Date().toISOString(),
     };
+    isLocalChange.current = true;
     setFinalization(data);
     lastSavedData.current = data;
     setSaved(true);
-  };
+  }, [grade, conclusion, strengths, weaknesses, recommendations, setFinalization]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setGrade("");
     setConclusion("");
     setStrengths([]);
     setWeaknesses([]);
     setRecommendations("");
+    isLocalChange.current = true;
     setFinalization(null);
     setSaved(false);
     lastSavedData.current = null;
-  };
+  }, [setFinalization]);
 
-  // Detect edits to mark unsaved state
+  // Detect edits to mark unsaved state (formal save needed)
   const handleGradeChange = (g: FinalizationGrade) => {
     setGrade(g);
     setSaved(false);
@@ -98,13 +139,16 @@ export default function FinalizationScreen() {
     setSaved(false);
   };
 
+  // Show "Finalized" banner only when formally finalized (finalizedAt is set)
+  const isFormallyFinalized = !!finalization?.finalizedAt;
+
   return (
     <div className="flex flex-col gap-ut-3 p-ut-4">
       <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta">
         Finalize Review
       </h2>
 
-      {finalization && (
+      {isFormallyFinalized && (
         <div className="border-l-2 border-trust-magenta pl-ut-2">
           <p className="text-ut-xs text-ut-muted font-mono">
             Finalized {new Date(finalization.finalizedAt).toLocaleString()}

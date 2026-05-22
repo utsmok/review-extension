@@ -56,6 +56,17 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
+  /* ── Cleanup tldraw side-effect handlers on unmount ── */
+  useEffect(() => {
+    return () => {
+      if (editor) {
+        const fns = (editor as Editor & { _cleanupFns?: (() => void)[] })._cleanupFns;
+        fns?.forEach((fn) => {
+          fn();
+        });
+      }
+    };
+  }, [editor]);
 
   /* ── tldraw mount: load image as locked background ── */
   const onMount = (ed: Editor) => {
@@ -208,7 +219,14 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         onKeyDown={(e) => e.stopPropagation()}
       >
         {/* Toolbar */}
-        {editor && <Toolbar editor={editor} imageShapeId={imageShapeId} onClear={handleClear} onSave={handleSave} />}
+        {editor && (
+          <Toolbar
+            editor={editor}
+            imageShapeId={imageShapeId}
+            onClear={handleClear}
+            onSave={handleSave}
+          />
+        )}
 
         {/* tldraw canvas */}
         <div className="tldraw-evidence-container">
@@ -305,7 +323,12 @@ interface ToolbarProps {
   onSave: () => void;
 }
 
-const Toolbar = track(function Toolbar({ editor, imageShapeId: _imageShapeId, onClear, onSave }: ToolbarProps) {
+const Toolbar = track(function Toolbar({
+  editor,
+  imageShapeId: _imageShapeId,
+  onClear,
+  onSave,
+}: ToolbarProps) {
   const currentToolId = useValue("currentToolId", () => editor.getCurrentToolId(), [editor]);
   const [activeColor, setActiveColor] = useState<string>("black");
   const [isHighlighter, setIsHighlighter] = useState(false);
@@ -391,11 +414,7 @@ const Toolbar = track(function Toolbar({ editor, imageShapeId: _imageShapeId, on
             className={`color-swatch ${activeColor === c.value ? "is-active" : ""}`}
             style={{
               background:
-                c.value === "black"
-                  ? "#172033"
-                  : c.value === "red"
-                    ? "#c60c30"
-                    : "#007d9c",
+                c.value === "black" ? "#172033" : c.value === "red" ? "#c60c30" : "#007d9c",
             }}
             onClick={() => setColor(c.value)}
           />
