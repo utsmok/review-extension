@@ -48,12 +48,15 @@ export function computeReportScores(
   let totalMax = 0;
   let totalScoringQuestions = 0;
   let answeredScoringQuestions = 0;
+  let principleFail = false;
   const catScores: Map<string, (number | "na" | "unsure" | "" | undefined)[]> = new Map();
 
   for (const p of PRINCIPLES) {
     if (!(p.id in rubric.scoring_rubric)) continue;
     const scores = getCategoryScores(p.id, evaluations, rubric);
     catScores.set(p.id, scores);
+    let numSum = 0;
+    let numCount = 0;
     for (const s of scores) {
       totalScoringQuestions++;
       if (typeof s === "number" || s === "na" || s === "unsure") {
@@ -61,9 +64,12 @@ export function computeReportScores(
         if (typeof s === "number") {
           totalActual += s;
           totalMax += 3;
+          numSum += s;
+          numCount++;
         }
       }
     }
+    if (numCount > 0 && numSum / numCount < 1.0) principleFail = true;
   }
 
   const totalQGQuestions = gates.length;
@@ -73,14 +79,6 @@ export function computeReportScores(
   const isComplete = totalQuestions > 0 && answeredQuestions >= totalQuestions;
 
   const ratio = totalMax > 0 ? totalActual / totalMax : 0;
-  const principleFail = PRINCIPLES.some((p) => {
-    if (!(p.id in rubric.scoring_rubric)) return false;
-    const scores = catScores.get(p.id) ?? [];
-    const numeric = scores.filter((s): s is number => typeof s === "number");
-    if (numeric.length === 0) return false;
-    const avg = numeric.reduce((a, b) => a + b, 0) / numeric.length;
-    return avg < 1.0;
-  });
   const computedFailed = anyFail || ratio < 0.6 || principleFail;
   const noEvaluation = answeredScoringQuestions === 0 && answeredQGQuestions === 0;
 
