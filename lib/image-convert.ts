@@ -92,6 +92,7 @@ async function nodeConvert(
   if (!_pngjs) _pngjs = await import("pngjs");
   if (!_jpegEncode) _jpegEncode = (await import("jpeg-js")).encode;
   const pngjs = _pngjs;
+// biome-ignore lint/style/noNonNullAssertion: guaranteed non-null by preceding guard
   const encode = _jpegEncode!;
 
   const raw = extractBase64(dataUrl);

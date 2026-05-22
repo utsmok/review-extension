@@ -1,5 +1,5 @@
 import { getCategoryLabel } from "./rubric";
-import { buildHtmlReport, buildNutritionLabel } from "./html-report";
+import { buildHtmlReport, buildNutritionLabel, REPORT_CSS } from "./html-report";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 /** Subset of Capture written to session.json inside the ZIP — heavy blobs stored separately. */
 type LightweightCapture = Pick<Capture, "id" | "timestamp" | "sourceUrl" | "pageTitle"> & {
@@ -106,6 +106,7 @@ export async function exportSession(
   const Papa = cachedPapa;
 
   if (!cachedPngToJpeg) cachedPngToJpeg = (await import("./image-convert")).pngToJpeg;
+// biome-ignore lint/style/noNonNullAssertion: guaranteed non-null by preceding guard
   const pngToJpeg = cachedPngToJpeg!;
 
   const zip = new JSZip();
@@ -116,6 +117,7 @@ export async function exportSession(
   const idMap = new Map(captures.map((c) => [c.id, shortId(c.id)]));
 
   for (const capture of captures) {
+// biome-ignore lint/style/noNonNullAssertion: idMap built from same captures array being iterated
     const sid = idMap.get(capture.id)!;
     const { dataUrl: converted, extension } = await pngToJpeg(capture.screenshotBase64, 0.8);
     const base64Data = converted.split(",")[1] ?? "";
@@ -137,7 +139,6 @@ export async function exportSession(
 
   // Extract shared CSS to a single file — pre-minified on first call
   if (!cachedMinifiedCss) {
-    const { REPORT_CSS } = await import("./html-report");
     cachedMinifiedCss = minifyCss(REPORT_CSS);
   }
   zip.file("report.css", cachedMinifiedCss);

@@ -724,57 +724,51 @@ function buildCategorySections(
     }
   }
 
-  let resultHtml = "";
-  let sectionIdx = 0;
-  for (const p of PRINCIPLES) {
-    if (!(p.id in rubric.scoring_rubric)) {
-      continue;
-    }
-    const reportColor = REPORT_COLORS[p.id] ?? p.color;
-    const questions = rubric.scoring_rubric[p.id];
-    const catScores = scores.catScores.get(p.id) ?? [];
-    const evidenceCount = evidenceByPrinciple.get(p.id)?.size ?? 0;
+  return PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
+    .map((p, sectionIdx) => {
+      const reportColor = REPORT_COLORS[p.id] ?? p.color;
+      const questions = rubric.scoring_rubric[p.id];
+      const catScores = scores.catScores.get(p.id) ?? [];
+      const evidenceCount = evidenceByPrinciple.get(p.id)?.size ?? 0;
 
-    let numSum = 0;
-    let numCount = 0;
-    for (const s of catScores) {
-      if (typeof s === "number") {
-        numSum += s;
-        numCount++;
+      let numSum = 0;
+      let numCount = 0;
+      for (const s of catScores) {
+        if (typeof s === "number") {
+          numSum += s;
+          numCount++;
+        }
       }
-    }
-    const avg = numCount > 0 ? (numSum / numCount).toFixed(1) : "—";
-    const catTotal = numSum;
-    const catMax = numCount * 3;
+      const avg = numCount > 0 ? (numSum / numCount).toFixed(1) : "—";
+      const catTotal = numSum;
+      const catMax = numCount * 3;
 
-    let rows = "";
-    let qIdx = 0;
-    for (const qId of Object.keys(questions)) {
-      const levels = questions[qId];
-      const rubricId = `${p.id}.${qId}`;
-      const ev = evalMap.get(rubricId);
-      const isNa = ev?.score === "na";
-      const isUnsure = ev?.score === "unsure";
-      const score = typeof ev?.score === "number" ? ev.score : -1;
-      const code = getQuestionCode(p.id, qIdx);
-      const customReasoning = ev?.customScore?.reasoning;
-      const levelDesc = isNa
-        ? "Not applicable"
-        : isUnsure
-          ? "Insufficient information"
-          : customReasoning
-            ? esc(customReasoning)
-            : score >= 0
-              ? ((levels as unknown as Record<string, string>)[String(score)] ?? "—")
-              : "—";
+      const rows = Object.entries(questions)
+        .map(([qId, levels], qIdx) => {
+          const rubricId = `${p.id}.${qId}`;
+          const ev = evalMap.get(rubricId);
+          const isNa = ev?.score === "na";
+          const isUnsure = ev?.score === "unsure";
+          const score = typeof ev?.score === "number" ? ev.score : -1;
+          const code = getQuestionCode(p.id, qIdx);
+          const customReasoning = ev?.customScore?.reasoning;
+          const levelDesc = isNa
+            ? "Not applicable"
+            : isUnsure
+              ? "Insufficient information"
+              : customReasoning
+                ? esc(customReasoning)
+                : score >= 0
+                  ? ((levels as unknown as Record<string, string>)[String(score)] ?? "—")
+                  : "—";
 
-      const isWeakEvidence = score >= 0 && score <= 1;
-      let evidenceImgs = "";
-      if (ev) {
-        for (const cid of ev.explicitEvidenceIds) {
-          const c = captureMap.get(cid);
-          if (!c) continue;
-          evidenceImgs += `
+          const isWeakEvidence = score >= 0 && score <= 1;
+          const evidenceImgs = ev
+            ? ev.explicitEvidenceIds
+                .map((cid) => {
+                  const c = captureMap.get(cid);
+                  if (!c) return "";
+                  return `
         <div class="evidence-item${isWeakEvidence ? " evidence-weak" : ""}">
           <img src="${compressedScreenshots.get(cid) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
           <div class="evidence-meta">
@@ -784,40 +778,37 @@ function buildCategorySections(
           </div>
         </div>
       `;
-        }
-      }
+                })
+                .join("")
+            : "";
 
-      const backgroundRow = levels.background
-        ? `
+          const backgroundRow = levels.background
+            ? `
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
       <p>${esc(levels.background)}</p></details>
     </td></tr>
   `
-        : "";
+            : "";
 
-      const examplesRow = levels.examples
-        ? `
+          const examplesRow = levels.examples
+            ? `
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Examples</summary>
       <table class="et">
-        ${(() => {
-          let exHtml = "";
-          for (const lvl of EXAMPLE_LEVELS) {
-            const ex = (levels as unknown as { examples?: Record<string, string> }).examples?.[lvl];
-            if (ex) exHtml += `<tr><td class="el">${lvl}</td><td>${esc(ex)}</td></tr>`;
-          }
-          return exHtml;
-        })()}
+        ${EXAMPLE_LEVELS.map((lvl) => {
+          const ex = (levels as unknown as { examples?: Record<string, string> }).examples?.[lvl];
+          return ex ? `<tr><td class="el">${lvl}</td><td>${esc(ex)}</td></tr>` : "";
+        }).join("")}
       </table></details>
     </td></tr>
   `
-        : "";
+            : "";
 
-      const badgeColor = scoreColor(
-        isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined,
-      );
-      rows += `
+          const badgeColor = scoreColor(
+            isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined,
+          );
+          return `
     <tr class="score-row">
       <td class="code" style="color:${reportColor}">${code}</td>
       <td class="score-cell">
@@ -831,10 +822,10 @@ function buildCategorySections(
     ${backgroundRow}${examplesRow}
     ${evidenceImgs ? `<tr class="evidence-row"><td colspan="4"><div class="evidence-list">${evidenceImgs}</div></td></tr>` : ""}
   `;
-      qIdx++;
-    }
+        })
+        .join("");
 
-    resultHtml += `
+      return `
     <section id="category-${p.id}" class="category-section${sectionIdx % 2 === 1 ? " category-alt" : ""}" style="--accent:${reportColor}">
       <div class="category-header">
         <div class="category-letter-block">
@@ -842,7 +833,7 @@ function buildCategorySections(
           <div class="category-letter-name">${PRINCIPLE_NAMES[p.id] ?? ""}</div>
         </div>
         <div class="category-info">
-          <h2>${esc(PRINCIPLE_NAMES[p.id]!)}</h2>
+          <h2>${esc(PRINCIPLE_NAMES[p.id] ?? "")}</h2>
           <div class="category-meta">
             <span class="cat-score">${catTotal} / ${catMax}</span>
             <span class="cat-avg">avg ${avg}</span>
@@ -861,52 +852,47 @@ function buildCategorySections(
       </div>
     </section>
   `;
-    sectionIdx++;
-  }
-  return resultHtml;
+    })
+    .join("");
 }
 
 function buildGateRows(rubric: RubricData, evalMap: Map<string, Evaluation>): string {
-  // evalMap pre-built by caller
-  let html = "";
-  for (const cat of Object.keys(rubric.quality_gate)) {
-    const questions = rubric.quality_gate[cat];
-    let qIdx = 0;
-    for (const qId of Object.keys(questions)) {
-      const q = questions[qId];
-      const ev = evalMap.get(`${cat}.${qId}`);
-      const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
-      const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#6b7f94";
-      const label = result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "—";
+  return Object.entries(rubric.quality_gate)
+    .map(([cat, questions]) =>
+      Object.keys(questions)
+        .map((qId, qIdx) => {
+          const q = questions[qId];
+          const ev = evalMap.get(`${cat}.${qId}`);
+          const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
+          const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#6b7f94";
+          const label = result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "—";
 
-      const qgBackgroundRow = q.background
-        ? `
+          const qgBackgroundRow = q.background
+            ? `
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
       <p>${esc(q.background)}</p></details>
     </td></tr>
   `
-        : "";
+            : "";
 
-      const qgExamplesRow = q.examples
-        ? `
+          const qgExamplesRow = q.examples
+            ? `
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Examples</summary>
       <table class="et">
-        ${(() => {
-          let ex = "";
-          for (const key of Object.keys(q.examples)) {
+        ${Object.keys(q.examples)
+          .map((key) => {
             const desc = (q.examples as Record<string, string>)[key];
-            ex += `<tr><td class="el">${key === "pass" ? "Pass" : key === "fail" ? "Fail" : key === "na" ? "N/A" : esc(key)}</td><td>${esc(desc)}</td></tr>`;
-          }
-          return ex;
-        })()}
+            return `<tr><td class="el">${key === "pass" ? "Pass" : key === "fail" ? "Fail" : key === "na" ? "N/A" : esc(key)}</td><td>${esc(desc)}</td></tr>`;
+          })
+          .join("")}
       </table></details>
     </td></tr>
   `
-        : "";
+            : "";
 
-      html += `
+          return `
     <tr>
       <td class="code">${getQGQuestionCode(cat, qIdx)}</td>
       <td><span class="gate-badge" style="background:${color}18;color:${color}">${label}</span></td>
@@ -915,10 +901,10 @@ function buildGateRows(rubric: RubricData, evalMap: Map<string, Evaluation>): st
     </tr>
     ${qgBackgroundRow}${qgExamplesRow}
   `;
-      qIdx++;
-    }
-  }
-  return html;
+        })
+        .join(""),
+    )
+    .join("");
 }
 
 function buildFinalizationSection(
@@ -928,10 +914,8 @@ function buildFinalizationSection(
 ): string {
   if (!finalization) return "";
 
-  let strengthsList = "";
-  for (const s of finalization.strengths) strengthsList += `<li>${esc(s)}</li>`;
-  let weaknessesList = "";
-  for (const w of finalization.weaknesses) weaknessesList += `<li>${esc(w)}</li>`;
+  const strengthsList = finalization.strengths.map((s) => `<li>${esc(s)}</li>`).join("");
+  const weaknessesList = finalization.weaknesses.map((w) => `<li>${esc(w)}</li>`).join("");
 
   return `
     <section class="finalization-section">
@@ -987,10 +971,9 @@ function buildUnlinkedSection(
       linkedIds.add(cid);
     }
   }
-  let unlinkedHtml = "";
-  for (const c of captures) {
-    if (linkedIds.has(c.id)) continue;
-    unlinkedHtml += `
+  const unlinkedHtml = captures
+    .filter((c) => !linkedIds.has(c.id))
+    .map((c) => `
         <div class="unlinked-item">
           <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
           <div class="unlinked-meta">
@@ -1000,10 +983,10 @@ function buildUnlinkedSection(
             ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
           </div>
         </div>
-      `;
-  }
+      `)
+    .join("");
 
-  if (unlinkedHtml.length === 0) return "";
+  if (!unlinkedHtml) return "";
 
   return `
     <section class="unlinked-section">
@@ -1014,13 +997,12 @@ function buildUnlinkedSection(
 }
 
 function buildToc(rubric: RubricData): string {
-  let html = "";
-  for (const p of PRINCIPLES) {
-    if (!(p.id in rubric.scoring_rubric)) continue;
-    const reportColor = REPORT_COLORS[p.id] ?? p.color;
-    html += `<a href="#category-${p.id}" class="toc-item" style="color:${reportColor}"><span class="toc-code">${p.code}</span> ${esc(PRINCIPLE_NAMES[p.id]!)}</a>`;
-  }
-  return html;
+  return PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
+    .map((p) => {
+      const reportColor = REPORT_COLORS[p.id] ?? p.color;
+      return `<a href="#category-${p.id}" class="toc-item" style="color:${reportColor}"><span class="toc-code">${p.code}</span> ${esc(PRINCIPLE_NAMES[p.id] ?? "")}</a>`;
+    })
+    .join("");
 }
 
 // ── Main report ────────────────────────────────────────────────────────
@@ -1044,14 +1026,12 @@ function buildNutritionLabelHtml(
   const logo = metadata.toolLogoUrl || metadata.faviconUrl;
 
   // Strengths & weaknesses
-  let strengthsHtml = "";
-  if (finalization?.strengths?.length) {
-    for (const s of finalization.strengths) strengthsHtml += `<li>${esc(s)}</li>`;
-  }
-  let weaknessesHtml = "";
-  if (finalization?.weaknesses?.length) {
-    for (const w of finalization.weaknesses) weaknessesHtml += `<li>${esc(w)}</li>`;
-  }
+  const strengthsHtml = finalization?.strengths?.length
+    ? finalization.strengths.map((s) => `<li>${esc(s)}</li>`).join("")
+    : "";
+  const weaknessesHtml = finalization?.weaknesses?.length
+    ? finalization.weaknesses.map((w) => `<li>${esc(w)}</li>`).join("")
+    : "";
   const swRow =
     strengthsHtml || weaknessesHtml
       ? `<div class="nutrition-divider-thin"></div>
@@ -1103,25 +1083,23 @@ function buildNutritionLabelHtml(
   </div>
 
   ${(() => {
-    const gr = qualityGateResults(evaluations, rubric, evalMap);
-    let items = "";
-    for (const g of gr) {
-      if (g.result !== "fail" && g.result !== "unsure") continue;
-      items +=
+    const items = qualityGateResults(evaluations, rubric, evalMap)
+      .filter((g) => g.result === "fail" || g.result === "unsure")
+      .map((g) =>
         '<div class="nutrition-gate-item">' +
         esc(g.label) +
         ': <span class="' +
         (g.result === "fail" ? "fail" : "unsure") +
         '">' +
         (g.result === "fail" ? "FAIL" : "UNSURE") +
-        "</span></div>";
-    }
-    if (items.length === 0) return "";
-    return (
-      '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gates-title">Quality Gate Issues</div>' +
-      items +
-      "</div>"
-    );
+        "</span></div>",
+      )
+      .join("");
+    return items
+      ? '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gates-title">Quality Gate Issues</div>' +
+          items +
+          "</div>"
+      : "";
   })()}
 
   <div class="nutrition-divider-thin"></div>
@@ -1129,13 +1107,11 @@ function buildNutritionLabelHtml(
   <div class="nutrition-principles">
     <table class="nutrition-principles-table">
       <tr>
-        ${(() => {
-          let cells = "";
-          for (const p of PRINCIPLES) {
-            if (!(p.id in rubric.scoring_rubric)) continue;
+        ${PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
+          .map((p) => {
             const reportColor = REPORT_COLORS[p.id] ?? p.color;
             const avg = principleAverage(p.id, evaluations, rubric, evalMap);
-            cells +=
+            return (
               '<td style="color:' +
               reportColor +
               '"><div class="nutrition-principle-code">' +
@@ -1144,10 +1120,10 @@ function buildNutritionLabelHtml(
               (PRINCIPLE_NAMES[p.id] ?? "") +
               "</div><div>" +
               scoreCircles(avg) +
-              "</div></td>";
-          }
-          return cells;
-        })()}
+              "</div></td>"
+            );
+          })
+          .join("")}
         <td class="nutrition-overall-cell" style="color:var(--magenta)">
           <div class="nutrition-overall-label">Overall</div>
           <div>${scoreCircles(scores.totalMax > 0 ? (scores.totalActual / scores.totalMax) * 3 : null)}</div>
