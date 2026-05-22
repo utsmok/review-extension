@@ -39,9 +39,10 @@ export function computeReportScores(
   evaluations: Evaluation[],
   rubric: RubricData,
   finalization: ReviewFinalization | null,
+  evalMap?: Map<string, Evaluation>,
 ): ReportScores {
-  const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
-  const gates = qualityGateResults(evaluations, rubric, evalMap);
+  const em = evalMap ?? new Map(evaluations.map((e) => [e.rubricId, e]));
+  const gates = qualityGateResults(evaluations, rubric, em);
   let allPassed = gates.length > 0;
   let anyFail = false;
   let answeredQGQuestions = 0;
@@ -60,7 +61,7 @@ export function computeReportScores(
 
   for (const p of PRINCIPLES) {
     if (!(p.id in rubric.scoring_rubric)) continue;
-    const scores = getCategoryScores(p.id, evaluations, rubric, evalMap);
+    const scores = getCategoryScores(p.id, evaluations, rubric, em);
     catScores.set(p.id, scores);
     let numSum = 0;
     let numCount = 0;
