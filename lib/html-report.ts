@@ -852,54 +852,52 @@ function buildGateRows(
   evalMap: Map<string, Evaluation>,
 ): string {
   // evalMap pre-built by caller
-  return Object.entries(rubric.quality_gate)
-    .map(([cat, questions]) =>
-      Object.entries(questions)
-        .map(([qId, q]) => {
-          const ev = evalMap.get(`${cat}.${qId}`);
-          const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
-          const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#6b7f94";
-          const label = result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "—";
+  let html = "";
+  for (const [cat, questions] of Object.entries(rubric.quality_gate)) {
+    for (const [qId, q] of Object.entries(questions)) {
+      const ev = evalMap.get(`${cat}.${qId}`);
+      const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
+      const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#6b7f94";
+      const label = result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "—";
 
-          const qgBackgroundRow = q.background
-            ? `
-        <tr class="sr"><td colspan="4" class="sc">
-          <details><summary class="ss">Background</summary>
-          <p>${esc(q.background)}</p></details>
-        </td></tr>
-      `
-            : "";
+      const qgBackgroundRow = q.background
+        ? `
+    <tr class="sr"><td colspan="4" class="sc">
+      <details><summary class="ss">Background</summary>
+      <p>${esc(q.background)}</p></details>
+    </td></tr>
+  `
+        : "";
 
-          const qgExamplesRow = q.examples
-            ? `
-        <tr class="sr"><td colspan="4" class="sc">
-          <details><summary class="ss">Examples</summary>
-          <table class="et">
-            ${(Object.entries(q.examples) as [string, string][])
-              .map(
-                ([key, desc]) => `
-              <tr><td class="el">${key === "pass" ? "Pass" : key === "fail" ? "Fail" : key === "na" ? "N/A" : esc(key)}</td><td>${esc(desc)}</td></tr>
-            `,
-              )
-              .join("")}
-          </table></details>
-        </td></tr>
-      `
-            : "";
+      const qgExamplesRow = q.examples
+        ? `
+    <tr class="sr"><td colspan="4" class="sc">
+      <details><summary class="ss">Examples</summary>
+      <table class="et">
+        ${(() => {
+          let ex = "";
+          for (const [key, desc] of Object.entries(q.examples) as [string, string][]) {
+            ex += `<tr><td class="el">${key === "pass" ? "Pass" : key === "fail" ? "Fail" : key === "na" ? "N/A" : esc(key)}</td><td>${esc(desc)}</td></tr>`;
+          }
+          return ex;
+        })()}
+      </table></details>
+    </td></tr>
+  `
+        : "";
 
-          return `
-        <tr>
-          <td class="code">${getQGQuestionCode(cat, Object.keys(questions).indexOf(qId))}</td>
-          <td><span class="gate-badge" style="background:${color}18;color:${color}">${label}</span></td>
-          <td>${esc(q.requirement)}</td>
-          <td class="notes">${esc(ev?.notes ?? "")}</td>
-        </tr>
-        ${qgBackgroundRow}${qgExamplesRow}
-      `;
-        })
-        .join(""),
-    )
-    .join("");
+      html += `
+    <tr>
+      <td class="code">${getQGQuestionCode(cat, Object.keys(questions).indexOf(qId))}</td>
+      <td><span class="gate-badge" style="background:${color}18;color:${color}">${label}</span></td>
+      <td>${esc(q.requirement)}</td>
+      <td class="notes">${esc(ev?.notes ?? "")}</td>
+    </tr>
+    ${qgBackgroundRow}${qgExamplesRow}
+  `;
+    }
+  }
+  return html;
 }
 
 function buildFinalizationSection(
