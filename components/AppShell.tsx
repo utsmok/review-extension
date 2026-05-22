@@ -1,4 +1,5 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { useRegistryStore } from "@/stores/registry";
 import ToastContainer from "./Toast";
 
 interface AppShellProps {
@@ -9,11 +10,68 @@ interface AppShellProps {
 
 type SaveStatus = "idle" | "saved" | "failed";
 
+function SetupBanner({ onDismiss, onOpenSettings }: { onDismiss: () => void; onOpenSettings: () => void }) {
+  return (
+    <div
+      data-testid="setup-banner"
+      className="bg-trust-magenta/10 border-b border-trust-magenta/20 px-ut-4 py-ut-2 flex items-center gap-2"
+    >
+      <svg
+        aria-label="Setup required"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="text-trust-magenta shrink-0"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 8v4" />
+        <path d="M12 16h.01" />
+      </svg>
+      <p className="text-ut-xs text-ut-body flex-1">
+        Set up your reviewer name to get started.{" "}
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          className="text-trust-magenta underline underline-offset-2 hover:text-ut-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue"
+        >
+          Open Settings
+        </button>
+      </p>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="text-ut-muted hover:text-ut-navy transition-colors p-0.5"
+        aria-label="Dismiss"
+      >
+        <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 6L6 18" />
+          <path d="M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 export default function AppShell({ children, onSettingsClick, showSettingsButton }: AppShellProps) {
   const [trustImgError, setTrustImgError] = useState(false);
   const [lisaImgError, setLisaImgError] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const reviewerName = useRegistryStore((s) => s.settings.reviewerName);
+  const bannerDismissed = useRegistryStore((s) => s.settings.setupBannerDismissed ?? false);
+  const updateSettings = useRegistryStore((s) => s.updateSettings);
+
+  const showSetupBanner = reviewerName === "" && !bannerDismissed;
+
+  const dismissBanner = useCallback(() => {
+    updateSettings({ setupBannerDismissed: true });
+  }, [updateSettings]);
 
   useEffect(() => {
     function onSuccess(_e: Event) {
@@ -83,6 +141,13 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
           </button>
         )}
       </header>
+
+      {showSetupBanner && (
+        <SetupBanner
+          onDismiss={dismissBanner}
+          onOpenSettings={onSettingsClick ?? (() => {})}
+        />
+      )}
 
       <main className="flex-1 min-h-0">{children}</main>
 

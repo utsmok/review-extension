@@ -5,6 +5,7 @@ export interface Settings {
   reviewerName: string;
   reviewerEmail: string;
   preferredRubric: string;
+  setupBannerDismissed?: boolean;
 }
 
 export interface SessionMetadata {

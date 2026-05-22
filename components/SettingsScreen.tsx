@@ -65,37 +65,6 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
             </label>
           </div>
         </section>
-
-        {/* ── Section: Data & Privacy ─────────────────────── */}
-        <section>
-          <h2 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-ut-1">
-            Data &amp; Privacy
-          </h2>
-          <p className="text-ut-xs text-ut-muted mb-ut-2">
-            All review data is stored locally in your browser. Nothing is sent to external servers.
-          </p>
-          <div className="space-y-ut-2">
-            <div className="flex items-center justify-between py-ut-1">
-              <div>
-                <p className="text-ut-xs text-ut-text">Storage</p>
-                <p className="text-ut-xs text-ut-muted">IndexedDB + localStorage</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Section: About ──────────────────────────────── */}
-        <section>
-          <h2 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-ut-1">
-            About
-          </h2>
-          <p className="text-ut-xs text-ut-muted mb-ut-2">
-            TRUST Review Extension for evaluating academic information tools.
-          </p>
-          <div className="text-ut-xs text-ut-muted space-y-0.5">
-            <p>LISA-EIS / University of Twente</p>
-          </div>
-        </section>
       </div>
     </div>
   );
