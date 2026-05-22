@@ -860,6 +860,7 @@ function buildGateRows(
   // evalMap pre-built by caller
   let html = "";
   for (const [cat, questions] of Object.entries(rubric.quality_gate)) {
+    let qIdx = 0;
     for (const [qId, q] of Object.entries(questions)) {
       const ev = evalMap.get(`${cat}.${qId}`);
       const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
@@ -894,13 +895,14 @@ function buildGateRows(
 
       html += `
     <tr>
-      <td class="code">${getQGQuestionCode(cat, Object.keys(questions).indexOf(qId))}</td>
+      <td class="code">${getQGQuestionCode(cat, qIdx)}</td>
       <td><span class="gate-badge" style="background:${color}18;color:${color}">${label}</span></td>
       <td>${esc(q.requirement)}</td>
       <td class="notes">${esc(ev?.notes ?? "")}</td>
     </tr>
     ${qgBackgroundRow}${qgExamplesRow}
   `;
+      qIdx++;
     }
   }
   return html;
