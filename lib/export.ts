@@ -49,9 +49,7 @@ const CSS_KEEP_VARS = new Set(["--magenta", "--muted", "--text", "--ff-heading"]
 export function minifyCss(css: string): string {
   // Vars used in HTML inline styles — must be kept in :root (see CSS_KEEP_VARS)
 
-  let result = css
-    .replace(/\/\*[\s\S]*?\*\//g, "") // remove block comments
-    .replace(/\/\/.*$/gm, ""); // remove line comments
+  let result = css.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, ""); // remove block + line comments
 
   // Extract all CSS variable definitions
   const vars = new Map<string, string>();
@@ -60,10 +58,8 @@ export function minifyCss(css: string): string {
     return "";
   });
 
-  // Resolve all var() references in CSS rules
-  for (const [name, value] of vars) {
-    result = result.replaceAll(`var(--${name})`, value);
-  }
+  // Resolve all var() references in a single pass
+  result = result.replace(/var\(--([a-z-]+)\)/g, (_, name) => vars.get(name) ?? `var(--${name})`);
 
   // Remove :root block (now empty after var extraction) — handles leftover semicolons
   result = result.replace(/:root\s*\{[^}]*\}/g, "");
