@@ -1,6 +1,5 @@
 import { PRINCIPLES } from "./principles";
 import {
-  getCategoryLabel,
   getQuestionCode,
   getQGQuestionCode,
   distributionBar,
@@ -821,7 +820,7 @@ function buildCategorySections(
             <div class="category-letter-name">${PRINCIPLE_NAMES[p.id] ?? ""}</div>
           </div>
           <div class="category-info">
-            <h2>${esc(getCategoryLabel(p.id).replace(/^.*?— /, ""))}</h2>
+            <h2>${esc(PRINCIPLE_NAMES[p.id]!)}</h2>
             <div class="category-meta">
               <span class="cat-score">${catTotal} / ${catMax}</span>
               <span class="cat-avg">avg ${avg}</span>
@@ -987,7 +986,7 @@ function buildToc(rubric: RubricData): string {
   for (const p of PRINCIPLES) {
     if (!(p.id in rubric.scoring_rubric)) continue;
     const reportColor = REPORT_COLORS[p.id] ?? p.color;
-    html += `<a href="#category-${p.id}" class="toc-item" style="color:${reportColor}"><span class="toc-code">${p.code}</span> ${esc(PRINCIPLE_NAMES[p.id] ?? getCategoryLabel(p.id).replace(/^.*?— /, ""))}</a>`;
+    html += `<a href="#category-${p.id}" class="toc-item" style="color:${reportColor}"><span class="toc-code">${p.code}</span> ${esc(PRINCIPLE_NAMES[p.id]!)}</a>`;
   }
   return html;
 }
