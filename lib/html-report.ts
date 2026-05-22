@@ -973,16 +973,16 @@ function buildUnlinkedSection(
   evaluations: Evaluation[],
   compressedScreenshots: Map<string, string>,
 ): string {
+  // Pre-compute set of linked capture IDs: O(evaluations × evidenceIds) once
+  const linkedIds = new Set<string>();
+  for (const e of evaluations) {
+    for (const cid of e.explicitEvidenceIds) {
+      linkedIds.add(cid);
+    }
+  }
   let unlinkedHtml = "";
   for (const c of captures) {
-    let linked = false;
-    for (const e of evaluations) {
-      if (e.explicitEvidenceIds.includes(c.id)) {
-        linked = true;
-        break;
-      }
-    }
-    if (linked) continue;
+    if (linkedIds.has(c.id)) continue;
     unlinkedHtml += `
         <div class="unlinked-item">
           <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
