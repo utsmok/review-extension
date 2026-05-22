@@ -94,8 +94,10 @@ export function qualityGateResults(
   const results: { id: string; label: string; result: "pass" | "fail" | "na" | "unsure" | null }[] =
     [];
   const em = evalMap ?? buildEvalMap(evaluations);
-  for (const [cat, questions] of Object.entries(rubric.quality_gate)) {
-    for (const [qId, q] of Object.entries(questions)) {
+  for (const cat of Object.keys(rubric.quality_gate)) {
+    const questions = rubric.quality_gate[cat];
+    for (const qId of Object.keys(questions)) {
+      const q = questions[qId];
       const ev = em.get(`${cat}.${qId}`);
       const score = ev?.score;
       const result: "pass" | "fail" | "na" | "unsure" | null =
