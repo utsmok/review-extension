@@ -948,18 +948,17 @@ function buildUnlinkedSection(
   evaluations: Evaluation[],
   compressedScreenshots: Map<string, string>,
 ): string {
-  const unlinked = captures.filter(
-    (c) => !evaluations.some((e) => e.explicitEvidenceIds.includes(c.id)),
-  );
-
-  if (unlinked.length === 0) return "";
-
-  return `
-    <section class="unlinked-section">
-      <h2>Additional Evidence</h2>
-      ${unlinked
-        .map(
-          (c) => `
+  let unlinkedHtml = "";
+  for (const c of captures) {
+    let linked = false;
+    for (const e of evaluations) {
+      if (e.explicitEvidenceIds.includes(c.id)) {
+        linked = true;
+        break;
+      }
+    }
+    if (linked) continue;
+    unlinkedHtml += `
         <div class="unlinked-item">
           <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
           <div class="unlinked-meta">
@@ -969,9 +968,15 @@ function buildUnlinkedSection(
             ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
           </div>
         </div>
-      `,
-        )
-        .join("")}
+      `;
+  }
+
+  if (unlinkedHtml.length === 0) return "";
+
+  return `
+    <section class="unlinked-section">
+      <h2>Additional Evidence</h2>
+      ${unlinkedHtml}
     </section>
   `;
 }
