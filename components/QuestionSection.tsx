@@ -272,10 +272,7 @@ export const QuestionRow = React.memo(function QuestionRow({
   let hasScore: boolean;
   if (isQG) {
     hasScore =
-      ev?.score === "pass" ||
-      ev?.score === "fail" ||
-      ev?.score === "na" ||
-      ev?.score === "unsure";
+      ev?.score === "pass" || ev?.score === "fail" || ev?.score === "na" || ev?.score === "unsure";
   } else {
     const sn = typeof ev?.score === "number" ? (ev.score as number) : -1;
     hasScore = sn >= 0 || ev?.score === "na" || ev?.score === "unsure";
@@ -421,9 +418,7 @@ export const QuestionRow = React.memo(function QuestionRow({
                       className="h-6 w-auto border border-ut-border"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-ut-xs font-bold truncate">
-                        {c.pageTitle || "Capture"}
-                      </p>
+                      <p className="text-ut-xs font-bold truncate">{c.pageTitle || "Capture"}</p>
                       <p className="text-ut-xs text-ut-muted truncate">
                         {new Date(c.timestamp).toLocaleString()}
                       </p>
@@ -594,11 +589,7 @@ export default function QuestionSection({
                     : null;
 
             return (
-              <details
-                key={qId}
-                className="question-details"
-                data-accent-key="control"
-              >
+              <details key={qId} className="question-details" data-accent-key="control">
                 <summary>
                   {gateResult && (
                     <span
@@ -619,7 +610,11 @@ export default function QuestionSection({
                 </summary>
                 <div className="question-body">
                   <p className="text-ut-xs text-ut-slate italic mt-ut-1">
-                    This gate is merged with the scoring rubric. Score it below in the Scoring Rubric section.
+                    This gate is merged with{" "}
+                    <strong>
+                      {code} ({question.title})
+                    </strong>{" "}
+                    in the Scoring Rubric. Score it there.
                     {gateResult === "pass" && " Currently: PASS (score > 0)."}
                     {gateResult === "fail" && " Currently: FAIL (score = 0)."}
                     {gateResult === "na" && " Currently: N/A."}

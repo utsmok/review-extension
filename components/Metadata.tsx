@@ -5,6 +5,8 @@ import { useTabNavigation } from "@/lib/contexts";
 
 import ConfirmDialog from "./ConfirmDialog";
 import ExportCompleteScreen from "./ExportCompleteScreen";
+import { captureForMetadataField } from "@/lib/capture";
+import { toastError } from "@/stores/toast";
 
 const DATA_SOURCE_OPTIONS = [
   "CrossRef",
@@ -71,6 +73,9 @@ export default function Metadata() {
     session,
     updateMetadata,
     captures,
+    addCapture,
+    updateCapture,
+    removeCapture,
     evaluations,
     finalization,
     exportAndClose,
@@ -84,6 +89,31 @@ export default function Metadata() {
   const [customSource, setCustomSource] = useState("");
   const [customMethod, setCustomMethod] = useState("");
   const [customDiscipline, setCustomDiscipline] = useState("");
+  const [logoCapturing, setLogoCapturing] = useState(false);
+  const [tcCapturing, setTcCapturing] = useState(false);
+  const handleCaptureLogo = async () => {
+    setLogoCapturing(true);
+    try {
+      const { capture, logoDataUrl } = await captureForMetadataField("toolLogoUrl");
+      addCapture(capture);
+      updateMetadata({ toolLogoUrl: logoDataUrl ?? capture.sourceUrl });
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : "Capture failed");
+    } finally {
+      setLogoCapturing(false);
+    }
+  };
+  const handleCaptureTc = async () => {
+    setTcCapturing(true);
+    try {
+      const { capture } = await captureForMetadataField("termsConditionsUrl");
+      addCapture(capture);
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : "Capture failed");
+    } finally {
+      setTcCapturing(false);
+    }
+  };
 
   if (!session) return null;
 
@@ -234,6 +264,19 @@ export default function Metadata() {
         Tool Details
       </h2>
 
+      <label className="flex flex-col gap-1">
+        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          Review Notes
+        </span>
+        <textarea
+          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text resize-y focus:outline-none focus:ring-2 focus:ring-ut-blue"
+          rows={3}
+          placeholder="General observations, context..."
+          value={session.notes ?? ""}
+          onChange={(e) => updateMetadata({ notes: e.target.value })}
+        />
+      </label>
+
       <label className="flex items-center gap-ut-2">
         <input
           type="checkbox"
@@ -275,17 +318,41 @@ export default function Metadata() {
         />
       </label>
 
-      <label className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1">
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
           Tool Logo URL
         </span>
-        <input
-          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
-          placeholder="https://... (leave empty to use favicon)"
-          value={session.toolLogoUrl ?? ""}
-          onChange={(e) => updateMetadata({ toolLogoUrl: e.target.value })}
-        />
-      </label>
+        {(() => {
+          const linkedCapture = captures.find(c => c.metadataField === "toolLogoUrl");
+          return (
+            <div className="meta-capture-panel">
+              {linkedCapture ? (
+                <div className="meta-capture-item">
+                  <a href={linkedCapture.sourceUrl} target="_blank" rel="noopener noreferrer">
+                    {linkedCapture.sourceUrl}
+                  </a>
+                  {session?.toolLogoUrl && (
+                    <img src={session.toolLogoUrl} alt="Logo" style={{width:24,height:24,objectFit:'contain'}} />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeCapture(linkedCapture.id)}
+                    style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',color:'var(--ut-red, red)',fontSize:13}}
+                    aria-label="Remove logo capture"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <p className="text-ut-xs text-ut-muted">No logo captured yet.</p>
+              )}
+              <div className="meta-capture-actions">
+                <button type="button" disabled={logoCapturing} onClick={handleCaptureLogo}>Capture Page</button>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
 
       <label className="flex flex-col gap-1">
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
@@ -311,17 +378,46 @@ export default function Metadata() {
         />
       </label>
 
-      <label className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1">
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Terms &amp; Conditions URL
+          Terms &amp; Conditions
         </span>
-        <input
-          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
-          placeholder="https://..."
-          value={session.termsConditionsUrl ?? ""}
-          onChange={(e) => updateMetadata({ termsConditionsUrl: e.target.value })}
-        />
-      </label>
+        {(() => {
+          const tcCaptures = captures.filter(c => c.metadataField === "termsConditionsUrl");
+          return (
+            <div className="meta-capture-panel">
+              {tcCaptures.length > 0 && (
+                <div className="meta-capture-linked">
+                  {tcCaptures.map(c => (
+                    <div key={c.id} className="meta-capture-item">
+                      <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer">
+                        {c.pageTitle || c.sourceUrl}
+                      </a>
+                      <input
+                        className="capture-notes-input"
+                        placeholder="Describe this evidence..."
+                        value={c.notes}
+                        onChange={(e) => updateCapture(c.id, { notes: e.target.value })}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeCapture(c.id)}
+                        style={{background:'none',border:'none',cursor:'pointer',color:'var(--ut-red, red)',fontSize:13}}
+                        aria-label="Remove evidence"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="meta-capture-actions">
+                <button type="button" disabled={tcCapturing} onClick={handleCaptureTc}>Capture Page</button>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
 
       {/* Data Sources pill selector */}
       <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
@@ -364,19 +460,6 @@ export default function Metadata() {
         </div>
         {renderCustomInput("Add custom discipline...", customDiscipline, setCustomDiscipline, addCustomDiscipline)}
       </fieldset>
-
-      <label className="flex flex-col gap-1">
-        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Review Notes
-        </span>
-        <textarea
-          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text resize-y focus:outline-none focus:ring-2 focus:ring-ut-blue"
-          rows={3}
-          placeholder="General observations, context..."
-          value={session.notes ?? ""}
-          onChange={(e) => updateMetadata({ notes: e.target.value })}
-        />
-      </label>
 
       {/* Review summary */}
       <div className="border-t-2 border-ut-border pt-ut-3 mt-1">

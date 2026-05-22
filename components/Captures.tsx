@@ -23,6 +23,7 @@ export default function Captures() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [viewCaptureId, setViewCaptureId] = useState<string | null>(null);
   const viewCapture = viewCaptureId ? (captures.find((c) => c.id === viewCaptureId) ?? null) : null;
 
@@ -60,6 +61,27 @@ export default function Captures() {
         {capturing ? "Capturing..." : "+ Quick Capture"}
       </button>
 
+      {captures.length > 0 && (
+        <div className="flex items-center gap-2 mb-1">
+          <button
+            type="button"
+            className={`text-ut-xs px-2 py-1 rounded ${viewMode === "grid" ? "bg-trust-magenta text-white" : "bg-ut-grey text-ut-text"}`}
+            onClick={() => setViewMode("grid")}
+            aria-label="Grid view"
+          >
+            Grid
+          </button>
+          <button
+            type="button"
+            className={`text-ut-xs px-2 py-1 rounded ${viewMode === "list" ? "bg-trust-magenta text-white" : "bg-ut-grey text-ut-text"}`}
+            onClick={() => setViewMode("list")}
+            aria-label="List view"
+          >
+            List
+          </button>
+        </div>
+      )}
+
       {captures.length === 0 && (
         <div className="flex flex-col items-center justify-center py-ut-8 text-center">
           <svg
@@ -84,7 +106,8 @@ export default function Captures() {
         </div>
       )}
 
-      {captures.length > 0 &&
+      {viewMode === "grid" &&
+        captures.length > 0 &&
         (() => {
           const reversed = [...captures].reverse();
           const displayed = showAll ? reversed : reversed.slice(0, 12);
@@ -309,6 +332,48 @@ export default function Captures() {
                 </button>
               )}
             </>
+          );
+        })()}
+
+      {viewMode === "list" &&
+        captures.length > 0 &&
+        (() => {
+          const reversed = [...captures].reverse();
+          return (
+            <div className="border border-ut-border rounded-ut-sm overflow-hidden">
+              {reversed.map((capture) => {
+                return (
+                  <div key={capture.id} className="captures-list-row">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="captures-list-url">{capture.sourceUrl}</div>
+                      {capture.pageTitle && (
+                        <div className="text-ut-xs text-ut-text">{capture.pageTitle}</div>
+                      )}
+                      {capture.metadataField && (
+                        <div className="text-ut-xs text-trust-magenta">
+                          →{" "}
+                          {capture.metadataField === "termsConditionsUrl"
+                            ? "Terms & Conditions"
+                            : capture.metadataField === "toolLogoUrl"
+                              ? "Tool Logo"
+                              : capture.metadataField}
+                        </div>
+                      )}
+                    </div>
+                    <div className="captures-list-meta">
+                      {new Date(capture.timestamp).toLocaleDateString()}
+                    </div>
+                    <button
+                      type="button"
+                      className="text-ut-xs text-ut-blue hover:underline"
+                      onClick={() => setViewCaptureId(capture.id)}
+                    >
+                      View
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           );
         })()}
       {deleteTarget && (

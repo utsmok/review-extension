@@ -53,6 +53,8 @@ export interface Capture {
   annotatedScreenshotBase64?: string;
   htmlContent: string;
   notes: string;
+  /** Metadata field this capture is evidence for (e.g. "termsConditionsUrl", "toolLogoUrl") */
+  metadataField?: string;
 }
 
 export type QualityGateScore = "pass" | "fail" | "na" | "unsure" | "";

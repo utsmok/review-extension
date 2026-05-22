@@ -60,8 +60,12 @@ async function archivePageHtml(): Promise<{ html: string; title: string }> {
   await Promise.allSettled([...cssFetches, ...importResolutions]);
 
   // 3. Strip scripts to prevent execution in archive
-  clone.querySelectorAll("script").forEach((el) => { el.remove(); });
-  clone.querySelectorAll("noscript").forEach((el) => { el.remove(); });
+  clone.querySelectorAll("script").forEach((el) => {
+    el.remove();
+  });
+  clone.querySelectorAll("noscript").forEach((el) => {
+    el.remove();
+  });
 
   // 4. Make relative URLs absolute so resources still load
   const makeAbsolute = (attr: string, selector: string) => {
@@ -175,8 +179,7 @@ export async function captureActiveTab(): Promise<Capture> {
   if (totalSize > MAX_CAPTURE_SIZE) {
     const overhead = capture.screenshotBase64.length;
     const htmlBudget = Math.max(0, MAX_CAPTURE_SIZE - overhead);
-    capture.htmlContent =
-      `${htmlContent.slice(0, htmlBudget)}\n<!-- TRUNCATED: page content exceeded size limit -->`;
+    capture.htmlContent = `${htmlContent.slice(0, htmlBudget)}\n<!-- TRUNCATED: page content exceeded size limit -->`;
   }
 
   return capture;
@@ -193,4 +196,90 @@ export async function captureCurrentPageInfo(): Promise<{
     title: tab.title ?? "",
     faviconUrl: tab.favIconUrl,
   };
+}
+
+/**
+ * Extract the best logo image URL from the active page.
+ * Looks for: apple-touch-icon, icon links, og:image, then <img> with "logo" in src/class/id.
+ */
+async function extractLogoFromPage(tabId: number): Promise<string | null> {
+  const [result] = await browser.scripting.executeScript({
+    target: { tabId },
+    func: () => {
+      // Priority 1: apple-touch-icon (usually highest quality)
+      const apple = document.querySelector(
+        'link[rel="apple-touch-icon"]',
+      ) as HTMLLinkElement | null;
+      if (apple?.href) return apple.href;
+
+      // Priority 2: icon with largest size
+      const icons = Array.from(
+        document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]'),
+      ) as HTMLLinkElement[];
+      let best: { href: string; size: number } | null = null;
+      for (const icon of icons) {
+        if (!icon.href) continue;
+        const sizes = icon.getAttribute("sizes") ?? "";
+        const match = sizes.match(/(\d+)x\d+/);
+        const size = match ? parseInt(match[1], 10) : 0;
+        if (!best || size > best.size) best = { href: icon.href, size };
+      }
+      if (best) return best.href;
+
+      // Priority 3: og:image meta tag
+      const og = document.querySelector('meta[property="og:image"]') as HTMLMetaElement | null;
+      if (og?.content) return og.content;
+
+      // Priority 4: <img> with "logo" in src, class, or id
+      const imgs = Array.from(document.querySelectorAll("img")) as HTMLImageElement[];
+      for (const img of imgs) {
+        const src = (img.src ?? "").toLowerCase();
+        const cls = (img.className ?? "").toLowerCase();
+        const id = (img.id ?? "").toLowerCase();
+        if (src.includes("logo") || cls.includes("logo") || id.includes("logo")) {
+          if (img.naturalWidth >= 16 && img.naturalHeight >= 16) return img.src;
+        }
+      }
+
+      return null;
+    },
+  });
+  const logoUrl = result?.result;
+  if (!logoUrl) return null;
+
+  // Fetch the image and convert to data URL
+  try {
+    const resp = await fetch(logoUrl);
+    const blob = await resp.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string | null);
+      reader.onerror = () => resolve(logoUrl); // fallback to URL
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return logoUrl; // fallback to raw URL if fetch fails
+  }
+}
+
+/**
+ * Capture the active tab and associate the result with a metadata field.
+ * For "toolLogoUrl", also extracts the best logo image from the page.
+ */
+export async function captureForMetadataField(field: string): Promise<{
+  capture: Capture;
+  logoDataUrl?: string;
+}> {
+  const capture = await captureActiveTab();
+  capture.metadataField = field;
+
+  let logoDataUrl: string | undefined;
+  if (field === "toolLogoUrl") {
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      logoDataUrl = (await extractLogoFromPage(tab.id)) ?? undefined;
+    }
+  }
+
+  return { capture, logoDataUrl };
 }

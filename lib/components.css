@@ -702,3 +702,189 @@
   position: absolute;
   inset: 0;
 }
+
+/* ── Quick action buttons in header ──────────────────────── */
+
+.quick-action-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: rgba(164, 51, 115, 0.08);
+  color: var(--trust-magenta, #a43373);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.quick-action-btn:hover {
+  background: var(--trust-magenta, #a43373);
+  color: #fff;
+  border-color: var(--trust-magenta, #a43373);
+}
+
+.quick-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quick-action-btn:focus-visible {
+  outline: 2px solid var(--ut-blue);
+  outline-offset: 2px;
+}
+
+/* Tooltip: title + description */
+.quick-action-btn::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: normal;
+  width: max-content;
+  max-width: 200px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: var(--ut-navy, #172033);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.4;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 100;
+}
+
+.quick-action-btn:hover::after {
+  opacity: 1;
+}
+
+/* ── Quick note overlay ──────────────────────────────────── */
+
+.quick-note-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--ut-offwhite, #f5f5f5);
+  border-bottom: 2px solid var(--trust-magenta, #a43373);
+  padding: 8px 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.quick-note-overlay textarea {
+  flex: 1;
+  border: 1px solid var(--ut-border);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 13px;
+  resize: none;
+  min-height: 32px;
+  max-height: 80px;
+  background: #fff;
+}
+
+.quick-note-overlay textarea:focus {
+  outline: 2px solid var(--ut-blue);
+  outline-offset: -1px;
+}
+
+/* ── Captures list view ──────────────────────────────────── */
+
+.captures-list-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--ut-border);
+  font-size: 13px;
+}
+
+.captures-list-row:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.captures-list-url {
+  font-family: monospace;
+  color: var(--ut-blue);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.captures-list-meta {
+  color: var(--ut-muted);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+/* ── Metadata capture panel (URL fields) ─────────────────── */
+
+.meta-capture-panel {
+  border: 1px solid var(--ut-border);
+  border-radius: 4px;
+  padding: 8px;
+  background: var(--ut-grey);
+}
+
+.meta-capture-linked {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.meta-capture-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: #fff;
+  border: 1px solid var(--ut-border);
+  font-size: 12px;
+}
+
+.meta-capture-item a {
+  color: var(--ut-blue);
+  font-family: monospace;
+  word-break: break-all;
+  font-size: 11px;
+}
+
+.meta-capture-item .capture-notes-input {
+  flex: 1;
+  border: 1px solid var(--ut-border);
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-size: 11px;
+  background: #fff;
+}
+
+.meta-capture-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.meta-capture-actions button {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--ut-border);
+  background: #fff;
+  cursor: pointer;
+  color: var(--ut-text);
+}
+
+.meta-capture-actions button:hover {
+  background: var(--ut-offwhite);
+}

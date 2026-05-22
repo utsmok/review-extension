@@ -27,6 +27,7 @@ interface SessionState {
   setEvaluation: (rubricId: string, patch: Partial<Evaluation>) => void;
   linkCaptureToRubric: (captureId: string, rubricId: string) => void;
   unlinkCaptureFromRubric: (captureId: string, rubricId: string) => void;
+  linkCaptureToMetadataField: (captureId: string, field: string) => void;
 
   setFinalization: (data: ReviewFinalization | null) => void;
 }
@@ -132,6 +133,11 @@ export const useSessionStore = create<SessionState>()((set) => ({
             }
           : e,
       ),
+    })),
+
+  linkCaptureToMetadataField: (captureId, field) =>
+    set((s) => ({
+      captures: s.captures.map((c) => (c.id === captureId ? { ...c, metadataField: field } : c)),
     })),
 
   setFinalization: (data) =>

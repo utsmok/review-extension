@@ -67,6 +67,7 @@ export function useActiveSession() {
   const setEvaluation = useSessionStore((s) => s.setEvaluation);
   const linkCaptureToRubric = useSessionStore((s) => s.linkCaptureToRubric);
   const unlinkCaptureFromRubric = useSessionStore((s) => s.unlinkCaptureFromRubric);
+  const linkCaptureToMetadataField = useSessionStore((s) => s.linkCaptureToMetadataField);
   const updateMetadata = useSessionStore((s) => s.updateMetadata);
   const setFinalization = useSessionStore((s) => s.setFinalization);
 
@@ -108,6 +109,7 @@ export function useActiveSession() {
     setEvaluation,
     linkCaptureToRubric,
     unlinkCaptureFromRubric,
+    linkCaptureToMetadataField,
     updateMetadata,
     setFinalization,
     closeSession,
