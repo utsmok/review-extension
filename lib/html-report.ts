@@ -686,25 +686,14 @@ async function compressScreenshot(dataUrl: string, maxWidth = 800, quality = 0.8
   }
 }
 
+const EMPTY_CIRCLE = '<span class="circle empty">&#9675;</span>';
+const FILLED_CIRCLE = '<span class="circle filled">&#9679;</span>';
+const ALL_EMPTY_CIRCLES = `<span class="circles">${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}</span>`;
+
 function scoreCircles(avg: number | null): string {
-  if (avg === null)
-    return (
-      '<span class="circles">' +
-      [0, 1, 2, 3].map(() => '<span class="circle empty">&#9675;</span>').join("") +
-      "</span>"
-    );
+  if (avg === null) return ALL_EMPTY_CIRCLES;
   const filled = avg < 1 ? 1 : avg < 2 ? 2 : avg < 3 ? 3 : 4;
-  return (
-    '<span class="circles">' +
-    [0, 1, 2, 3]
-      .map((i) =>
-        i < filled
-          ? '<span class="circle filled">&#9679;</span>'
-          : '<span class="circle empty">&#9675;</span>',
-      )
-      .join("") +
-    "</span>"
-  );
+  return `<span class="circles">${FILLED_CIRCLE.repeat(filled)}${EMPTY_CIRCLE.repeat(4 - filled)}</span>`;
 }
 
 // ── Section builders ───────────────────────────────────────────────────
