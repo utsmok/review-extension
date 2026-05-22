@@ -237,6 +237,18 @@ describe("exportSession", () => {
     expect(html).toContain("N/A");
   });
 
+  it("joins discipline array with semicolons in CSV", async () => {
+    const metadata = makeMetadata({ discipline: ["Physics", "Mathematics"] });
+    const blob = await exportSession(metadata, [], [], RUBRIC);
+    const files = await unzipToFiles(blob);
+    const csv = files.get("session_metadata.csv") as string;
+    expect(csv).toBeDefined();
+
+    const rows = parseCsv(csv);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].Discipline).toBe("Physics; Mathematics");
+  });
+
   it("includes review_conclusions.csv when finalization is provided", async () => {
     const finalization = {
       grade: "pass" as const,

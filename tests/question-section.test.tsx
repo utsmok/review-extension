@@ -525,3 +525,159 @@ describe("QuestionRow memo isolation", () => {
     expect((q1Textarea as HTMLTextAreaElement).value).toBe("important notes");
   });
 });
+// ---------------------------------------------------------------------------
+// Merged gate badge tests (§2e)
+//
+// Verify merged-gate scoring questions render correctly in the QG section
+// with pass/fail/na badges derived from their numeric score.
+// ---------------------------------------------------------------------------
+
+describe("merged gate badges (§2e)", () => {
+  beforeEach(() => {
+    resetStores();
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
+    resetStores();
+  });
+
+  /**
+   * Find a merged-gate <details> by its rubricId (e.g. "SE.data_handling").
+   * Merged gates don't have radio inputs — they render with a font-mono code
+   * span whose text starts with the category prefix (e.g. "SE2", "TC1").
+   */
+  function getMergedGateDetails(rubricId: string): HTMLDetailsElement {
+    const category = rubricId.split(".")[0];
+    const allDetails = document.querySelectorAll("details.question-details");
+    for (const d of allDetails) {
+      // Merged gates have no radio inputs but do have "(merged)" text
+      if (d.querySelector('input[type="radio"]')) continue;
+      if (!d.textContent?.includes("(merged)")) continue;
+      const codeSpan = d.querySelector("summary span.font-mono");
+      if (codeSpan?.textContent?.startsWith(category)) {
+        return d as HTMLDetailsElement;
+      }
+    }
+    throw new Error(`No merged gate details found for "${rubricId}"`);
+  }
+
+  /** Get all merged-gate <details> elements. */
+  function getAllMergedGateDetails(): HTMLDetailsElement[] {
+    const result: HTMLDetailsElement[] = [];
+    const allDetails = document.querySelectorAll("details.question-details");
+    for (const d of allDetails) {
+      if (!d.querySelector('input[type="radio"]') && d.textContent?.includes("(merged)")) {
+        result.push(d as HTMLDetailsElement);
+      }
+    }
+    return result;
+  }
+
+  it("shows Merged Gates header when QG section renders", () => {
+    seedAllEvaluations();
+    const props = stubProps();
+    render(
+      <AllProviders>
+        <QuestionSection section="quality_gate" {...props} />
+      </AllProviders>,
+    );
+
+    expect(document.body.textContent).toContain("Merged Gates");
+  });
+
+  it("shows pass badge (✓) for merged gate with score > 0", () => {
+    seedAllEvaluations({
+      "SE.data_handling": { score: 3 },
+    });
+    const props = stubProps();
+    render(
+      <AllProviders>
+        <QuestionSection section="quality_gate" {...props} />
+      </AllProviders>,
+    );
+
+    const details = getMergedGateDetails("SE.data_handling");
+    const badge = details.querySelector("summary span.rounded-full");
+    expect(badge).toBeTruthy();
+    expect(badge!.textContent).toBe("✓");
+    expect(badge!.className).toContain("bg-ut-green/20");
+    expect(badge!.className).toContain("text-ut-green");
+  });
+
+  it("shows fail badge (✗) for merged gate with score 0", () => {
+    seedAllEvaluations({
+      "TC.source_attribution_depth": { score: 0 },
+    });
+    const props = stubProps();
+    render(
+      <AllProviders>
+        <QuestionSection section="quality_gate" {...props} />
+      </AllProviders>,
+    );
+
+    const details = getMergedGateDetails("TC.source_attribution_depth");
+    const badge = details.querySelector("summary span.rounded-full");
+    expect(badge).toBeTruthy();
+    expect(badge!.textContent).toBe("✗");
+    expect(badge!.className).toContain("bg-red-200");
+    expect(badge!.className).toContain("text-red-700");
+  });
+
+  it("shows na badge (—) for merged gate with score 'na'", () => {
+    seedAllEvaluations({
+      "SE.data_handling": { score: "na" },
+    });
+    const props = stubProps();
+    render(
+      <AllProviders>
+        <QuestionSection section="quality_gate" {...props} />
+      </AllProviders>,
+    );
+
+    const details = getMergedGateDetails("SE.data_handling");
+    const badge = details.querySelector("summary span.rounded-full");
+    expect(badge).toBeTruthy();
+    expect(badge!.textContent).toBe("—");
+    expect(badge!.className).toContain("bg-ut-grey");
+    expect(badge!.className).toContain("text-ut-slate");
+  });
+
+  it("shows no badge for unanswered merged gate", () => {
+    // Seed all but leave merged gate evaluations at default (score: "")
+    seedAllEvaluations();
+    const props = stubProps();
+    render(
+      <AllProviders>
+        <QuestionSection section="quality_gate" {...props} />
+      </AllProviders>,
+    );
+
+    // The merged gate details exist but should have no rounded-full badge
+    const seDetails = getMergedGateDetails("SE.data_handling");
+    const seBadge = seDetails.querySelector("summary span.rounded-full");
+    expect(seBadge).toBeNull();
+
+    const tcDetails = getMergedGateDetails("TC.source_attribution_depth");
+    const tcBadge = tcDetails.querySelector("summary span.rounded-full");
+    expect(tcBadge).toBeNull();
+  });
+
+  it("shows (merged) label on merged gate entries", () => {
+    seedAllEvaluations();
+    const props = stubProps();
+    render(
+      <AllProviders>
+        <QuestionSection section="quality_gate" {...props} />
+      </AllProviders>,
+    );
+
+    // Both merged gates should have "(merged)" labels
+    const seDetails = getMergedGateDetails("SE.data_handling");
+    expect(seDetails.textContent).toContain("(merged)");
+
+    const tcDetails = getMergedGateDetails("TC.source_attribution_depth");
+    expect(tcDetails.textContent).toContain("(merged)");
+  });
+});

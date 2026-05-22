@@ -12,12 +12,7 @@ import {
 import { RUBRIC, makeEvaluation } from "@/tests/fixtures";
 import type { Evaluation, EvaluationScore } from "@/lib/types";
 
-const QG_IDS = [
-  "privacy_and_security.data_privacy",
-  "privacy_and_security.training_policy",
-  "traceability.citation_mechanism",
-  "accessibility.compliance",
-];
+const QG_IDS = ["privacy_and_security.training_policy", "accessibility.compliance"];
 
 const SCORING_IDS = [
   "TR.data_source_clarity",
