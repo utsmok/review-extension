@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -uo pipefail
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" || exit 1
 
 # Time the full benchmark run
 start_ms=$(date +%s%3N)
@@ -24,6 +24,7 @@ echo "METRIC bench_duration_ms=${duration_ms}"
 # Usage: extract_mean <section_keyword> <bench_name_keyword>
 # Finds the section header, then the first data row matching bench_name after it.
 tmp=$(mktemp)
+trap 'rm -f "$tmp"' EXIT
 echo "$output" > "$tmp"
 
 extract_mean() {
@@ -41,7 +42,7 @@ extract_mean() {
   local abs_line=$(( sec_line + target_line - 1 ))
   # Extract the 4th decimal number from that line (mean = hz, min, max, mean)
   local val
-  val=$(sed -n "${abs_line}p" "$tmp" | grep -oP '[\d,]+\.[\d]+' | tr -d ',' | sed -n '4p')
+  val=$(sed -n "${abs_line}p" "$tmp" | grep -oE '[0-9,]+\.[0-9]+' | tr -d ',' | sed -n '4p')
   [ -n "$val" ] && echo "$val"
 }
 
@@ -60,4 +61,4 @@ val=$(extract_mean "minifyCss" "large stylesheet")
 val=$(extract_mean "computeReportScores" "with finalization")
 [ -n "$val" ] && echo "METRIC compute_scores_ms=${val}"
 
-rm -f "$tmp"
+# tmp cleaned up by EXIT trap

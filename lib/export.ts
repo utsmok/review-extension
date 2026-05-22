@@ -33,7 +33,7 @@ export function downloadBlob(blob: Blob, filename: string): void {
 
 // ── Pre-compiled regex patterns (avoid per-call RegExp allocation) ──
 const HTML_COMMENT_OR_TAG =
-  /<!--[\s\S]*?-->|<\/(?:li|dt|dd|p|tr|td|th|thead|tbody|tfoot|colgroup|option|optgroup)>/g;
+  /<!--[\s\S]*?-->|<\/(?:li|dt|dd|p|tr|td|th|thead|tbody|tfoot|colgroup|option|optgroup)>/gi;
 const HTML_WS_COLLAPSE = /\s+/g;
 const HTML_SPACE_BEFORE_TAG = / (?=<|\/>)/g;
 

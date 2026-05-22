@@ -112,7 +112,11 @@ async function nodeConvert(
     const nh = Math.round(h * scale);
     // Pre-compute source coordinates to eliminate divisions from inner loop
     const nd = new Uint8Array(nw * nh * 4);
-    const src32 = new Uint32Array(png.data.buffer, png.data.byteOffset, png.data.length >>> 2);
+    // Pooled Buffers may have non-4-byte-aligned byteOffset; copy to aligned view if needed
+    const srcBytes = png.data.byteOffset % 4 === 0
+      ? png.data
+      : new Uint8Array(png.data);
+    const src32 = new Uint32Array(srcBytes.buffer, srcBytes.byteOffset, srcBytes.length >>> 2);
     const dst32 = new Uint32Array(nd.buffer, nd.byteOffset, nd.length >>> 2);
     const colMap = new Int32Array(nw);
     for (let x = 0; x < nw; x++) colMap[x] = Math.round(x / scale);
