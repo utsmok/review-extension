@@ -866,11 +866,7 @@ function buildCategorySections(
   return resultHtml;
 }
 
-function buildGateRows(
-  evaluations: Evaluation[],
-  rubric: RubricData,
-  evalMap: Map<string, Evaluation>,
-): string {
+function buildGateRows(rubric: RubricData, evalMap: Map<string, Evaluation>): string {
   // evalMap pre-built by caller
   let html = "";
   for (const cat of Object.keys(rubric.quality_gate)) {
@@ -1231,7 +1227,7 @@ export async function buildHtmlReport(
   const scores = computeReportScores(evaluations, rubric, finalization, evalMap);
 
   // Build section parts
-  const gateRows = buildGateRows(evaluations, rubric, evalMap);
+  const gateRows = buildGateRows(rubric, evalMap);
   const categorySections = buildCategorySections(
     captures,
     evaluations,
