@@ -635,12 +635,9 @@ export const REPORT_CSS = `
 // ── Utilities ──────────────────────────────────────────────────────────
 
 /** HTML-escape a string for safe embedding in templates. */
+const ESC_MAP: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
 function esc(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return s.replace(/[&<>"]/g, (c) => ESC_MAP[c]);
 }
 
 /** Validate URL starts with http:// or https:// */
