@@ -39,7 +39,7 @@ export function minifyHtml(html: string): string {
       "",
     )
     .replace(/\s+/g, " ")
-    .replace(/ (<|\/>)/g, "$1")
+    .replace(/ (?=<|\/>)/g, "")
     .trim();
 }
 
