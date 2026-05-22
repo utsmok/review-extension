@@ -128,11 +128,16 @@ export function getCategoryScores(
   return scores;
 }
 
+const SCORE_COLORS: Record<number, string> = {
+  0: "#c60c30",
+  1: "#ea580c",
+  2: "#0e7490",
+  3: "#4a8355",
+};
 export function scoreColor(s: number | "na" | "unsure" | undefined): string {
   if (s === "na" || s === undefined) return "#4c5e74";
   if (s === "unsure") return "#5a6e82";
-  const colors: Record<number, string> = { 0: "#c60c30", 1: "#ea580c", 2: "#0e7490", 3: "#4a8355" };
-  return colors[s] ?? "#4c5e74";
+  return SCORE_COLORS[s] ?? "#4c5e74";
 }
 
 export function distributionBar(scores: (number | "na" | "unsure" | "" | undefined)[]): string {
