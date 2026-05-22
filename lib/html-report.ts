@@ -660,8 +660,8 @@ function safeLink(url: string, attrs: string = ""): string {
 const pad2 = (n: number) => String(n).padStart(2, "0");
 /** Format date consistently as YYYY-MM-DD HH:mm */
 function formatDate(isoString: string): string {
-  const d = new Date(isoString);
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  // ISO 8601: "YYYY-MM-DDTHH:mm:..." — slice directly, no Date construction
+  return `${isoString.slice(0, 10)} ${isoString.slice(11, 16)}`;
 }
 
 /** Resize and compress a base64 data-URL image. Returns original if resize fails. */
