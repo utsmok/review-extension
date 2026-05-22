@@ -637,6 +637,8 @@ export const REPORT_CSS = `
 /** HTML-escape a string for safe embedding in templates. */
 const ESC_MAP: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
 function esc(s: string): string {
+  if (!s || (s.indexOf("&") < 0 && s.indexOf("<") < 0 && s.indexOf(">") < 0 && s.indexOf('"') < 0))
+    return s;
   return s.replace(/[&<>"]/g, (c) => ESC_MAP[c]);
 }
 
