@@ -706,6 +706,8 @@ function buildCategorySections(
   scores: ReportScores,
   evalMap: Map<string, Evaluation>,
 ): string {
+  // Pre-compute capture ID → capture map for O(1) lookups
+  const captureMap = new Map(captures.map((c) => [c.id, c]));
   // Pre-compute evidence count per principle: O(captures × evaluations) once instead of per principle
   const evidenceByPrinciple = new Map<string, Set<string>>();
   for (const e of evaluations) {
@@ -765,11 +767,13 @@ function buildCategorySections(
 
       const isWeakEvidence = score >= 0 && score <= 1;
       let evidenceImgs = "";
-      for (const c of captures) {
-        if (!ev?.explicitEvidenceIds.includes(c.id)) continue;
-        evidenceImgs += `
+      if (ev) {
+        for (const cid of ev.explicitEvidenceIds) {
+          const c = captureMap.get(cid);
+          if (!c) continue;
+          evidenceImgs += `
         <div class="evidence-item${isWeakEvidence ? " evidence-weak" : ""}">
-          <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
+          <img src="${compressedScreenshots.get(cid) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
           <div class="evidence-meta">
             <strong>${esc(c.pageTitle || "Capture")}</strong>
             <span class="evidence-time">${formatDate(c.timestamp)}</span>
@@ -777,6 +781,7 @@ function buildCategorySections(
           </div>
         </div>
       `;
+        }
       }
 
       const backgroundRow = levels.background
