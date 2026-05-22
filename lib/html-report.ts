@@ -1097,22 +1097,25 @@ function buildNutritionLabelHtml(
   <div class="nutrition-principles">
     <table class="nutrition-principles-table">
       <tr>
-        ${PRINCIPLES.map((p) => {
-          if (!(p.id in rubric.scoring_rubric)) return "";
-          const reportColor = REPORT_COLORS[p.id] ?? p.color;
-          const avg = principleAverage(p.id, evaluations, rubric);
-          return (
-            '<td style="color:' +
-            reportColor +
-            '"><div class="nutrition-principle-code">' +
-            p.code +
-            '</div><div class="nutrition-principle-name">' +
-            (PRINCIPLE_NAMES[p.id] ?? "") +
-            "</div><div>" +
-            scoreCircles(avg) +
-            "</div></td>"
-          );
-        }).join("")}
+        ${(() => {
+          let cells = "";
+          for (const p of PRINCIPLES) {
+            if (!(p.id in rubric.scoring_rubric)) continue;
+            const reportColor = REPORT_COLORS[p.id] ?? p.color;
+            const avg = principleAverage(p.id, evaluations, rubric);
+            cells +=
+              '<td style="color:' +
+              reportColor +
+              '"><div class="nutrition-principle-code">' +
+              p.code +
+              '</div><div class="nutrition-principle-name">' +
+              (PRINCIPLE_NAMES[p.id] ?? "") +
+              "</div><div>" +
+              scoreCircles(avg) +
+              "</div></td>";
+          }
+          return cells;
+        })()}
         <td class="nutrition-overall-cell" style="color:var(--magenta)">
           <div class="nutrition-overall-label">Overall</div>
           <div>${scoreCircles(scores.totalMax > 0 ? (scores.totalActual / scores.totalMax) * 3 : null)}</div>
