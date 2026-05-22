@@ -704,8 +704,9 @@ function buildCategorySections(
   rubric: RubricData,
   compressedScreenshots: Map<string, string>,
   scores: ReportScores,
+  evalMap: Map<string, Evaluation>,
 ): string {
-  const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
+  // evalMap pre-built by caller
   return PRINCIPLES.map((p, sectionIdx) => {
     if (!(p.id in rubric.scoring_rubric)) return "";
     const reportColor = REPORT_COLORS[p.id] ?? p.color;
@@ -845,8 +846,12 @@ function buildCategorySections(
   }).join("");
 }
 
-function buildGateRows(evaluations: Evaluation[], rubric: RubricData): string {
-  const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
+function buildGateRows(
+  evaluations: Evaluation[],
+  rubric: RubricData,
+  evalMap: Map<string, Evaluation>,
+): string {
+  // evalMap pre-built by caller
   return Object.entries(rubric.quality_gate)
     .map(([cat, questions]) =>
       Object.entries(questions)
@@ -1005,6 +1010,7 @@ function buildNutritionLabelHtml(
   TRUST_LOGO: string,
   LISA_EIS_LOGO: string,
   UT_LOGO: string,
+  evalMap: Map<string, Evaluation>,
 ): string {
   const date = new Date(metadata.startTime).toISOString().split("T")[0];
   const toolUrl = esc(metadata.toolUrl);
@@ -1071,7 +1077,7 @@ function buildNutritionLabelHtml(
   </div>
 
   ${(() => {
-    const gr = qualityGateResults(evaluations, rubric);
+    const gr = qualityGateResults(evaluations, rubric, evalMap);
     let items = "";
     for (const g of gr) {
       if (g.result !== "fail" && g.result !== "unsure") continue;
@@ -1102,7 +1108,7 @@ function buildNutritionLabelHtml(
           for (const p of PRINCIPLES) {
             if (!(p.id in rubric.scoring_rubric)) continue;
             const reportColor = REPORT_COLORS[p.id] ?? p.color;
-            const avg = principleAverage(p.id, evaluations, rubric);
+            const avg = principleAverage(p.id, evaluations, rubric, evalMap);
             cells +=
               '<td style="color:' +
               reportColor +
@@ -1147,6 +1153,7 @@ export async function buildNutritionLabel(
   if (!_logos) _logos = await import("./logos");
   const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = _logos;
   const scores = computeReportScores(evaluations, rubric, finalization);
+  const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
   const labelHtml = buildNutritionLabelHtml(
     metadata,
     evaluations,
@@ -1156,6 +1163,7 @@ export async function buildNutritionLabel(
     TRUST_LOGO,
     LISA_EIS_LOGO,
     UT_LOGO,
+    evalMap,
   );
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1190,15 +1198,17 @@ export async function buildHtmlReport(
   );
 
   const scores = computeReportScores(evaluations, rubric, finalization);
+  const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
 
   // Build section parts
-  const gateRows = buildGateRows(evaluations, rubric);
+  const gateRows = buildGateRows(evaluations, rubric, evalMap);
   const categorySections = buildCategorySections(
     captures,
     evaluations,
     rubric,
     compressedScreenshots,
     scores,
+    evalMap,
   );
   const finalizationSection = buildFinalizationSection(
     finalization,
@@ -1221,7 +1231,7 @@ export async function buildHtmlReport(
 
 
 
-${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, scores, TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO)}
+${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, scores, TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO, evalMap)}
 
 <!-- Full Report -->
 

@@ -91,16 +91,22 @@ export function getLinkedRubricIdsForCapture(
 
 // ── Scoring functions (merged from scoring.ts) ─────────────────────────
 
+type EvalMap = Map<string, Evaluation>;
+function buildEvalMap(evaluations: Evaluation[]): EvalMap {
+  return new Map(evaluations.map((e) => [e.rubricId, e]));
+}
+
 export function qualityGateResults(
   evaluations: Evaluation[],
   rubric: RubricData,
+  evalMap?: EvalMap,
 ): { id: string; label: string; result: "pass" | "fail" | "na" | "unsure" | null }[] {
   const results: { id: string; label: string; result: "pass" | "fail" | "na" | "unsure" | null }[] =
     [];
-  const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
+  const em = evalMap ?? buildEvalMap(evaluations);
   for (const [cat, questions] of Object.entries(rubric.quality_gate)) {
     for (const [qId, q] of Object.entries(questions)) {
-      const ev = evalMap.get(`${cat}.${qId}`);
+      const ev = em.get(`${cat}.${qId}`);
       const score = ev?.score;
       const result: "pass" | "fail" | "na" | "unsure" | null =
         score === "pass"
@@ -122,13 +128,14 @@ export function getCategoryScores(
   categoryId: string,
   evaluations: Evaluation[],
   rubric: RubricData,
+  evalMap?: EvalMap,
 ): (number | "na" | "unsure" | "" | undefined)[] {
   const questions = rubric.scoring_rubric[categoryId];
   if (!questions) return [];
   const scores: (number | "na" | "unsure" | "" | undefined)[] = [];
-  const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
+  const em = evalMap ?? buildEvalMap(evaluations);
   for (const qId of Object.keys(questions)) {
-    const ev = evalMap.get(`${categoryId}.${qId}`);
+    const ev = em.get(`${categoryId}.${qId}`);
     const s = ev?.score;
     scores.push(typeof s === "number" || s === "na" || s === "unsure" || s === "" ? s : undefined);
   }
@@ -169,14 +176,15 @@ export function principleAverage(
   categoryId: string,
   evaluations: Evaluation[],
   rubric: RubricData,
+  evalMap?: EvalMap,
 ): number | null {
   const questions = rubric.scoring_rubric[categoryId];
   if (!questions) return null;
   let sum = 0;
   let count = 0;
-  const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
+  const em = evalMap ?? buildEvalMap(evaluations);
   for (const qId of Object.keys(questions)) {
-    const ev = evalMap.get(`${categoryId}.${qId}`);
+    const ev = em.get(`${categoryId}.${qId}`);
     if (typeof ev?.score === "number") {
       sum += ev.score;
       count++;
