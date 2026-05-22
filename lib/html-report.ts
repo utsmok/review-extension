@@ -749,7 +749,8 @@ function buildCategorySections(
 
     let rows = "";
     let qIdx = 0;
-    for (const [qId, levels] of Object.entries(questions)) {
+    for (const qId of Object.keys(questions)) {
+      const levels = questions[qId];
       const rubricId = `${p.id}.${qId}`;
       const ev = evalMap.get(rubricId);
       const isNa = ev?.score === "na";
@@ -872,9 +873,11 @@ function buildGateRows(
 ): string {
   // evalMap pre-built by caller
   let html = "";
-  for (const [cat, questions] of Object.entries(rubric.quality_gate)) {
+  for (const cat of Object.keys(rubric.quality_gate)) {
+    const questions = rubric.quality_gate[cat];
     let qIdx = 0;
-    for (const [qId, q] of Object.entries(questions)) {
+    for (const qId of Object.keys(questions)) {
+      const q = questions[qId];
       const ev = evalMap.get(`${cat}.${qId}`);
       const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
       const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#6b7f94";
