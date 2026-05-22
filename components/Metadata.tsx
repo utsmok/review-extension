@@ -8,6 +8,7 @@ import ExportCompleteScreen from "./ExportCompleteScreen";
 
 const DATA_SOURCE_OPTIONS = [
   "CrossRef",
+  "OpenAlex",
   "OpenCitations",
   "DataCite",
   "Scopus",
@@ -17,7 +18,6 @@ const DATA_SOURCE_OPTIONS = [
   "Google Scholar",
   "IEEE Xplore",
   "JSTOR",
-  "Other",
 ] as const;
 
 const SEARCH_METHOD_OPTIONS = [
@@ -27,8 +27,42 @@ const SEARCH_METHOD_OPTIONS = [
   "Natural language",
   "Citation chaining",
   "Faceted filtering",
-  "Other",
 ] as const;
+
+const DISCIPLINE_OPTIONS = [
+  "Agricultural and Biological Sciences",
+  "Arts and Humanities",
+  "Biochemistry Genetics and Molecular Biology",
+  "Business Management and Accounting",
+  "Chemical Engineering",
+  "Chemistry",
+  "Computer Science",
+  "Decision Sciences",
+  "Dentistry",
+  "Earth and Planetary Sciences",
+  "Economics Econometrics and Finance",
+  "Energy",
+  "Engineering",
+  "Environmental Science",
+  "Health Professions",
+  "Immunology and Microbiology",
+  "Materials Science",
+  "Mathematics",
+  "Medicine",
+  "Neuroscience",
+  "Nursing",
+  "Pharmacology Toxicology and Pharmaceutics",
+  "Physics and Astronomy",
+  "Psychology",
+  "Social Sciences",
+  "Veterinary",
+] as const;
+
+/** Derive custom entries: those in the value array that aren't predefined */
+function getCustom<T extends string>(predefined: readonly T[], values: string[]): string[] {
+  const set = new Set<string>(predefined);
+  return values.filter((v) => !set.has(v));
+}
 
 export default function Metadata() {
   const { rubric } = useRubric();
@@ -49,6 +83,7 @@ export default function Metadata() {
   const [exportFilename, setExportFilename] = useState("");
   const [customSource, setCustomSource] = useState("");
   const [customMethod, setCustomMethod] = useState("");
+  const [customDiscipline, setCustomDiscipline] = useState("");
 
   if (!session) return null;
 
@@ -85,6 +120,113 @@ export default function Metadata() {
       />
     );
   }
+
+  // --- Pill field helpers ---
+
+  const currentSources = session.dataSources ?? [];
+  const customSources = getCustom(DATA_SOURCE_OPTIONS, currentSources);
+
+  const togglePredefinedSource = (opt: string) => {
+    const next = currentSources.includes(opt)
+      ? currentSources.filter((v) => v !== opt)
+      : [...currentSources, opt];
+    updateMetadata({ dataSources: next });
+  };
+
+  const removeCustomSource = (val: string) => {
+    updateMetadata({ dataSources: currentSources.filter((v) => v !== val) });
+  };
+
+  const addCustomSource = () => {
+    const val = customSource.trim();
+    if (val && !currentSources.includes(val)) {
+      updateMetadata({ dataSources: [...currentSources, val] });
+      setCustomSource("");
+    }
+  };
+
+  const currentMethods = session.searchMethods ?? [];
+  const customMethods = getCustom(SEARCH_METHOD_OPTIONS, currentMethods);
+
+  const togglePredefinedMethod = (opt: string) => {
+    const next = currentMethods.includes(opt)
+      ? currentMethods.filter((v) => v !== opt)
+      : [...currentMethods, opt];
+    updateMetadata({ searchMethods: next });
+  };
+
+  const removeCustomMethod = (val: string) => {
+    updateMetadata({ searchMethods: currentMethods.filter((v) => v !== val) });
+  };
+
+  const addCustomMethod = () => {
+    const val = customMethod.trim();
+    if (val && !currentMethods.includes(val)) {
+      updateMetadata({ searchMethods: [...currentMethods, val] });
+      setCustomMethod("");
+    }
+  };
+
+  const currentDisciplines: string[] = Array.isArray(session.discipline) ? session.discipline : [];
+  const customDisciplines = getCustom(DISCIPLINE_OPTIONS, currentDisciplines);
+
+  const togglePredefinedDiscipline = (opt: string) => {
+    const next = currentDisciplines.includes(opt)
+      ? currentDisciplines.filter((v) => v !== opt)
+      : [...currentDisciplines, opt];
+    updateMetadata({ discipline: next });
+  };
+
+  const removeCustomDiscipline = (val: string) => {
+    updateMetadata({ discipline: currentDisciplines.filter((v) => v !== val) });
+  };
+
+  const addCustomDiscipline = () => {
+    const val = customDiscipline.trim();
+    if (val && !currentDisciplines.includes(val)) {
+      updateMetadata({ discipline: [...currentDisciplines, val] });
+      setCustomDiscipline("");
+    }
+  };
+
+  // --- Reusable pill renderer ---
+  const renderPill = (
+    label: string,
+    isSelected: boolean,
+    onClick: () => void,
+    _isCustom: boolean,
+  ) => (
+    <button
+      key={label}
+      type="button"
+      className={`text-ut-xs px-ut-2 py-ut-1 border rounded-ut-sm transition-colors ${isSelected ? "bg-trust-magenta text-white border-trust-magenta" : "border-ut-border text-ut-muted hover:border-ut-slate"}`}
+      onClick={onClick}
+    >
+      {label}
+    </button>
+  );
+
+  const renderCustomInput = (
+    placeholder: string,
+    value: string,
+    onChange: (v: string) => void,
+    onAdd: () => void,
+  ) => (
+    <div className="flex gap-ut-1">
+      <input
+        className="flex-1 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-xs text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            onAdd();
+          }
+        }}
+      />
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-ut-3 p-ut-4">
@@ -181,103 +323,47 @@ export default function Metadata() {
         />
       </label>
 
-      <label className="flex flex-col gap-1">
-        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Data Sources
-        </span>
+      {/* Data Sources pill selector */}
+      <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
+        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">Data Sources</legend>
         <div className="flex flex-wrap gap-ut-1 mb-ut-1">
-          {DATA_SOURCE_OPTIONS.map((opt) => {
-            const isSelected = (session.dataSources ?? []).includes(opt);
-            return (
-              <button
-                key={opt}
-                type="button"
-                className={`text-ut-xs px-ut-2 py-ut-1 border rounded-ut-sm transition-colors ${isSelected ? "bg-trust-magenta text-white border-trust-magenta" : "border-ut-border text-ut-muted hover:border-ut-slate"}`}
-                onClick={() => {
-                  const current = session.dataSources ?? [];
-                  const next = isSelected ? current.filter((v) => v !== opt) : [...current, opt];
-                  updateMetadata({ dataSources: next });
-                }}
-              >
-                {opt}
-              </button>
-            );
-          })}
+          {DATA_SOURCE_OPTIONS.map((opt) =>
+            renderPill(opt, currentSources.includes(opt), () => togglePredefinedSource(opt), false),
+          )}
+          {customSources.map((opt) =>
+            renderPill(opt, true, () => removeCustomSource(opt), true),
+          )}
         </div>
-        <div className="flex gap-ut-1">
-          <input
-            className="flex-1 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-xs text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
-            placeholder="Add custom source..."
-            value={customSource}
-            onChange={(e) => setCustomSource(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                const val = customSource.trim();
-                if (val && !(session.dataSources ?? []).includes(val)) {
-                  updateMetadata({ dataSources: [...(session.dataSources ?? []), val] });
-                  setCustomSource("");
-                }
-              }
-            }}
-          />
-        </div>
-      </label>
+        {renderCustomInput("Add custom source...", customSource, setCustomSource, addCustomSource)}
+      </fieldset>
 
-      <label className="flex flex-col gap-1">
-        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Search Methods
-        </span>
+      {/* Search Methods pill selector */}
+      <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
+        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">Search Methods</legend>
         <div className="flex flex-wrap gap-ut-1 mb-ut-1">
-          {SEARCH_METHOD_OPTIONS.map((opt) => {
-            const isSelected = (session.searchMethods ?? []).includes(opt);
-            return (
-              <button
-                key={opt}
-                type="button"
-                className={`text-ut-xs px-ut-2 py-ut-1 border rounded-ut-sm transition-colors ${isSelected ? "bg-trust-magenta text-white border-trust-magenta" : "border-ut-border text-ut-muted hover:border-ut-slate"}`}
-                onClick={() => {
-                  const current = session.searchMethods ?? [];
-                  const next = isSelected ? current.filter((v) => v !== opt) : [...current, opt];
-                  updateMetadata({ searchMethods: next });
-                }}
-              >
-                {opt}
-              </button>
-            );
-          })}
+          {SEARCH_METHOD_OPTIONS.map((opt) =>
+            renderPill(opt, currentMethods.includes(opt), () => togglePredefinedMethod(opt), false),
+          )}
+          {customMethods.map((opt) =>
+            renderPill(opt, true, () => removeCustomMethod(opt), true),
+          )}
         </div>
-        <div className="flex gap-ut-1">
-          <input
-            className="flex-1 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-xs text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
-            placeholder="Add custom method..."
-            value={customMethod}
-            onChange={(e) => setCustomMethod(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                const val = customMethod.trim();
-                if (val && !(session.searchMethods ?? []).includes(val)) {
-                  updateMetadata({ searchMethods: [...(session.searchMethods ?? []), val] });
-                  setCustomMethod("");
-                }
-              }
-            }}
-          />
-        </div>
-      </label>
+        {renderCustomInput("Add custom method...", customMethod, setCustomMethod, addCustomMethod)}
+      </fieldset>
 
-      <label className="flex flex-col gap-1">
-        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Discipline
-        </span>
-        <input
-          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
-          placeholder="e.g. Computer Science, Medicine"
-          value={session.discipline ?? ""}
-          onChange={(e) => updateMetadata({ discipline: e.target.value })}
-        />
-      </label>
+      {/* Discipline pill selector */}
+      <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
+        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">Discipline</legend>
+        <div className="flex flex-wrap gap-ut-1 mb-ut-1">
+          {DISCIPLINE_OPTIONS.map((opt) =>
+            renderPill(opt, currentDisciplines.includes(opt), () => togglePredefinedDiscipline(opt), false),
+          )}
+          {customDisciplines.map((opt) =>
+            renderPill(opt, true, () => removeCustomDiscipline(opt), true),
+          )}
+        </div>
+        {renderCustomInput("Add custom discipline...", customDiscipline, setCustomDiscipline, addCustomDiscipline)}
+      </fieldset>
 
       <label className="flex flex-col gap-1">
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">

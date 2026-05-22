@@ -12,7 +12,6 @@ import {
   makeEvaluation,
   makeFinalization,
   RUBRIC,
-  TINY_PNG,
 } from "./fixtures/index";
 import { v4 as uuid } from "uuid";
 
@@ -23,7 +22,7 @@ import { v4 as uuid } from "uuid";
  * and padding the IDAT chunk with compressed zero bytes to reach target size.
  */
 function buildRealisticScreenshot(targetKB = 150): string {
-  const targetBytes = targetKB * 1024;
+  const _targetBytes = targetKB * 1024;
   // TINY_PNG is ~68 bytes. We need a much larger image.
   // Generate a minimal uncompressed PNG with arbitrary pixel data.
   // 400x300 RGBA = 480,000 pixels = ~480KB raw → ~150KB as base64
@@ -212,7 +211,7 @@ describe("export size benchmark", () => {
     let htmlCompressed = 0;
     let otherCompressed = 0;
     zip.forEach((_path, file) => {
-      const d = (file as any)._data;
+      const d = (file as unknown as { _data?: { compressedSize?: number; uncompressedSize?: number } })._data;
       if (!d) return;
       const comp = d.compressedSize ?? 0;
       const uncomp = d.uncompressedSize ?? 0;

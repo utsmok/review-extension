@@ -13,7 +13,7 @@ export interface SessionRepository {
 
 const DB_NAME = "trust-review-sessions";
 const STORE_NAME = "sessions";
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 // --- IdbSessionRepository ---
 
@@ -163,6 +163,15 @@ function migrateSessionData(data: SessionData): SessionData {
   // Version 1→2: ensure finalization field exists (added in schema v2)
   if (!data.schemaVersion || data.schemaVersion < 2) {
     data.finalization = data.finalization ?? null;
+  }
+  // Version 2→v3: discipline changed from string to string[]
+  if (!data.schemaVersion || data.schemaVersion < 3) {
+    const d = (data.metadata as unknown as Record<string, unknown>)?.discipline;
+    if (typeof d === "string" && d.length > 0) {
+      data.metadata.discipline = [d];
+    } else if (typeof d === "string") {
+      data.metadata.discipline = undefined;
+    }
   }
   data.schemaVersion = SCHEMA_VERSION;
   return data;

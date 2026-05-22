@@ -105,6 +105,18 @@ function getInputByLabel(labelText: string | RegExp): HTMLElement {
   return input as HTMLElement;
 }
 
+/** Find the label section containing text, then find a button within it */
+function getButtonInLabel(labelText: string | RegExp, buttonText: string): HTMLElement {
+  const label = screen.getByText(labelText);
+  const labelEl = label.closest("label");
+  if (!labelEl) throw new Error(`No label element found for "${labelText}"`);
+  const btn = Array.from(labelEl.querySelectorAll("button")).find(
+    (b) => b.textContent === buttonText,
+  );
+  if (!btn) throw new Error(`No button "${buttonText}" found in label "${labelText}"`);
+  return btn;
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -166,8 +178,6 @@ describe("Metadata", () => {
     seedActiveSession();
     renderMetadata();
 
-    // Chip buttons are inside a <label>, so accessible names include label text.
-    // Use getByText to find the chip directly.
     const crossRefEl = screen.getByText("CrossRef").closest("button");
     expect(crossRefEl).toBeDefined();
     fireEvent.click(crossRefEl as HTMLElement);
@@ -187,7 +197,7 @@ describe("Metadata", () => {
       captures: [],
       evaluations: [],
       finalization: null,
-      schemaVersion: 2,
+      schemaVersion: 3,
     });
     useRegistryStore.getState().setActiveSessionId(metadata.id);
     renderMetadata();
@@ -206,7 +216,7 @@ describe("Metadata", () => {
     const storeUpdates: string[] = [];
     const origUpdate = useSessionStore.getState().updateMetadata;
     useSessionStore.setState({
-      updateMetadata: (patch) => {
+      updateMetadata: (patch: Record<string, unknown>) => {
         storeUpdates.push(Object.keys(patch)[0] ?? "");
         origUpdate(patch);
       },
@@ -247,7 +257,7 @@ describe("Metadata", () => {
       captures: [],
       evaluations: evals,
       finalization: null,
-      schemaVersion: 2,
+      schemaVersion: 3,
     });
     useRegistryStore.getState().setActiveSessionId(metadata.id);
 
@@ -292,7 +302,7 @@ describe("Metadata", () => {
       captures: [],
       evaluations: [],
       finalization,
-      schemaVersion: 2,
+      schemaVersion: 3,
     });
     useRegistryStore.getState().setActiveSessionId(metadata.id);
 
@@ -325,5 +335,197 @@ describe("Metadata", () => {
 
     expect(screen.getByTestId("confirm-dialog")).toBeDefined();
     expect(screen.getByText(/permanently delete/i)).toBeDefined();
+  });
+
+  // --- §5a: "Other" removed, OpenAlex added ---
+
+  it("does not show Other in data source options", () => {
+    seedActiveSession();
+    renderMetadata();
+
+    const dataSourcesLabel = screen.getByText(/data sources/i).closest("label");
+    const buttons = dataSourcesLabel?.querySelectorAll("button") ?? [];
+    const texts = Array.from(buttons).map((b) => b.textContent);
+    expect(texts).not.toContain("Other");
+  });
+
+  it("does not show Other in search method options", () => {
+    seedActiveSession();
+    renderMetadata();
+
+    const searchMethodsLabel = screen.getByText(/search methods/i).closest("label");
+    const buttons = searchMethodsLabel?.querySelectorAll("button") ?? [];
+    const texts = Array.from(buttons).map((b) => b.textContent);
+    expect(texts).not.toContain("Other");
+  });
+
+  it("includes OpenAlex in data source options", () => {
+    seedActiveSession();
+    renderMetadata();
+
+    const btn = screen.getByText("OpenAlex").closest("button") as HTMLElement;
+    expect(btn).toBeDefined();
+  });
+
+  // --- §5a: Custom pill behavior ---
+
+  it("adds a custom data source and shows it as a selected pill", () => {
+    seedActiveSession();
+    renderMetadata();
+
+    const input = screen.getByPlaceholderText(/add custom source/i);
+    fireEvent.change(input, { target: { value: "CustomDB" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    const session = useSessionStore.getState().session;
+    expect(session?.dataSources).toContain("CustomDB");
+
+    // Custom entry should appear as a selected pill
+    const btn = screen.getByText("CustomDB").closest("button") as HTMLElement;
+    expect(btn.className).toContain("bg-trust-magenta");
+  });
+
+  it("deleting a custom data source removes it entirely from store", () => {
+    const metadata = makeMetadata({ dataSources: ["CustomDB", "PubMed"] });
+    useSessionStore.getState().loadSession({
+      metadata,
+      captures: [],
+      evaluations: [],
+      finalization: null,
+      schemaVersion: 3,
+    });
+    useRegistryStore.getState().setActiveSessionId(metadata.id);
+    renderMetadata();
+
+    // Click the custom pill to deselect/delete it
+    const btn = screen.getByText("CustomDB").closest("button") as HTMLElement;
+    fireEvent.click(btn);
+
+    const session = useSessionStore.getState().session;
+    expect(session?.dataSources).not.toContain("CustomDB");
+    expect(session?.dataSources).toContain("PubMed");
+  });
+
+  it("deselecting a predefined data source just unselects it", () => {
+    const metadata = makeMetadata({ dataSources: ["PubMed", "CrossRef"] });
+    useSessionStore.getState().loadSession({
+      metadata,
+      captures: [],
+      evaluations: [],
+      finalization: null,
+      schemaVersion: 3,
+    });
+    useRegistryStore.getState().setActiveSessionId(metadata.id);
+    renderMetadata();
+
+    const pubmedBtn = screen.getByText("PubMed").closest("button") as HTMLElement;
+    fireEvent.click(pubmedBtn);
+
+    const session = useSessionStore.getState().session;
+    expect(session?.dataSources).not.toContain("PubMed");
+    expect(session?.dataSources).toContain("CrossRef");
+
+    // PubMed button should still exist (predefined)
+    const pubmedBtnAgain = screen.getByText("PubMed").closest("button") as HTMLElement;
+    expect(pubmedBtnAgain).toBeDefined();
+  });
+
+  it("adds a custom search method and removes it on deselect", () => {
+    seedActiveSession();
+    renderMetadata();
+
+    const input = screen.getByPlaceholderText(/add custom method/i);
+    fireEvent.change(input, { target: { value: "CustomSearch" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    const session = useSessionStore.getState().session;
+    expect(session?.searchMethods).toContain("CustomSearch");
+
+    // Deselect custom method — should be fully removed
+    const btn = screen.getByText("CustomSearch").closest("button") as HTMLElement;
+    fireEvent.click(btn);
+
+    const session2 = useSessionStore.getState().session;
+    expect(session2?.searchMethods).not.toContain("CustomSearch");
+  });
+
+  // --- §5c: Discipline pill selector ---
+
+  it("shows discipline as pill selector with predefined options", () => {
+    seedActiveSession();
+    renderMetadata();
+
+    // These should appear as buttons (pill selectors)
+    const csBtn = screen.getByText("Computer Science").closest("button") as HTMLElement;
+    expect(csBtn).toBeDefined();
+
+    const medBtn = screen.getByText("Medicine").closest("button") as HTMLElement;
+    expect(medBtn).toBeDefined();
+  });
+
+  it("toggles predefined discipline pill", () => {
+    seedActiveSession();
+    renderMetadata();
+
+    const csBtn = screen.getByText("Computer Science").closest("button") as HTMLElement;
+    fireEvent.click(csBtn);
+
+    const session = useSessionStore.getState().session;
+    expect(session?.discipline).toContain("Computer Science");
+
+    // Click again to deselect
+    fireEvent.click(csBtn);
+    const session2 = useSessionStore.getState().session;
+    expect(session2?.discipline).not.toContain("Computer Science");
+  });
+
+  it("adds a custom discipline and removes it on deselect", () => {
+    seedActiveSession();
+    renderMetadata();
+
+    const input = screen.getByPlaceholderText(/add custom discipline/i);
+    fireEvent.change(input, { target: { value: "My Field" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    const session = useSessionStore.getState().session;
+    expect(session?.discipline).toContain("My Field");
+
+    // Deselect — custom should be fully removed
+    const btn = screen.getByText("My Field").closest("button") as HTMLElement;
+    fireEvent.click(btn);
+
+    const session2 = useSessionStore.getState().session;
+    expect(session2?.discipline).not.toContain("My Field");
+  });
+
+  it("shows selected discipline pills with active styling", () => {
+    const metadata = makeMetadata({ discipline: ["Physics and Astronomy", "Mathematics"] });
+    useSessionStore.getState().loadSession({
+      metadata,
+      captures: [],
+      evaluations: [],
+      finalization: null,
+      schemaVersion: 3,
+    });
+    useRegistryStore.getState().setActiveSessionId(metadata.id);
+    renderMetadata();
+
+    const physBtn = screen.getByText("Physics and Astronomy").closest("button") as HTMLElement;
+    expect(physBtn.className).toContain("bg-trust-magenta");
+
+    const mathBtn = screen.getByText("Mathematics").closest("button") as HTMLElement;
+    expect(mathBtn.className).toContain("bg-trust-magenta");
+  });
+
+  it("does not render discipline as a text input", () => {
+    seedActiveSession();
+    renderMetadata();
+
+    const disciplineLabel = screen.getByText(/^discipline$/i).closest("fieldset");
+    // The only input in the discipline section should be the custom input
+    const inputs = disciplineLabel?.querySelectorAll("input") ?? [];
+    for (const input of inputs) {
+      expect((input as HTMLInputElement).placeholder).toMatch(/add custom/i);
+    }
   });
 });

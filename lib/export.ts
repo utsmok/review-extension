@@ -182,7 +182,7 @@ export async function exportSession(
         Terms_Conditions_URL: metadata.termsConditionsUrl ?? "",
         Data_Sources: (metadata.dataSources ?? []).join("; "),
         Search_Methods: (metadata.searchMethods ?? []).join("; "),
-        Discipline: metadata.discipline ?? "",
+        Discipline: (metadata.discipline ?? []).join("; "),
         Notes: metadata.notes ?? "",
         Tool_Logo_URL: metadata.toolLogoUrl ?? "",
         Tool_Description: metadata.description ?? "",

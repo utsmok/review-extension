@@ -162,7 +162,7 @@ describe("FinalizationScreen autosave", () => {
     const fin = useSessionStore.getState().finalization;
     expect(fin).not.toBeNull();
     expect(fin?.finalizedAt).not.toBe("");
-    expect(new Date(fin?.finalizedAt).getTime()).not.toBeNaN();
+    expect(new Date(fin?.finalizedAt ?? "").getTime()).not.toBeNaN();
 
     vi.useRealTimers();
   });

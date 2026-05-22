@@ -30,7 +30,7 @@ export interface SessionMetadata {
   /** Search methods the tool supports */
   searchMethods?: string[];
   /** Academic discipline context */
-  discipline?: string;
+  discipline?: string[];
   notes?: string;
   finalizedAt?: string;
 }

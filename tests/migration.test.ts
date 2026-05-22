@@ -140,4 +140,29 @@ describe("migrateSessionData (via IdbSessionRepository.load)", () => {
     expect(loaded!.schemaVersion).toBe(SCHEMA_VERSION);
     expect(loaded!.finalization).toBeNull();
   });
+
+  it("migrates v2 session with string discipline to v3 string[]", async () => {
+    const metadata = makeMetadata({ discipline: "Computer Science" as unknown as string[] | undefined });
+    const raw = makeRawSession({ metadata, schemaVersion: 2 });
+    // Force discipline to be a string (overriding the type)
+    ((raw.metadata as unknown) as Record<string, unknown>).discipline = "Computer Science";
+    await writeRaw("migration-test", raw);
+
+    const loaded = await repo.load("migration-test");
+    expect(loaded).not.toBeNull();
+    expect(loaded!.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(loaded!.metadata.discipline).toEqual(["Computer Science"]);
+  });
+
+  it("migrates v2 session with empty string discipline to undefined", async () => {
+    const metadata = makeMetadata();
+    const raw = makeRawSession({ metadata, schemaVersion: 2 });
+    ((raw.metadata as unknown) as Record<string, unknown>).discipline = "";
+    await writeRaw("migration-test", raw);
+
+    const loaded = await repo.load("migration-test");
+    expect(loaded).not.toBeNull();
+    expect(loaded!.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(loaded!.metadata.discipline).toBeUndefined();
+  });
 });

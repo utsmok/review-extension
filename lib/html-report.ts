@@ -1252,7 +1252,7 @@ ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, scores, T
   ${metadata.description ? `<div style="font-size:0.85rem;color:var(--text);font-style:italic;margin-top:2px">${esc(metadata.description)}</div>` : ""}
   ${metadata.dataSources?.length ? `<div style="font-size:0.8rem;color:var(--muted)">Data sources: ${esc(metadata.dataSources.join(", "))}</div>` : ""}
   ${metadata.searchMethods?.length ? `<div style="font-size:0.8rem;color:var(--muted)">Search methods: ${esc(metadata.searchMethods.join(", "))}</div>` : ""}
-  ${metadata.discipline ? `<div style="font-size:0.8rem;color:var(--muted)">Discipline: ${esc(metadata.discipline)}</div>` : ""}
+  ${metadata.discipline?.length ? `<div style="font-size:0.8rem;color:var(--muted)">Discipline: ${esc(metadata.discipline.join(", "))}</div>` : ""}
   ${metadata.notes ? `<div style="font-size:0.8rem;color:var(--muted);font-style:italic;margin-top:4px">${esc(metadata.notes)}</div>` : ""}
 </div>
 
