@@ -982,12 +982,13 @@ function buildUnlinkedSection(
 }
 
 function buildToc(rubric: RubricData): string {
-  return PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
-    .map((p) => {
-      const reportColor = REPORT_COLORS[p.id] ?? p.color;
-      return `<a href="#category-${p.id}" class="toc-item" style="color:${reportColor}"><span class="toc-code">${p.code}</span> ${esc(PRINCIPLE_NAMES[p.id] ?? getCategoryLabel(p.id).replace(/^.*?— /, ""))}</a>`;
-    })
-    .join("");
+  let html = "";
+  for (const p of PRINCIPLES) {
+    if (!(p.id in rubric.scoring_rubric)) continue;
+    const reportColor = REPORT_COLORS[p.id] ?? p.color;
+    html += `<a href="#category-${p.id}" class="toc-item" style="color:${reportColor}"><span class="toc-code">${p.code}</span> ${esc(PRINCIPLE_NAMES[p.id] ?? getCategoryLabel(p.id).replace(/^.*?— /, ""))}</a>`;
+  }
+  return html;
 }
 
 // ── Main report ────────────────────────────────────────────────────────
