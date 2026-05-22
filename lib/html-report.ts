@@ -1024,12 +1024,14 @@ function buildNutritionLabelHtml(
   const logo = metadata.toolLogoUrl || metadata.faviconUrl;
 
   // Strengths & weaknesses
-  const strengthsHtml = finalization?.strengths?.length
-    ? finalization.strengths.map((s) => `<li>${esc(s)}</li>`).join("")
-    : "";
-  const weaknessesHtml = finalization?.weaknesses?.length
-    ? finalization.weaknesses.map((w) => `<li>${esc(w)}</li>`).join("")
-    : "";
+  let strengthsHtml = "";
+  if (finalization?.strengths?.length) {
+    for (const s of finalization.strengths) strengthsHtml += `<li>${esc(s)}</li>`;
+  }
+  let weaknessesHtml = "";
+  if (finalization?.weaknesses?.length) {
+    for (const w of finalization.weaknesses) weaknessesHtml += `<li>${esc(w)}</li>`;
+  }
   const swRow =
     strengthsHtml || weaknessesHtml
       ? `<div class="nutrition-divider-thin"></div>
