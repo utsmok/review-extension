@@ -707,6 +707,7 @@ function buildCategorySections(
   compressedScreenshots: Map<string, string>,
   scores: ReportScores,
 ): string {
+  const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
   return PRINCIPLES.map((p, sectionIdx) => {
     if (!(p.id in rubric.scoring_rubric)) return "";
     const reportColor = REPORT_COLORS[p.id] ?? p.color;
@@ -737,7 +738,7 @@ function buildCategorySections(
     const rows = Object.entries(questions)
       .map(([qId, levels], idx) => {
         const rubricId = `${p.id}.${qId}`;
-        const ev = evaluations.find((e) => e.rubricId === rubricId);
+        const ev = evalMap.get(rubricId);
         const isNa = ev?.score === "na";
         const isUnsure = ev?.score === "unsure";
         const score = typeof ev?.score === "number" ? ev.score : -1;
@@ -844,11 +845,12 @@ function buildCategorySections(
 }
 
 function buildGateRows(evaluations: Evaluation[], rubric: RubricData): string {
+  const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
   return Object.entries(rubric.quality_gate)
     .map(([cat, questions]) =>
       Object.entries(questions)
         .map(([qId, q]) => {
-          const ev = evaluations.find((e) => e.rubricId === `${cat}.${qId}`);
+          const ev = evalMap.get(`${cat}.${qId}`);
           const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
           const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#6b7f94";
           const label = result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "—";
