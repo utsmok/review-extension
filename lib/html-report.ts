@@ -715,11 +715,17 @@ function buildCategorySections(
       catEvals.some((e) => e.explicitEvidenceIds.includes(c.id)),
     ).length;
 
-    const numeric = catScores.filter((s): s is number => typeof s === "number");
-    const avg =
-      numeric.length > 0 ? (numeric.reduce((a, b) => a + b, 0) / numeric.length).toFixed(1) : "—";
-    const catTotal = numeric.reduce((a, b) => a + b, 0);
-    const catMax = numeric.length * 3;
+    let numSum = 0;
+    let numCount = 0;
+    for (const s of catScores) {
+      if (typeof s === "number") {
+        numSum += s;
+        numCount++;
+      }
+    }
+    const avg = numCount > 0 ? (numSum / numCount).toFixed(1) : "—";
+    const catTotal = numSum;
+    const catMax = numCount * 3;
 
     const rows = Object.entries(questions)
       .map(([qId, levels], idx) => {
