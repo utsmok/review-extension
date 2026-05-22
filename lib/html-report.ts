@@ -689,6 +689,7 @@ async function compressScreenshot(dataUrl: string, maxWidth = 800, quality = 0.8
 const EMPTY_CIRCLE = '<span class="circle empty">&#9675;</span>';
 const FILLED_CIRCLE = '<span class="circle filled">&#9679;</span>';
 const ALL_EMPTY_CIRCLES = `<span class="circles">${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}</span>`;
+const EXAMPLE_LEVELS = ["0", "1", "2", "3"] as const;
 
 function scoreCircles(avg: number | null): string {
   if (avg === null) return ALL_EMPTY_CIRCLES;
@@ -711,7 +712,8 @@ function buildCategorySections(
   // Pre-compute evidence count per principle: O(captures × evaluations) once instead of per principle
   const evidenceByPrinciple = new Map<string, Set<string>>();
   for (const e of evaluations) {
-    const prefix = e.rubricId.split(".")[0];
+    const dot = e.rubricId.indexOf(".");
+    const prefix = dot === -1 ? e.rubricId : e.rubricId.substring(0, dot);
     let captureSet = evidenceByPrinciple.get(prefix);
     if (!captureSet) {
       captureSet = new Set<string>();
@@ -800,7 +802,7 @@ function buildCategorySections(
       <table class="et">
         ${(() => {
           let exHtml = "";
-          for (const lvl of ["0", "1", "2", "3"] as const) {
+          for (const lvl of EXAMPLE_LEVELS) {
             const ex = (levels as unknown as { examples?: Record<string, string> }).examples?.[lvl];
             if (ex) exHtml += `<tr><td class="el">${lvl}</td><td>${esc(ex)}</td></tr>`;
           }
