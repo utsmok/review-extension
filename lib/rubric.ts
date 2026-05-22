@@ -82,9 +82,11 @@ export function getLinkedRubricIdsForCapture(
   captureId: string,
   evaluations: Evaluation[],
 ): string[] {
-  return evaluations
-    .filter((e) => e.explicitEvidenceIds.includes(captureId))
-    .map((e) => e.rubricId);
+  const result: string[] = [];
+  for (const e of evaluations) {
+    if (e.explicitEvidenceIds.includes(captureId)) result.push(e.rubricId);
+  }
+  return result;
 }
 
 // ── Scoring functions (merged from scoring.ts) ─────────────────────────
