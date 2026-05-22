@@ -754,10 +754,10 @@ function buildCategorySections(
                 : "—";
 
         const isWeakEvidence = score >= 0 && score <= 1;
-        const evidenceImgs = captures
-          .filter((c) => ev?.explicitEvidenceIds.includes(c.id))
-          .map(
-            (c) => `
+        let evidenceImgs = "";
+        for (const c of captures) {
+          if (!ev?.explicitEvidenceIds.includes(c.id)) continue;
+          evidenceImgs += `
           <div class="evidence-item${isWeakEvidence ? " evidence-weak" : ""}">
             <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
             <div class="evidence-meta">
@@ -766,9 +766,8 @@ function buildCategorySections(
               ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
             </div>
           </div>
-        `,
-          )
-          .join("");
+        `;
+        }
 
         const backgroundRow = levels.background
           ? `
