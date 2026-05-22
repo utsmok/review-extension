@@ -11,6 +11,8 @@ import {
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 import { computeReportScores, type ReportScores } from "./report/compute-scores";
 
+// Cached dynamic import for logos (used by buildHtmlReport and buildNutritionLabel)
+let _logos: typeof import("./logos") | null = null;
 // ── Constants ──────────────────────────────────────────────────────────
 
 /** Darkened report-local colors for WCAG AA contrast with white text */
@@ -1132,7 +1134,8 @@ export async function buildNutritionLabel(
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
 ): Promise<string> {
-  const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = await import("./logos");
+  if (!_logos) _logos = await import("./logos");
+  const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = _logos;
   const scores = computeReportScores(evaluations, rubric, finalization);
   const labelHtml = buildNutritionLabelHtml(
     metadata,
@@ -1167,7 +1170,8 @@ export async function buildHtmlReport(
   finalization: ReviewFinalization | null = null,
 ): Promise<string> {
   // Compress all screenshots in parallel
-  const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = await import("./logos");
+  if (!_logos) _logos = await import("./logos");
+  const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = _logos;
   const compressedScreenshots = new Map<string, string>();
   await Promise.all(
     captures.map(async (c) => {
