@@ -165,8 +165,16 @@ export function principleAverage(
   evaluations: Evaluation[],
   rubric: RubricData,
 ): number | null {
-  const scores = getCategoryScores(categoryId, evaluations, rubric);
-  const numeric = scores.filter((s): s is number => typeof s === "number");
-  if (numeric.length === 0) return null;
-  return numeric.reduce((a, b) => a + b, 0) / numeric.length;
+  const questions = rubric.scoring_rubric[categoryId];
+  if (!questions) return null;
+  let sum = 0;
+  let count = 0;
+  for (const qId of Object.keys(questions)) {
+    const ev = evaluations.find((e) => e.rubricId === `${categoryId}.${qId}`);
+    if (typeof ev?.score === "number") {
+      sum += ev.score;
+      count++;
+    }
+  }
+  return count > 0 ? sum / count : null;
 }
