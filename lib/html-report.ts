@@ -1012,7 +1012,7 @@ function buildNutritionLabelHtml(
   UT_LOGO: string,
   evalMap: Map<string, Evaluation>,
 ): string {
-  const date = new Date(metadata.startTime).toISOString().split("T")[0];
+  const date = metadata.startTime.slice(0, 10);
   const toolUrl = esc(metadata.toolUrl);
   const toolName = esc(metadata.toolName);
   const toolLink = `<a href="${toolUrl}" target="_blank" rel="noopener noreferrer">`;
