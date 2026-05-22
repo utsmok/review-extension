@@ -706,6 +706,20 @@ function buildCategorySections(
   scores: ReportScores,
   evalMap: Map<string, Evaluation>,
 ): string {
+  // Pre-compute evidence count per principle: O(captures × evaluations) once instead of per principle
+  const evidenceByPrinciple = new Map<string, Set<string>>();
+  for (const e of evaluations) {
+    const prefix = e.rubricId.split(".")[0];
+    let captureSet = evidenceByPrinciple.get(prefix);
+    if (!captureSet) {
+      captureSet = new Set<string>();
+      evidenceByPrinciple.set(prefix, captureSet);
+    }
+    for (const cid of e.explicitEvidenceIds) {
+      captureSet.add(cid);
+    }
+  }
+
   let resultHtml = "";
   let sectionIdx = 0;
   for (const p of PRINCIPLES) {
@@ -715,15 +729,7 @@ function buildCategorySections(
     const reportColor = REPORT_COLORS[p.id] ?? p.color;
     const questions = rubric.scoring_rubric[p.id];
     const catScores = scores.catScores.get(p.id) ?? [];
-    let evidenceCount = 0;
-    for (const c of captures) {
-      for (const e of evaluations) {
-        if (e.rubricId.startsWith(`${p.id}.`) && e.explicitEvidenceIds.includes(c.id)) {
-          evidenceCount++;
-          break;
-        }
-      }
-    }
+    const evidenceCount = evidenceByPrinciple.get(p.id)?.size ?? 0;
 
     let numSum = 0;
     let numCount = 0;
