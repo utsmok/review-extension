@@ -94,9 +94,9 @@ export default function Metadata() {
   const handleCaptureLogo = async () => {
     setLogoCapturing(true);
     try {
-      const { capture, logoDataUrl } = await captureForMetadataField("toolLogoUrl");
+      const { capture, logoUrl } = await captureForMetadataField("toolLogoUrl");
       addCapture(capture);
-      updateMetadata({ toolLogoUrl: logoDataUrl ?? capture.sourceUrl });
+      updateMetadata({ toolLogoUrl: logoUrl ?? capture.sourceUrl });
     } catch (err) {
       toastError(err instanceof Error ? err.message : "Capture failed");
     } finally {
@@ -323,7 +323,7 @@ export default function Metadata() {
           Tool Logo URL
         </span>
         {(() => {
-          const linkedCapture = captures.find(c => c.metadataField === "toolLogoUrl");
+          const linkedCapture = captures.find((c) => c.metadataField === "toolLogoUrl");
           return (
             <div className="meta-capture-panel">
               {linkedCapture ? (
@@ -332,12 +332,23 @@ export default function Metadata() {
                     {linkedCapture.sourceUrl}
                   </a>
                   {session?.toolLogoUrl && (
-                    <img src={session.toolLogoUrl} alt="Logo" style={{width:24,height:24,objectFit:'contain'}} />
+                    <img
+                      src={session.toolLogoUrl}
+                      alt="Logo"
+                      style={{ width: 24, height: 24, objectFit: "contain" }}
+                    />
                   )}
                   <button
                     type="button"
                     onClick={() => removeCapture(linkedCapture.id)}
-                    style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',color:'var(--ut-red, red)',fontSize:13}}
+                    style={{
+                      marginLeft: "auto",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "var(--ut-red, red)",
+                      fontSize: 13,
+                    }}
                     aria-label="Remove logo capture"
                   >
                     ✕
@@ -347,7 +358,9 @@ export default function Metadata() {
                 <p className="text-ut-xs text-ut-muted">No logo captured yet.</p>
               )}
               <div className="meta-capture-actions">
-                <button type="button" disabled={logoCapturing} onClick={handleCaptureLogo}>Capture Page</button>
+                <button type="button" disabled={logoCapturing} onClick={handleCaptureLogo}>
+                  Capture Page
+                </button>
               </div>
             </div>
           );
@@ -383,12 +396,12 @@ export default function Metadata() {
           Terms &amp; Conditions
         </span>
         {(() => {
-          const tcCaptures = captures.filter(c => c.metadataField === "termsConditionsUrl");
+          const tcCaptures = captures.filter((c) => c.metadataField === "termsConditionsUrl");
           return (
             <div className="meta-capture-panel">
               {tcCaptures.length > 0 && (
                 <div className="meta-capture-linked">
-                  {tcCaptures.map(c => (
+                  {tcCaptures.map((c) => (
                     <div key={c.id} className="meta-capture-item">
                       <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer">
                         {c.pageTitle || c.sourceUrl}
@@ -402,7 +415,13 @@ export default function Metadata() {
                       <button
                         type="button"
                         onClick={() => removeCapture(c.id)}
-                        style={{background:'none',border:'none',cursor:'pointer',color:'var(--ut-red, red)',fontSize:13}}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "var(--ut-red, red)",
+                          fontSize: 13,
+                        }}
                         aria-label="Remove evidence"
                       >
                         ✕
@@ -412,7 +431,9 @@ export default function Metadata() {
                 </div>
               )}
               <div className="meta-capture-actions">
-                <button type="button" disabled={tcCapturing} onClick={handleCaptureTc}>Capture Page</button>
+                <button type="button" disabled={tcCapturing} onClick={handleCaptureTc}>
+                  Capture Page
+                </button>
               </div>
             </div>
           );
@@ -421,44 +442,56 @@ export default function Metadata() {
 
       {/* Data Sources pill selector */}
       <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
-        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">Data Sources</legend>
+        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          Data Sources
+        </legend>
         <div className="flex flex-wrap gap-ut-1 mb-ut-1">
           {DATA_SOURCE_OPTIONS.map((opt) =>
             renderPill(opt, currentSources.includes(opt), () => togglePredefinedSource(opt), false),
           )}
-          {customSources.map((opt) =>
-            renderPill(opt, true, () => removeCustomSource(opt), true),
-          )}
+          {customSources.map((opt) => renderPill(opt, true, () => removeCustomSource(opt), true))}
         </div>
         {renderCustomInput("Add custom source...", customSource, setCustomSource, addCustomSource)}
       </fieldset>
 
       {/* Search Methods pill selector */}
       <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
-        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">Search Methods</legend>
+        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          Search Methods
+        </legend>
         <div className="flex flex-wrap gap-ut-1 mb-ut-1">
           {SEARCH_METHOD_OPTIONS.map((opt) =>
             renderPill(opt, currentMethods.includes(opt), () => togglePredefinedMethod(opt), false),
           )}
-          {customMethods.map((opt) =>
-            renderPill(opt, true, () => removeCustomMethod(opt), true),
-          )}
+          {customMethods.map((opt) => renderPill(opt, true, () => removeCustomMethod(opt), true))}
         </div>
         {renderCustomInput("Add custom method...", customMethod, setCustomMethod, addCustomMethod)}
       </fieldset>
 
       {/* Discipline pill selector */}
       <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
-        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">Discipline</legend>
+        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          Discipline
+        </legend>
         <div className="flex flex-wrap gap-ut-1 mb-ut-1">
           {DISCIPLINE_OPTIONS.map((opt) =>
-            renderPill(opt, currentDisciplines.includes(opt), () => togglePredefinedDiscipline(opt), false),
+            renderPill(
+              opt,
+              currentDisciplines.includes(opt),
+              () => togglePredefinedDiscipline(opt),
+              false,
+            ),
           )}
           {customDisciplines.map((opt) =>
             renderPill(opt, true, () => removeCustomDiscipline(opt), true),
           )}
         </div>
-        {renderCustomInput("Add custom discipline...", customDiscipline, setCustomDiscipline, addCustomDiscipline)}
+        {renderCustomInput(
+          "Add custom discipline...",
+          customDiscipline,
+          setCustomDiscipline,
+          addCustomDiscipline,
+        )}
       </fieldset>
 
       {/* Review summary */}

@@ -255,11 +255,10 @@ export default function ActiveSession() {
                 try {
                   const result = await captureForMetadataField("toolLogoUrl");
                   addCapture(result.capture);
-                  if (result.logoDataUrl) {
-                    updateMetadata({ toolLogoUrl: result.logoDataUrl });
-                  } else {
-                    updateMetadata({ toolLogoUrl: result.capture.sourceUrl });
-                  }
+                  // Store the direct image link (SVG/PNG) as evidence
+                  updateMetadata({
+                    toolLogoUrl: result.logoUrl ?? result.capture.sourceUrl,
+                  });
                 } catch (err) {
                   toastError(err instanceof Error ? err.message : "Capture failed");
                 } finally {
