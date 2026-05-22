@@ -468,7 +468,6 @@
 
 .evidence-thumb-wrap img {
   display: block;
-  height: 48px;
   border: 1px solid var(--ut-border);
 }
 
@@ -617,16 +616,15 @@
   border-color: var(--ut-navy);
 }
 
-.btn-save {
-  background: var(--ut-green);
-  color: var(--ut-on-accent);
+.drawing-toolbar .btn-save {
+  background: var(--ut-green) !important;
+  color: var(--ut-on-accent) !important;
   border: 0;
 }
 
-.btn-save:hover {
+.drawing-toolbar .btn-save:hover {
   opacity: 0.85;
 }
-
 .toolbar-separator {
   width: 1px;
   height: 16px;

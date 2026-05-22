@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AssetRecordType,
   DefaultColorStyle,
+  DefaultSizeStyle,
   type Editor,
   type TLShapeId,
   Tldraw,
@@ -22,6 +23,12 @@ const PEN_COLORS = [
   { label: "Black", value: "black" },
   { label: "Red", value: "red" },
   { label: "Blue", value: "blue" },
+] as const;
+
+const HIGHLIGHTER_COLORS = [
+  { label: "Yellow", value: "yellow", css: "#ffe033" },
+  { label: "Pink", value: "violet", css: "#ff66c4" },
+  { label: "Green", value: "light-green", css: "#66ff8c" },
 ] as const;
 
 type ToolId = "arrow" | "draw" | "eraser";
@@ -333,18 +340,33 @@ const Toolbar = track(function Toolbar({
   const [activeColor, setActiveColor] = useState<string>("black");
   const [isHighlighter, setIsHighlighter] = useState(false);
 
+  const applyHighlighterStyles = (on: boolean) => {
+    editor.setOpacityForNextShapes(on ? 0.4 : 1);
+    editor.setStyleForNextShapes(DefaultSizeStyle, on ? "xl" : "m");
+    if (on) {
+      // Default to yellow if no highlighter color is set yet
+      const hlColor =
+        activeColor === "black" || activeColor === "red" || activeColor === "blue"
+          ? "yellow"
+          : activeColor;
+      setActiveColor(hlColor);
+      editor.setStyleForNextShapes(DefaultColorStyle, hlColor as never);
+    }
+  };
+
   const selectTool = (tool: ToolId) => {
     editor.setCurrentTool(tool);
     if (tool === "draw" && isHighlighter) {
-      editor.setOpacityForNextShapes(0.4);
+      applyHighlighterStyles(true);
     }
   };
 
   const toggleHighlighter = () => {
     const next = !isHighlighter;
     setIsHighlighter(next);
-    if (currentToolId === "draw") {
-      editor.setOpacityForNextShapes(next ? 0.4 : 1);
+    if (currentToolId === "draw" || next) {
+      applyHighlighterStyles(next);
+      if (currentToolId !== "draw") editor.setCurrentTool("draw");
     }
   };
 
@@ -386,6 +408,7 @@ const Toolbar = track(function Toolbar({
           setIsHighlighter(false);
           selectTool("draw");
           editor.setOpacityForNextShapes(1);
+          editor.setStyleForNextShapes(DefaultSizeStyle, "m");
         }}
       >
         ✏ Draw
@@ -403,8 +426,8 @@ const Toolbar = track(function Toolbar({
       <span className="toolbar-separator" />
 
       {/* Colors */}
-      <div role="radiogroup" aria-label="Pen color">
-        {PEN_COLORS.map((c) => (
+      <div role="radiogroup" aria-label={isHighlighter ? "Highlighter color" : "Pen color"}>
+        {(isHighlighter ? HIGHLIGHTER_COLORS : PEN_COLORS).map((c) => (
           <button
             key={c.value}
             type="button"
@@ -414,7 +437,13 @@ const Toolbar = track(function Toolbar({
             className={`color-swatch ${activeColor === c.value ? "is-active" : ""}`}
             style={{
               background:
-                c.value === "black" ? "#172033" : c.value === "red" ? "#c60c30" : "#007d9c",
+                "css" in c
+                  ? (c as { css: string }).css
+                  : c.value === "black"
+                    ? "#172033"
+                    : c.value === "red"
+                      ? "#c60c30"
+                      : "#007d9c",
             }}
             onClick={() => setColor(c.value)}
           />
