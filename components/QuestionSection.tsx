@@ -20,6 +20,9 @@ import type {
 import { toastError } from "@/stores/toast";
 import EvidenceThumbnails from "./EvidenceThumbnails";
 import { getProgressState, ProgressCircle } from "./ProgressCircle";
+
+const NO_CAPTURES: Capture[] = [];
+
 function renderQGScores(
   rubricId: string,
   ev: Evaluation | undefined,
@@ -447,7 +450,7 @@ interface QuestionSectionProps {
   section: "quality_gate" | "scoring_rubric";
   capturingFor: string | null;
   setCapturingFor: (id: string | null) => void;
-  captureQueue: { enqueue: (fn: () => Promise<void>) => void; isCapturing: () => boolean };
+  captureQueue: { enqueue: (fn: () => Promise<void>) => void; isCapturing: boolean };
   onConfirmRemove: (capture: Capture, rubricId: string) => void;
   onViewEvidence: (capture: Capture) => void;
 }
@@ -553,11 +556,11 @@ export default function QuestionSection({
                 section={section}
                 category={category}
                 evaluation={evaluationMap.get(rubricId)}
-                evidence={captureMap.get(rubricId) ?? []}
+                evidence={captureMap.get(rubricId) ?? NO_CAPTURES}
                 allCaptures={captures}
                 usesAi={usesAi}
                 capturingFor={capturingFor}
-                isCapturing={captureQueue.isCapturing()}
+                isCapturing={captureQueue.isCapturing}
                 linkPopoverFor={linkPopoverFor}
                 setLinkPopoverFor={setLinkPopoverFor}
                 setEvaluation={setEvaluation}

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { initAutoSave } from "@/lib/auto-save";
+import { initAutoSave, teardownAutoSave } from "@/lib/auto-save";
 import { downloadBlob, exportSession, sanitizeFilename } from "@/lib/export";
 import * as lifecycle from "@/lib/session-lifecycle";
 import { getRepository } from "@/lib/session-repository";
@@ -30,6 +30,7 @@ export function useActiveSession() {
         .catch((err) => {
           console.error("Failed to load session:", err);
           toastError("Failed to load session. It may be corrupted or storage is unavailable.");
+          useRegistryStore.setState({ activeSessionId: null });
           useSessionStore.setState({ status: "empty" });
         });
     } else if (!activeSessionId && (status === "active" || status === "loading")) {
@@ -55,6 +56,7 @@ export function useActiveSession() {
   // This replaces the per-consumer subscriptions that caused N-way amplification.
   useEffect(() => {
     initAutoSave();
+    return () => teardownAutoSave();
   }, []);
 
   // --- Forwarded actions ---

@@ -148,7 +148,7 @@ describe("lifecycle.switchToSession", () => {
       .getState()
       .setEvaluation("TR.data_source_clarity", { score: 3, notes: "", explicitEvidenceIds: [] });
 
-    lifecycle.switchToSession("sess-b");
+    await lifecycle.switchToSession("sess-b");
 
     expect(useSessionStore.getState().session).toBeNull();
     expect(useRegistryStore.getState().activeSessionId).toBe("sess-b");

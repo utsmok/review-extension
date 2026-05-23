@@ -43,6 +43,7 @@ import type { SessionData } from "@/lib/types";
 
 vi.mock("@/lib/auto-save", () => ({
   initAutoSave: vi.fn(),
+  teardownAutoSave: vi.fn(),
 }));
 
 vi.mock("@/lib/export", () => ({
@@ -144,9 +145,7 @@ describe("useActiveSession", () => {
     });
 
     it("calls toastError and resets status when loadSessionById rejects", async () => {
-      const spy = vi
-        .spyOn(lifecycle, "loadSessionById")
-        .mockRejectedValue(new Error("IDB broken"));
+      const spy = vi.spyOn(lifecycle, "loadSessionById").mockRejectedValue(new Error("IDB broken"));
 
       act(() => {
         useRegistryStore.getState().setActiveSessionId("sess-bad");

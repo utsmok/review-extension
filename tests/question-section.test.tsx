@@ -20,6 +20,7 @@ vi.mock("@/lib/capture", () => ({
 
 vi.mock("@/lib/auto-save", () => ({
   initAutoSave: vi.fn(),
+  teardownAutoSave: vi.fn(),
 }));
 
 vi.mock("@/lib/session-repository", () => ({
@@ -62,10 +63,7 @@ const _ls = vi.hoisted(() => {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const QG_IDS = [
-  "privacy_and_security.training_policy",
-  "accessibility.compliance",
-];
+const QG_IDS = ["privacy_and_security.training_policy", "accessibility.compliance"];
 
 const SCORING_IDS = [
   "TR.data_source_clarity",
@@ -91,7 +89,7 @@ function stubProps() {
     setCapturingFor: vi.fn(),
     captureQueue: {
       enqueue: vi.fn(),
-      isCapturing: vi.fn().mockReturnValue(false),
+      isCapturing: false,
     },
     onConfirmRemove: vi.fn(),
     onViewEvidence: vi.fn(),

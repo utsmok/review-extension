@@ -51,6 +51,7 @@ vi.mock("@/components/FinalizationScreen", () => ({
 // Mock auto-save to avoid side effects
 vi.mock("@/lib/auto-save", () => ({
   initAutoSave: vi.fn(),
+  teardownAutoSave: vi.fn(),
 }));
 
 // Mock session-lifecycle to avoid IndexedDB access
