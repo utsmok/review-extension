@@ -339,4 +339,28 @@ describe("importSessionFromZip", () => {
     expect(result.captures[0].screenshotBase64).toBe("data:image/png;base64,EXISTING");
     expect(result.captures[0].htmlContent).toBe("<html>existing</html>");
   });
+
+  // --- ZIP bomb protection ---
+
+  it("rejects oversized input blob (>200 MB)", async () => {
+    const blob = new Blob(["x"]);
+    Object.defineProperty(blob, "size", { value: 201 * 1024 * 1024 });
+    await expect(importSessionFromZip(blob)).rejects.toThrow(/too large/i);
+  });
+
+  it("rejects input blob at exactly 200 MB plus one byte", async () => {
+    const blob = new Blob(["x"]);
+    Object.defineProperty(blob, "size", { value: 200 * 1024 * 1024 + 1 });
+    await expect(importSessionFromZip(blob)).rejects.toThrow(/too large/i);
+  });
+
+  it("accepts input blob at exactly 200 MB", async () => {
+    const metadata = makeMetadata();
+    const zip = new JSZip();
+    zip.file("session.json", JSON.stringify({ metadata, captures: [], evaluations: [] }));
+    const blob = await zip.generateAsync({ type: "blob" });
+    Object.defineProperty(blob, "size", { value: 200 * 1024 * 1024 });
+    const result = await importSessionFromZip(blob);
+    expect(result.metadata).toEqual(metadata);
+  });
 });
