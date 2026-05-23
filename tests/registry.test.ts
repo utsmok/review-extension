@@ -121,7 +121,9 @@ describe("registry store", () => {
     });
 
     it("merges multiple fields", () => {
-      useRegistryStore.getState().updateSettings({ reviewerName: "Bob", reviewerEmail: "bob@example.com" });
+      useRegistryStore
+        .getState()
+        .updateSettings({ reviewerName: "Bob", reviewerEmail: "bob@example.com" });
 
       const settings = useRegistryStore.getState().settings;
       expect(settings.reviewerName).toBe("Bob");
@@ -134,7 +136,9 @@ describe("registry store", () => {
       const meta = makeMetadata({ id: "sess-1", toolName: "Original" });
       useRegistryStore.getState().addSession(meta);
 
-      useRegistryStore.getState().updateSessionMetadata("sess-1", { toolName: "Updated", company: "Acme" });
+      useRegistryStore
+        .getState()
+        .updateSessionMetadata("sess-1", { toolName: "Updated", company: "Acme" });
 
       const updated = useRegistryStore.getState().sessionIndex["sess-1"];
       expect(updated.toolName).toBe("Updated");

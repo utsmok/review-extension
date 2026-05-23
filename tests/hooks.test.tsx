@@ -19,11 +19,7 @@ function renderTrap(buttons = ["A", "B", "C"]) {
   return { container, ref, cleanup };
 }
 
-function dispatchKeyDown(
-  target: EventTarget,
-  key: string,
-  shiftKey = false,
-): KeyboardEvent {
+function dispatchKeyDown(target: EventTarget, key: string, shiftKey = false): KeyboardEvent {
   const event = new KeyboardEvent("keydown", {
     key,
     shiftKey,
@@ -220,10 +216,9 @@ describe("useAutoFocus", () => {
 
   it("does not re-focus on subsequent renders", () => {
     const ref = { current: container };
-    const { rerender } = renderHook(
-      ({ cRef }) => useAutoFocus(cRef),
-      { initialProps: { cRef: ref } },
-    );
+    const { rerender } = renderHook(({ cRef }) => useAutoFocus(cRef), {
+      initialProps: { cRef: ref },
+    });
 
     // First render focuses #first
     const first = container.querySelector("#first") as HTMLElement;

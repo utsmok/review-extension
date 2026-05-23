@@ -46,8 +46,7 @@ describe("annotated screenshot export (§3e)", () => {
     expect(files.has("cap0001a.jpg")).toBe(true);
     expect(files.has("cap0001a.html")).toBe(true);
     // Annotated version (extension from pngToJpeg — may be .png if jpeg conversion fails)
-    const hasAnnotated =
-      files.has("cap0001a_annotated.jpg") || files.has("cap0001a_annotated.png");
+    const hasAnnotated = files.has("cap0001a_annotated.jpg") || files.has("cap0001a_annotated.png");
     expect(hasAnnotated).toBe(true);
   });
 

@@ -50,7 +50,9 @@ describe("SettingsScreen", () => {
   it("does not render About section", () => {
     render(<SettingsScreen onBack={vi.fn()} />);
     expect(screen.queryByText("About")).toBeNull();
-    expect(screen.queryByText("TRUST Review Extension for evaluating academic information tools.")).toBeNull();
+    expect(
+      screen.queryByText("TRUST Review Extension for evaluating academic information tools."),
+    ).toBeNull();
   });
 
   it("renders name and email inputs", () => {

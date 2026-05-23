@@ -63,6 +63,7 @@ vi.mock("@/lib/export", () => ({
 
 vi.mock("@/lib/auto-save", () => ({
   initAutoSave: vi.fn(),
+  teardownAutoSave: vi.fn(),
 }));
 
 vi.mock("@/lib/session-lifecycle", () => ({

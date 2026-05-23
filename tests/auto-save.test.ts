@@ -42,7 +42,13 @@ let listener: () => void;
 function defaultSessionState(overrides?: Record<string, unknown>) {
   return {
     status: "active",
-    session: { id: "sess-1", toolName: "T", toolUrl: "https://x", startTime: "", status: "started" },
+    session: {
+      id: "sess-1",
+      toolName: "T",
+      toolUrl: "https://x",
+      startTime: "",
+      status: "started",
+    },
     captures: [],
     evaluations: [],
     finalization: null,

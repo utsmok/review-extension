@@ -41,7 +41,10 @@ afterEach(() => {
   });
 });
 
-function renderAppShell(overrides?: { onSettingsClick?: () => void; showSettingsButton?: boolean }) {
+function renderAppShell(overrides?: {
+  onSettingsClick?: () => void;
+  showSettingsButton?: boolean;
+}) {
   const onSettingsClick = overrides?.onSettingsClick ?? vi.fn();
   const showSettingsButton = overrides?.showSettingsButton ?? true;
   return render(
@@ -60,7 +63,9 @@ describe("Setup Banner", () => {
   });
 
   it("hides the banner when reviewerName is set", () => {
-    useRegistryStore.getState().updateSettings({ reviewerName: "Alice", setupBannerDismissed: false });
+    useRegistryStore
+      .getState()
+      .updateSettings({ reviewerName: "Alice", setupBannerDismissed: false });
     renderAppShell();
     expect(screen.queryByTestId("setup-banner")).toBeNull();
   });

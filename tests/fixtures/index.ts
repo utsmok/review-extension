@@ -13,9 +13,7 @@ export const TINY_PNG =
 
 export const RUBRIC = trustFull as unknown as RubricData;
 
-export function makeMetadata(
-  overrides?: Partial<SessionMetadata>,
-): SessionMetadata {
+export function makeMetadata(overrides?: Partial<SessionMetadata>): SessionMetadata {
   return {
     id: crypto.randomUUID(),
     toolName: "TestSearch",
@@ -39,9 +37,7 @@ export function makeCapture(overrides?: Partial<Capture>): Capture {
   };
 }
 
-export function makeEvaluation(
-  overrides?: Partial<Evaluation>,
-): Evaluation {
+export function makeEvaluation(overrides?: Partial<Evaluation>): Evaluation {
   return {
     rubricId: "TR-1",
     score: "" as EvaluationScore,
@@ -51,9 +47,7 @@ export function makeEvaluation(
   };
 }
 
-export function makeFinalization(
-  overrides?: Partial<ReviewFinalization>,
-): ReviewFinalization {
+export function makeFinalization(overrides?: Partial<ReviewFinalization>): ReviewFinalization {
   return {
     conclusion: "Test conclusion",
     grade: "pass",

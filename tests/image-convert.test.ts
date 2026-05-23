@@ -1,10 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import {
-  base64ToUint8Array,
-  pngToJpeg,
-  uint8ArrayToBase64,
-} from "@/lib/image-convert";
+import { base64ToUint8Array, pngToJpeg, uint8ArrayToBase64 } from "@/lib/image-convert";
 import { TINY_PNG } from "@/tests/fixtures";
 
 // ── base64ToUint8Array ─────────────────────────────────────────────────
@@ -36,9 +32,7 @@ describe("uint8ArrayToBase64", () => {
   });
 
   it("encodes known bytes to expected base64", () => {
-    expect(uint8ArrayToBase64(new Uint8Array([72, 101, 108, 108, 111]))).toBe(
-      "SGVsbG8=",
-    );
+    expect(uint8ArrayToBase64(new Uint8Array([72, 101, 108, 108, 111]))).toBe("SGVsbG8=");
   });
 
   it("round-trips with base64ToUint8Array", () => {

@@ -68,9 +68,7 @@ describe("getRubricQuestionIds", () => {
   it("returns all quality gate IDs first", () => {
     const ids = getRubricQuestionIds(TRUST_RUBRIC);
     const qualityGateIds = ids.filter(
-      (id) =>
-        id.startsWith("privacy_and_security.") ||
-        id.startsWith("accessibility."),
+      (id) => id.startsWith("privacy_and_security.") || id.startsWith("accessibility."),
     );
     expect(qualityGateIds).toEqual([
       "privacy_and_security.training_policy",

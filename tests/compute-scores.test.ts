@@ -5,10 +5,7 @@ import { RUBRIC, makeEvaluation, makeFinalization } from "@/tests/fixtures";
 
 // ── Rubric question IDs (trust-full) ──────────────────────────────────────
 
-const QG_IDS = [
-  "privacy_and_security.training_policy",
-  "accessibility.compliance",
-] as const;
+const QG_IDS = ["privacy_and_security.training_policy", "accessibility.compliance"] as const;
 
 const SCORING_IDS = [
   "TR.data_source_clarity",
@@ -426,12 +423,11 @@ describe("computeReportScores", () => {
     expect(r.isComplete).toBe(true);
     // noEvaluation: answeredScoring=10 (all 'na') + answeredQG=2 (all 'na') → not 0
     expect(r.noEvaluation).toBe(false);
-    // computedFailed: anyFail=false (no 'fail'), ratio=0 < 0.6 → true
-    // principleFail: no numeric scores in any category → numeric.length=0 → false
     expect(r.anyFail).toBe(false);
     expect(r.principleFail).toBe(false);
-    expect(r.computedFailed).toBe(true); // ratio < 0.6
-    expect(r.verdict).toBe("NOT RECOMMENDED");
+    // corrected: when totalMax=0, ratio check is skipped (nothing applies = nothing fails)
+    expect(r.computedFailed).toBe(false);
+    expect(r.verdict).toBe("RECOMMENDED");
   });
 
   // ── Additional edge cases ───────────────────────────────────────────

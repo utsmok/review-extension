@@ -86,7 +86,7 @@ export function computeReportScores(
   const isComplete = totalQuestions > 0 && answeredQuestions >= totalQuestions;
 
   const ratio = totalMax > 0 ? totalActual / totalMax : 0;
-  const computedFailed = anyFail || ratio < 0.6 || principleFail;
+  const computedFailed = anyFail || (totalMax > 0 && ratio < 0.6) || principleFail;
   const noEvaluation = answeredScoringQuestions === 0 && answeredQGQuestions === 0;
 
   let verdict: string;

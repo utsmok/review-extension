@@ -50,8 +50,7 @@ export const useRegistryStore = create<RegistryState>()(
             : s.sessionIndex,
         })),
 
-      updateSettings: (patch) =>
-        set((s) => ({ settings: { ...s.settings, ...patch } })),
+      updateSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),
 
       updateSessionMetadata: (id, patch) =>
         set((s) => ({

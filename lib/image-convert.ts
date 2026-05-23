@@ -92,7 +92,7 @@ async function nodeConvert(
   if (!_pngjs) _pngjs = await import("pngjs");
   if (!_jpegEncode) _jpegEncode = (await import("jpeg-js")).encode;
   const pngjs = _pngjs;
-// biome-ignore lint/style/noNonNullAssertion: guaranteed non-null by preceding guard
+  // biome-ignore lint/style/noNonNullAssertion: guaranteed non-null by preceding guard
   const encode = _jpegEncode!;
 
   const raw = extractBase64(dataUrl);
@@ -113,9 +113,7 @@ async function nodeConvert(
     // Pre-compute source coordinates to eliminate divisions from inner loop
     const nd = new Uint8Array(nw * nh * 4);
     // Pooled Buffers may have non-4-byte-aligned byteOffset; copy to aligned view if needed
-    const srcBytes = png.data.byteOffset % 4 === 0
-      ? png.data
-      : new Uint8Array(png.data);
+    const srcBytes = png.data.byteOffset % 4 === 0 ? png.data : new Uint8Array(png.data);
     const src32 = new Uint32Array(srcBytes.buffer, srcBytes.byteOffset, srcBytes.length >>> 2);
     const dst32 = new Uint32Array(nd.buffer, nd.byteOffset, nd.length >>> 2);
     const colMap = new Int32Array(nw);

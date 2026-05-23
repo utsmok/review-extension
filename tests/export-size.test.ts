@@ -211,7 +211,9 @@ describe("export size benchmark", () => {
     let htmlCompressed = 0;
     let otherCompressed = 0;
     zip.forEach((_path, file) => {
-      const d = (file as unknown as { _data?: { compressedSize?: number; uncompressedSize?: number } })._data;
+      const d = (
+        file as unknown as { _data?: { compressedSize?: number; uncompressedSize?: number } }
+      )._data;
       if (!d) return;
       const comp = d.compressedSize ?? 0;
       const uncomp = d.uncompressedSize ?? 0;

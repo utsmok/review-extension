@@ -299,7 +299,6 @@
   border-left: 2px solid transparent;
 }
 
-
 .score-row[data-score="0"] {
   opacity: 0.6;
   font-weight: 400;

@@ -25,8 +25,7 @@ export const useToastStore = create<ToastStore>((set) => ({
       set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
     }, 5000);
   },
-  removeToast: (id) =>
-    set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+  removeToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 }));
 
 export function toastError(message: string) {

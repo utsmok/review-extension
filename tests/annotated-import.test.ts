@@ -4,7 +4,6 @@ import JSZip from "jszip";
 import { importSessionFromZip } from "@/lib/export";
 import { makeMetadata } from "./fixtures";
 
-
 async function buildZip(files: Record<string, string | object>): Promise<Blob> {
   const zip = new JSZip();
   for (const [name, content] of Object.entries(files)) {

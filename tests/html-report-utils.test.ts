@@ -76,7 +76,7 @@ describe("esc() — XSS prevention", () => {
     // Verify the raw description is NOT present unescaped
     // (the full string "src=x onerror" is unique to our test input)
     expect(html).not.toMatch(/<img src=x onerror/);
-});
+  });
 });
 
 // ── 2. safeLink() via HTML output ─────────────────────────────────────
@@ -138,13 +138,11 @@ describe("scoreCircles() — circle rendering", () => {
     expect(matches!.length).toBe(24);
   });
 
-  it("all scores = 0 → 1 filled circle per principle", async () => {
+  it("all scores = 0 → 0 filled circles per principle", async () => {
     const html = await label({}, allScored(0));
-    // avg = 0.0 → filled = 1 (the avg < 1 → 1 case)
+    // avg = 0.0 → filled = 0 (corrected: 0 scores mean 0 progress)
     const matches = html.match(/class="circle filled"/g);
-    expect(matches).not.toBeNull();
-    // 5 principles × 1 + 1 overall × 1 (overall ratio = 0/totalMax = 0 → filled = 1) = 6
-    expect(matches!.length).toBe(6);
+    expect(matches).toBeNull();
   });
 
   it("no scoring evaluations → 4 empty circles per principle (null avg)", async () => {

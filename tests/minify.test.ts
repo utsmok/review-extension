@@ -13,7 +13,21 @@ describe("minifyHtml", () => {
   });
 
   it("removes closing tags for void/self-closing elements", () => {
-    const tags = ["li", "dt", "dd", "p", "tr", "td", "th", "thead", "tbody", "tfoot", "colgroup", "option", "optgroup"];
+    const tags = [
+      "li",
+      "dt",
+      "dd",
+      "p",
+      "tr",
+      "td",
+      "th",
+      "thead",
+      "tbody",
+      "tfoot",
+      "colgroup",
+      "option",
+      "optgroup",
+    ];
     for (const tag of tags) {
       const input = `<${tag}>content</${tag}>`;
       const result = minifyHtml(input);
@@ -60,7 +74,6 @@ describe("minifyHtml", () => {
     const result = minifyHtml(input);
     expect(result).toBe(result.trim());
   });
-
 });
 
 // ── minifyCss ──────────────────────────────────────────────────────────────

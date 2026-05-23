@@ -29,7 +29,7 @@ function makeRawSession(overrides?: Partial<SessionData>): SessionData {
  */
 async function writeRaw(id: string, data: SessionData): Promise<void> {
   const db = await new Promise<IDBDatabase>((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 2);
+    const req = indexedDB.open(DB_NAME, SCHEMA_VERSION);
     req.onupgradeneeded = () => {
       const d = req.result;
       if (!d.objectStoreNames.contains(STORE_NAME)) {
@@ -142,10 +142,12 @@ describe("migrateSessionData (via IdbSessionRepository.load)", () => {
   });
 
   it("migrates v2 session with string discipline to v3 string[]", async () => {
-    const metadata = makeMetadata({ discipline: "Computer Science" as unknown as string[] | undefined });
+    const metadata = makeMetadata({
+      discipline: "Computer Science" as unknown as string[] | undefined,
+    });
     const raw = makeRawSession({ metadata, schemaVersion: 2 });
     // Force discipline to be a string (overriding the type)
-    ((raw.metadata as unknown) as Record<string, unknown>).discipline = "Computer Science";
+    (raw.metadata as unknown as Record<string, unknown>).discipline = "Computer Science";
     await writeRaw("migration-test", raw);
 
     const loaded = await repo.load("migration-test");
@@ -157,7 +159,7 @@ describe("migrateSessionData (via IdbSessionRepository.load)", () => {
   it("migrates v2 session with empty string discipline to undefined", async () => {
     const metadata = makeMetadata();
     const raw = makeRawSession({ metadata, schemaVersion: 2 });
-    ((raw.metadata as unknown) as Record<string, unknown>).discipline = "";
+    (raw.metadata as unknown as Record<string, unknown>).discipline = "";
     await writeRaw("migration-test", raw);
 
     const loaded = await repo.load("migration-test");
