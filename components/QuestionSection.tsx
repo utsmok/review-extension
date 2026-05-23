@@ -126,7 +126,7 @@ function renderScoringScores(
       })}
 
       {/* N/A row */}
-      <label className={`score-row ${isNa ? "is-selected" : ""}`} data-score="na">
+      <label className={`score-row score-row--meta-separator ${isNa ? "is-selected" : ""}`} data-score="na">
         <input
           type="radio"
           name={rubricId}
@@ -298,6 +298,17 @@ export const QuestionRow = React.memo(function QuestionRow({
       <summary>
         <ProgressCircle state={progress} />
         <span className="font-mono text-ut-slate text-ut-xs">{code}</span>
+        {hasScore && (
+          <span
+            className="summary-score-badge select-none"
+            data-score={isQG ? ev?.score : (isNa ? "na" : ev?.score === "unsure" ? "unsure" : scoreNum >= 0 ? scoreNum : undefined)}
+            aria-hidden="true"
+          >
+            {isQG
+              ? ev?.score === "pass" ? "✓" : ev?.score === "fail" ? "✗" : ev?.score === "na" ? "—" : "?"
+              : isNa ? "—" : ev?.score === "unsure" ? "?" : scoreNum >= 0 ? scoreNum : ""}
+          </span>
+        )}
         <span>{question.title}</span>
         {isAutoNa && (
           <span className="text-ut-xs text-ut-muted font-mono ml-1">

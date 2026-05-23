@@ -140,13 +140,13 @@ describe("ActiveSession", () => {
     expect(screen.getByText("TestSearch")).toBeDefined();
   });
 
-  // §2c: URL shown in parentheses
-  it("displays tool URL in parentheses", () => {
+  // §2c: URL shown as tooltip on tool name
+  it("displays tool URL as tooltip on tool name", () => {
     seedActiveSession();
     render(<ActiveSession />, { wrapper: AllProviders });
-    const link = screen.getByText("(https://testsearch.example.com)");
-    expect(link).toBeDefined();
-    expect(link.closest("a")?.getAttribute("href")).toBe("https://testsearch.example.com");
+    const toolName = screen.getByText("TestSearch");
+    expect(toolName).toBeDefined();
+    expect(toolName.getAttribute("title")).toBe("https://testsearch.example.com");
   });
 
   // §2a: Default tab is Evaluation (for non-fresh sessions)

@@ -9,7 +9,7 @@ const GRADES: { value: FinalizationGrade; label: string; color: string; tint: st
   {
     value: "conditional",
     label: "Conditional",
-    color: "bg-score-1",
+    color: "bg-score-1-strong",
     tint: "bg-grade-conditional-tint",
   },
   { value: "fail", label: "Fail", color: "bg-ut-red", tint: "bg-grade-fail-tint" },
@@ -161,7 +161,7 @@ export default function FinalizationScreen() {
       </h2>
 
       {isFormallyFinalized && (
-        <div className="border-l-2 border-trust-magenta pl-ut-2">
+        <div className="bg-trust-magenta-tint rounded-ut-sm px-ut-3 py-ut-2">
           <p className="text-ut-xs text-ut-muted font-mono">
             Finalized {new Date(finalization.finalizedAt).toLocaleString()}
           </p>

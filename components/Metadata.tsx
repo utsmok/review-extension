@@ -90,6 +90,8 @@ export default function Metadata() {
   const [customMethod, setCustomMethod] = useState("");
   const [customDiscipline, setCustomDiscipline] = useState("");
   const [logoCapturing, setLogoCapturing] = useState(false);
+  const [showExportConfirm, setShowExportConfirm] = useState(false);
+
   const [tcCapturing, setTcCapturing] = useState(false);
   const handleCaptureLogo = async () => {
     setLogoCapturing(true);
@@ -126,6 +128,13 @@ export default function Metadata() {
     } finally {
       setExporting(false);
     }
+  };
+
+  const canExport = (): { ok: boolean; warnings: string[] } => {
+    const warnings: string[] = [];
+    if (!session.toolName?.trim()) warnings.push("Tool name is missing");
+    if (!session.toolUrl?.trim()) warnings.push("Tool URL is missing");
+    return { ok: warnings.length === 0, warnings };
   };
 
   const handleDiscardSession = () => {
@@ -293,6 +302,7 @@ export default function Metadata() {
           AI-specific questions are marked as not applicable.
         </p>
       )}
+      <hr className="border-ut-border my-ut-2" />
 
       <label className="flex flex-col gap-1">
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
@@ -305,6 +315,7 @@ export default function Metadata() {
           onChange={(e) => updateMetadata({ description: e.target.value })}
         />
       </label>
+      <hr className="border-ut-border my-ut-2" />
 
       <label className="flex flex-col gap-1">
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
@@ -453,6 +464,7 @@ export default function Metadata() {
         </div>
         {renderCustomInput("Add custom source...", customSource, setCustomSource, addCustomSource)}
       </fieldset>
+      <hr className="border-ut-border my-ut-2" />
 
       {/* Search Methods pill selector */}
       <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
@@ -467,13 +479,14 @@ export default function Metadata() {
         </div>
         {renderCustomInput("Add custom method...", customMethod, setCustomMethod, addCustomMethod)}
       </fieldset>
+      <hr className="border-ut-border my-ut-2" />
 
       {/* Discipline pill selector */}
       <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
         <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
           Discipline
         </legend>
-        <div className="flex flex-wrap gap-ut-1 mb-ut-1">
+        <div className="flex flex-wrap gap-ut-1 mb-ut-1 max-h-48 overflow-y-auto">
           {DISCIPLINE_OPTIONS.map((opt) =>
             renderPill(
               opt,
@@ -493,7 +506,7 @@ export default function Metadata() {
           addCustomDiscipline,
         )}
       </fieldset>
-
+      <hr className="border-ut-border my-ut-2" />
       {/* Review summary */}
       <div className="border-t-2 border-ut-border pt-ut-3 mt-1">
         <div className="flex justify-between text-ut-xs text-ut-muted font-mono mb-1">
@@ -551,7 +564,15 @@ export default function Metadata() {
           type="button"
           className="w-full bg-trust-magenta text-white rounded-ut-sm px-ut-4 py-ut-3 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase hover:bg-trust-magenta-strong disabled:opacity-50 transition-colors"
           disabled={exporting}
-          onClick={handleExport}
+          onClick={() => {
+            const { ok } = canExport();
+            if (ok) {
+              handleExport();
+            } else {
+              setShowExportConfirm(true);
+            }
+          }}
+
         >
           {exporting ? "Exporting..." : "End Review & Export"}
         </button>
@@ -565,6 +586,26 @@ export default function Metadata() {
         </button>
       </div>
 
+      {showExportConfirm && (
+        <ConfirmDialog
+          message="Some required fields are missing. Export anyway?"
+          actions={[
+            {
+              label: "Export anyway",
+              handler: () => {
+                setShowExportConfirm(false);
+                handleExport();
+              },
+              variant: "danger",
+            },
+            {
+              label: "Cancel",
+              handler: () => setShowExportConfirm(false),
+              variant: "cancel",
+            },
+          ]}
+        />
+      )}
       {showDiscardConfirm && (
         <ConfirmDialog
           message="This will permanently delete all captures, scores, and notes for this review."

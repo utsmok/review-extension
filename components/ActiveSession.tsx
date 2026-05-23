@@ -96,7 +96,7 @@ export default function ActiveSession() {
   return (
     <TabNavigationContext.Provider value={setActiveTab}>
       <div className="flex flex-col h-full overflow-hidden">
-        <header className="bg-trust-magenta-tint border-b-2 border-trust-magenta-border border-l-[3px] border-l-trust-magenta px-ut-4 py-ut-2 flex items-center gap-ut-2 min-w-0">
+        <header className="bg-trust-magenta-tint border-b-2 border-trust-magenta-border px-ut-4 py-ut-2 flex items-center gap-ut-2 min-w-0">
           <button
             type="button"
             className="shrink-0 p-1 rounded-ut-sm text-ut-slate hover:text-trust-magenta hover:bg-white/60 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue"
@@ -125,6 +125,7 @@ export default function ActiveSession() {
               type="button"
               className="quick-action-btn"
               data-tip="Quick Note — Add a review note"
+              title="Quick Note — Add a review note"
               aria-label="Quick note"
               onClick={() => setQuickNoteOpen(true)}
               disabled={quickNoteOpen}
@@ -149,6 +150,7 @@ export default function ActiveSession() {
               type="button"
               className="quick-action-btn"
               data-tip="Quick Capture — Screenshot current page"
+              title="Quick Capture — Screenshot current page"
               aria-label="Quick capture"
               disabled={capturing}
               onClick={async () => {
@@ -183,6 +185,7 @@ export default function ActiveSession() {
               type="button"
               className="quick-action-btn"
               data-tip="Capture T&C — Save current page as Terms & Conditions evidence"
+              title="Capture T&C — Save current page as Terms & Conditions evidence"
               aria-label="Capture Terms and Conditions"
               disabled={capturing}
               onClick={async () => {
@@ -221,6 +224,7 @@ export default function ActiveSession() {
               type="button"
               className="quick-action-btn"
               data-tip="Capture Logo — Save current page and extract tool logo"
+              title="Capture Logo — Save current page and extract tool logo"
               aria-label="Capture tool logo"
               disabled={capturing}
               onClick={async () => {
@@ -271,20 +275,9 @@ export default function ActiveSession() {
               />
             ) : null}
 
-            <span className="text-ut-sm font-heading font-semibold text-trust-magenta truncate">
+            <span className="text-ut-sm font-heading font-semibold text-trust-magenta truncate" title={session?.toolUrl}>
               {session?.toolName}
             </span>
-
-            {session?.toolUrl && (
-              <a
-                href={session.toolUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-ut-xs text-ut-muted font-mono truncate hover:text-ut-darkblue focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue transition-colors shrink-0"
-              >
-                ({session.toolUrl})
-              </a>
-            )}
           </div>
         </header>
 
@@ -337,6 +330,7 @@ export default function ActiveSession() {
                 ref={noteRef}
                 rows={2}
                 placeholder="Add a note..."
+                aria-label="Quick note"
                 value={quickNoteText}
                 onChange={(e) => setQuickNoteText(e.target.value)}
                 onKeyDown={(e) => {
@@ -349,34 +343,22 @@ export default function ActiveSession() {
               />
               <button
                 type="button"
+                className="note-action-btn note-save"
                 onClick={handleSaveQuickNote}
                 aria-label="Save note"
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "18px",
-                  lineHeight: 1,
-                }}
               >
-                ✅
+                Save
               </button>
               <button
                 type="button"
+                className="note-action-btn note-cancel"
                 onClick={() => {
                   setQuickNoteOpen(false);
                   setQuickNoteText("");
                 }}
                 aria-label="Cancel note"
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "18px",
-                  lineHeight: 1,
-                }}
               >
-                ❌
+                ✕
               </button>
             </div>
           )}

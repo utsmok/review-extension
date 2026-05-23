@@ -3,7 +3,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import EvidenceModal from "@/components/EvidenceModal";
 import QuestionSection from "@/components/QuestionSection";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { getRubricQuestionIds } from "@/lib/rubric";
+import { getAccentKey, getCategoryLabel, getRubricQuestionIds } from "@/lib/rubric";
 import { useRubric } from "@/lib/contexts";
 import { useCaptureQueue } from "@/hooks/useCaptureQueue";
 import type { Capture } from "@/lib/types";
@@ -26,6 +26,39 @@ export default function Evaluation() {
     return { scored, total, complete: total > 0 && scored >= total };
   }, [evaluations, rubric]);
 
+  const categorySummary = useMemo(() => {
+    if (!rubric) return [];
+    const evalSet = new Set(
+      evaluations.filter((e) => e.score !== "" && e.score !== undefined).map((e) => e.rubricId),
+    );
+    const sections: { key: "quality_gate" | "scoring_rubric"; label: string }[] = [
+      { key: "quality_gate", label: "Quality Gates" },
+      { key: "scoring_rubric", label: "Scoring Rubric" },
+    ];
+    const result: {
+      sectionLabel: string;
+      categories: { categoryId: string; label: string; scored: number; total: number; accentKey: string }[];
+    }[] = [];
+    for (const { key, label } of sections) {
+      const rubricSection = rubric[key];
+      const cats: { categoryId: string; label: string; scored: number; total: number; accentKey: string }[] = [];
+      for (const [cat, questions] of Object.entries(rubricSection)) {
+        const ids = Object.keys(questions);
+        const total = ids.length;
+        const scored = ids.filter((qId) => evalSet.has(`${cat}.${qId}`)).length;
+        cats.push({
+          categoryId: cat,
+          label: getCategoryLabel(cat),
+          scored,
+          total,
+          accentKey: getAccentKey(cat),
+        });
+      }
+      result.push({ sectionLabel: label, categories: cats });
+    }
+    return result;
+  }, [evaluations, rubric]);
+
   const handleConfirmRemove = (capture: Capture, rubricId: string) => {
     setConfirmTarget({ capture, rubricId });
   };
@@ -35,8 +68,8 @@ export default function Evaluation() {
       {/* Progress indicator */}
       <div className="flex items-center justify-between">
         <span
-          className={`text-ut-xs font-mono whitespace-nowrap transition-colors ${
-            progress.complete ? "text-ut-green font-bold" : "text-ut-muted"
+          className={`text-ut-sm font-heading font-bold whitespace-nowrap transition-colors ${
+            progress.complete ? "text-ut-green" : "text-ut-muted"
           }`}
         >
           {progress.complete ? (
@@ -51,6 +84,25 @@ export default function Evaluation() {
         </span>
       </div>
 
+      {/* Per-category completion summary */}
+      {categorySummary.map((section) => (
+        <div key={section.sectionLabel} className="flex flex-wrap gap-ut-2">
+          {section.categories.map((cat) => (
+            <span
+              key={cat.categoryId}
+              className="text-ut-xs font-mono px-ut-1 bg-ut-grey rounded-ut-sm"
+              style={{ color: `var(--section-${cat.accentKey}-accent, var(--ut-navy))` }}
+              title={`${cat.scored} of ${cat.total} questions scored`}
+            >
+              {cat.label}{" "}
+              <span className="font-bold">
+                {cat.scored}/{cat.total}
+              </span>
+            </span>
+          ))}
+        </div>
+      ))}
+
       {/* Quality Gates section (flat — no nested tabs) */}
       <QuestionSection
         section="quality_gate"
@@ -61,7 +113,7 @@ export default function Evaluation() {
         onViewEvidence={setViewCapture}
       />
 
-      <hr className="border-ut-border" />
+      <hr className="border-ut-border my-ut-4" />
 
       {/* Scoring Rubric section (flat — below QG) */}
       <QuestionSection
