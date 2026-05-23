@@ -27,14 +27,18 @@ export default function ToastContainer() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[9998] flex flex-col gap-ut-1 p-ut-2">
+    <div
+      className="fixed top-0 left-0 right-0 z-[9998] flex flex-col gap-ut-1 p-ut-2"
+      aria-live="polite"
+    >
       {toasts.map((t) => {
         const style = typeStyles[t.type];
         return (
           <div
             key={t.id}
             className={`flex items-start gap-ut-2 px-ut-3 py-ut-2 border rounded-ut-sm ${style.bg} ${style.border}`}
-            role="alert"
+            role={t.type === "error" ? "alert" : "status"}
+            aria-live={t.type === "error" ? "assertive" : "polite"}
           >
             <span
               className={`text-ut-xs font-heading font-bold uppercase tracking-ut-label ${style.text} shrink-0`}

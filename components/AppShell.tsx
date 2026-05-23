@@ -10,7 +10,13 @@ interface AppShellProps {
 
 type SaveStatus = "idle" | "saved" | "failed";
 
-function SetupBanner({ onDismiss, onOpenSettings }: { onDismiss: () => void; onOpenSettings: () => void }) {
+function SetupBanner({
+  onDismiss,
+  onOpenSettings,
+}: {
+  onDismiss: () => void;
+  onOpenSettings: () => void;
+}) {
   return (
     <div
       data-testid="setup-banner"
@@ -48,7 +54,17 @@ function SetupBanner({ onDismiss, onOpenSettings }: { onDismiss: () => void; onO
         className="text-ut-muted hover:text-ut-navy transition-colors p-0.5"
         aria-label="Dismiss"
       >
-        <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          aria-hidden="true"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M18 6L6 18" />
           <path d="M6 6l12 12" />
         </svg>
@@ -143,10 +159,7 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
       </header>
 
       {showSetupBanner && (
-        <SetupBanner
-          onDismiss={dismissBanner}
-          onOpenSettings={onSettingsClick ?? (() => {})}
-        />
+        <SetupBanner onDismiss={dismissBanner} onOpenSettings={onSettingsClick ?? (() => {})} />
       )}
 
       <main className="flex-1 min-h-0">{children}</main>

@@ -71,7 +71,7 @@ export default function SessionManager() {
     setImporting(true);
     try {
       const id = await importSessionFromZipFile(file);
-      const meta = sessionIndex[id];
+      const meta = useRegistryStore.getState().sessionIndex[id];
       toastSuccess(`Review imported: ${meta?.toolName ?? "unknown tool"}`);
       switchToSession(id);
     } catch (err) {

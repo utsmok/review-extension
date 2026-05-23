@@ -44,7 +44,9 @@ export default function Evaluation() {
               {progress.scored}/{progress.total} scored — All complete!
             </>
           ) : (
-            <>{progress.scored}/{progress.total} scored</>
+            <>
+              {progress.scored}/{progress.total} scored
+            </>
           )}
         </span>
       </div>

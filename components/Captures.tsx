@@ -120,7 +120,7 @@ export default function Captures() {
                 </p>
               )}
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-ut-2">
+              <div className="grid grid-cols-2 gap-ut-2">
                 {displayed.map((capture) => {
                   const linkedRubricIds = linkedIdsMap.get(capture.id) ?? [];
                   const isExpanded = expanded === capture.id;
@@ -207,7 +207,13 @@ export default function Captures() {
 
                       {/* Expanded details */}
                       {isExpanded && (
-                        <div className="border border-ut-border border-t-0 bg-ut-white p-ut-2">
+                        <section
+                          aria-label="Capture details"
+                          className="border border-ut-border border-t-0 bg-ut-white p-ut-2"
+                          onKeyDown={(e) => {
+                            if (e.key === "Escape") setExpanded(null);
+                          }}
+                        >
                           <div className="flex items-center justify-between mb-1">
                             <p className="text-ut-xs text-ut-muted font-mono truncate flex-1 mr-ut-2">
                               {capture.sourceUrl}
@@ -226,6 +232,14 @@ export default function Captures() {
                                 onClick={() => setDeleteTarget(capture.id)}
                               >
                                 Delete
+                              </button>
+                              <button
+                                type="button"
+                                className="text-ut-xs text-ut-slate hover:text-ut-text ml-1"
+                                onClick={() => setExpanded(null)}
+                                aria-label="Close details"
+                              >
+                                ✕
                               </button>
                             </div>
                           </div>
@@ -315,7 +329,7 @@ export default function Captures() {
                               </div>
                             </div>
                           </details>
-                        </div>
+                        </section>
                       )}
                     </div>
                   );
@@ -363,13 +377,22 @@ export default function Captures() {
                     <div className="captures-list-meta">
                       {new Date(capture.timestamp).toLocaleDateString()}
                     </div>
-                    <button
-                      type="button"
-                      className="text-ut-xs text-ut-blue hover:underline"
-                      onClick={() => setViewCaptureId(capture.id)}
-                    >
-                      View
-                    </button>
+                    <div className="flex gap-ut-1 shrink-0">
+                      <button
+                        type="button"
+                        className="text-ut-xs text-ut-blue hover:underline"
+                        onClick={() => setViewCaptureId(capture.id)}
+                      >
+                        Annotate
+                      </button>
+                      <button
+                        type="button"
+                        className="text-ut-xs text-ut-slate hover:text-ut-red"
+                        onClick={() => setDeleteTarget(capture.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 );
               })}
