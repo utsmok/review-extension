@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.3.0 — 2026-05-22
+
+### Security
+- Strip iframes, on\* handlers, javascript: URLs, and meta refresh from archived page HTML — prevents stored XSS
+- Enforce 200 MB input size, 500 entry count, and 500 MB uncompressed budget on session ZIP import — blocks ZIP bomb attacks
+- Remove `<all_urls>` host permission from manifest — extension now requests only `activeTab`
+- Validate imported session.json structure before casting — rejects malformed imports early
+
+### State management
+- Await IndexedDB save before switching sessions — prevents data loss on race conditions
+- Clear session metadata fields (toolLogoUrl, termsConditionsUrl) when the linked capture is removed
+- Cancel pending autosave timer when user explicitly saves or clears finalization
+- Make `isCapturing` reactive boolean state instead of function — UI now correctly reflects capture queue
+- Stabilize QuestionRow memo with module-level constant — eliminates unnecessary re-renders
+
+### UX
+- Add close button and Escape key handler to expanded capture details
+- Add annotate and delete buttons to captures list view
+- Use semantic `<section>` element for capture details panel
+- Add `aria-live` regions to toast notifications for screen reader support
+- Fix captures grid — removed unresponsive breakpoints for narrow sidePanel viewport
+
+### Refactoring
+- Extract 604-line inline CSS string to `lib/report.css` imported via `?raw` — no behavior change
+
+### Tests
+- 20 new component tests for Captures, EvidenceModal, and SessionManager
+- 6 new XSS hardening tests for archivePageHtml
+- 3 new ZIP bomb protection tests
+- New benchmarks for export pipeline (sanitizeFilename, minifyHtml, minifyCss) and report functions (scoreColor, distributionBar, qualityGateResults, principleAverage)
+- 462 total tests (up from 377), 31 benchmarks (up from 29)
+
 ## v0.2.0 — 2026-05-22
 
 ### Export improvements
