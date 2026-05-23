@@ -91,6 +91,12 @@ export default function FinalizationScreen() {
   const handleSave = useCallback(() => {
     if (!grade) return;
 
+    // Cancel pending autosave to prevent race
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+
     const data: ReviewFinalization = {
       grade,
       conclusion: conclusion.trim(),
@@ -106,6 +112,12 @@ export default function FinalizationScreen() {
   }, [grade, conclusion, strengths, weaknesses, recommendations, setFinalization]);
 
   const handleClear = useCallback(() => {
+    // Cancel pending autosave
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+
     setGrade("");
     setConclusion("");
     setStrengths([]);
