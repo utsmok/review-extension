@@ -28,6 +28,7 @@ export default {
         tc: "var(--tc)",
         "score-0": "var(--score-0)",
         "score-1": "var(--score-1)",
+        "score-1-strong": "var(--score-1-strong)",
         "score-2": "var(--score-2)",
         "score-3": "var(--score-3)",
         "state-warning": "var(--state-warning)",

@@ -94,6 +94,7 @@
   --score-0-tint: color-mix(in srgb, var(--score-0) 18%, var(--ut-white));
   --score-0-border: color-mix(in srgb, var(--score-0) 32%, var(--ut-border));
   --score-1-tint: color-mix(in srgb, var(--score-1) 18%, var(--ut-white));
+  --score-1-strong: color-mix(in srgb, var(--score-1) 80%, black);
   --score-1-border: color-mix(in srgb, var(--score-1) 32%, var(--ut-border));
   --score-2-tint: color-mix(in srgb, var(--score-2) 18%, var(--ut-white));
   --score-2-border: color-mix(in srgb, var(--score-2) 32%, var(--ut-border));
