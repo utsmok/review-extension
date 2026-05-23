@@ -145,7 +145,7 @@ describe("useCaptureQueue", () => {
     let resolveCapture: () => void = () => {};
     const { result } = renderHook(() => useCaptureQueue());
 
-    expect(result.current.isCapturing()).toBe(false);
+    expect(result.current.isCapturing).toBe(false);
 
     await act(async () => {
       result.current.enqueue(
@@ -158,14 +158,14 @@ describe("useCaptureQueue", () => {
       await new Promise((r) => setTimeout(r, 0));
     });
 
-    expect(result.current.isCapturing()).toBe(true);
+    expect(result.current.isCapturing).toBe(true);
 
     await act(async () => {
       resolveCapture();
       await new Promise((r) => setTimeout(r, 0));
     });
 
-    expect(result.current.isCapturing()).toBe(false);
+    expect(result.current.isCapturing).toBe(false);
   });
 
   it("handles rapid enqueue calls without race conditions", async () => {
@@ -187,6 +187,6 @@ describe("useCaptureQueue", () => {
 
     // All should execute in order
     expect(order).toEqual([0, 1, 2, 3]);
-    expect(result.current.isCapturing()).toBe(false);
+    expect(result.current.isCapturing).toBe(false);
   });
 });
