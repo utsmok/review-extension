@@ -311,6 +311,17 @@ body {
   margin-bottom: 24px;
   font-size: 0.85rem;
 }
+table th {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.category-section th,
+.qg-table th {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
 .qg-table th {
   background: var(--navy);
   color: #fff;
@@ -957,13 +968,6 @@ body {
   .gate-badge,
   .score-badge,
   .fin-grade {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  /* biome-ignore lint/style/noDescendingSpecificity: print color-adjust rules, specificity order doesn't affect rendering */
-  .category-section th,
-  .qg-table th,
-  table th {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
