@@ -45,13 +45,9 @@ describe("captureActiveTab size truncation", () => {
     const screenshotBase64 = "x".repeat(screenshotSize);
     const htmlContent = "a".repeat(htmlSize);
 
-    spyTabsQuery.mockResolvedValue([
-      { id: 1, url: "https://example.com/big-page", windowId: 1 },
-    ]);
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com/big-page", windowId: 1 }]);
     spyCaptureVisibleTab.mockResolvedValue(screenshotBase64);
-    spyExecuteScript.mockResolvedValue([
-      { result: { html: htmlContent, title: "Big Page" } },
-    ]);
+    spyExecuteScript.mockResolvedValue([{ result: { html: htmlContent, title: "Big Page" } }]);
 
     const capture = await captureActiveTab();
 
@@ -72,13 +68,9 @@ describe("captureActiveTab size truncation", () => {
     const smallScreenshot = "data:image/png;base64,abc";
     const smallHtml = "<html><body>hello</body></html>";
 
-    spyTabsQuery.mockResolvedValue([
-      { id: 1, url: "https://example.com/small", windowId: 1 },
-    ]);
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com/small", windowId: 1 }]);
     spyCaptureVisibleTab.mockResolvedValue(smallScreenshot);
-    spyExecuteScript.mockResolvedValue([
-      { result: { html: smallHtml, title: "Small" } },
-    ]);
+    spyExecuteScript.mockResolvedValue([{ result: { html: smallHtml, title: "Small" } }]);
 
     const capture = await captureActiveTab();
 
@@ -89,9 +81,7 @@ describe("captureActiveTab size truncation", () => {
 
 describe("captureActiveTab with executeScript returning undefined", () => {
   it("creates capture with empty htmlContent and empty pageTitle", async () => {
-    spyTabsQuery.mockResolvedValue([
-      { id: 1, url: "https://example.com/no-script", windowId: 1 },
-    ]);
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com/no-script", windowId: 1 }]);
     spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
     spyExecuteScript.mockResolvedValue([{ result: undefined }]);
 
@@ -108,10 +98,104 @@ describe("captureActiveTab with executeScript returning undefined", () => {
 
 describe("captureActiveTab malformed URL", () => {
   it("throws for a malformed URL", async () => {
-    spyTabsQuery.mockResolvedValue([
-      { id: 1, url: "::invalid", windowId: 1 },
-    ]);
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "::invalid", windowId: 1 }]);
 
     await expect(captureActiveTab()).rejects.toThrow("invalid");
+  });
+});
+
+/**
+ * XSS hardening tests for archivePageHtml().
+ * We mock executeScript to actually invoke the passed func against the jsdom
+ * document, so the sanitization logic runs for real.
+ */
+describe("captureActiveTab XSS hardening", () => {
+  /** Helper: mock executeScript to run the injected func against jsdom document */
+  function mockExecuteScriptRunsFunc() {
+    spyExecuteScript.mockImplementation(async ({ func }: { func: () => Promise<unknown> }) => {
+      const result = await func();
+      return [{ result }];
+    });
+  }
+
+  it("strips iframe elements", async () => {
+    document.body.innerHTML = '<p>Safe</p><iframe src="https://evil.com"></iframe>';
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    expect(capture.htmlContent).not.toContain("<iframe");
+    expect(capture.htmlContent).toContain("Safe");
+  });
+
+  it("strips on* event handler attributes", async () => {
+    document.body.innerHTML =
+      '<div onclick="alert(1)" onmouseover="alert(2)" class="ok">Text</div>';
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    expect(capture.htmlContent).not.toContain("onclick");
+    expect(capture.htmlContent).not.toContain("onmouseover");
+    expect(capture.htmlContent).toContain("Text");
+  });
+
+  it("strips javascript: URLs from href", async () => {
+    document.body.innerHTML =
+      '<a href="javascript:alert(1)">Click</a><a href="https://safe.com">OK</a>';
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    expect(capture.htmlContent).not.toContain("javascript:");
+    expect(capture.htmlContent).toContain("Click");
+    expect(capture.htmlContent).toContain("https://safe.com");
+  });
+
+  it("strips meta http-equiv refresh tags", async () => {
+    document.head.innerHTML =
+      '<meta charset="utf-8"><meta http-equiv="refresh" content="0;url=javascript:alert(1)">';
+    document.body.innerHTML = "<p>Content</p>";
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    expect(capture.htmlContent).not.toContain("http-equiv");
+    expect(capture.htmlContent).toContain("Content");
+  });
+
+  it("strips object and embed elements", async () => {
+    document.body.innerHTML =
+      '<p>Safe</p><object data="https://evil.com"><embed src="https://evil.com"></object>';
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    expect(capture.htmlContent).not.toContain("<object");
+    expect(capture.htmlContent).not.toContain("<embed");
+    expect(capture.htmlContent).toContain("Safe");
+  });
+
+  it("strips vbscript: and data:text/html URLs", async () => {
+    document.body.innerHTML =
+      '<a href="vbscript:msgbox(1)">VB</a><img src="data:text/html,<script>alert(1)</script>">';
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    expect(capture.htmlContent).not.toContain("vbscript:");
+    expect(capture.htmlContent).not.toContain("data:text/html");
   });
 });

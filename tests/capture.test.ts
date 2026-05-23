@@ -24,13 +24,9 @@ afterEach(() => {
 
 describe("captureActiveTab", () => {
   it("happy path: returns a well-formed Capture object", async () => {
-    spyTabsQuery.mockResolvedValue([
-      { id: 42, url: "https://example.com", windowId: 1 },
-    ]);
+    spyTabsQuery.mockResolvedValue([{ id: 42, url: "https://example.com", windowId: 1 }]);
     spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
-    spyExecuteScript.mockResolvedValue([
-      { result: { html: "<html></html>", title: "Test" } },
-    ]);
+    spyExecuteScript.mockResolvedValue([{ result: { html: "<html></html>", title: "Test" } }]);
 
     const capture = await captureActiveTab();
 
@@ -62,21 +58,15 @@ describe("captureActiveTab", () => {
   });
 
   it("throws for restricted URL schemes (chrome://)", async () => {
-    spyTabsQuery.mockResolvedValue([
-      { id: 1, url: "chrome://extensions", windowId: 1 },
-    ]);
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "chrome://extensions", windowId: 1 }]);
 
     await expect(captureActiveTab()).rejects.toThrow("not accessible");
   });
 
   it("succeeds for file:// URLs", async () => {
-    spyTabsQuery.mockResolvedValue([
-      { id: 7, url: "file:///home/user/doc.html", windowId: 2 },
-    ]);
+    spyTabsQuery.mockResolvedValue([{ id: 7, url: "file:///home/user/doc.html", windowId: 2 }]);
     spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,filecap");
-    spyExecuteScript.mockResolvedValue([
-      { result: { html: "<html>file</html>", title: "Doc" } },
-    ]);
+    spyExecuteScript.mockResolvedValue([{ result: { html: "<html>file</html>", title: "Doc" } }]);
 
     const capture = await captureActiveTab();
 

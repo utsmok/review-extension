@@ -67,6 +67,43 @@ async function archivePageHtml(): Promise<{ html: string; title: string }> {
     el.remove();
   });
 
+  // 3b. Remove dangerous elements that can execute code or load arbitrary content
+  clone.querySelectorAll("iframe, object, embed, frame, applet, base").forEach((el) => {
+    el.remove();
+  });
+
+  // 3c. Strip all on* event handler attributes from every element
+  clone.querySelectorAll("*").forEach((el) => {
+    for (const attr of Array.from(el.attributes)) {
+      if (attr.name.length > 2 && attr.name.slice(0, 2).toLowerCase() === "on") {
+        el.removeAttribute(attr.name);
+      }
+    }
+  });
+
+  // 3d. Sanitize javascript:/vbscript:/data:text/html URLs
+  const dangerousUrlAttrs = ["href", "src", "action", "formaction", "xlink:href"];
+  clone.querySelectorAll("*").forEach((el) => {
+    for (const attr of dangerousUrlAttrs) {
+      const val = el.getAttribute(attr);
+      if (val) {
+        const trimmed = val.trim().toLowerCase();
+        if (
+          trimmed.startsWith("javascript:") ||
+          trimmed.startsWith("vbscript:") ||
+          trimmed.startsWith("data:text/html")
+        ) {
+          el.removeAttribute(attr);
+        }
+      }
+    }
+  });
+
+  // 3e. Remove meta http-equiv refresh (can redirect to JS URLs)
+  clone.querySelectorAll('meta[http-equiv="refresh" i]').forEach((el) => {
+    el.remove();
+  });
+
   // 4. Make relative URLs absolute so resources still load
   const makeAbsolute = (attr: string, selector: string) => {
     clone.querySelectorAll(selector).forEach((el) => {
