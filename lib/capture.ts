@@ -294,7 +294,7 @@ async function extractLogoFromPage(
         const id = (svg.id ?? "").toLowerCase();
         if (cls.includes("logo") || id.includes("logo")) {
           const serialized = new XMLSerializer().serializeToString(svg);
-          return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(serialized);
+          return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
         }
       }
 
