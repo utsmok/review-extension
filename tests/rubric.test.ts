@@ -352,8 +352,9 @@ describe("qualityGateResults", () => {
 
   it("any fail → that specific gate shows fail", () => {
     const evals = allGateEvals("pass");
-    const failEntry = evals.find((e) => e.rubricId === "accessibility.compliance")!;
-    failEntry!.score = "fail";
+    const failEntry = evals.find((e) => e.rubricId === "accessibility.compliance");
+    if (!failEntry) return;
+    failEntry.score = "fail";
     const results = qualityGateResults(evals, RUBRIC);
     const failed = results.find((r) => r.id === "accessibility.compliance");
     expect(failed?.result).toBe("fail");

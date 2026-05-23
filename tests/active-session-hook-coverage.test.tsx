@@ -169,7 +169,7 @@ describe("useActiveSession", () => {
   describe("Effect 1 — save and clear on activeSessionId null", () => {
     it("saves session to repository and clears store when activeSessionId becomes null", async () => {
       await seedSession("sess-clear");
-      const data = (await getRepository().load("sess-clear"))!;
+      const data = (await getRepository().load("sess-clear")) as SessionData;
 
       act(() => {
         useRegistryStore.getState().setActiveSessionId("sess-clear");
@@ -207,7 +207,7 @@ describe("useActiveSession", () => {
   describe("closeSession", () => {
     it("saves current session, clears store, and nullifies activeSessionId", async () => {
       await seedSession("sess-close");
-      const data = (await getRepository().load("sess-close"))!;
+      const data = (await getRepository().load("sess-close")) as SessionData;
 
       act(() => {
         useRegistryStore.getState().setActiveSessionId("sess-close");
@@ -217,7 +217,7 @@ describe("useActiveSession", () => {
       hookResult = renderHook(() => useActiveSession());
 
       await act(async () => {
-        hookResult!.result.current.closeSession();
+        hookResult?.result.current.closeSession();
       });
 
       await flushEffects();
@@ -236,7 +236,7 @@ describe("useActiveSession", () => {
   describe("exportAndClose", () => {
     it("exports, downloads, and marks done on success", async () => {
       await seedSession("sess-export");
-      const data = (await getRepository().load("sess-export"))!;
+      const data = (await getRepository().load("sess-export")) as SessionData;
 
       act(() => {
         useRegistryStore.getState().setActiveSessionId("sess-export");
@@ -250,7 +250,7 @@ describe("useActiveSession", () => {
       vi.mocked(sanitizeFilename).mockReturnValue("Test_Tool");
 
       await act(async () => {
-        await hookResult!.result.current.exportAndClose(RUBRIC);
+        await hookResult?.result.current.exportAndClose(RUBRIC);
       });
 
       expect(exportSession).toHaveBeenCalledWith(
@@ -270,7 +270,7 @@ describe("useActiveSession", () => {
       hookResult = renderHook(() => useActiveSession());
 
       await act(async () => {
-        await hookResult!.result.current.exportAndClose(RUBRIC);
+        await hookResult?.result.current.exportAndClose(RUBRIC);
       });
 
       expect(toastError).toHaveBeenCalledWith("No active session");
@@ -279,7 +279,7 @@ describe("useActiveSession", () => {
 
     it("calls toastError with error message when exportSession throws", async () => {
       await seedSession("sess-throw");
-      const data = (await getRepository().load("sess-throw"))!;
+      const data = (await getRepository().load("sess-throw")) as SessionData;
 
       act(() => {
         useRegistryStore.getState().setActiveSessionId("sess-throw");
@@ -291,7 +291,7 @@ describe("useActiveSession", () => {
       vi.mocked(exportSession).mockRejectedValue(new Error("ZIP generation failed"));
 
       await act(async () => {
-        await hookResult!.result.current.exportAndClose(RUBRIC);
+        await hookResult?.result.current.exportAndClose(RUBRIC);
       });
 
       expect(toastError).toHaveBeenCalledWith("ZIP generation failed");
@@ -304,6 +304,7 @@ describe("useActiveSession", () => {
     it("exposes switchToSession, createSession, deleteSession, markDoneAndClose as functions", () => {
       hookResult = renderHook(() => useActiveSession());
       const { switchToSession, createSession, deleteSession, markDoneAndClose } =
+        // biome-ignore lint/style/noNonNullAssertion: renderHook always returns a result
         hookResult!.result.current;
 
       expect(typeof switchToSession).toBe("function");

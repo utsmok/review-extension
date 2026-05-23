@@ -130,8 +130,8 @@ describe("EvidenceModal", () => {
     // The outermost element is a <button class="modal-backdrop">.
     // It has no accessible name, but it wraps the dialog.
     const dialog = screen.getByRole("dialog");
-    const backdrop = dialog.parentElement!;
-    fireEvent.click(backdrop);
+    const backdrop = dialog.parentElement;
+    if (backdrop) fireEvent.click(backdrop);
 
     expect(onClose).toHaveBeenCalledOnce();
   });

@@ -89,10 +89,10 @@ describe("importSessionFromZipFile", () => {
     const loaded = await getRepository().load(id);
 
     expect(loaded).not.toBeNull();
-    expect(loaded!.metadata.id).toBe(data.metadata.id);
-    expect(loaded!.metadata.toolName).toBe(data.metadata.toolName);
-    expect(loaded!.captures).toHaveLength(1);
-    expect(loaded!.evaluations).toHaveLength(1);
+    expect(loaded?.metadata.id).toBe(data.metadata.id);
+    expect(loaded?.metadata.toolName).toBe(data.metadata.toolName);
+    expect(loaded?.captures).toHaveLength(1);
+    expect(loaded?.evaluations).toHaveLength(1);
   });
 
   it("registers the session in the registry", async () => {
@@ -166,7 +166,7 @@ describe("importSessionFromZipFile", () => {
   });
 
   it("delegates the blob to importSessionFromZip", async () => {
-    const { blob, data } = makeZipBlob();
+    const { blob } = makeZipBlob();
 
     await importSessionFromZipFile(blob);
 
@@ -190,6 +190,6 @@ describe("importSessionFromZipFile", () => {
 
     // Repository should only have one entry
     const loaded = await getRepository().load(data.metadata.id);
-    expect(loaded!.captures).toHaveLength(1); // original data, not duplicated
+    expect(loaded?.captures).toHaveLength(1); // original data, not duplicated
   });
 });

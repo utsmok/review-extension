@@ -107,7 +107,7 @@ function getInputByLabel(labelText: string | RegExp): HTMLElement {
 }
 
 /** Find the label section containing text, then find a button within it */
-function getButtonInLabel(labelText: string | RegExp, buttonText: string): HTMLElement {
+function _getButtonInLabel(labelText: string | RegExp, buttonText: string): HTMLElement {
   const label = screen.getByText(labelText);
   const labelEl = label.closest("label");
   if (!labelEl) throw new Error(`No label element found for "${labelText}"`);

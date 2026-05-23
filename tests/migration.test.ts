@@ -71,8 +71,8 @@ describe("migrateSessionData (via IdbSessionRepository.load)", () => {
 
     const loaded = await repo.load("migration-test");
     expect(loaded).not.toBeNull();
-    expect(loaded!.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(loaded!.finalization).toBeNull();
+    expect(loaded?.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(loaded?.finalization).toBeNull();
   });
 
   it("migrates session with no schemaVersion field", async () => {
@@ -82,8 +82,8 @@ describe("migrateSessionData (via IdbSessionRepository.load)", () => {
 
     const loaded = await repo.load("migration-test");
     expect(loaded).not.toBeNull();
-    expect(loaded!.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(loaded!.finalization).toBeNull();
+    expect(loaded?.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(loaded?.finalization).toBeNull();
   });
 
   it("does not re-migrate session already at current schema version", async () => {
@@ -96,8 +96,8 @@ describe("migrateSessionData (via IdbSessionRepository.load)", () => {
 
     const loaded = await repo.load("migration-test");
     expect(loaded).not.toBeNull();
-    expect(loaded!.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(loaded!.finalization).toEqual(fin);
+    expect(loaded?.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(loaded?.finalization).toEqual(fin);
   });
 
   it("preserves existing finalization during v1→v2 migration", async () => {
@@ -107,8 +107,8 @@ describe("migrateSessionData (via IdbSessionRepository.load)", () => {
 
     const loaded = await repo.load("migration-test");
     expect(loaded).not.toBeNull();
-    expect(loaded!.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(loaded!.finalization).toEqual(fin);
+    expect(loaded?.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(loaded?.finalization).toEqual(fin);
   });
 
   it("preserves captures, evaluations, and metadata through migration", async () => {
@@ -130,15 +130,15 @@ describe("migrateSessionData (via IdbSessionRepository.load)", () => {
     const loaded = await repo.load("migration-test");
     expect(loaded).not.toBeNull();
     // All fields preserved
-    expect(loaded!.metadata.toolName).toBe("Migration Tool");
-    expect(loaded!.metadata.toolUrl).toBe("https://migration.test");
-    expect(loaded!.captures).toHaveLength(1);
-    expect(loaded!.captures[0].id).toBe(capture.id);
-    expect(loaded!.evaluations).toHaveLength(1);
-    expect(loaded!.evaluations[0].rubricId).toBe(evaluation.rubricId);
+    expect(loaded?.metadata.toolName).toBe("Migration Tool");
+    expect(loaded?.metadata.toolUrl).toBe("https://migration.test");
+    expect(loaded?.captures).toHaveLength(1);
+    expect(loaded?.captures[0].id).toBe(capture.id);
+    expect(loaded?.evaluations).toHaveLength(1);
+    expect(loaded?.evaluations[0].rubricId).toBe(evaluation.rubricId);
     // Migration applied
-    expect(loaded!.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(loaded!.finalization).toBeNull();
+    expect(loaded?.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(loaded?.finalization).toBeNull();
   });
 
   it("migrates v2 session with string discipline to v3 string[]", async () => {
@@ -152,8 +152,8 @@ describe("migrateSessionData (via IdbSessionRepository.load)", () => {
 
     const loaded = await repo.load("migration-test");
     expect(loaded).not.toBeNull();
-    expect(loaded!.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(loaded!.metadata.discipline).toEqual(["Computer Science"]);
+    expect(loaded?.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(loaded?.metadata.discipline).toEqual(["Computer Science"]);
   });
 
   it("migrates v2 session with empty string discipline to undefined", async () => {
@@ -164,7 +164,7 @@ describe("migrateSessionData (via IdbSessionRepository.load)", () => {
 
     const loaded = await repo.load("migration-test");
     expect(loaded).not.toBeNull();
-    expect(loaded!.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(loaded!.metadata.discipline).toBeUndefined();
+    expect(loaded?.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(loaded?.metadata.discipline).toBeUndefined();
   });
 });

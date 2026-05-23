@@ -101,7 +101,7 @@ describe("useFocusTrap", () => {
 
   it("does not error when container has no focusable elements", () => {
     const empty = renderTrap([]);
-    const hook = renderHook(() => useFocusTrap(empty.ref));
+    const _hook = renderHook(() => useFocusTrap(empty.ref));
 
     // Should not throw
     dispatchKeyDown(empty.container, "Tab");

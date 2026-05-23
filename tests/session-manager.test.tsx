@@ -24,7 +24,7 @@ const _lsStore: Record<string, string> = vi.hoisted(() => {
   return store;
 });
 
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
@@ -174,7 +174,7 @@ describe("SessionManager", () => {
     // ConfirmDialog's "Delete" button — exact match to avoid "Delete review" icon button
     const confirmBtn = screen.getAllByRole("button").find((btn) => btn.textContent === "Delete");
     expect(confirmBtn).toBeDefined();
-    fireEvent.click(confirmBtn!);
+    if (confirmBtn) fireEvent.click(confirmBtn);
 
     expect(deleteSession).toHaveBeenCalledWith(meta.id);
   });

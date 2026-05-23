@@ -202,7 +202,7 @@ describe("QuestionSection", () => {
 
     const passLabel = details.querySelector('label[data-judgment="pass"]');
     expect(passLabel).toBeTruthy();
-    const passRadio = passLabel!.querySelector("input[type=radio]") as HTMLInputElement;
+    const passRadio = passLabel?.querySelector("input[type=radio]") as HTMLInputElement;
     fireEvent.click(passRadio);
 
     await flush();
@@ -227,7 +227,7 @@ describe("QuestionSection", () => {
 
     const score2Label = details.querySelector('label[data-score="2"]');
     expect(score2Label).toBeTruthy();
-    const score2Radio = score2Label!.querySelector("input[type=radio]") as HTMLInputElement;
+    const score2Radio = score2Label?.querySelector("input[type=radio]") as HTMLInputElement;
     fireEvent.click(score2Radio);
 
     await flush();
@@ -250,7 +250,9 @@ describe("QuestionSection", () => {
     const details = getQuestionDetailsByRubricId("accessibility.compliance");
     openDetails(details);
 
+    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const body = details.querySelector(".question-body")!;
+
     const textarea = within(body as HTMLElement).getByPlaceholderText("Notes / remarks...");
     fireEvent.change(textarea, { target: { value: "test note" } });
 
@@ -276,7 +278,7 @@ describe("QuestionSection", () => {
     const details = getQuestionDetailsByRubricId("accessibility.compliance");
     const summary = details.querySelector("summary");
     expect(summary).toBeTruthy();
-    const svg = summary!.querySelector("svg");
+    const svg = summary?.querySelector("svg");
     expect(svg).toBeTruthy();
   });
 
@@ -315,7 +317,9 @@ describe("QuestionSection", () => {
     openDetails(details);
     renderCount = 0;
 
+    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const body = details.querySelector(".question-body")!;
+
     const textarea = within(body as HTMLElement).getByPlaceholderText("Notes / remarks...");
     fireEvent.change(textarea, { target: { value: "x" } });
 
@@ -352,7 +356,7 @@ describe("QuestionSection", () => {
     renderCount = 0;
 
     const passLabel = details.querySelector('label[data-judgment="pass"]');
-    const passRadio = passLabel!.querySelector("input[type=radio]") as HTMLInputElement;
+    const passRadio = passLabel?.querySelector("input[type=radio]") as HTMLInputElement;
     fireEvent.click(passRadio);
 
     await flush();
@@ -387,7 +391,7 @@ describe("QuestionSection", () => {
 
     const score2Label = details.querySelector('label[data-score="2"]');
     expect(score2Label).toBeTruthy();
-    const score2Radio = score2Label!.querySelector("input[type=radio]") as HTMLInputElement;
+    const score2Radio = score2Label?.querySelector("input[type=radio]") as HTMLInputElement;
     fireEvent.click(score2Radio);
 
     await flush();
@@ -421,7 +425,7 @@ describe("QuestionRow memo isolation", () => {
     // Track renders per rubricId by spying on QuestionRow's render
     const renderCounts = new Map<string, number>();
     const OrigRow = QuestionRow;
-    const TrackedRow = React.memo((props: React.ComponentProps<typeof QuestionRow>) => {
+    const _TrackedRow = React.memo((props: React.ComponentProps<typeof QuestionRow>) => {
       const key = props.rubricId;
       renderCounts.set(key, (renderCounts.get(key) ?? 0) + 1);
       return <OrigRow {...props} />;
@@ -457,7 +461,9 @@ describe("QuestionRow memo isolation", () => {
     openDetails(q2Details);
 
     // Type in q1's notes
+    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const q1Body = q1Details.querySelector(".question-body")!;
+
     const q1Textarea = within(q1Body as HTMLElement).getByPlaceholderText("Notes / remarks...");
     fireEvent.change(q1Textarea, { target: { value: "hello from q1" } });
     await flush();
@@ -467,7 +473,9 @@ describe("QuestionRow memo isolation", () => {
     expect((q1Textarea as HTMLTextAreaElement).value).toBe("hello from q1");
 
     // Now type in q2's notes
+    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const q2Body = q2Details.querySelector(".question-body")!;
+
     const q2Textarea = within(q2Body as HTMLElement).getByPlaceholderText("Notes / remarks...");
     fireEvent.change(q2Textarea, { target: { value: "hello from q2" } });
     await flush();
@@ -505,16 +513,19 @@ describe("QuestionRow memo isolation", () => {
     openDetails(q2Details);
 
     // Type notes in q1
+    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const q1Body = q1Details.querySelector(".question-body")!;
+
     const q1Textarea = within(q1Body as HTMLElement).getByPlaceholderText("Notes / remarks...");
     fireEvent.change(q1Textarea, { target: { value: "important notes" } });
     await flush();
     await flush();
 
     // Click score on q2 (different question)
+    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const q2Body = q2Details.querySelector(".question-body")!;
     const failLabel = q2Body.querySelector('label[data-judgment="fail"]');
-    const failRadio = failLabel!.querySelector("input[type=radio]") as HTMLInputElement;
+    const failRadio = failLabel?.querySelector("input[type=radio]") as HTMLInputElement;
     fireEvent.click(failRadio);
     await flush();
     await flush();
@@ -562,7 +573,7 @@ describe("merged gate badges (§2e)", () => {
   }
 
   /** Get all merged-gate <details> elements. */
-  function getAllMergedGateDetails(): HTMLDetailsElement[] {
+  function _getAllMergedGateDetails(): HTMLDetailsElement[] {
     const result: HTMLDetailsElement[] = [];
     const allDetails = document.querySelectorAll("details.question-details");
     for (const d of allDetails) {
@@ -599,9 +610,9 @@ describe("merged gate badges (§2e)", () => {
     const details = getMergedGateDetails("SE.data_handling");
     const badge = details.querySelector("summary span.rounded-full");
     expect(badge).toBeTruthy();
-    expect(badge!.textContent).toBe("✓");
-    expect(badge!.className).toContain("bg-ut-green/20");
-    expect(badge!.className).toContain("text-ut-green");
+    expect(badge?.textContent).toBe("✓");
+    expect(badge?.className).toContain("bg-ut-green/20");
+    expect(badge?.className).toContain("text-ut-green");
   });
 
   it("shows fail badge (✗) for merged gate with score 0", () => {
@@ -618,9 +629,9 @@ describe("merged gate badges (§2e)", () => {
     const details = getMergedGateDetails("TC.source_attribution_depth");
     const badge = details.querySelector("summary span.rounded-full");
     expect(badge).toBeTruthy();
-    expect(badge!.textContent).toBe("✗");
-    expect(badge!.className).toContain("bg-red-200");
-    expect(badge!.className).toContain("text-red-700");
+    expect(badge?.textContent).toBe("✗");
+    expect(badge?.className).toContain("bg-red-200");
+    expect(badge?.className).toContain("text-red-700");
   });
 
   it("shows na badge (—) for merged gate with score 'na'", () => {
@@ -637,9 +648,9 @@ describe("merged gate badges (§2e)", () => {
     const details = getMergedGateDetails("SE.data_handling");
     const badge = details.querySelector("summary span.rounded-full");
     expect(badge).toBeTruthy();
-    expect(badge!.textContent).toBe("—");
-    expect(badge!.className).toContain("bg-ut-grey");
-    expect(badge!.className).toContain("text-ut-slate");
+    expect(badge?.textContent).toBe("—");
+    expect(badge?.className).toContain("bg-ut-grey");
+    expect(badge?.className).toContain("text-ut-slate");
   });
 
   it("shows no badge for unanswered merged gate", () => {

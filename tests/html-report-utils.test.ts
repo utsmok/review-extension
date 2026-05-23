@@ -3,8 +3,6 @@ import { describe, expect, it } from "vitest";
 import { buildHtmlReport, buildNutritionLabel } from "@/lib/html-report";
 import {
   RUBRIC,
-  TINY_PNG,
-  makeCapture,
   makeEvaluation,
   type makeFinalization,
   makeMetadata,
@@ -135,7 +133,7 @@ describe("scoreCircles() — circle rendering", () => {
     const matches = html.match(/class="circle filled"/g);
     expect(matches).not.toBeNull();
     // 5 principles × 4 filled + 1 overall × 4 filled = 24 filled circles
-    expect(matches!.length).toBe(24);
+    expect(matches?.length).toBe(24);
   });
 
   it("all scores = 0 → 0 filled circles per principle", async () => {
@@ -152,7 +150,7 @@ describe("scoreCircles() — circle rendering", () => {
     const empty = html.match(/class="circle empty"/g);
     expect(filled).toBeNull();
     // 5 principles × 4 empty + 1 overall × 4 empty = 24 empty circles
-    expect(empty!.length).toBe(24);
+    expect(empty?.length).toBe(24);
   });
 
   it("mixed scores averaging exactly 1.5 → 2 filled circles", async () => {
@@ -165,7 +163,7 @@ describe("scoreCircles() — circle rendering", () => {
     const filled = html.match(/class="circle filled"/g);
     expect(filled).not.toBeNull();
     // 5 principles × 2 + 1 overall × 2 (overall avg = 1.5/3 * 3 = 1.5 → filled = 2) = 12
-    expect(filled!.length).toBe(12);
+    expect(filled?.length).toBe(12);
   });
 });
 
@@ -208,6 +206,6 @@ describe("buildGateRows — quality gate rendering", () => {
     //   → label = "—" for both na/unsure, color = "#6b7f94"
     const dashBadges = html.match(/color:#6b7f94/g);
     expect(dashBadges).not.toBeNull();
-    expect(dashBadges!.length).toBeGreaterThanOrEqual(2);
+    expect(dashBadges?.length).toBeGreaterThanOrEqual(2);
   });
 });

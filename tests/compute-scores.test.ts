@@ -486,8 +486,8 @@ describe("computeReportScores", () => {
     for (const catId of ["TR", "RE", "US", "SE", "TC"]) {
       const scores = r.catScores.get(catId);
       expect(scores).toBeDefined();
-      expect(scores!.length).toBe(2);
-      expect(scores!.every((s) => s === 3)).toBe(true);
+      expect(scores?.length).toBe(2);
+      expect(scores?.every((s) => s === 3)).toBe(true);
     }
   });
 

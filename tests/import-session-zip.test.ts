@@ -117,7 +117,7 @@ describe("importSessionFromZip", () => {
 
     const result = await importSessionFromZip(blob);
     expect(result.metadata).toEqual(metadata);
-    expect((result as unknown as Record<string, unknown>)["extraField"]).toBe("should be fine");
+    expect((result as unknown as { extraField: unknown }).extraField).toBe("should be fine");
   });
 
   // 9. Round-trip: verify data survives JSON serialization in the same shape
