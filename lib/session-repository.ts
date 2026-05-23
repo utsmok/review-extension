@@ -22,7 +22,7 @@ export class IdbSessionRepository implements SessionRepository {
 
   private openDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, 2);
+      const request = indexedDB.open(DB_NAME, SCHEMA_VERSION);
       request.onupgradeneeded = () => {
         const db = request.result;
         if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -85,10 +85,10 @@ export class IdbSessionRepository implements SessionRepository {
         }
       }
       const db = await this.getDB();
-      data.schemaVersion = SCHEMA_VERSION;
+      const clone = { ...data, schemaVersion: SCHEMA_VERSION };
       return new Promise((resolve, reject) => {
         const tx = db.transaction(STORE_NAME, "readwrite");
-        tx.objectStore(STORE_NAME).put(data, id);
+        tx.objectStore(STORE_NAME).put(clone, id);
         tx.oncomplete = () => resolve(true);
         tx.onerror = () => reject(tx.error);
         tx.onabort = () => reject(new Error("Transaction aborted"));

@@ -43,6 +43,17 @@ export function saveCurrentSession(): void {
       .catch((err) => console.error("Fire-and-forget IDB save failed:", err));
 }
 
+/** Save current session data to IDB (returns promise for callers that need to await). */
+export async function saveCurrentSessionAsync(): Promise<void> {
+  const data = snapshot();
+  if (data) {
+    const ok = await getRepository().save(data.metadata.id, data);
+    if (!ok) {
+      toastError("Failed to save current review before switching. Your work may be lost.");
+    }
+  }
+}
+
 /** Create a new session: save to IDB, register in registry. */
 export async function createSession(metadata: SessionMetadata): Promise<void> {
   await getRepository().save(metadata.id, {
@@ -65,9 +76,9 @@ export async function deleteSession(id: string): Promise<void> {
   useRegistryStore.getState().deleteSession(id);
 }
 
-/** Switch from current session to another. Saves current first. */
-export function switchToSession(id: string): void {
-  saveCurrentSession();
+/** Switch from current session to another. Saves current first (awaited). */
+export async function switchToSession(id: string): Promise<void> {
+  await saveCurrentSessionAsync();
   useSessionStore.getState().clear();
   useRegistryStore.getState().setActiveSessionId(id);
 }
@@ -82,12 +93,10 @@ export function markDoneAndClose(id: string): void {
 
 /** Export a session by ID, loading from IDB and building the ZIP blob. */
 export async function exportSessionById(id: string): Promise<Blob> {
-  const meta = useRegistryStore.getState().sessionIndex[id];
-  if (!meta) throw new Error(`Review ${id} not found in registry`);
   const data = await getRepository().load(id);
   if (!data) throw new Error(`Session ${id} not found in storage`);
   const blob = await exportSession(
-    meta,
+    data.metadata,
     data.captures,
     data.evaluations,
     RUBRIC_DATA,

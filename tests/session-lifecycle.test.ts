@@ -55,8 +55,14 @@ beforeEach(() => {
 });
 
 // Must import after mocks are set up
-const { createSession, loadSessionById, deleteSession, switchToSession, markDoneAndClose, exportSessionById } =
-  await import("@/lib/session-lifecycle");
+const {
+  createSession,
+  loadSessionById,
+  deleteSession,
+  switchToSession,
+  markDoneAndClose,
+  exportSessionById,
+} = await import("@/lib/session-lifecycle");
 
 afterEach(() => {
   useSessionStore.getState().clear();
@@ -190,7 +196,7 @@ describe("switchToSession", () => {
 
     await createSession(metaB);
 
-    switchToSession(metaB.id);
+    await switchToSession(metaB.id);
 
     const { activeSessionId } = useRegistryStore.getState();
     expect(activeSessionId).toBe(metaB.id);
@@ -247,9 +253,9 @@ describe("exportSessionById", () => {
     expect(blob.type).toBe("application/zip");
   });
 
-  it("throws if session not in registry", async () => {
+  it("throws if session not found in storage", async () => {
     await expect(exportSessionById("nonexistent-id")).rejects.toThrow(
-      "Review nonexistent-id not found in registry",
+      "Session nonexistent-id not found in storage",
     );
   });
 
