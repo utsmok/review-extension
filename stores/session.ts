@@ -69,13 +69,20 @@ export const useSessionStore = create<SessionState>()((set) => ({
     })),
 
   removeCapture: (id) =>
-    set((s) => ({
-      captures: s.captures.filter((c) => c.id !== id),
-      evaluations: s.evaluations.map((e) => ({
-        ...e,
-        explicitEvidenceIds: e.explicitEvidenceIds.filter((eid) => eid !== id),
-      })),
-    })),
+    set((s) => {
+      const removed = s.captures.find((c) => c.id === id);
+      const metadataPatch: Partial<SessionMetadata> = {};
+      if (removed?.metadataField === "toolLogoUrl") metadataPatch.toolLogoUrl = "";
+      if (removed?.metadataField === "termsConditionsUrl") metadataPatch.termsConditionsUrl = "";
+      return {
+        captures: s.captures.filter((c) => c.id !== id),
+        evaluations: s.evaluations.map((e) => ({
+          ...e,
+          explicitEvidenceIds: e.explicitEvidenceIds.filter((eid) => eid !== id),
+        })),
+        session: s.session ? { ...s.session, ...metadataPatch } : s.session,
+      };
+    }),
 
   // Shallow-merges patch into existing evaluation (preserves notes, explicitEvidenceIds, etc.).
   // Callers may pass partial updates — only the supplied fields are overwritten.

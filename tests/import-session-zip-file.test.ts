@@ -111,9 +111,7 @@ describe("importSessionFromZipFile", () => {
 
     await importSessionFromZipFile(blob);
 
-    expect(useRegistryStore.getState().activeSessionId).toBe(
-      data.metadata.id,
-    );
+    expect(useRegistryStore.getState().activeSessionId).toBe(data.metadata.id);
   });
 
   it("rejects importing a duplicate session with correct message", async () => {
@@ -147,9 +145,7 @@ describe("importSessionFromZipFile", () => {
     const blobA = new Blob(["zip-a"]);
     const blobB = new Blob(["zip-b"]);
 
-    vi.mocked(importSessionFromZip)
-      .mockResolvedValueOnce(dataA)
-      .mockResolvedValueOnce(dataB);
+    vi.mocked(importSessionFromZip).mockResolvedValueOnce(dataA).mockResolvedValueOnce(dataB);
 
     const idA = await importSessionFromZipFile(blobA);
     const idB = await importSessionFromZipFile(blobB);
