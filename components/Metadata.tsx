@@ -291,7 +291,7 @@ export default function Metadata() {
     <button
       key={label}
       type="button"
-      className={`text-ut-xs px-ut-2 py-ut-1 border rounded-ut-sm transition-colors ${isSelected ? "bg-trust-magenta text-white border-trust-magenta" : "border-ut-border text-ut-muted hover:border-ut-slate"}`}
+      className={`pill-toggle text-ut-xs px-ut-2 py-ut-1 border rounded-ut-sm ${isSelected ? "bg-trust-magenta text-white border-trust-magenta" : "border-ut-border text-ut-muted hover:border-ut-slate"}`}
       onClick={onClick}
     >
       {label}

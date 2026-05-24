@@ -163,7 +163,8 @@ export default function FinalizationScreen() {
         Finalize Review
       </h2>
       {draftSaved && !saved && (
-        <p className="text-ut-xs text-ut-muted font-mono" aria-live="polite">
+        <p className="draft-saved-toast text-ut-xs text-ut-muted font-mono" aria-live="polite">
+
           Draft saved locally
         </p>
       )}
@@ -199,11 +200,12 @@ export default function FinalizationScreen() {
               key={g.value}
               type="button"
               onClick={() => handleGradeChange(g.value)}
-              className={`flex-1 px-ut-3 py-ut-2 rounded-ut-sm text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase transition-colors ${
+              className={`grade-btn flex-1 px-ut-3 py-ut-2 rounded-ut-sm text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase ${
                 grade === g.value
-                  ? `${g.color} text-white`
+                  ? `${g.color} text-white is-selected`
                   : `border border-ut-border ${g.tint} text-ut-text hover:brightness-95`
               }`}
+
             >
               {g.label}
             </button>
@@ -380,7 +382,7 @@ function BulletListEditor({
         <ul className="flex flex-col gap-ut-1 ml-ut-1">
           {items.map((item, idx) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: simple string list, index is sufficient
-            <li key={idx} className="flex items-start gap-ut-1 text-ut-sm">
+            <li key={idx} className="bullet-item-enter flex items-start gap-ut-1 text-ut-sm">
               <span className="text-ut-slate shrink-0">•</span>
               {editingIndex === idx ? (
                 <input

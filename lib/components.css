@@ -1023,3 +1023,81 @@
   position: relative;
   z-index: 1;
 }
+
+
+/* ── Captures empty state float ─────────────────────────── */
+.captures-empty-icon {
+  animation: omp-float 3s ease-in-out infinite;
+}
+
+@keyframes omp-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* ── Capture grid card fade-in ──────────────────────────── */
+.capture-card-enter {
+  animation: omp-fade-up var(--duration-normal) ease-out both;
+}
+
+@keyframes omp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* ── Pill toggle micro-interaction ─────────────────────────── */
+.pill-toggle {
+  transition: transform var(--duration-fast) ease-out,
+              background-color var(--duration-fast) ease-out,
+              border-color var(--duration-fast) ease-out,
+              color var(--duration-fast) ease-out;
+}
+
+.pill-toggle:active {
+  transform: scale(0.95);
+}
+/* ── Finalize grade button transition ────────────────────── */
+.grade-btn {
+  transition: transform var(--duration-fast) ease-out,
+              background-color var(--duration-fast) ease-out,
+              box-shadow var(--duration-fast) ease-out;
+}
+
+.grade-btn:active {
+  transform: scale(0.97);
+}
+
+.grade-btn.is-selected {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* ── Draft saved fade-out ──────────────────────────────── */
+.draft-saved-toast {
+  animation: omp-fade-out 2s ease-out 1s both;
+}
+
+@keyframes omp-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ── Bullet item slide-in ─────────────────────────────── */
+.bullet-item-enter {
+  animation: omp-slide-in var(--duration-normal) ease-out both;
+}
+
+@keyframes omp-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

@@ -93,7 +93,7 @@ export default function Captures() {
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="mb-ut-2"
+            className="captures-empty-icon mb-ut-2"
             aria-hidden="true"
           >
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
@@ -126,7 +126,7 @@ export default function Captures() {
                   const isExpanded = expanded === capture.id;
 
                   return (
-                    <div key={capture.id}>
+                    <div key={capture.id} className="capture-card-enter">
                       {/* Thumbnail card */}
                       <button
                         type="button"
