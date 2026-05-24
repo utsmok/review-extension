@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { compressCaptureScreenshot } from "./image-convert";
 import type { Capture } from "./types";
 
 const ALLOWED_SCHEMES = ["http:", "https:", "file:"];
@@ -193,6 +194,8 @@ export async function captureActiveTab(): Promise<Capture> {
     format: "png",
   });
 
+  const compressedScreenshot = await compressCaptureScreenshot(screenshotUri);
+
   const [result] = await browser.scripting.executeScript({
     target: { tabId: tab.id },
     func: archivePageHtml,
@@ -206,11 +209,10 @@ export async function captureActiveTab(): Promise<Capture> {
     timestamp: new Date().toISOString(),
     sourceUrl: tab.url,
     pageTitle: scriptResult?.title ?? "",
-    screenshotBase64: screenshotUri,
+    screenshotBase64: compressedScreenshot,
     htmlContent,
     notes: "",
   };
-
   // I8: Size limit — truncate HTML if capture is too large
   const totalSize = capture.screenshotBase64.length + capture.htmlContent.length;
   if (totalSize > MAX_CAPTURE_SIZE) {
@@ -228,8 +230,18 @@ export async function captureCurrentPageInfo(): Promise<{
   faviconUrl?: string;
 }> {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+  const rawUrl = tab.url ?? "";
+  let url = rawUrl;
+  try {
+    const parsed = new URL(rawUrl);
+    if (!ALLOWED_SCHEMES.includes(parsed.protocol)) {
+      url = "";
+    }
+  } catch {
+    url = "";
+  }
   return {
-    url: tab.url ?? "",
+    url,
     title: tab.title ?? "",
     faviconUrl: tab.favIconUrl,
   };
