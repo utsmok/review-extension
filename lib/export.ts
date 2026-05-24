@@ -181,6 +181,7 @@ export async function exportSession(
         Pricing: metadata.pricing ?? "",
         Availability: metadata.availability ?? "",
         Terms_Conditions_URL: metadata.termsConditionsUrl ?? "",
+        Authentication_Method: metadata.authenticationMethod ?? "",
         Data_Sources: (metadata.dataSources ?? []).join("; "),
         Search_Methods: (metadata.searchMethods ?? []).join("; "),
         Discipline: (metadata.discipline ?? []).join("; "),

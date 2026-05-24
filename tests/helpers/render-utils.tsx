@@ -8,7 +8,7 @@ import { makeMetadata, RUBRIC } from "@/tests/fixtures";
 
 export function AllProviders({ children }: { children: React.ReactNode }) {
   return (
-    <RubricContext.Provider value={{ rubric: RUBRIC, usesAi: false }}>
+    <RubricContext.Provider value={{ rubric: RUBRIC, usesAi: true }}>
       {children}
     </RubricContext.Provider>
   );
