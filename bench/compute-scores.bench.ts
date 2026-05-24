@@ -1,7 +1,7 @@
 import { bench, describe } from "vitest";
 import { computeReportScores } from "@/lib/report/compute-scores";
-import { RUBRIC, makeEvaluation, makeFinalization } from "@/tests/fixtures";
 import type { Evaluation, EvaluationScore } from "@/lib/types";
+import { makeEvaluation, makeFinalization, RUBRIC } from "@/tests/fixtures";
 
 const QG_IDS = ["privacy_and_security.training_policy", "accessibility.compliance"];
 

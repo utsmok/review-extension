@@ -9,8 +9,8 @@ import {
   qualityGateResults,
   scoreColor,
 } from "@/lib/rubric";
-import { RUBRIC, makeEvaluation } from "@/tests/fixtures";
 import type { Evaluation, EvaluationScore } from "@/lib/types";
+import { makeEvaluation, RUBRIC } from "@/tests/fixtures";
 
 const QG_IDS = ["privacy_and_security.training_policy", "accessibility.compliance"];
 
