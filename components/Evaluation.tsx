@@ -83,48 +83,62 @@ export default function Evaluation() {
   return (
     <div className="flex flex-col gap-ut-4 p-ut-4">
       {/* Progress indicator */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-ut-2">
         <span
           className={`text-ut-sm font-heading font-bold whitespace-nowrap transition-colors ${
             progress.complete ? "text-ut-green" : "text-ut-muted"
           }`}
         >
-          {progress.complete ? (
-            <>
-              {progress.scored}/{progress.total} scored — All complete!
-            </>
-          ) : (
-            <>
-              {progress.scored}/{progress.total} scored
-            </>
-          )}
+          {progress.scored}/{progress.total}
         </span>
+        <div className="eval-progress-track">
+          <div
+            className={`eval-progress-fill ${progress.complete ? "is-complete" : ""}`}
+            style={{ width: `${progress.total > 0 ? Math.round((progress.scored / progress.total) * 100) : 0}%` }}
+          />
+        </div>
+        {progress.complete && (
+          <span className="text-ut-xs font-heading font-bold text-ut-green whitespace-nowrap">
+            All complete!
+          </span>
+        )}
       </div>
 
       {/* Per-category completion summary */}
       {categorySummary.map((section) => (
         <div key={section.sectionLabel} className="flex flex-wrap gap-ut-2">
-          {section.categories.map((cat) => (
-            <span
-              key={cat.categoryId}
-              className="text-ut-xs font-mono px-ut-1 bg-ut-grey rounded-ut-sm"
-              style={{ color: `var(--section-${cat.accentKey}-accent, var(--ut-navy))` }}
-              title={`${cat.scored} of ${cat.total} questions scored`}
-            >
-              {cat.label}{" "}
-              <span className="font-bold">
-                {cat.scored}/{cat.total}
-              </span>
-              {cat.unsureCount > 0 && (
+          {section.categories.map((cat) => {
+            const pct = cat.total > 0 ? Math.round((cat.scored / cat.total) * 100) : 0;
+            const done = cat.scored >= cat.total && cat.total > 0;
+            return (
+              <span
+                key={cat.categoryId}
+                className="cat-chip"
+                style={{ color: `var(--section-${cat.accentKey}-accent, var(--ut-navy))` }}
+                title={`${cat.scored} of ${cat.total} questions scored`}
+              >
                 <span
-                  className="text-ut-xs text-ut-muted"
-                  title={`${cat.unsureCount} question${cat.unsureCount !== 1 ? "s" : ""} marked Unsure`}
-                >
-                  ({cat.unsureCount}?)
+                  className={`cat-chip-fill ${done ? "is-complete" : ""}`}
+                  style={{
+                    width: `${pct}%`,
+                    backgroundColor: done ? undefined : `color-mix(in srgb, var(--section-${cat.accentKey}-accent, var(--ut-navy)) 12%, var(--ut-grey))`,
+                  }}
+                />
+                <span>{cat.label}</span>
+                <span className="font-bold">
+                  {cat.scored}/{cat.total}
                 </span>
-              )}
-            </span>
-          ))}
+                {cat.unsureCount > 0 && (
+                  <span
+                    className="text-ut-muted"
+                    title={`${cat.unsureCount} question${cat.unsureCount !== 1 ? "s" : ""} marked Unsure`}
+                  >
+                    {cat.unsureCount}?
+                  </span>
+                )}
+              </span>
+            );
+          })}
         </div>
       ))}
 
