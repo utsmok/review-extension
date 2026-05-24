@@ -1,5 +1,43 @@
 # Changelog
 
+## v0.3.1 — 2026-05-24
+
+### Rubric v1.1
+
+- Upgrade rubric from v1.0 to v1.1 with 4 quality gate questions (was 2)
+- Add Intellectual Property gate (IP1) for copyright/preservation assessment
+- Split Privacy & Security into two gates: data privacy (PS1, all tools) and AI training policy (PS2, AI-only)
+- Add `ai_only` flag to 4 rubric questions for dynamic hiding when tool does not use AI
+- Add Authentication Method metadata field with 8 predefined options (SSO/SAML, IP Authentication, etc.)
+- Expand discipline options from 26 to 34 — Arts & Humanities and Social Sciences replaced with Scopus subcategories
+- Add N/A scenario guidance to PS1, IP1, and AC1 background text
+- Add deterministic database scoring guidance to RE2 background
+- Remove stale `related_gate` reference from TC1
+
+### Logic & scoring
+
+- Add `getVisibleRubricQuestionIds()` for filtering ai_only questions by usesAi flag
+- Dynamic completion denominator — progress bar and completion percentage now exclude hidden ai_only questions
+- Fix `getAiOnlyRubricIds()` to return full dot-separated rubricIds — enables correct usesAi toggle confirmation and score clearing
+- Fix `computeCompletion` numerator to filter by visible question set — prevents >100% completion display
+- Fix `categorySummary` in Evaluation to filter by usesAi — consistent per-category totals
+- Thread `usesAi` through `computeReportScores` — accurate question counts in HTML report
+- Add `countUnsure()` for displaying unsure counts alongside principle averages
+
+### Capture & export
+
+- Add WebP/JPEG compression for IndexedDB screenshot storage (WebP quality 0.95, JPEG fallback)
+- Guard restricted URL schemes (`javascript:`, `data:`, `blob:`, `chrome:`, `chrome-extension:`) in page info capture
+- Render 6 procurement/access metadata fields in HTML report header (company, pricing, availability, termsConditionsUrl, authenticationMethod, usesAi)
+- Add `Authentication_Method` to CSV export
+
+### Tests
+
+- Add tests for `getVisibleRubricQuestionIds` (3 tests: all-visible, ai_only filtering, non-AI QG inclusion)
+- Add tests for `computeCompletion` with `usesAi=false` (4 tests: visible-only scoring, no-exceed, denominator, numerator filtering)
+- Fix `AllProviders` test helper to default `usesAi: true` (matches production default)
+- Update all tests for v1.1 rubric structure (14 questions, 4 QG)
+
 ## v0.3.0 — 2026-05-22
 
 ### Security
