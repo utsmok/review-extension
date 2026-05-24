@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { useRubric } from "@/lib/contexts";
-import { useTabNavigation } from "@/lib/contexts";
-
+import { captureForMetadataField } from "@/lib/capture";
+import { useRubric, useTabNavigation } from "@/lib/contexts";
+import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
 import ExportCompleteScreen from "./ExportCompleteScreen";
-import { captureForMetadataField } from "@/lib/capture";
-import { toastError } from "@/stores/toast";
 
 const DATA_SOURCE_OPTIONS = [
   "CrossRef",
@@ -33,7 +31,12 @@ const SEARCH_METHOD_OPTIONS = [
 
 const DISCIPLINE_OPTIONS = [
   "Agricultural and Biological Sciences",
-  "Arts and Humanities",
+  "History and Archaeology",
+  "Languages and Literature",
+  "Philosophy and Ethics",
+  "Performing Arts",
+  "Visual Arts and Design",
+  "Religious Studies",
   "Biochemistry Genetics and Molecular Biology",
   "Business Management and Accounting",
   "Chemical Engineering",
@@ -56,8 +59,21 @@ const DISCIPLINE_OPTIONS = [
   "Pharmacology Toxicology and Pharmaceutics",
   "Physics and Astronomy",
   "Psychology",
-  "Social Sciences",
+  "Education and Educational Research",
+  "Law, Policy, and Criminology",
+  "Political Science and International Relations",
+  "Sociology, Anthropology, and Social Work",
   "Veterinary",
+] as const;
+const AUTH_METHOD_OPTIONS = [
+  "SSO/SAML",
+  "IP Authentication",
+  "OpenAthens",
+  "Proxy (EZproxy)",
+  "LibKey",
+  "Email-only",
+  "API Key",
+  "None required",
 ] as const;
 
 /** Derive custom entries: those in the value array that aren't predefined */
@@ -77,6 +93,7 @@ export default function Metadata() {
     updateCapture,
     removeCapture,
     evaluations,
+    setEvaluation,
     finalization,
     exportAndClose,
     deleteSession,
@@ -86,19 +103,55 @@ export default function Metadata() {
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [exportComplete, setExportComplete] = useState(false);
   const [exportFilename, setExportFilename] = useState("");
+  const [showUsesAiConfirm, setShowUsesAiConfirm] = useState(false);
   const [customSource, setCustomSource] = useState("");
   const [customMethod, setCustomMethod] = useState("");
   const [customDiscipline, setCustomDiscipline] = useState("");
   const [logoCapturing, setLogoCapturing] = useState(false);
   const [showExportConfirm, setShowExportConfirm] = useState(false);
-
   const [tcCapturing, setTcCapturing] = useState(false);
+
+  /** Collect all rubric IDs where ai_only is true */
+  const getAiOnlyRubricIds = (): string[] => {
+    const ids: string[] = [];
+    if (!rubric) return ids;
+    for (const section of Object.values(rubric.quality_gate)) {
+      for (const [id, question] of Object.entries(section)) {
+        if (question.ai_only) ids.push(id);
+      }
+    }
+    for (const section of Object.values(rubric.scoring_rubric)) {
+      for (const [id, question] of Object.entries(section)) {
+        if (question.ai_only) ids.push(id);
+      }
+    }
+    return ids;
+  };
+
+  /** Check whether any AI-only questions currently have a non-trivial score */
+  const hasScoredAiOnlyQuestions = (): boolean => {
+    const aiIds = new Set(getAiOnlyRubricIds());
+    if (aiIds.size === 0) return false;
+    return evaluations.some(
+      (e) => aiIds.has(e.rubricId) && e.score !== "" && e.score !== "na" && e.score !== "unsure",
+    );
+  };
+
+  /** Set all AI-only question scores to "na" */
+  const clearAiOnlyScores = () => {
+    for (const id of getAiOnlyRubricIds()) {
+      const ev = evaluations.find((e) => e.rubricId === id);
+      if (ev && ev.score !== "" && ev.score !== "na" && ev.score !== "unsure") {
+        setEvaluation(id, { score: "na" });
+      }
+    }
+  };
   const handleCaptureLogo = async () => {
     setLogoCapturing(true);
     try {
       const { capture, logoUrl } = await captureForMetadataField("toolLogoUrl");
       addCapture(capture);
-      updateMetadata({ toolLogoUrl: logoUrl ?? capture.sourceUrl });
+      updateMetadata({ toolLogoUrl: logoUrl ?? "" });
     } catch (err) {
       toastError(err instanceof Error ? err.message : "Capture failed");
     } finally {
@@ -290,7 +343,14 @@ export default function Metadata() {
         <input
           type="checkbox"
           checked={session.usesAi ?? true}
-          onChange={(e) => updateMetadata({ usesAi: e.target.checked })}
+          onChange={(e) => {
+            const next = e.target.checked;
+            if (!next && hasScoredAiOnlyQuestions()) {
+              setShowUsesAiConfirm(true);
+            } else {
+              updateMetadata({ usesAi: next });
+            }
+          }}
           className="w-4 h-4 rounded-ut-sm border-ut-border text-ut-blue focus:ring-ut-blue"
         />
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
@@ -333,6 +393,21 @@ export default function Metadata() {
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
           Tool Logo URL
         </span>
+        <div className="flex items-center gap-ut-2">
+          <input
+            className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue flex-1"
+            placeholder="Paste logo image URL..."
+            value={session.toolLogoUrl ?? ""}
+            onChange={(e) => updateMetadata({ toolLogoUrl: e.target.value })}
+          />
+          {session?.toolLogoUrl && (
+            <img
+              src={session.toolLogoUrl}
+              alt="Logo"
+              style={{ width: 24, height: 24, objectFit: "contain", flexShrink: 0 }}
+            />
+          )}
+        </div>
         {(() => {
           const linkedCapture = captures.find((c) => c.metadataField === "toolLogoUrl");
           return (
@@ -342,13 +417,6 @@ export default function Metadata() {
                   <a href={linkedCapture.sourceUrl} target="_blank" rel="noopener noreferrer">
                     {linkedCapture.sourceUrl}
                   </a>
-                  {session?.toolLogoUrl && (
-                    <img
-                      src={session.toolLogoUrl}
-                      alt="Logo"
-                      style={{ width: 24, height: 24, objectFit: "contain" }}
-                    />
-                  )}
                   <button
                     type="button"
                     onClick={() => removeCapture(linkedCapture.id)}
@@ -406,6 +474,12 @@ export default function Metadata() {
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
           Terms &amp; Conditions
         </span>
+        <input
+          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+          placeholder="Paste T&C URL..."
+          value={session.termsConditionsUrl ?? ""}
+          onChange={(e) => updateMetadata({ termsConditionsUrl: e.target.value })}
+        />
         {(() => {
           const tcCaptures = captures.filter((c) => c.metadataField === "termsConditionsUrl");
           return (
@@ -507,6 +581,26 @@ export default function Metadata() {
         )}
       </fieldset>
       <hr className="border-ut-border my-ut-2" />
+      {/* Authentication Method single-select pill selector */}
+      <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
+        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          Authentication Method
+        </legend>
+        <div className="flex flex-wrap gap-ut-1 mb-ut-1">
+          {AUTH_METHOD_OPTIONS.map((opt) =>
+            renderPill(
+              opt,
+              session.authenticationMethod === opt,
+              () =>
+                updateMetadata({
+                  authenticationMethod: session.authenticationMethod === opt ? undefined : opt,
+                }),
+              false,
+            ),
+          )}
+        </div>
+      </fieldset>
+      <hr className="border-ut-border my-ut-2" />
       {/* Review summary */}
       <div className="border-t-2 border-ut-border pt-ut-3 mt-1">
         <div className="flex justify-between text-ut-xs text-ut-muted font-mono mb-1">
@@ -572,7 +666,6 @@ export default function Metadata() {
               setShowExportConfirm(true);
             }
           }}
-
         >
           {exporting ? "Exporting..." : "End Review & Export"}
         </button>
@@ -618,6 +711,29 @@ export default function Metadata() {
                 setShowDiscardConfirm(false);
               },
               variant: "danger",
+            },
+          ]}
+        />
+      )}
+      {showUsesAiConfirm && (
+        <ConfirmDialog
+          message="AI-specific questions have been scored. Disable AI and mark them as N/A?"
+          actions={[
+            {
+              label: "Mark as N/A",
+              handler: () => {
+                clearAiOnlyScores();
+                updateMetadata({ usesAi: false });
+                setShowUsesAiConfirm(false);
+              },
+              variant: "danger",
+            },
+            {
+              label: "Cancel",
+              handler: () => {
+                setShowUsesAiConfirm(false);
+              },
+              variant: "cancel",
             },
           ]}
         />

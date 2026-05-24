@@ -6,8 +6,8 @@ import {
   getAccentKey,
   getCategoryLabel,
   getLinkedRubricIdsForCapture,
-  getQuestionCode,
   getQGQuestionCode,
+  getQuestionCode,
 } from "@/lib/rubric";
 import type {
   Capture,
@@ -126,7 +126,10 @@ function renderScoringScores(
       })}
 
       {/* N/A row */}
-      <label className={`score-row score-row--meta-separator ${isNa ? "is-selected" : ""}`} data-score="na">
+      <label
+        className={`score-row score-row--meta-separator ${isNa ? "is-selected" : ""}`}
+        data-score="na"
+      >
         <input
           type="radio"
           name={rubricId}
@@ -301,12 +304,34 @@ export const QuestionRow = React.memo(function QuestionRow({
         {hasScore && (
           <span
             className="summary-score-badge select-none"
-            data-score={isQG ? ev?.score : (isNa ? "na" : ev?.score === "unsure" ? "unsure" : scoreNum >= 0 ? scoreNum : undefined)}
+            data-score={
+              isQG
+                ? ev?.score
+                : isNa
+                  ? "na"
+                  : ev?.score === "unsure"
+                    ? "unsure"
+                    : scoreNum >= 0
+                      ? scoreNum
+                      : undefined
+            }
             aria-hidden="true"
           >
             {isQG
-              ? ev?.score === "pass" ? "✓" : ev?.score === "fail" ? "✗" : ev?.score === "na" ? "—" : "?"
-              : isNa ? "—" : ev?.score === "unsure" ? "?" : scoreNum >= 0 ? scoreNum : ""}
+              ? ev?.score === "pass"
+                ? "✓"
+                : ev?.score === "fail"
+                  ? "✗"
+                  : ev?.score === "na"
+                    ? "—"
+                    : "?"
+              : isNa
+                ? "—"
+                : ev?.score === "unsure"
+                  ? "?"
+                  : scoreNum >= 0
+                    ? scoreNum
+                    : ""}
           </span>
         )}
         <span>{question.title}</span>

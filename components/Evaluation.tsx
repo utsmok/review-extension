@@ -3,14 +3,14 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import EvidenceModal from "@/components/EvidenceModal";
 import QuestionSection from "@/components/QuestionSection";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { getAccentKey, getCategoryLabel, getRubricQuestionIds } from "@/lib/rubric";
-import { useRubric } from "@/lib/contexts";
 import { useCaptureQueue } from "@/hooks/useCaptureQueue";
+import { useRubric } from "@/lib/contexts";
+import { countUnsure, getAccentKey, getCategoryLabel, getVisibleRubricQuestionIds } from "@/lib/rubric";
 import type { Capture } from "@/lib/types";
 
 export default function Evaluation() {
   const { evaluations, removeCapture, unlinkCaptureFromRubric } = useActiveSession();
-  const { rubric } = useRubric();
+  const { rubric, usesAi } = useRubric();
   const [capturingFor, setCapturingFor] = useState<string | null>(null);
   const captureQueue = useCaptureQueue();
   const [confirmTarget, setConfirmTarget] = useState<{
@@ -21,10 +21,10 @@ export default function Evaluation() {
 
   const progress = useMemo(() => {
     if (!rubric) return { scored: 0, total: 0, complete: false };
-    const total = getRubricQuestionIds(rubric).length;
+    const total = getVisibleRubricQuestionIds(rubric, usesAi).length;
     const scored = evaluations.filter((e) => e.score !== "" && e.score !== undefined).length;
     return { scored, total, complete: total > 0 && scored >= total };
-  }, [evaluations, rubric]);
+  }, [evaluations, rubric, usesAi]);
 
   const categorySummary = useMemo(() => {
     if (!rubric) return [];
@@ -37,11 +37,25 @@ export default function Evaluation() {
     ];
     const result: {
       sectionLabel: string;
-      categories: { categoryId: string; label: string; scored: number; total: number; accentKey: string }[];
+      categories: {
+        categoryId: string;
+        label: string;
+        scored: number;
+        total: number;
+        accentKey: string;
+        unsureCount: number;
+      }[];
     }[] = [];
     for (const { key, label } of sections) {
       const rubricSection = rubric[key];
-      const cats: { categoryId: string; label: string; scored: number; total: number; accentKey: string }[] = [];
+      const cats: {
+        categoryId: string;
+        label: string;
+        scored: number;
+        total: number;
+        accentKey: string;
+        unsureCount: number;
+      }[] = [];
       for (const [cat, questions] of Object.entries(rubricSection)) {
         const ids = Object.keys(questions);
         const total = ids.length;
@@ -52,6 +66,7 @@ export default function Evaluation() {
           scored,
           total,
           accentKey: getAccentKey(cat),
+          unsureCount: key === "scoring_rubric" ? countUnsure(cat, evaluations, rubric) : 0,
         });
       }
       result.push({ sectionLabel: label, categories: cats });
@@ -98,6 +113,14 @@ export default function Evaluation() {
               <span className="font-bold">
                 {cat.scored}/{cat.total}
               </span>
+              {cat.unsureCount > 0 && (
+                <span
+                  className="text-ut-xs text-ut-muted"
+                  title={`${cat.unsureCount} question${cat.unsureCount !== 1 ? "s" : ""} marked Unsure`}
+                >
+                  ({cat.unsureCount}?)
+                </span>
+              )}
             </span>
           ))}
         </div>

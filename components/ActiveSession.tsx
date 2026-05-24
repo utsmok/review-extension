@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureActiveTab, captureForMetadataField } from "@/lib/capture";
-import { computeCompletion } from "@/lib/rubric";
+import { TabNavigationContext, useRubric } from "@/lib/contexts";
 import { useRovingTabIndex } from "@/lib/hooks";
-import { useRubric } from "@/lib/contexts";
-import { TabNavigationContext } from "@/lib/contexts";
+import { computeCompletion } from "@/lib/rubric";
+import { toastError } from "@/stores/toast";
 import Captures from "./Captures";
 import Evaluation from "./Evaluation";
-import { toastError } from "@/stores/toast";
 import FinalizationScreen from "./FinalizationScreen";
 import Metadata from "./Metadata";
 
@@ -63,24 +62,11 @@ export default function ActiveSession() {
 
   const evaluationComplete = useMemo(() => {
     if (!rubric) return false;
-    return computeCompletion(evaluations, rubric) === 100;
-  }, [evaluations, rubric]);
+    return computeCompletion(evaluations, rubric, session?.usesAi ?? true) === 100;
+  }, [evaluations, rubric, session]);
 
   const finalizeComplete = useMemo(() => !!finalization, [finalization]);
 
-  // §2b: Redirect to Metadata tab on first open for fresh sessions
-  const redirectedRef = useRef(false);
-  useEffect(() => {
-    if (redirectedRef.current) return;
-    if (
-      session &&
-      !session.description?.trim() &&
-      (!session.dataSources || session.dataSources.length === 0)
-    ) {
-      redirectedRef.current = true;
-      setActiveTab("Metadata");
-    }
-  }, [session, setActiveTab]);
   const handleSaveQuickNote = () => {
     const text = quickNoteText.trim();
     if (text) {
@@ -234,7 +220,7 @@ export default function ActiveSession() {
                   addCapture(result.capture);
                   // Store the direct image link (SVG/PNG) as evidence
                   updateMetadata({
-                    toolLogoUrl: result.logoUrl ?? result.capture.sourceUrl,
+                    toolLogoUrl: result.logoUrl ?? "",
                   });
                 } catch (err) {
                   toastError(err instanceof Error ? err.message : "Capture failed");
@@ -275,7 +261,10 @@ export default function ActiveSession() {
               />
             ) : null}
 
-            <span className="text-ut-sm font-heading font-semibold text-trust-magenta truncate" title={session?.toolUrl}>
+            <span
+              className="text-ut-sm font-heading font-semibold text-trust-magenta truncate"
+              title={session?.toolUrl}
+            >
               {session?.toolName}
             </span>
           </div>
@@ -323,6 +312,24 @@ export default function ActiveSession() {
           className="flex-1 min-h-0 overflow-y-auto bg-ut-offwhite"
           style={{ position: "relative" }}
         >
+          {activeTab !== "Metadata" &&
+            session &&
+            !session.description?.trim() &&
+            (!session.dataSources || session.dataSources.length === 0) &&
+            !finalization?.finalizedAt && (
+              <div className="bg-score-1/10 border-b border-score-1/30 px-ut-4 py-ut-2 flex items-center justify-between">
+                <span className="text-ut-xs text-score-1 font-heading">
+                  Complete Tool Details on the Metadata tab before finalizing.
+                </span>
+                <button
+                  type="button"
+                  className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta hover:text-trust-magenta-strong"
+                  onClick={() => setActiveTab("Metadata")}
+                >
+                  Go to Metadata →
+                </button>
+              </div>
+            )}
           {activeTab === "Captures" && <Captures />}
           {quickNoteOpen && (
             <div className="quick-note-overlay">

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useTabNavigation } from "@/lib/contexts";
-import { useSessionStore } from "@/stores/session";
 import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
+import { useSessionStore } from "@/stores/session";
 
 const GRADES: { value: FinalizationGrade; label: string; color: string; tint: string }[] = [
   { value: "pass", label: "Pass", color: "bg-ut-green", tint: "bg-grade-pass-tint" },
@@ -25,6 +25,7 @@ export default function FinalizationScreen() {
   const [weaknesses, setWeaknesses] = useState<string[]>(finalization?.weaknesses ?? []);
   const [recommendations, setRecommendations] = useState(finalization?.recommendations ?? "");
   const [saved, setSaved] = useState(!!finalization?.finalizedAt);
+  const [draftSaved, setDraftSaved] = useState(false);
 
   // Track if user has edited since last explicit save (to clear "Saved" indicator)
   const lastSavedData = useRef<ReviewFinalization | null>(finalization ?? null);
@@ -55,6 +56,8 @@ export default function FinalizationScreen() {
       };
       isLocalChange.current = true;
       setFinalization(data);
+      setDraftSaved(true);
+      setTimeout(() => setDraftSaved(false), 2000);
     }, 50);
 
     return () => {
@@ -159,6 +162,11 @@ export default function FinalizationScreen() {
       <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta">
         Finalize Review
       </h2>
+      {draftSaved && !saved && (
+        <p className="text-ut-xs text-ut-muted font-mono" aria-live="polite">
+          Draft saved locally
+        </p>
+      )}
 
       {isFormallyFinalized && (
         <div className="bg-trust-magenta-tint rounded-ut-sm px-ut-3 py-ut-2">
@@ -255,7 +263,7 @@ export default function FinalizationScreen() {
           disabled={!grade}
           onClick={handleSave}
         >
-          Save Finalization
+          Lock & Finalize Review
         </button>
         {saved && (
           <span className="flex items-center gap-1 text-ut-green text-ut-xs font-heading font-bold uppercase tracking-ut-label shrink-0">
