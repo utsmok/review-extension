@@ -41,3 +41,4 @@ coverage/
 .claude/
 .superpowers/
 skills-lock.json
+.audit/
