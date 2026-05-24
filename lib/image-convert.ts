@@ -35,6 +35,48 @@ export async function pngToJpeg(
 
   return { dataUrl, extension: "png" };
 }
+
+/**
+ * Compress a screenshot data-URL for IDB storage.
+ * Conservative: native resolution, 95% quality WebP.
+ * Falls back to JPEG if WebP is not supported, or original if all else fails.
+ */
+export async function compressCaptureScreenshot(dataUrl: string): Promise<string> {
+  if (!dataUrl.startsWith("data:image/")) return dataUrl;
+
+  try {
+    if (typeof Image !== "undefined" && typeof document !== "undefined") {
+      const img = new Image();
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("Image load failed"));
+        img.src = dataUrl;
+        // jsdom/Node: Image exists but never fires load/error for data URLs.
+        // Bail out after 100ms so we don't hang the capture pipeline.
+        setTimeout(() => reject(new Error("Image load timed out")), 100);
+      });
+
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return dataUrl;
+      ctx.drawImage(img, 0, 0);
+
+      // Try WebP first, fall back to JPEG
+      const webp = canvas.toDataURL("image/webp", 0.95);
+      if (webp.startsWith("data:image/webp")) return webp;
+
+      // WebP not supported, try JPEG at 95%
+      const jpeg = canvas.toDataURL("image/jpeg", 0.95);
+      if (jpeg.startsWith("data:image/jpeg")) return jpeg;
+    }
+  } catch {
+    // Fall through to return original
+  }
+
+  return dataUrl;
+}
 /** Extract raw base64 payload from a data-URL. */
 function extractBase64(dataUrl: string): string {
   const comma = dataUrl.indexOf(",");
