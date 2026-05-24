@@ -4,7 +4,7 @@
 >
 > **Source**: Extracted entirely from the codebase. No external interpretation added.
 >
-> **Framework**: TRUST — UT Embedded Information Services (`trust-full` v1.0)
+> **Framework**: TRUST — UT Embedded Information Services (`trust-full` v1.1)
 
 ---
 
@@ -38,16 +38,18 @@ A review session has four tabs, presented in a sidebar panel (Chrome sidePanel).
 | Terms & Conditions | Capture-based (multi) | No | Page captures with per-capture notes |
 | Data Sources | Pill selector + custom | No | Multi-select from 11 predefined + freeform |
 | Search Methods | Pill selector + custom | No | Multi-select from 6 predefined + freeform |
-| Discipline | Pill selector + custom | No | Multi-select from 26 predefined + freeform |
+|| Discipline | Pill selector + custom | No | Multi-select from 34 predefined + freeform |
 
 ### 4. Evaluation Tab
 Two sections — **Quality Gates** (pass/fail) and **Scoring Rubric** (0–3 scale).
 
-**Quality Gates** (2 questions across 2 categories):
-| Code | Category | Title | Choices |
-|---|---|---|---|
-| PS1 | Privacy & Security | Training policy | ✓ Pass / ✗ Fail / — N/A / ? Unsure |
-| AC1 | Accessibility | Accessibility | ✓ Pass / ✗ Fail / — N/A / ? Unsure |
+**Quality Gates** (4 questions across 3 categories):
+|| Code | Category | Title | AI-only | Choices |
+|---|---|---|---|---|
+| PS1 | Privacy & Security | Data privacy policy | No | ✓ Pass / ✗ Fail / — N/A / ? Unsure |
+| PS2 | Privacy & Security | AI model training policy | Yes | ✓ Pass / ✗ Fail / — N/A / ? Unsure |
+| IP1 | Intellectual Property | IP preservation | No | ✓ Pass / ✗ Fail / — N/A / ? Unsure |
+| AC1 | Accessibility | Accessibility | No | ✓ Pass / ✗ Fail / — N/A / ? Unsure |
 
 **Scoring Rubric** (10 questions across 5 TRUST principles):
 | Code | Principle | Title | Choices |
@@ -245,44 +247,66 @@ These are set automatically during session creation and not shown in the modal f
 
 #### C.11 Discipline
 - **Type**: Pill selector (multi-select) + custom entries (scrollable list, max-height 12rem)
-- **Predefined options** (26 — Elsevier journal classification categories):
+- **Predefined options** (34 — Elsevier/Scopus journal classification categories):
   1. Agricultural and Biological Sciences
-  2. Arts and Humanities
-  3. Biochemistry Genetics and Molecular Biology
-  4. Business Management and Accounting
-  5. Chemical Engineering
-  6. Chemistry
-  7. Computer Science
-  8. Decision Sciences
-  9. Dentistry
-  10. Earth and Planetary Sciences
-  11. Economics Econometrics and Finance
-  12. Energy
-  13. Engineering
-  14. Environmental Science
-  15. Health Professions
-  16. Immunology and Microbiology
-  17. Materials Science
-  18. Mathematics
-  19. Medicine
-  20. Neuroscience
-  21. Nursing
-  22. Pharmacology Toxicology and Pharmaceutics
-  23. Physics and Astronomy
-  24. Psychology
-  25. Social Sciences
-  26. Veterinary
+  2. Biochemistry Genetics and Molecular Biology
+  3. Business Management and Accounting
+  4. Chemical Engineering
+  5. Chemistry
+  6. Computer Science
+  7. Decision Sciences
+  8. Dentistry
+  9. Earth and Planetary Sciences
+  10. Economics Econometrics and Finance
+  11. Energy
+  12. Engineering
+  13. Environmental Science
+  14. Health Professions
+  15. Immunology and Microbiology
+  16. Materials Science
+  17. Mathematics
+  18. Medicine
+  19. Neuroscience
+  20. Nursing
+  21. Pharmacology Toxicology and Pharmaceutics
+  22. Physics and Astronomy
+  23. Psychology
+  24. Education and Educational Research
+  25. Law, Policy, and Criminology
+  26. Political Science and International Relations
+  27. Sociology, Anthropology, and Social Work
+  28. Veterinary
+  29. History and Archaeology
+  30. Languages and Literature
+  31. Philosophy and Ethics
+  32. Performing Arts
+  33. Visual Arts and Design
+  34. Religious Studies
 - **Custom entries**: Text input with "Add custom discipline..." placeholder.
+
 - **Storage**: `SessionMetadata.discipline` (string array)
 - **Usage**: Exported as semicolon-joined `Discipline` in CSV.
+#### C.12 Authentication Method
+- **Type**: Pill selector (single-select)
+- **Predefined options** (8):
+  1. SSO/SAML
+  2. IP Authentication
+  3. OpenAthens
+  4. Proxy (EZproxy)
+  5. LibKey
+  6. Email-only
+  7. API Key
+  8. None required
+- **Storage**: `SessionMetadata.authenticationMethod` (string or undefined)
+- **Usage**: Rendered in HTML report header. Exported as `Authentication_Method` in CSV.
 
-#### C.12 Read-only summary fields
+#### C.13 Read-only summary fields
 Displayed at the bottom of the Metadata tab (not user-editable):
 - **Started**: `SessionMetadata.startTime` formatted as locale string
 - **Captures**: Count of captures (warned in amber if 0)
 - **Scored items**: Count of evaluations with non-empty score (warned in amber if 0)
 
-#### C.13 Export and discard actions
+#### C.14 Export and discard actions
 - **"End Review & Export"** button: Calls `exportAndClose(rubric)`. Checks `canExport()` — warns if `toolName` or `toolUrl` are missing, but allows proceeding.
 - **"Discard review"** button: Prompts confirmation ("This will permanently delete all captures, scores, and notes"), then calls `deleteSession()`.
 
@@ -329,7 +353,12 @@ Displayed at the bottom of the Metadata tab (not user-editable):
 
 ##### D.1.1 Privacy & Security (category key: `privacy_and_security`, code prefix: `PS`)
 
-**PS1 — Training policy**
+**PS1 — Data privacy policy**
+- **Type**: `pass_fail`
+- **AI-only**: No (`ai_only: false`)
+- **Requirement**: "Vendor must explicitly state that user search queries, history, and uploaded content are handled in compliance with applicable data protection regulations (GDPR, CCPA, or equivalent)."
+
+**PS2 — AI model training policy**
 - **Type**: `pass_fail`
 - **AI-only**: Yes (`ai_only: true`)
 - **Requirement**: "Vendor must explicitly state that user queries/inputs/uploads are NOT used to train future models."
@@ -338,7 +367,14 @@ Displayed at the bottom of the Metadata tab (not user-editable):
   - **Pass**: "The tool's documentation includes a section titled 'Data and AI Training' that states: 'User queries, uploaded documents, and search interactions are never used to train, fine-tune, or improve our AI models.' This is confirmed on the privacy policy page dated within the last 12 months."
   - **Fail**: "The terms of service state that 'interactions with the service may be used to improve our products and services' with no option to opt out, or there is no mention of training data practices at all."
 
-##### D.1.2 Accessibility (category key: `accessibility`, code prefix: `AC`)
+##### D.1.2 Intellectual Property (category key: `intellectual_property`, code prefix: `IP`)
+
+**IP1 — Intellectual property preservation**
+- **Type**: `pass_fail`
+- **AI-only**: No (`ai_only: false`)
+- **Requirement**: "The vendor's Terms of Service must explicitly state that the user retains full copyright and intellectual property rights over all content they input, upload, or generate using the tool."
+
+##### D.1.3 Accessibility (category key: `accessibility`, code prefix: `AC`)
 
 **AC1 — Accessibility**
 - **Type**: `pass_fail`
@@ -649,7 +685,9 @@ Prompts "Delete this capture? This cannot be undone." Removing a capture also:
 | **Metadata: Data Sources options** | `components/Metadata.tsx` → `DATA_SOURCE_OPTIONS` const | No — hardcoded array |
 | **Metadata: Search Methods options** | `components/Metadata.tsx` → `SEARCH_METHOD_OPTIONS` const | No — hardcoded array |
 | **Metadata: Discipline options** | `components/Metadata.tsx` → `DISCIPLINE_OPTIONS` const | No — hardcoded array |
-| **QG: PS1 Training policy** | `data/rubrics/trust-full.json` → `quality_gate.privacy_and_security.training_policy` | **Yes — JSON** |
+| **QG: PS1 Data privacy policy** | `data/rubrics/trust-full.json` → `quality_gate.privacy_and_security.data_privacy` | **Yes — JSON** |
+| **QG: PS2 AI model training policy** | `data/rubrics/trust-full.json` → `quality_gate.privacy_and_security.training_policy` | **Yes — JSON** |
+| **QG: IP1 IP preservation** | `data/rubrics/trust-full.json` → `quality_gate.intellectual_property.ip_preservation` | **Yes — JSON** |
 | **QG: AC1 Accessibility** | `data/rubrics/trust-full.json` → `quality_gate.accessibility.compliance` | **Yes — JSON** |
 | **Scoring: TR1 Data source clarity** | `data/rubrics/trust-full.json` → `scoring_rubric.TR.data_source_clarity` | **Yes — JSON** |
 | **Scoring: TR2 Methodology disclosure** | `data/rubrics/trust-full.json` → `scoring_rubric.TR.methodology_disclosure` | **Yes — JSON** |

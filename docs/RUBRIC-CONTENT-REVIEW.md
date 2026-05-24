@@ -81,14 +81,14 @@ Code mapping defined in `lib/rubric.ts` → `QG_CATEGORY_CODES`. Labels in `CATE
 
 Two scoring questions have `merged_gate: true`:
 
-| Scoring question | Related gate (stale ref) | Render behavior |
+| Scoring question | `merged_gate` | Render behavior |
 |---|---|---|
-| `SE.data_handling` | `privacy_and_security.data_privacy` | Shown as read-only badge in QG section |
-| `TC.source_attribution_depth` | `traceability.citation_mechanism` | Shown as read-only badge in QG section |
+| `SE.data_handling` | `true` (linked to `privacy_and_security.data_privacy`) | Shown as read-only badge in QG section |
+| `TC.source_attribution_depth` | `true` (no `related_gate` — standalone gate) | Shown as read-only badge in QG section |
 
-**Issue [P1 — STALE REFERENCE]:** `TC.source_attribution_depth` has `"related_gate": "traceability.citation_mechanism"`. The `traceability` category no longer exists (replaced by `intellectual_property` in v1.1). This reference is dead. It should point to a valid gate or be removed.
+**Note:** The v1.0 rubric had a stale `related_gate: "traceability.citation_mechanism"` on TC1, but this was removed during the v1.1 upgrade. Both merged gates function correctly — badges render from the question's own title/code, not from `related_gate`.
 
-**Issue [INFO]:** Merged gates are scored on the 0–3 rubric scale, but displayed in the QG section with pass/fail badges where score > 0 = PASS, score = 0 = FAIL. The `related_gate` field is not consumed by any code — it's documentation-only. Still, the stale reference is misleading.
+**Note:** Merged gates are scored on the 0–3 rubric scale, but displayed in the QG section with pass/fail badges where score > 0 = PASS, score = 0 = FAIL. The `related_gate` field is not consumed by any code — it's documentation-only.
 
 ---
 
@@ -204,12 +204,10 @@ Type: `ScoringScore = 0 | 1 | 2 | 3 | "na" | "unsure" | ""`.
 - **Issue [INFO]:** As a merged gate, this question appears twice in the UI: (1) in the Scoring Rubric section as a full 0–3 question, and (2) in the Quality Gates section as a read-only badge reflecting the score. This is by design.
 
 #### TC1 — Source attribution depth
-- **`merged_gate: true`.**
-- **`related_gate`: `"traceability.citation_mechanism"` — STALE REFERENCE (see §2.5).**
+- **`merged_gate: true`.** No `related_gate` field (removed in v1.1).
 - **Background:** 2 paragraphs. Good explanation of citation granularity.
 - **Level descriptors:** Broken/missing → journal landing page → abstract deep link → paragraph deep link (RAG).
 - **Examples:** All 4 levels.
-- **Issue [P1]:** Stale `related_gate` reference.
 
 #### TC2 — Source quality indicators
 - **`ai_only: false`.**
@@ -380,11 +378,7 @@ Compact card showing:
 
 ### 6.4 Rendering — Findings
 
-**Issue [INFO]:** The report header displays `dataSources`, `searchMethods`, `discipline`, and `notes` but does NOT display: `company`, `pricing`, `availability`, `termsConditionsUrl`, `authenticationMethod`, `usesAi`. Some of these (company, pricing, availability) are free-text fields that would be valuable in the exported report.
-
-**Issue [LOW]:** `authenticationMethod` was added in v1.1 but is not rendered in the HTML report. It should appear in the metadata section.
-
-**Issue [INFO]:** `usesAi` is not shown in the report. Reviewers reading the exported report cannot see whether the tool was flagged as AI-powered. This context is important for interpreting which questions were marked N/A.
+**Resolved:** The report header now renders `company`, `pricing`, `availability`, `termsConditionsUrl`, `authenticationMethod`, and `usesAi`. All six fields were added in commit `5909018`.
 
 ---
 
@@ -447,7 +441,7 @@ lib/export.ts                   → CSV export
 
 | # | Location | Issue |
 |---|---|---|
-| 1 | `data/rubrics/trust-full.json` → `TC.source_attribution_depth.related_gate` | Stale reference `"traceability.citation_mechanism"` — `traceability` category no longer exists. Should be updated or removed. |
+| ~~1~~ | ~~`TC.source_attribution_depth.related_gate`~~ | **Resolved:** Stale reference was removed during v1.1 upgrade. No action needed. |
 
 ### P2 — Should Fix
 
@@ -460,7 +454,7 @@ lib/export.ts                   → CSV export
 | # | Location | Issue |
 |---|---|---|
 | 3 | `RE.variance_consistency` | `ai_only: false` but question is most meaningful for AI tools. Non-AI deterministic search trivially scores 3. Consider `ai_only: true` or clarify scope for non-AI. |
-| 4 | `lib/html-report.ts` | `authenticationMethod` (new in v1.1) is not rendered in the HTML report header. |
+| 4 | ~~`lib/html-report.ts`~~ | **Resolved:** `authenticationMethod` is now rendered in the HTML report header. |
 | 5 | All QG questions | No N/A examples in any quality gate question. Reviewers have no guidance for when N/A applies. |
 | 6 | Discipline options | "Social Sciences" is a single monolithic entry; humanities got 6 subcategories in v1.1 but social sciences remains compressed. |
 
@@ -471,5 +465,5 @@ lib/export.ts                   → CSV export
 | 7 | `PRINCIPLE_NAMES` vs `CATEGORY_LABELS` | Nouns vs adjective phrases ("Transparency" vs "TR — Transparent"). Both correct, used in different contexts. |
 | 8 | TR2 background | Redundant "This question only applies to AI-powered tools" when `ai_only` flag handles this. |
 | 9 | SE2 / TC1 merged gates | Appear in both Scoring Rubric (interactive) and QG section (read-only badge). By design. |
-| 10 | Report header | `company`, `pricing`, `availability`, `termsConditionsUrl`, `usesAi` not rendered in report. These are in CSV export. |
+| 10 | ~~Report header~~ | **Resolved:** `company`, `pricing`, `availability`, `termsConditionsUrl`, `usesAi` are now rendered in the report header. |
 | 11 | Score circles 4th position | Only fills when all questions score exactly 3 (perfect score indicator). By design. |
