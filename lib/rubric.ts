@@ -15,6 +15,26 @@ export function getRubricQuestionIds(rubric: RubricData): string[] {
   return ids;
 }
 
+export function getVisibleRubricQuestionIds(rubric: RubricData, usesAi: boolean): string[] {
+  const ids: string[] = [];
+  for (const [category, questions] of Object.entries(rubric.quality_gate)) {
+    for (const [questionId, question] of Object.entries(questions)) {
+      if (usesAi || !(question as { ai_only?: boolean }).ai_only) {
+        ids.push(`${category}.${questionId}`);
+      }
+    }
+  }
+  for (const [category, questions] of Object.entries(rubric.scoring_rubric)) {
+    for (const [questionId, question] of Object.entries(questions)) {
+      if (usesAi || !(question as { ai_only?: boolean }).ai_only) {
+        ids.push(`${category}.${questionId}`);
+      }
+    }
+  }
+  return ids;
+}
+
+
 export function getQuestionCode(categoryKey: string, questionIndex: number): string {
   return `${categoryKey}${questionIndex + 1}`;
 }
@@ -22,7 +42,7 @@ export function getQuestionCode(categoryKey: string, questionIndex: number): str
 /** Map quality gate category keys to short display codes */
 const QG_CATEGORY_CODES: Record<string, string> = {
   privacy_and_security: "PS",
-  traceability: "QT",
+  intellectual_property: "IP",
   accessibility: "AC",
 };
 
@@ -48,7 +68,7 @@ export function getAccentKey(categoryId: string): string {
 
 const CATEGORY_LABELS: Record<string, string> = {
   privacy_and_security: "Privacy & Security",
-  traceability: "Traceability",
+  intellectual_property: "Intellectual Property",
   accessibility: "Accessibility",
   TR: "TR — Transparent",
   RE: "RE — Reliable",
@@ -61,8 +81,8 @@ export function getCategoryLabel(categoryId: string): string {
   return CATEGORY_LABELS[categoryId] ?? categoryId;
 }
 
-export function computeCompletion(evaluations: Evaluation[], rubric: RubricData): number {
-  const totalQuestions = getRubricQuestionIds(rubric).length;
+export function computeCompletion(evaluations: Evaluation[], rubric: RubricData, usesAi: boolean = true): number {
+  const totalQuestions = getVisibleRubricQuestionIds(rubric, usesAi).length;
   let scored = 0;
   for (const e of evaluations) if (e.score !== "" && e.score !== undefined) scored++;
   return totalQuestions > 0 ? Math.round((scored / totalQuestions) * 100) : 0;
@@ -183,4 +203,20 @@ export function principleAverage(
     }
   }
   return count > 0 ? sum / count : null;
+}
+
+export function countUnsure(
+  categoryId: string,
+  evaluations: Evaluation[],
+  rubric: RubricData,
+  evalMap?: EvalMap,
+): number {
+  const em = evalMap ?? buildEvalMap(evaluations);
+  const questions = rubric.scoring_rubric[categoryId];
+  if (!questions) return 0;
+  let count = 0;
+  for (const qId of Object.keys(questions)) {
+    if (em.get(`${categoryId}.${qId}`)?.score === "unsure") count++;
+  }
+  return count;
 }
