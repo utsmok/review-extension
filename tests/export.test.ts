@@ -1,9 +1,9 @@
 import type { ParseResult } from "papaparse";
 import Papa from "papaparse";
 import { describe, expect, it } from "vitest";
+import trustFull from "@/data/rubrics/trust-full.json";
 import { exportSession } from "@/lib/export";
 import { buildHtmlReport } from "@/lib/html-report";
-import trustFull from "@/data/rubrics/trust-full.json";
 import type { Capture, Evaluation, RubricData, SessionMetadata } from "@/lib/types";
 
 const RUBRIC = trustFull as unknown as RubricData;

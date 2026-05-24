@@ -1,9 +1,9 @@
-import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
-import type { Evaluation } from "@/lib/types";
+import { describe, expect, it } from "vitest";
 import { exportSession } from "@/lib/export";
 import { buildHtmlReport } from "@/lib/html-report";
-import { TINY_PNG, RUBRIC, makeMetadata, makeCapture } from "./fixtures";
+import type { Evaluation } from "@/lib/types";
+import { makeCapture, makeMetadata, RUBRIC, TINY_PNG } from "./fixtures";
 
 async function unzipToFiles(blob: Blob): Promise<Map<string, string | Uint8Array>> {
   const arrayBuffer = await blob.arrayBuffer();

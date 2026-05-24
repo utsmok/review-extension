@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
+
 import JSZip from "jszip";
+import { describe, expect, it } from "vitest";
 import { importSessionFromZip } from "@/lib/export";
-import { makeMetadata, makeCapture, makeEvaluation, makeFinalization } from "./fixtures";
+import { makeCapture, makeEvaluation, makeFinalization, makeMetadata } from "./fixtures";
 
 // ---------------------------------------------------------------------------
 // Helper — build a ZIP blob from a flat record of name → content

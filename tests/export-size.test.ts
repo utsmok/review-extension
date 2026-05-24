@@ -4,16 +4,17 @@
  * Run via: bash autoresearch.sh
  * Metric: METRIC zip_bytes=<value>
  */
+
+import { v4 as uuid } from "uuid";
 import { describe, expect, it } from "vitest";
 import { exportSession } from "@/lib/export";
 import {
-  makeMetadata,
   makeCapture,
   makeEvaluation,
   makeFinalization,
+  makeMetadata,
   RUBRIC,
 } from "./fixtures/index";
-import { v4 as uuid } from "uuid";
 
 /**
  * Build a realistic ~150KB base64 PNG data URL.

@@ -1,15 +1,15 @@
 import { afterEach, describe, expect, it } from "vitest";
 import "fake-indexeddb/auto";
 
-import type { Capture, Evaluation, SessionData } from "@/lib/types";
 import {
+  getRepository,
   IdbSessionRepository,
   InMemorySessionRepository,
-  SCHEMA_VERSION,
-  getRepository,
   resetRepository,
+  SCHEMA_VERSION,
   setRepository,
 } from "@/lib/session-repository";
+import type { Capture, Evaluation, SessionData } from "@/lib/types";
 
 function makeSessionData(overrides?: Partial<SessionData>): SessionData {
   return {

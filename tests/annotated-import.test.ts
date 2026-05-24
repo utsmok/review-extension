@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
+
 import JSZip from "jszip";
+import { describe, expect, it } from "vitest";
 import { importSessionFromZip } from "@/lib/export";
 import { makeMetadata } from "./fixtures";
 

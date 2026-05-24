@@ -1,14 +1,14 @@
 // @vitest-environment jsdom
 
+import { cleanup, fireEvent, render, within } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, within, fireEvent, cleanup } from "@testing-library/react";
 import QuestionSection, { QuestionRow } from "@/components/QuestionSection";
+import type { Evaluation } from "@/lib/types";
+import { useRegistryStore } from "@/stores/registry";
+import { useSessionStore } from "@/stores/session";
 import { makeEvaluation } from "@/tests/fixtures";
 import { AllProviders, seedActiveSession } from "@/tests/helpers/render-utils";
-import { useSessionStore } from "@/stores/session";
-import { useRegistryStore } from "@/stores/registry";
-import type { Evaluation } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -63,7 +63,12 @@ const _ls = vi.hoisted(() => {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const QG_IDS = ["privacy_and_security.training_policy", "accessibility.compliance"];
+const QG_IDS = [
+  "privacy_and_security.data_privacy",
+  "privacy_and_security.training_policy",
+  "accessibility.compliance",
+  "intellectual_property.ip_preservation",
+];
 
 const SCORING_IDS = [
   "TR.data_source_clarity",
@@ -165,7 +170,7 @@ describe("QuestionSection", () => {
 
     // Only question-details (not inner question-foldout)
     const details = document.querySelectorAll("details.question-details");
-    expect(details.length).toBe(4);
+    expect(details.length).toBe(6);
 
     // Verify each QG question has a radio group with 4 options
     for (const rubricId of QG_IDS) {

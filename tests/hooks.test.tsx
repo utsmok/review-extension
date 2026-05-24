@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { useFocusTrap, useRovingTabIndex, useAutoFocus } from "@/lib/hooks";
+import { useAutoFocus, useFocusTrap, useRovingTabIndex } from "@/lib/hooks";
 
 // ---------------------------------------------------------------------------
 // Helpers

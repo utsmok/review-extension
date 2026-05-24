@@ -1,15 +1,13 @@
-import { afterEach, afterAll, beforeEach, describe, expect, it, vi } from "vitest";
-
-import type { SessionMetadata, SessionData } from "@/lib/types";
-
-import { useSessionStore } from "@/stores/session";
-import { useRegistryStore } from "@/stores/registry";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  getRepository,
   InMemorySessionRepository,
-  setRepository,
   resetRepository,
+  setRepository,
 } from "@/lib/session-repository";
-import { getRepository } from "@/lib/session-repository";
+import type { SessionData, SessionMetadata } from "@/lib/types";
+import { useRegistryStore } from "@/stores/registry";
+import { useSessionStore } from "@/stores/session";
 
 // Mock exportSession to avoid JSZip/papaparse dependency
 vi.mock("@/lib/export", async (importOriginal) => {

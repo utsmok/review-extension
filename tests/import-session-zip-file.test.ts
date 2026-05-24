@@ -1,14 +1,14 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { importSessionFromZipFile } from "@/lib/session-lifecycle";
 import {
-  setRepository,
-  resetRepository,
-  InMemorySessionRepository,
   getRepository,
+  InMemorySessionRepository,
+  resetRepository,
+  setRepository,
 } from "@/lib/session-repository";
-import { useRegistryStore } from "@/stores/registry";
-import { makeMetadata, makeCapture, makeEvaluation } from "./fixtures";
 import type { SessionData } from "@/lib/types";
+import { useRegistryStore } from "@/stores/registry";
+import { makeCapture, makeEvaluation, makeMetadata } from "./fixtures";
 
 // --- Mock importSessionFromZip to avoid JSZip/Blob incompatibility in Node ---
 // The parse logic is covered separately in tests/import-session-zip.test.ts

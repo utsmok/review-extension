@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildHtmlReport } from "@/lib/html-report";
 import trustFull from "@/data/rubrics/trust-full.json";
+import { buildHtmlReport } from "@/lib/html-report";
 import type { Evaluation, RubricData, SessionMetadata } from "@/lib/types";
 
 const RUBRIC = trustFull as unknown as RubricData;
@@ -91,7 +91,7 @@ describe("buildHtmlReport completion tracking (I11)", () => {
     ];
     const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
     // Incomplete: shows answered/total in conclusion
-    expect(html).toContain("2/12 questions answered");
+    expect(html).toContain("2/14 questions answered");
     expect(html).toContain("INCOMPLETE");
   });
 

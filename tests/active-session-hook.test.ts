@@ -1,14 +1,14 @@
-import { beforeEach, afterAll, describe, expect, it } from "vitest";
-import { useRegistryStore } from "@/stores/registry";
-import { useSessionStore } from "@/stores/session";
+import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import * as lifecycle from "@/lib/session-lifecycle";
 import {
   getRepository,
   InMemorySessionRepository,
-  setRepository,
   resetRepository,
+  setRepository,
 } from "@/lib/session-repository";
-import * as lifecycle from "@/lib/session-lifecycle";
 import type { SessionData, SessionMetadata } from "@/lib/types";
+import { useRegistryStore } from "@/stores/registry";
+import { useSessionStore } from "@/stores/session";
 
 function makeMetadata(overrides?: Partial<SessionMetadata>): SessionMetadata {
   return {

@@ -68,7 +68,7 @@ vi.mock("@/stores/toast", () => ({
 }));
 
 import SessionManager from "@/components/SessionManager";
-import { switchToSession, deleteSession } from "@/lib/session-lifecycle";
+import { deleteSession, switchToSession } from "@/lib/session-lifecycle";
 
 function renderSessionManager() {
   return render(<SessionManager />, { wrapper: AllProviders });

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { beforeEach, afterEach, afterAll, describe, expect, it, vi } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
+
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Zustand persist captures `window.localStorage` at import time.
 // WxtVitest's jsdom provides a broken localStorage — stub it BEFORE store imports.
@@ -27,17 +28,17 @@ const lsStore: Record<string, string> = vi.hoisted(() => {
 });
 
 import { useActiveSession } from "@/hooks/useActiveSession";
+import * as lifecycle from "@/lib/session-lifecycle";
+import {
+  getRepository,
+  InMemorySessionRepository,
+  resetRepository,
+  setRepository,
+} from "@/lib/session-repository";
+import type { SessionData } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
-import {
-  setRepository,
-  resetRepository,
-  InMemorySessionRepository,
-  getRepository,
-} from "@/lib/session-repository";
-import * as lifecycle from "@/lib/session-lifecycle";
 import { makeMetadata, RUBRIC } from "@/tests/fixtures";
-import type { SessionData } from "@/lib/types";
 
 // --- Mocks ---
 
@@ -62,7 +63,7 @@ vi.mock("@/stores/toast", async (importOriginal) => {
 
 // Re-import mocked modules for assertion access
 import { initAutoSave } from "@/lib/auto-save";
-import { exportSession, downloadBlob, sanitizeFilename } from "@/lib/export";
+import { downloadBlob, exportSession, sanitizeFilename } from "@/lib/export";
 import { toastError } from "@/stores/toast";
 
 // --- Helpers ---

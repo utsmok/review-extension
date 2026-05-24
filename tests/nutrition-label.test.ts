@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { buildNutritionLabel } from "@/lib/html-report";
-import { RUBRIC, makeMetadata, makeEvaluation, makeFinalization } from "@/tests/fixtures";
 import type { Evaluation } from "@/lib/types";
+import { makeEvaluation, makeFinalization, makeMetadata, RUBRIC } from "@/tests/fixtures";
 
 vi.mock("@/lib/logos", () => ({
   TRUST_LOGO: "data:image/svg+xml,trust",
@@ -14,8 +14,10 @@ vi.mock("@/lib/logos", () => ({
 /** Helper: build evaluations that pass all quality gates. */
 function allPassQGEvaluations(): Evaluation[] {
   return [
+    makeEvaluation({ rubricId: "privacy_and_security.data_privacy", score: "pass" }),
     makeEvaluation({ rubricId: "privacy_and_security.training_policy", score: "pass" }),
     makeEvaluation({ rubricId: "accessibility.compliance", score: "pass" }),
+    makeEvaluation({ rubricId: "intellectual_property.ip_preservation", score: "pass" }),
   ];
 }
 
@@ -42,8 +44,10 @@ function allHighScoringEvaluations(): Evaluation[] {
 /** Helper: build evaluations that fail a quality gate. */
 function failQGEvaluations(): Evaluation[] {
   return [
+    makeEvaluation({ rubricId: "privacy_and_security.data_privacy", score: "pass" }),
     makeEvaluation({ rubricId: "privacy_and_security.training_policy", score: "pass" }),
     makeEvaluation({ rubricId: "accessibility.compliance", score: "fail" }),
+    makeEvaluation({ rubricId: "intellectual_property.ip_preservation", score: "pass" }),
   ];
 }
 
@@ -73,6 +77,7 @@ describe("buildNutritionLabel", () => {
 
   it("with partial evaluations and no finalization → verdict is INCOMPLETE", async () => {
     const partialEvals = [
+      makeEvaluation({ rubricId: "privacy_and_security.data_privacy", score: "pass" }),
       makeEvaluation({ rubricId: "privacy_and_security.training_policy", score: "pass" }),
     ];
     const html = await buildNutritionLabel(makeMetadata(), partialEvals, RUBRIC);

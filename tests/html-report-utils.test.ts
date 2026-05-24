@@ -1,12 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { buildHtmlReport, buildNutritionLabel } from "@/lib/html-report";
-import {
-  RUBRIC,
-  makeEvaluation,
-  type makeFinalization,
-  makeMetadata,
-} from "@/tests/fixtures";
+import { makeEvaluation, type makeFinalization, makeMetadata, RUBRIC } from "@/tests/fixtures";
 
 // ── Helpers ────────────────────────────────────────────────────────────
 

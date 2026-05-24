@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import "fake-indexeddb/auto";
 
-import type { SessionData } from "@/lib/types";
 import { IdbSessionRepository, SCHEMA_VERSION } from "@/lib/session-repository";
+import type { SessionData } from "@/lib/types";
 import { makeCapture, makeEvaluation, makeFinalization, makeMetadata } from "@/tests/fixtures";
 
 // ── Constants from session-repository ────────────────────────────────────

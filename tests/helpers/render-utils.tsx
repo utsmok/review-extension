@@ -1,10 +1,10 @@
-import { useRef } from "react";
 import { render } from "@testing-library/react";
+import { useRef } from "react";
 import { RubricContext } from "@/lib/contexts";
 import type { Capture, Evaluation, ReviewFinalization } from "@/lib/types";
-import { RUBRIC, makeMetadata } from "@/tests/fixtures";
-import { useSessionStore } from "@/stores/session";
 import { useRegistryStore } from "@/stores/registry";
+import { useSessionStore } from "@/stores/session";
+import { makeMetadata, RUBRIC } from "@/tests/fixtures";
 
 export function AllProviders({ children }: { children: React.ReactNode }) {
   return (

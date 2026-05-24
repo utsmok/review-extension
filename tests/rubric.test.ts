@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import trustFull from "@/data/rubrics/trust-full.json";
 import {
   computeCompletion,
   distributionBar,
@@ -11,7 +12,6 @@ import {
   qualityGateResults,
   scoreColor,
 } from "@/lib/rubric";
-import trustFull from "@/data/rubrics/trust-full.json";
 import type { Evaluation, RubricData } from "@/lib/types";
 
 const TRUST_RUBRIC = trustFull as unknown as RubricData;
@@ -19,15 +19,15 @@ const TRUST_RUBRIC = trustFull as unknown as RubricData;
 describe("TRUST_RUBRIC (full)", () => {
   it("has correct framework name and version", () => {
     expect(TRUST_RUBRIC.framework_name).toBe("TRUST - UT Embedded Information Services");
-    expect(TRUST_RUBRIC.version).toBe("1.0");
+    expect(TRUST_RUBRIC.version).toBe("1.1");
   });
 
-  it("has 2 quality gate categories", () => {
+  it("has 3 quality gate categories", () => {
     const categories = Object.keys(TRUST_RUBRIC.quality_gate);
     expect(categories).toContain("privacy_and_security");
     expect(categories).toContain("accessibility");
+    expect(categories).toContain("intellectual_property");
   });
-
   it("has 5 scoring rubric categories with two-letter codes", () => {
     const categories = Object.keys(TRUST_RUBRIC.scoring_rubric);
     expect(categories).toEqual(["TR", "RE", "US", "SE", "TC"]);
@@ -68,10 +68,15 @@ describe("getRubricQuestionIds", () => {
   it("returns all quality gate IDs first", () => {
     const ids = getRubricQuestionIds(TRUST_RUBRIC);
     const qualityGateIds = ids.filter(
-      (id) => id.startsWith("privacy_and_security.") || id.startsWith("accessibility."),
+      (id) =>
+        id.startsWith("privacy_and_security.") ||
+        id.startsWith("accessibility.") ||
+        id.startsWith("intellectual_property."),
     );
     expect(qualityGateIds).toEqual([
+      "privacy_and_security.data_privacy",
       "privacy_and_security.training_policy",
+      "intellectual_property.ip_preservation",
       "accessibility.compliance",
     ]);
   });
@@ -100,10 +105,11 @@ describe("getRubricQuestionIds", () => {
     ]);
   });
 
-  it("returns 12 total question IDs", () => {
+  it("returns 14 total question IDs", () => {
     const ids = getRubricQuestionIds(TRUST_RUBRIC);
-    expect(ids).toHaveLength(12);
+    expect(ids).toHaveLength(14);
   });
+
   it("all IDs use category.question_id format", () => {
     const ids = getRubricQuestionIds(TRUST_RUBRIC);
     for (const id of ids) {
@@ -115,6 +121,8 @@ describe("getRubricQuestionIds", () => {
 describe("getCategoryLabel", () => {
   it("returns human-readable labels for known categories", () => {
     expect(getCategoryLabel("privacy_and_security")).toBe("Privacy & Security");
+    expect(getCategoryLabel("intellectual_property")).toBe("Intellectual Property");
+    expect(getCategoryLabel("accessibility")).toBe("Accessibility");
     expect(getCategoryLabel("TR")).toBe("TR — Transparent");
     expect(getCategoryLabel("RE")).toBe("RE — Reliable");
     expect(getCategoryLabel("US")).toBe("US — User-Centric");

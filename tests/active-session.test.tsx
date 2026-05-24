@@ -156,12 +156,13 @@ describe("ActiveSession", () => {
     expect(screen.getByTestId("evaluation")).toBeDefined();
   });
 
-  // §2b: Fresh sessions redirect to Metadata tab
-  it("redirects to Metadata tab for fresh sessions (no description, no dataSources)", () => {
+  // §2b: Fresh sessions show a banner instead of redirecting
+  it("shows metadata completion banner for fresh sessions (no description, no dataSources)", () => {
     seedActiveSession(); // default: no description, no dataSources
     render(<ActiveSession />, { wrapper: AllProviders });
-    expect(screen.getByTestId("metadata")).toBeDefined();
-    expect(screen.queryByTestId("evaluation")).toBeNull();
+    // Should remain on Evaluation tab (default) but show the banner
+    expect(screen.getByTestId("evaluation")).toBeDefined();
+    expect(screen.getByText(/Complete Tool Details/i)).toBeDefined();
   });
 
   // §2a: Tab order is Evaluation, Metadata, Finalize, Captures
