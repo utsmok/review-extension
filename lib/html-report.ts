@@ -1,14 +1,14 @@
 import { PRINCIPLES } from "./principles";
+import { computeReportScores, type ReportScores } from "./report/compute-scores";
 import {
-  getQuestionCode,
-  getQGQuestionCode,
   distributionBar,
-  scoreColor,
-  qualityGateResults,
+  getQGQuestionCode,
+  getQuestionCode,
   principleAverage,
+  qualityGateResults,
+  scoreColor,
 } from "./rubric";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
-import { computeReportScores, type ReportScores } from "./report/compute-scores";
 
 // Cached dynamic import for logos (used by buildHtmlReport and buildNutritionLabel)
 let _logos: typeof import("./logos") | null = null;
@@ -660,6 +660,12 @@ ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, scores, T
   ${metadata.dataSources?.length ? `<div style="font-size:0.8rem;color:var(--muted)">Data sources: ${esc(metadata.dataSources.join(", "))}</div>` : ""}
   ${metadata.searchMethods?.length ? `<div style="font-size:0.8rem;color:var(--muted)">Search methods: ${esc(metadata.searchMethods.join(", "))}</div>` : ""}
   ${metadata.discipline?.length ? `<div style="font-size:0.8rem;color:var(--muted)">Discipline: ${esc(metadata.discipline.join(", "))}</div>` : ""}
+${metadata.company ? `<div style="font-size:0.8rem;color:var(--muted)">Publisher: ${esc(metadata.company)}</div>` : ""}
+${metadata.pricing ? `<div style="font-size:0.8rem;color:var(--muted)">Pricing: ${esc(metadata.pricing)}</div>` : ""}
+${metadata.availability ? `<div style="font-size:0.8rem;color:var(--muted)">Availability: ${esc(metadata.availability)}</div>` : ""}
+${metadata.authenticationMethod ? `<div style="font-size:0.8rem;color:var(--muted)">Authentication: ${esc(metadata.authenticationMethod)}</div>` : ""}
+${metadata.termsConditionsUrl ? `<div style="font-size:0.8rem;color:var(--muted)">Terms: ${safeLink(metadata.termsConditionsUrl)}</div>` : ""}
+<div style="font-size:0.8rem;color:var(--muted)">AI-powered: ${(metadata.usesAi ?? true) ? "Yes" : "No"}</div>
   ${metadata.notes ? `<div style="font-size:0.8rem;color:var(--muted);font-style:italic;margin-top:4px">${esc(metadata.notes)}</div>` : ""}
 </div>
 
