@@ -562,7 +562,7 @@ export async function buildNutritionLabel(
   if (!_logos) _logos = await import("./logos");
   const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = _logos;
   const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
-  const scores = computeReportScores(evaluations, rubric, finalization, evalMap);
+  const scores = computeReportScores(evaluations, rubric, finalization, evalMap, metadata.usesAi ?? true);
   const labelHtml = buildNutritionLabelHtml(
     metadata,
     evaluations,
@@ -610,7 +610,7 @@ export async function buildHtmlReport(
   );
 
   const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
-  const scores = computeReportScores(evaluations, rubric, finalization, evalMap);
+  const scores = computeReportScores(evaluations, rubric, finalization, evalMap, metadata.usesAi ?? true);
 
   // Build section parts
   const gateRows = buildGateRows(rubric, evalMap);

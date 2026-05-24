@@ -82,10 +82,12 @@ export function getCategoryLabel(categoryId: string): string {
 }
 
 export function computeCompletion(evaluations: Evaluation[], rubric: RubricData, usesAi: boolean = true): number {
-  const totalQuestions = getVisibleRubricQuestionIds(rubric, usesAi).length;
+  const visibleIds = new Set(getVisibleRubricQuestionIds(rubric, usesAi));
   let scored = 0;
-  for (const e of evaluations) if (e.score !== "" && e.score !== undefined) scored++;
-  return totalQuestions > 0 ? Math.round((scored / totalQuestions) * 100) : 0;
+  for (const e of evaluations) {
+    if (e.score !== "" && e.score !== undefined && visibleIds.has(e.rubricId)) scored++;
+  }
+  return visibleIds.size > 0 ? Math.round((scored / visibleIds.size) * 100) : 0;
 }
 
 export function getLinkedRubricIdsForCapture(

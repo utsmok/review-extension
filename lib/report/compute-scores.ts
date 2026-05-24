@@ -1,5 +1,5 @@
 import { PRINCIPLES } from "../principles";
-import { getCategoryScores, qualityGateResults } from "../rubric";
+import { getCategoryScores, getVisibleRubricQuestionIds, qualityGateResults } from "../rubric";
 import type { Evaluation, ReviewFinalization, RubricData } from "../types";
 
 const GRADE_COLORS: Record<string, string> = {
@@ -40,13 +40,16 @@ export function computeReportScores(
   rubric: RubricData,
   finalization: ReviewFinalization | null,
   evalMap?: Map<string, Evaluation>,
+  usesAi: boolean = true,
 ): ReportScores {
   const em = evalMap ?? new Map(evaluations.map((e) => [e.rubricId, e]));
+  const visibleIds = new Set(getVisibleRubricQuestionIds(rubric, usesAi));
   const gates = qualityGateResults(evaluations, rubric, em);
-  let allPassed = gates.length > 0;
+  const visibleGates = gates.filter((g) => visibleIds.has(g.id));
+  let allPassed = visibleGates.length > 0;
   let anyFail = false;
   let answeredQGQuestions = 0;
-  for (const g of gates) {
+  for (const g of visibleGates) {
     if (g.result !== "pass") allPassed = false;
     if (g.result === "fail") anyFail = true;
     if (g.result !== null) answeredQGQuestions++;
@@ -61,7 +64,9 @@ export function computeReportScores(
 
   for (const p of PRINCIPLES) {
     if (!(p.id in rubric.scoring_rubric)) continue;
-    const scores = getCategoryScores(p.id, evaluations, rubric, em);
+    const allScores = getCategoryScores(p.id, evaluations, rubric, em);
+    const questionIds = Object.keys(rubric.scoring_rubric[p.id]);
+    const scores = allScores.filter((_, i) => visibleIds.has(`${p.id}.${questionIds[i]}`));
     catScores.set(p.id, scores);
     let numSum = 0;
     let numCount = 0;
@@ -80,7 +85,7 @@ export function computeReportScores(
     if (numCount > 0 && numSum / numCount < 1.0) principleFail = true;
   }
 
-  const totalQGQuestions = gates.length;
+  const totalQGQuestions = visibleGates.length;
   const totalQuestions = totalScoringQuestions + totalQGQuestions;
   const answeredQuestions = answeredScoringQuestions + answeredQGQuestions;
   const isComplete = totalQuestions > 0 && answeredQuestions >= totalQuestions;
