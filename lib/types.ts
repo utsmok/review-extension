@@ -31,6 +31,8 @@ export interface SessionMetadata {
   searchMethods?: string[];
   /** Academic discipline context */
   discipline?: string[];
+  /** Authentication method for accessing the tool */
+  authenticationMethod?: string;
   notes?: string;
   finalizedAt?: string;
 }

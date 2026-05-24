@@ -1,14 +1,25 @@
 {
   "id": "trust-full",
   "framework_name": "TRUST - UT Embedded Information Services",
-  "version": "1.0",
+  "version": "1.1",
   "quality_gate": {
     "privacy_and_security": {
+      "data_privacy": {
+        "type": "pass_fail",
+        "title": "Data privacy policy",
+        "requirement": "Vendor must explicitly state that user search queries, history, and uploaded content are not sold, shared with third-party advertisers, or used for commercial profiling. User data must not be retained beyond the stated service period without explicit consent.",
+        "background": "Academic users frequently input sensitive or unpublished research material into search tools. Even non-AI tools can violate privacy standards by tracking user queries, selling search-trend data to third-party advertisers, or retaining search history without consent. A clear data privacy policy is essential for trust in academic contexts regardless of whether the tool uses AI. Look for this statement in the privacy policy, terms of service, or a dedicated data governance page.\n\nN/A is applicable only if evaluating a purely local, offline-installed tool that has no network connection and cannot transmit user inputs (e.g., a locally compiled desktop script).",
+        "examples": {
+          "pass": "The tool's privacy policy states: 'User search queries, browsing history, and uploaded documents are never shared with third-party advertisers, sold to data brokers, or used for commercial profiling. Data is retained only for the duration needed to provide the service and is deleted within 30 days of account closure.' This is confirmed on the privacy policy page dated within the last 12 months.",
+          "fail": "The terms of service state that 'user interaction data may be shared with select partners for improved service delivery' or there is no mention of third-party data sharing practices at all. Alternatively, the tool's privacy policy allows selling aggregated search data to third parties."
+        },
+        "ai_only": false
+      },
       "training_policy": {
         "type": "pass_fail",
-        "title": "Training policy",
-        "requirement": "Vendor must explicitly state that user queries/inputs/uploads are NOT used to train future models.",
-        "background": "Academic users frequently input sensitive or unpublished research material into search tools. If a tool uses these inputs to train its models, it could leak proprietary research, pre-publication findings, or confidential institutional data. A clear opt-out or non-training policy is essential for trust in academic contexts. Look for this statement in the privacy policy, terms of service, or a dedicated AI ethics page.",
+        "title": "AI model training policy",
+        "requirement": "Vendor must explicitly state that user queries/inputs/uploads are NOT used to train future AI models.",
+        "background": "Academic users frequently input sensitive or unpublished research material into AI-powered search tools. If a tool uses these inputs to train its models, it could leak proprietary research, pre-publication findings, or confidential institutional data. A clear opt-out or non-training policy is essential for trust in academic contexts. Look for this statement in the privacy policy, terms of service, or a dedicated AI ethics page. This gate applies only to AI-powered tools.",
         "examples": {
           "pass": "The tool's documentation includes a section titled 'Data and AI Training' that states: 'User queries, uploaded documents, and search interactions are never used to train, fine-tune, or improve our AI models.' This is confirmed on the privacy policy page dated within the last 12 months.",
           "fail": "The terms of service state that 'interactions with the service may be used to improve our products and services' with no option to opt out, or there is no mention of training data practices at all."
@@ -16,12 +27,25 @@
         "ai_only": true
       }
     },
+    "intellectual_property": {
+      "ip_preservation": {
+        "type": "pass_fail",
+        "title": "Intellectual property preservation",
+        "requirement": "The vendor's Terms of Service must explicitly state that the user retains full copyright and intellectual property rights over all uploaded documents, prompts, and generated outputs. The vendor must not claim any license to distribute, publish, or commercially exploit user uploads.",
+        "background": "Academic researchers routinely upload unpublished manuscripts, grant proposals, proprietary datasets, and pre-publication findings into search or synthesis tools. Some tools state in their Terms of Service that they acquire a perpetual, royalty-free license to use uploaded content for any purpose — including model improvement, redistribution, or commercial exploitation. This creates a direct risk of intellectual property loss, which can compromise patent applications, embargoed research, and institutional data ownership policies. Review the Terms of Service, paying particular attention to sections on 'User Content', 'License Grant', or 'Intellectual Property'.\n\nN/A may apply for tools that do not accept any user-uploaded content — for example, a read-only citation database with no document upload, prompt, or file submission features. If the tool accepts any user content, this gate should be evaluated.",
+        "examples": {
+          "pass": "The Terms of Service include a section titled 'Your Content — Ownership' that states: 'You retain all rights, title, and interest in and to your content. We do not claim any ownership or license to distribute, publish, or commercially exploit your uploaded documents, prompts, or outputs.' No contradictory language appears elsewhere in the agreement.",
+          "fail": "The Terms of Service state: 'By uploading content, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, modify, and distribute your content for the purpose of improving our services.' Alternatively, the Terms make no mention of user intellectual property rights at all."
+        },
+        "ai_only": false
+      }
+    },
     "accessibility": {
       "compliance": {
         "type": "pass_fail",
         "title": "Accessibility",
         "requirement": "Tool must support keyboard navigation to all major features, allow text resizing to at least 200% without content loss, and provide alt text for images. An accessibility statement or conformance claim (e.g., WCAG 2.1 AA) is strong supporting evidence.",
-        "background": "Accessibility is a legal requirement in many jurisdictions (EU Accessibility Act, Section 508 in the US) and an ethical imperative for tools used in publicly funded institutions. Academic tools must be usable by people with visual, motor, or cognitive disabilities. Reviewers should test keyboard-only navigation, zoom the browser to 200%, and check whether images have meaningful alt text. An accessibility statement demonstrates institutional commitment.",
+        "background": "Accessibility is a legal requirement in many jurisdictions (EU Accessibility Act, Section 508 in the US) and an ethical imperative for tools used in publicly funded institutions. Academic tools must be usable by people with visual, motor, or cognitive disabilities. Reviewers should test keyboard-only navigation, zoom the browser to 200%, and check whether images have meaningful alt text. An accessibility statement demonstrates institutional commitment.\n\nN/A is not applicable for web-based tools, which must meet accessibility standards. It may be considered for backend command-line tools or raw APIs with no user interface.",
         "examples": {
           "pass": "You can navigate to all search features, settings, and export options using only the Tab and Enter keys. Zooming the browser to 200% preserves the layout with no overlapping text or hidden controls. The tool's footer links to an accessibility statement declaring WCAG 2.1 AA conformance.",
           "fail": "Critical features such as the search filters or export button cannot be reached via keyboard — they only respond to mouse clicks. Zooming to 200% causes the navigation menu to overflow and become partially hidden."
@@ -34,7 +58,7 @@
     "TR": {
       "data_source_clarity": {
         "title": "Data source clarity",
-        "background": "Source transparency is the first step toward reproducible research. When a tool discloses which databases, publishers, and indices it searches, users can assess whether its coverage is adequate for their discipline and identify potential blind spots. Without this information, researchers cannot evaluate whether the tool's results are comprehensive or skewed toward particular sources. Look for a dedicated 'Sources' or 'Coverage' page, or documentation within the tool's help section.",
+        "background": "Source transparency is the first step toward reproducible research. When a tool discloses which databases, publishers, and indices it searches, users can assess whether its coverage is adequate for their discipline and identify potential blind spots. Without this information, researchers cannot evaluate whether the tool's results are comprehensive or skewed toward particular sources. Look for a dedicated 'Sources' or 'Coverage' page, or documentation within the tool's help section. Note: this question evaluates macro-level data scope transparency — understanding the overall boundaries and composition of the tool's index. It is distinct from TC2 (Source quality indicators), which evaluates item-level metadata enrichment such as retraction warnings and publication type labels on individual search results.",
         "0": "Sources are opaque — no information about what the tool indexes.",
         "1": "General source types mentioned (e.g., 'scientific articles', 'patents') but no specific databases named.",
         "2": "Key databases, publishers, or indices are identified by name.",
@@ -49,7 +73,7 @@
       },
       "methodology_disclosure": {
         "title": "Methodology disclosure",
-        "background": "Understanding how a tool processes queries and generates results is essential for interpreting its outputs. This question evaluates whether the tool explains its underlying technology — retrieval method, ranking algorithm, and any AI generation steps. In academic contexts, researchers need to know whether results are purely retrieved from indexed databases or synthesized by a language model, as this affects how they interpret and cite the output. This question only applies to AI-powered tools.",
+        "background": "Understanding how a tool processes queries and generates results is essential for interpreting its outputs. This question evaluates whether the tool explains its underlying technology — retrieval method, ranking algorithm, and any AI generation steps. In academic contexts, researchers need to know whether results are purely retrieved from indexed databases or synthesized by a language model, as this affects how they interpret and cite the output. Reviewers do not need to verify the mathematics of the algorithm. Look for a 'System Architecture', 'Technical White Paper', or 'How It Works' link in the footer or help documentation. If the vendor explains their retrieval, ranking, and generation steps in plain language (even without specific model parameters), they qualify for a higher score. This question only applies to AI-powered tools.",
         "0": "Black box — no explanation of how the tool works.",
         "1": "Vague claims of using 'AI' without specifying what kind.",
         "2": "Names the underlying model or technology (e.g., 'GPT-4', 'BERT-based search') and describes the retrieval approach at a high level.",
@@ -66,7 +90,7 @@
     "RE": {
       "accuracy_and_hallucination": {
         "title": "Accuracy and hallucination",
-        "background": "AI-powered search tools can generate plausible-sounding but fabricated claims, fake citations, or misattributed findings — a phenomenon known as hallucination. In academic research, this is particularly dangerous because users may incorporate inaccurate information into their work. This question assesses how frequently the tool produces verifiable errors across multiple test queries. Test with domain-specific queries where you can verify claims against known literature. This question only applies to AI-powered tools.",
+        "background": "AI-powered search tools can generate plausible-sounding but fabricated claims, fake citations, or misattributed findings — a phenomenon known as hallucination. In academic research, this is particularly dangerous because users may incorporate inaccurate information into their work. This question assesses how frequently the tool produces verifiable errors across multiple test queries. To score this consistently, run a minimum of 5 distinct test queries: (1) a broad conceptual query in your discipline, (2) a highly specific niche query where you know the literature, (3) a query seeking recent research published post-2024, (4) a negative query designed to test boundaries (e.g., asking about a fabricated concept to see if the tool flags it as non-existent), and (5) a synthesis query asking the tool to summarize three known papers. Test with domain-specific queries where you can verify claims against known literature. This question only applies to AI-powered tools.",
         "0": "Multiple fabricated claims or citations per session — the tool routinely generates information that cannot be verified in the source literature.",
         "1": "Occasional errors — the tool is mostly correct but sometimes gets details wrong (misattributed findings, incorrect citation details, or minor factual errors).",
         "2": "High accuracy with only minor nuances missed — claims are verifiable and citations point to real papers, though synthesis may oversimplify complex findings.",
@@ -81,7 +105,7 @@
       },
       "variance_consistency": {
         "title": "Output consistency",
-        "background": "A reliable research tool should produce substantively equivalent answers when given the same query multiple times. High variance — where the same question yields different conclusions, sources, or recommendations on successive runs — undermines trust and makes the tool unsuitable for systematic work. This question evaluates reproducibility by asking the reviewer to submit identical queries and compare the substance of the responses. Small surface-level differences in phrasing are acceptable; substantive differences in claims or conclusions are not.",
+        "background": "A reliable research tool should produce substantively equivalent answers when given the same query multiple times. High variance — where the same question yields different conclusions, sources, or recommendations on successive runs — undermines trust and makes the tool unsuitable for systematic work. This question evaluates reproducibility by asking the reviewer to submit identical queries and compare the substance of the responses. Small surface-level differences in phrasing are acceptable; substantive differences in claims or conclusions are not.\n\nFor deterministic, index-based databases, identical queries should yield identical results. Score 3 if result lists are perfectly stable. Score lower if results fluctuate between repeated runs without a documented update to the underlying index database, which may indicate unstable scraping, caching issues, or unpredictable API routing.",
         "0": "Core claims change between runs — asking the same question twice produces substantively different conclusions.",
         "1": "Moderate variation — the same query sometimes yields noticeably different results, requiring re-prompting to get a reliable answer.",
         "2": "Consistent core claims with minor surface variation — the substance is the same but phrasing or source selection may differ slightly.",
@@ -129,8 +153,8 @@
     },
     "SE": {
       "algorithmic_fairness": {
-        "title": "Algorithmic fairness",
-        "background": "Search tools can systematically favor certain perspectives, languages, regions, or publication venues — often reflecting biases in their training data, indexing sources, or ranking algorithms. In academic search, this can manifest as over-representation of English-language, Western-published, or high-impact-journal sources at the expense of research from the Global South, non-English publications, or smaller venues. This question evaluates whether the tool acknowledges and mitigates these biases. Test with queries that should return diverse geographic and linguistic results.",
+        "title": "Bibliographic equity & diversity",
+        "background": "Search tools can systematically favor certain perspectives, languages, regions, or publication venues — often reflecting biases in their training data, indexing sources, or ranking algorithms. In academic search, this can manifest as over-representation of English-language, Western-published, or high-impact-journal sources at the expense of research from the Global South, non-English publications, or smaller venues. This question evaluates whether the tool's index and ranking produce equitable, geographically diverse results. Test with queries that should return diverse geographic and linguistic results.",
         "0": "No evidence that the tool considers fairness — results appear systematically skewed (e.g., exclusively English-language, Western-published sources) without acknowledgment.",
         "1": "The tool acknowledges potential bias but provides no concrete evidence of mitigation efforts or diverse source coverage.",
         "2": "The tool demonstrates diverse source coverage in results (e.g., surfaces non-English or non-Western research for relevant queries) OR documents active bias mitigation measures.",
@@ -164,7 +188,6 @@
     "TC": {
       "source_attribution_depth": {
         "title": "Source attribution depth",
-        "related_gate": "traceability.citation_mechanism",
         "background": "The depth of source linking determines how efficiently a researcher can verify claims and locate original material. A tool that links to a journal homepage requires the user to manually search for the specific article; a tool that links directly to the relevant passage saves significant time and enables precise verification. This question evaluates the granularity of citation links — from broken links (worst) to paragraph-level deep links (best). Test by clicking citations in the tool's output and noting where they lead.",
         "0": "Broken or missing links.",
         "1": "Links to journal landing pages only.",
@@ -181,7 +204,7 @@
       },
       "bibliometric_credibility": {
         "title": "Source quality indicators",
-        "background": "Not all academic sources are equal: papers may be retracted, published in predatory journals, or exist only as non-peer-reviewed preprints. A tool that treats all sources identically — without any quality indicators — makes it harder for researchers to assess the reliability of the evidence behind a claim. This question evaluates whether the tool provides contextual quality metadata such as retraction status, peer-review labels, citation counts, and publication type. Look for quality badges, labels, or metadata near each cited source.",
+        "background": "Not all academic sources are equal: papers may be retracted, published in predatory journals, or exist only as non-peer-reviewed preprints. A tool that treats all sources identically — without any quality indicators — makes it harder for researchers to assess the reliability of the evidence behind a claim. This question evaluates whether the tool provides contextual quality metadata such as retraction status, peer-review labels, citation counts, and publication type. Look for quality badges, labels, or metadata near each cited source. Note: this question evaluates item-level metadata enrichment — whether the tool warns the user about the status of individual papers during search (e.g., retraction notices, publication type labels). It is distinct from TR1 (Data source clarity), which evaluates macro-level scope transparency about what the tool's index contains.",
         "0": "Includes retracted or predatory sources without any warning or flag.",
         "1": "No filtering or labeling of source quality — all sources appear equivalent.",
         "2": "Categorizes sources by type (e.g., preprint vs. peer-reviewed).",
