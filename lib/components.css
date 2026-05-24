@@ -58,7 +58,6 @@
   --section-on-accent: var(--section-control-on-accent, var(--ut-white));
 }
 
-
 /* ── Top accent bar ─────────────────────────────────────────── */
 
 .top-accent {
@@ -91,7 +90,7 @@
   margin-bottom: calc(var(--border-default) * -1);
   transition:
     color var(--duration-fast) ease,
-  border-color var(--duration-fast) ease;
+    border-color var(--duration-fast) ease;
   min-height: 36px;
 }
 
@@ -284,69 +283,68 @@
 }
 
 .score-row.is-selected {
-	font-weight: 700;
+  font-weight: 700;
 }
 
 .score-row[data-score="0"] {
-	opacity: 0.85;
-	font-weight: 400;
-	--badge-color: var(--score-0);
+  opacity: 0.85;
+  font-weight: 400;
+  --badge-color: var(--score-0);
 }
 .score-row[data-score="1"] {
-	opacity: 0.7;
-	font-weight: 400;
-	--badge-color: var(--score-1);
+  opacity: 0.7;
+  font-weight: 400;
+  --badge-color: var(--score-1);
 }
 .score-row[data-score="2"] {
-	opacity: 0.7;
-	font-weight: 400;
-	--badge-color: var(--score-2);
+  opacity: 0.7;
+  font-weight: 400;
+  --badge-color: var(--score-2);
 }
 .score-row[data-score="3"] {
-	opacity: 0.7;
-	font-weight: 400;
-	--badge-color: var(--score-3);
+  opacity: 0.7;
+  font-weight: 400;
+  --badge-color: var(--score-3);
 }
 .score-row[data-score="na"] {
-	opacity: 0.7;
-	font-weight: 400;
-	--badge-color: var(--ut-muted);
+  opacity: 0.7;
+  font-weight: 400;
+  --badge-color: var(--ut-muted);
 }
 .score-row[data-score="unsure"] {
-	opacity: 0.7;
-	font-weight: 400;
-	--badge-color: var(--ut-slate);
+  opacity: 0.7;
+  font-weight: 400;
+  --badge-color: var(--ut-slate);
 }
 .score-row[data-score="unsure"].is-selected {
-	background: color-mix(in srgb, var(--ut-slate) 12%, transparent);
-	color: var(--ut-slate);
+  background: color-mix(in srgb, var(--ut-slate) 12%, transparent);
+  color: var(--ut-slate);
 }
 .score-row--meta-separator {
-	border-top: 1px dashed var(--ut-border);
-	margin-top: var(--space-1);
-	padding-top: var(--space-1);
+  border-top: 1px dashed var(--ut-border);
+  margin-top: var(--space-1);
+  padding-top: var(--space-1);
 }
-
 
 .score-row[data-score="0"].is-selected {
-	background: var(--score-0-tint);
-	color: var(--score-0);
-	opacity: 1;
+  background: var(--score-0-tint);
+  color: var(--score-0);
+  opacity: 1;
 }
 .score-row[data-score="1"].is-selected {
-	background: var(--score-1-tint);
-	color: var(--score-1);
-	opacity: 1;
+  background: var(--score-1-tint);
+  color: var(--score-1);
+  opacity: 1;
 }
 .score-row[data-score="2"].is-selected {
-	background: var(--score-2-tint);
-	color: var(--score-2);
-	opacity: 1;
+  background: var(--score-2-tint);
+  color: var(--score-2);
+  opacity: 1;
 }
 .score-row[data-score="3"].is-selected {
-	background: var(--score-3-tint);
-	color: var(--score-3);
-	opacity: 1;
+  background: var(--score-3-tint);
+  color: var(--score-3);
+  opacity: 1;
 }
 
 .score-row .score-badge {
@@ -392,14 +390,30 @@
   color: var(--ut-on-accent);
   --badge-color: var(--ut-muted);
 }
-.summary-score-badge[data-score="0"]  { --badge-color: var(--score-0); }
-.summary-score-badge[data-score="1"]  { --badge-color: var(--score-1); }
-.summary-score-badge[data-score="2"]  { --badge-color: var(--score-2); }
-.summary-score-badge[data-score="3"]  { --badge-color: var(--score-3); }
-.summary-score-badge[data-score="na"] { --badge-color: var(--ut-muted); }
-.summary-score-badge[data-score="unsure"] { --badge-color: var(--ut-slate); }
-.summary-score-badge[data-score="pass"]   { --badge-color: var(--score-3); }
-.summary-score-badge[data-score="fail"]   { --badge-color: var(--score-0); }
+.summary-score-badge[data-score="0"] {
+  --badge-color: var(--score-0);
+}
+.summary-score-badge[data-score="1"] {
+  --badge-color: var(--score-1);
+}
+.summary-score-badge[data-score="2"] {
+  --badge-color: var(--score-2);
+}
+.summary-score-badge[data-score="3"] {
+  --badge-color: var(--score-3);
+}
+.summary-score-badge[data-score="na"] {
+  --badge-color: var(--ut-muted);
+}
+.summary-score-badge[data-score="unsure"] {
+  --badge-color: var(--ut-slate);
+}
+.summary-score-badge[data-score="pass"] {
+  --badge-color: var(--score-3);
+}
+.summary-score-badge[data-score="fail"] {
+  --badge-color: var(--score-0);
+}
 
 /* ── Question foldouts (Background / Examples) ─────────────── */
 
