@@ -1,5 +1,5 @@
-import { getCategoryLabel } from "./rubric";
 import { buildHtmlReport, buildNutritionLabel, REPORT_CSS } from "./html-report";
+import { getCategoryLabel } from "./rubric";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 /** Subset of Capture written to session.json inside the ZIP — heavy blobs stored separately. */

@@ -5,9 +5,10 @@
  *
  * Also registers a single visibilitychange listener to flush on tab-switch.
  */
-import { useSessionStore } from "@/stores/session";
-import { useRegistryStore } from "@/stores/registry";
+
 import { getRepository } from "@/lib/session-repository";
+import { useRegistryStore } from "@/stores/registry";
+import { useSessionStore } from "@/stores/session";
 import { toastWarning } from "@/stores/toast";
 
 let timerRef: ReturnType<typeof setTimeout> | undefined;

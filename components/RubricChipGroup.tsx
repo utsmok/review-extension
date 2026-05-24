@@ -1,4 +1,4 @@
-import { getQuestionCode, getQGQuestionCode } from "@/lib/rubric";
+import { getQGQuestionCode, getQuestionCode } from "@/lib/rubric";
 import type { PassFailQuestion, ScoringQuestion } from "@/lib/types";
 
 type RubricQuestion = PassFailQuestion | ScoringQuestion;

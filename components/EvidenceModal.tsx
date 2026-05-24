@@ -1,21 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AssetRecordType,
+  createShapeId,
   DefaultColorStyle,
   DefaultSizeStyle,
   type Editor,
   type TLShapeId,
   Tldraw,
-  createShapeId,
   track,
   useValue,
 } from "tldraw";
 
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { useRubric } from "@/lib/contexts";
 import { useAutoFocus, useFocusTrap } from "@/lib/hooks";
 import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import type { Capture } from "@/lib/types";
-import { useRubric } from "@/lib/contexts";
 import RubricChipGroup from "./RubricChipGroup";
 
 /* ── Color palette (maps tldraw named colors → display labels) ── */

@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureActiveTab } from "@/lib/capture";
-import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import { useRubric } from "@/lib/contexts";
+import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
 import EvidenceModal from "./EvidenceModal";

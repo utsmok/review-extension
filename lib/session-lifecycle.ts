@@ -1,10 +1,10 @@
-import { useSessionStore } from "@/stores/session";
-import { useRegistryStore } from "@/stores/registry";
-import { getRepository } from "@/lib/session-repository";
-import { toastError } from "@/stores/toast";
 import { RUBRIC_DATA } from "@/data/rubrics";
 import { exportSession, importSessionFromZip } from "@/lib/export";
+import { getRepository } from "@/lib/session-repository";
 import type { SessionData, SessionMetadata } from "@/lib/types";
+import { useRegistryStore } from "@/stores/registry";
+import { useSessionStore } from "@/stores/session";
+import { toastError } from "@/stores/toast";
 
 /** Snapshot current session store state as SessionData */
 function snapshot(): SessionData | null {

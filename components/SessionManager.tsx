@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { downloadBlob, sanitizeFilename } from "@/lib/export";
-import { getRepository } from "@/lib/session-repository";
 import { exportSessionById, importSessionFromZipFile } from "@/lib/session-lifecycle";
+import { getRepository } from "@/lib/session-repository";
 import { useRegistryStore } from "@/stores/registry";
 import { toastError, toastSuccess } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
