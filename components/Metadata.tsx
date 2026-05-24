@@ -115,14 +115,14 @@ export default function Metadata() {
   const getAiOnlyRubricIds = (): string[] => {
     const ids: string[] = [];
     if (!rubric) return ids;
-    for (const section of Object.values(rubric.quality_gate)) {
+    for (const [cat, section] of Object.entries(rubric.quality_gate)) {
       for (const [id, question] of Object.entries(section)) {
-        if (question.ai_only) ids.push(id);
+        if (question.ai_only) ids.push(`${cat}.${id}`);
       }
     }
-    for (const section of Object.values(rubric.scoring_rubric)) {
+    for (const [cat, section] of Object.entries(rubric.scoring_rubric)) {
       for (const [id, question] of Object.entries(section)) {
-        if (question.ai_only) ids.push(id);
+        if (question.ai_only) ids.push(`${cat}.${id}`);
       }
     }
     return ids;
