@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import trustFull from "@/data/rubrics/trust-full.json";
 import {
+  getVisibleRubricQuestionIds,
   computeCompletion,
   distributionBar,
   getCategoryLabel,
@@ -172,6 +173,87 @@ describe("computeCompletion", () => {
     }));
 
     expect(computeCompletion(evaluations, TRUST_RUBRIC)).toBe(100);
+  });
+});
+describe("getVisibleRubricQuestionIds", () => {
+  it("returns all 14 question IDs when usesAi is true", () => {
+    const ids = getVisibleRubricQuestionIds(TRUST_RUBRIC, true);
+    expect(ids).toHaveLength(14);
+    expect(ids).toContain("privacy_and_security.training_policy");
+    expect(ids).toContain("TR.methodology_disclosure");
+    expect(ids).toContain("RE.accuracy_and_hallucination");
+    expect(ids).toContain("US.cognitive_guardrails");
+  });
+
+  it("excludes ai_only questions when usesAi is false (10 visible)", () => {
+    const ids = getVisibleRubricQuestionIds(TRUST_RUBRIC, false);
+    expect(ids).toHaveLength(10);
+    expect(ids).not.toContain("privacy_and_security.training_policy");
+    expect(ids).not.toContain("TR.methodology_disclosure");
+    expect(ids).not.toContain("RE.accuracy_and_hallucination");
+    expect(ids).not.toContain("US.cognitive_guardrails");
+  });
+
+  it("still includes non-ai-only QG questions when usesAi is false", () => {
+    const ids = getVisibleRubricQuestionIds(TRUST_RUBRIC, false);
+    expect(ids).toContain("privacy_and_security.data_privacy");
+    expect(ids).toContain("intellectual_property.ip_preservation");
+    expect(ids).toContain("accessibility.compliance");
+  });
+});
+
+describe("computeCompletion with usesAi filtering", () => {
+  it("returns 100% when only visible questions are scored (usesAi=false)", () => {
+    const visibleIds = getVisibleRubricQuestionIds(TRUST_RUBRIC, false);
+    const evaluations: Evaluation[] = visibleIds.map((id) => ({
+      rubricId: id,
+      score: 2,
+      notes: "",
+      explicitEvidenceIds: [],
+    }));
+    // Also add scores for ai_only questions — they should be ignored
+    evaluations.push(
+      {
+        rubricId: "privacy_and_security.training_policy",
+        score: 3,
+        notes: "",
+        explicitEvidenceIds: [],
+      },
+      { rubricId: "TR.methodology_disclosure", score: 1, notes: "", explicitEvidenceIds: [] },
+    );
+    expect(computeCompletion(evaluations, TRUST_RUBRIC, false)).toBe(100);
+  });
+
+  it("does not exceed 100% even with extra ai_only evaluations scored", () => {
+    const allIds = getRubricQuestionIds(TRUST_RUBRIC);
+    const evaluations: Evaluation[] = allIds.map((id) => ({
+      rubricId: id,
+      score: 2,
+      notes: "",
+      explicitEvidenceIds: [],
+    }));
+    const result = computeCompletion(evaluations, TRUST_RUBRIC, false);
+    expect(result).toBe(100);
+  });
+
+  it("counts only visible questions in denominator when usesAi=false", () => {
+    const evaluations: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
+      { rubricId: "US.workflow_integration", score: 1, notes: "", explicitEvidenceIds: [] },
+    ];
+    // 2 scored out of 10 visible
+    const result = computeCompletion(evaluations, TRUST_RUBRIC, false);
+    expect(result).toBe(Math.round((2 / 10) * 100));
+  });
+
+  it("ignores ai_only evaluations in numerator when usesAi=false", () => {
+    const evaluations: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
+      { rubricId: "TR.methodology_disclosure", score: 3, notes: "", explicitEvidenceIds: [] },
+    ];
+    // Only 1 visible scored out of 10
+    const result = computeCompletion(evaluations, TRUST_RUBRIC, false);
+    expect(result).toBe(Math.round((1 / 10) * 100));
   });
 });
 
