@@ -31,6 +31,7 @@ export default function Evaluation() {
     const evalSet = new Set(
       evaluations.filter((e) => e.score !== "" && e.score !== undefined).map((e) => e.rubricId),
     );
+    const visibleIds = new Set(getVisibleRubricQuestionIds(rubric, usesAi));
     const sections: { key: "quality_gate" | "scoring_rubric"; label: string }[] = [
       { key: "quality_gate", label: "Quality Gates" },
       { key: "scoring_rubric", label: "Scoring Rubric" },
@@ -57,7 +58,8 @@ export default function Evaluation() {
         unsureCount: number;
       }[] = [];
       for (const [cat, questions] of Object.entries(rubricSection)) {
-        const ids = Object.keys(questions);
+        const allIds = Object.keys(questions);
+        const ids = allIds.filter((qId) => visibleIds.has(`${cat}.${qId}`));
         const total = ids.length;
         const scored = ids.filter((qId) => evalSet.has(`${cat}.${qId}`)).length;
         cats.push({
@@ -72,7 +74,7 @@ export default function Evaluation() {
       result.push({ sectionLabel: label, categories: cats });
     }
     return result;
-  }, [evaluations, rubric]);
+  }, [evaluations, rubric, usesAi]);
 
   const handleConfirmRemove = (capture: Capture, rubricId: string) => {
     setConfirmTarget({ capture, rubricId });
