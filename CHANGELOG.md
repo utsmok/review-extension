@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.3.1 — 2026-05-24
+## v0.4.0 — 2026-05-23
 
 ### Rubric v1.1
 
@@ -22,21 +22,48 @@
 - Fix `computeCompletion` numerator to filter by visible question set — prevents >100% completion display
 - Fix `categorySummary` in Evaluation to filter by usesAi — consistent per-category totals
 - Thread `usesAi` through `computeReportScores` — accurate question counts in HTML report
-- Add `countUnsure()` for displaying unsure counts alongside principle averages
+- Add `countUnsure()` with usesAi filtering for displaying unsure counts alongside principle averages
+- Remove unnecessary type casts in `getVisibleRubricQuestionIds` — PassFailQuestion and ScoringQuestion both expose ai_only directly
+
+### HTML report
+
+- Render 6 procurement/access metadata fields in header (company, pricing, availability, termsConditionsUrl, authenticationMethod, usesAi)
+- Filter gate rows and category sections by usesAi — non-AI sessions no longer show ai_only questions
 
 ### Capture & export
 
 - Add WebP/JPEG compression for IndexedDB screenshot storage (WebP quality 0.95, JPEG fallback)
 - Guard restricted URL schemes (`javascript:`, `data:`, `blob:`, `chrome:`, `chrome-extension:`) in page info capture
-- Render 6 procurement/access metadata fields in HTML report header (company, pricing, availability, termsConditionsUrl, authenticationMethod, usesAi)
 - Add `Authentication_Method` to CSV export
+
+### UX & design
+
+- Add animated progress bar with green completion pulse on Evaluation tab
+- Add category fill chips with `color-mix` tinting for per-category score visualization
+- Add score row scale+shadow micro-interaction on hover
+- Add slide-down animation for question detail expansion
+- Add section kicker left-border accent color per category
+- Add micro-interactions across all tabs: pill-toggle press, capture float animation, grid card fade-up, grade button press+shadow, draft-saved fade-out toast, bullet list slide-in
+- Apply WCAG AA contrast fix for grade buttons (score-1-strong token)
+- Improve CSS contrast, easing curves, and spacing from design audit
+
+### Internal
+
+- Fix FinalizationScreen setTimeout cleanup on unmount
+- Narrow Evaluation tab computeCompletion dependency to session?.usesAi
+- Fix CSS `--section-context-accent` to use defined `--section-accent` token
+- Scope `omp-slide-down` animation to `[open]` state to prevent replay on re-render
+- Add `.audit/` to .gitignore
 
 ### Tests
 
 - Add tests for `getVisibleRubricQuestionIds` (3 tests: all-visible, ai_only filtering, non-AI QG inclusion)
 - Add tests for `computeCompletion` with `usesAi=false` (4 tests: visible-only scoring, no-exceed, denominator, numerator filtering)
+- Add 4-test suite for `countUnsure` (zero unsure, partial, unknown category, usesAi filtering)
+- Replace vacuous early return in quality gate test with explicit `expect().toBeDefined()`
 - Fix `AllProviders` test helper to default `usesAi: true` (matches production default)
 - Update all tests for v1.1 rubric structure (14 questions, 4 QG)
+- Fix biome lint warnings across 13 test files
 
 ## v0.3.0 — 2026-05-22
 
