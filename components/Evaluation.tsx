@@ -68,7 +68,7 @@ export default function Evaluation() {
           scored,
           total,
           accentKey: getAccentKey(cat),
-          unsureCount: key === "scoring_rubric" ? countUnsure(cat, evaluations, rubric) : 0,
+          unsureCount: key === "scoring_rubric" ? countUnsure(cat, evaluations, rubric, undefined, usesAi) : 0,
         });
       }
       result.push({ sectionLabel: label, categories: cats });

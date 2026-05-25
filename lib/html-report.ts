@@ -110,7 +110,9 @@ function buildCategorySections(
   compressedScreenshots: Map<string, string>,
   scores: ReportScores,
   evalMap: Map<string, Evaluation>,
+  usesAi: boolean,
 ): string {
+
   // Pre-compute capture ID → capture map for O(1) lookups
   const captureMap = new Map(captures.map((c) => [c.id, c]));
   // Pre-compute evidence count per principle: O(captures × evaluations) once instead of per principle
@@ -147,8 +149,12 @@ function buildCategorySections(
       const catTotal = numSum;
       const catMax = numCount * 3;
 
-      const rows = Object.entries(questions)
+      const entries = Object.entries(questions).filter(
+        ([, q]) => usesAi || !(q as { ai_only?: boolean }).ai_only,
+      );
+      const rows = entries
         .map(([qId, levels], qIdx) => {
+
           const rubricId = `${p.id}.${qId}`;
           const ev = evalMap.get(rubricId);
           const isNa = ev?.score === "na";
@@ -260,12 +266,15 @@ function buildCategorySections(
     .join("");
 }
 
-function buildGateRows(rubric: RubricData, evalMap: Map<string, Evaluation>): string {
+function buildGateRows(rubric: RubricData, evalMap: Map<string, Evaluation>, usesAi: boolean): string {
+
   return Object.entries(rubric.quality_gate)
     .map(([cat, questions]) =>
       Object.keys(questions)
         .map((qId, qIdx) => {
           const q = questions[qId];
+          if (!usesAi && (q as { ai_only?: boolean }).ai_only) return "";
+
           const ev = evalMap.get(`${cat}.${qId}`);
           const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
           const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#6b7f94";
@@ -613,7 +622,8 @@ export async function buildHtmlReport(
   const scores = computeReportScores(evaluations, rubric, finalization, evalMap, metadata.usesAi ?? true);
 
   // Build section parts
-  const gateRows = buildGateRows(rubric, evalMap);
+  const gateRows = buildGateRows(rubric, evalMap, metadata.usesAi ?? true);
+
   const categorySections = buildCategorySections(
     captures,
     evaluations,
@@ -621,6 +631,7 @@ export async function buildHtmlReport(
     compressedScreenshots,
     scores,
     evalMap,
+    metadata.usesAi ?? true,
   );
   const finalizationSection = buildFinalizationSection(
     finalization,

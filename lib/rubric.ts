@@ -19,14 +19,14 @@ export function getVisibleRubricQuestionIds(rubric: RubricData, usesAi: boolean)
   const ids: string[] = [];
   for (const [category, questions] of Object.entries(rubric.quality_gate)) {
     for (const [questionId, question] of Object.entries(questions)) {
-      if (usesAi || !(question as { ai_only?: boolean }).ai_only) {
+      if (usesAi || !question.ai_only) {
         ids.push(`${category}.${questionId}`);
       }
     }
   }
   for (const [category, questions] of Object.entries(rubric.scoring_rubric)) {
     for (const [questionId, question] of Object.entries(questions)) {
-      if (usesAi || !(question as { ai_only?: boolean }).ai_only) {
+      if (usesAi || !question.ai_only) {
         ids.push(`${category}.${questionId}`);
       }
     }
@@ -212,12 +212,14 @@ export function countUnsure(
   evaluations: Evaluation[],
   rubric: RubricData,
   evalMap?: EvalMap,
+  usesAi: boolean = true,
 ): number {
   const em = evalMap ?? buildEvalMap(evaluations);
   const questions = rubric.scoring_rubric[categoryId];
   if (!questions) return 0;
   let count = 0;
-  for (const qId of Object.keys(questions)) {
+  for (const [qId, question] of Object.entries(questions)) {
+    if (!usesAi && question.ai_only) continue;
     if (em.get(`${categoryId}.${qId}`)?.score === "unsure") count++;
   }
   return count;

@@ -1,19 +1,20 @@
 import { describe, expect, it } from "vitest";
 import trustFull from "@/data/rubrics/trust-full.json";
+import type { Evaluation, RubricData } from "@/lib/types";
 import {
-  getVisibleRubricQuestionIds,
   computeCompletion,
+  countUnsure,
   distributionBar,
   getCategoryLabel,
   getCategoryScores,
   getLinkedRubricIdsForCapture,
   getQuestionCode,
   getRubricQuestionIds,
+  getVisibleRubricQuestionIds,
   principleAverage,
   qualityGateResults,
   scoreColor,
 } from "@/lib/rubric";
-import type { Evaluation, RubricData } from "@/lib/types";
 
 const TRUST_RUBRIC = trustFull as unknown as RubricData;
 
@@ -443,8 +444,9 @@ describe("qualityGateResults", () => {
   it("any fail → that specific gate shows fail", () => {
     const evals = allGateEvals("pass");
     const failEntry = evals.find((e) => e.rubricId === "accessibility.compliance");
-    if (!failEntry) return;
-    failEntry.score = "fail";
+    expect(failEntry).toBeDefined();
+    // biome-ignore lint/style/noNonNullAssertion: guarded by expect above
+    failEntry!.score = "fail";
     const results = qualityGateResults(evals, RUBRIC);
     const failed = results.find((r) => r.id === "accessibility.compliance");
     expect(failed?.result).toBe("fail");
@@ -559,5 +561,52 @@ describe("principle minimum enforcement", () => {
         ),
     ];
     expect(principleAverage("TR", evals, RUBRIC)).toBe(0);
+  });
+});
+
+describe("countUnsure", () => {
+  it("returns 0 when no evaluations are unsure", () => {
+    const evals: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
+      { rubricId: "TR.methodology_disclosure", score: 3, notes: "", explicitEvidenceIds: [] },
+    ];
+    expect(countUnsure("TR", evals, RUBRIC)).toBe(0);
+  });
+
+  it("counts unsure evaluations for a category", () => {
+    const evals: Evaluation[] = [
+      {
+        rubricId: "TR.data_source_clarity",
+        score: "unsure" as const,
+        notes: "",
+        explicitEvidenceIds: [],
+      },
+      { rubricId: "TR.methodology_disclosure", score: 2, notes: "", explicitEvidenceIds: [] },
+    ];
+    expect(countUnsure("TR", evals, RUBRIC)).toBe(1);
+  });
+
+  it("returns 0 for unknown category", () => {
+    expect(countUnsure("NONEXISTENT", [], RUBRIC)).toBe(0);
+  });
+
+  it("excludes ai_only questions when usesAi is false", () => {
+    // TR.methodology_disclosure is ai_only
+    const evals: Evaluation[] = [
+      {
+        rubricId: "TR.data_source_clarity",
+        score: "unsure" as const,
+        notes: "",
+        explicitEvidenceIds: [],
+      },
+      {
+        rubricId: "TR.methodology_disclosure",
+        score: "unsure" as const,
+        notes: "",
+        explicitEvidenceIds: [],
+      },
+    ];
+    expect(countUnsure("TR", evals, RUBRIC, undefined, true)).toBe(2);
+    expect(countUnsure("TR", evals, RUBRIC, undefined, false)).toBe(1);
   });
 });

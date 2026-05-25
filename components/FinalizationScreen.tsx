@@ -31,6 +31,7 @@ export default function FinalizationScreen() {
   const lastSavedData = useRef<ReviewFinalization | null>(finalization ?? null);
 
   // Autosave debounce timer
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Guard: skip sync effect when the change originated from our own autosave/save/clear
@@ -57,11 +58,13 @@ export default function FinalizationScreen() {
       isLocalChange.current = true;
       setFinalization(data);
       setDraftSaved(true);
-      setTimeout(() => setDraftSaved(false), 2000);
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+      draftTimerRef.current = setTimeout(() => setDraftSaved(false), 2000);
     }, 50);
 
     return () => {
       if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     };
   }, [grade, conclusion, strengths, weaknesses, recommendations, setFinalization]);
 
@@ -164,7 +167,6 @@ export default function FinalizationScreen() {
       </h2>
       {draftSaved && !saved && (
         <p className="draft-saved-toast text-ut-xs text-ut-muted font-mono" aria-live="polite">
-
           Draft saved locally
         </p>
       )}
@@ -205,7 +207,6 @@ export default function FinalizationScreen() {
                   ? `${g.color} text-white is-selected`
                   : `border border-ut-border ${g.tint} text-ut-text hover:brightness-95`
               }`}
-
             >
               {g.label}
             </button>

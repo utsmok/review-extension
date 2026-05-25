@@ -149,7 +149,7 @@
   text-transform: uppercase;
   letter-spacing: var(--ls-kicker);
   color: var(--section-accent, var(--ut-navy));
-  border-left: 3px solid var(--section-context-accent, var(--trust-magenta));
+  border-left: 3px solid var(--section-accent, var(--trust-magenta));
   padding: var(--space-1) var(--space-2);
   padding-left: var(--space-2);
   margin-top: var(--space-6);
@@ -259,6 +259,9 @@
 
 .question-details > .question-body {
   padding: 0 var(--space-3) var(--space-3);
+}
+
+.question-details[open] > .question-body {
   animation: omp-slide-down var(--duration-fast) ease-out both;
 }
 

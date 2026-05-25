@@ -63,7 +63,7 @@ export default function ActiveSession() {
   const evaluationComplete = useMemo(() => {
     if (!rubric) return false;
     return computeCompletion(evaluations, rubric, session?.usesAi ?? true) === 100;
-  }, [evaluations, rubric, session]);
+  }, [evaluations, rubric, session?.usesAi]);
 
   const finalizeComplete = useMemo(() => !!finalization, [finalization]);
 
