@@ -967,59 +967,167 @@
   background: var(--ut-offwhite);
 }
 
-/* ── Evaluation progress bar ────────────────────────────────── */
+
+/* ── Score status overview ─────────────────────────────────── */
+
+.eval-status-overview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.eval-status-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 3.5rem;
+}
+
+.eval-status-fraction {
+  font-family: var(--ff-heading);
+  font-weight: 700;
+  letter-spacing: var(--ls-heading);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.eval-status-scored {
+  font-size: var(--text-heading);
+  color: var(--ut-text);
+  transition: color var(--duration-normal) ease-out;
+}
+.eval-status-scored.is-complete {
+  color: var(--state-success);
+}
+
+.eval-status-divider {
+  font-size: var(--text-sub);
+  color: var(--ut-slate);
+  margin: 0 1px;
+}
+
+.eval-status-total {
+  font-size: var(--text-md);
+  color: var(--ut-slate);
+}
+
+.eval-status-label {
+  font-family: var(--ff-heading);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-kicker);
+  color: var(--ut-slate);
+  margin-top: 2px;
+}
+
+.eval-status-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.eval-status-complete-label {
+  font-family: var(--ff-heading);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  color: var(--state-success);
+  animation: omp-fade-in var(--duration-normal) ease-out;
+}
+
+/* ── Progress bar ──────────────────────────────────────────── */
 
 .eval-progress-track {
-  height: 6px;
-  background: var(--ut-grey);
+  height: 8px;
+  background: var(--neutral-100);
   border-radius: var(--radius-md);
   overflow: hidden;
-  flex: 1;
-  margin-left: var(--space-2);
 }
 
 .eval-progress-fill {
   height: 100%;
   background: var(--ut-muted);
   border-radius: var(--radius-md);
-  transition: width var(--duration-normal) ease-out, background-color var(--duration-normal) ease-out;
+  transition: width var(--duration-accent) var(--ease-out-quart, ease-out),
+              background-color var(--duration-normal) ease-out;
 }
 
 .eval-progress-fill.is-complete {
   background: var(--state-success);
-  animation: omp-pulse-green 2s ease-in-out 1;
 }
 
-@keyframes omp-pulse-green {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 131, 85, 0); }
-  50% { box-shadow: 0 0 0 3px rgba(74, 131, 85, 0.25); }
-}
+/* ── Category chips ────────────────────────────────────────── */
 
-/* ── Category chip with fill ─────────────────────────────────── */
+.eval-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+}
 
 .cat-chip {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  padding: 2px var(--space-2);
+  padding: 3px var(--space-2);
   font-size: var(--text-xs);
   font-family: var(--ff-mono);
+  color: var(--chip-accent);
   background: var(--ut-grey);
   border-radius: var(--radius-sm);
+  border: 1px solid transparent;
   overflow: hidden;
+  transition: border-color var(--duration-normal) ease-out,
+              background var(--duration-normal) ease-out;
+}
+
+.cat-chip.is-partial {
+  border-color: var(--chip-accent);
+}
+
+.cat-chip.is-complete {
+  color: var(--state-success);
+  border-color: var(--state-success);
+  background: var(--state-success-tint);
 }
 
 .cat-chip-fill {
   position: absolute;
   inset: 0;
   width: 0%;
-  transition: width var(--duration-normal) ease-out, background-color var(--duration-normal) ease-out;
+  background: var(--chip-tint);
+  transition: width var(--duration-accent) var(--ease-out-quart, ease-out);
   pointer-events: none;
 }
 
-.cat-chip-fill.is-complete {
-  background: var(--state-success-tint);
+.cat-chip.is-complete .cat-chip-fill {
+  background: transparent;
+}
+
+.cat-chip-name {
+  position: relative;
+  z-index: 1;
+  font-family: var(--ff-heading);
+  font-weight: 700;
+  letter-spacing: var(--ls-label);
+}
+
+.cat-chip-score {
+  position: relative;
+  z-index: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cat-chip-unsure {
+  position: relative;
+  z-index: 1;
+  color: var(--ut-muted);
+  opacity: 0.8;
 }
 
 .cat-chip > span {
@@ -1087,6 +1195,10 @@
 @keyframes omp-fade-out {
   from { opacity: 1; }
   to { opacity: 0; }
+}
+@keyframes omp-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* ── Bullet item slide-in ─────────────────────────────── */

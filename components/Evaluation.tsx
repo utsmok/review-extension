@@ -5,7 +5,12 @@ import QuestionSection from "@/components/QuestionSection";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useCaptureQueue } from "@/hooks/useCaptureQueue";
 import { useRubric } from "@/lib/contexts";
-import { countUnsure, getAccentKey, getCategoryLabel, getVisibleRubricQuestionIds } from "@/lib/rubric";
+import {
+  countUnsure,
+  getAccentKey,
+  getCategoryLabel,
+  getVisibleRubricQuestionIds,
+} from "@/lib/rubric";
 import type { Capture } from "@/lib/types";
 
 export default function Evaluation() {
@@ -68,7 +73,8 @@ export default function Evaluation() {
           scored,
           total,
           accentKey: getAccentKey(cat),
-          unsureCount: key === "scoring_rubric" ? countUnsure(cat, evaluations, rubric, undefined, usesAi) : 0,
+          unsureCount:
+            key === "scoring_rubric" ? countUnsure(cat, evaluations, rubric, undefined, usesAi) : 0,
         });
       }
       result.push({ sectionLabel: label, categories: cats });
@@ -79,58 +85,63 @@ export default function Evaluation() {
   const handleConfirmRemove = (capture: Capture, rubricId: string) => {
     setConfirmTarget({ capture, rubricId });
   };
-
   return (
     <div className="flex flex-col gap-ut-4 p-ut-4">
-      {/* Progress indicator */}
-      <div className="flex items-center gap-ut-2">
-        <span
-          className={`text-ut-sm font-heading font-bold whitespace-nowrap transition-colors ${
-            progress.complete ? "text-ut-green" : "text-ut-muted"
-          }`}
-        >
-          {progress.scored}/{progress.total}
-        </span>
-        <div className="eval-progress-track">
-          <div
-            className={`eval-progress-fill ${progress.complete ? "is-complete" : ""}`}
-            style={{ width: `${progress.total > 0 ? Math.round((progress.scored / progress.total) * 100) : 0}%` }}
-          />
-        </div>
-        {progress.complete && (
-          <span className="text-ut-xs font-heading font-bold text-ut-green whitespace-nowrap">
-            All complete!
+      {/* Score status overview */}
+      <div className="eval-status-overview">
+        <div className="eval-status-hero">
+          <span className="eval-status-fraction">
+            <span className={`eval-status-scored ${progress.complete ? "is-complete" : ""}`}>
+              {progress.scored}
+            </span>
+            <span className="eval-status-divider">/</span>
+            <span className="eval-status-total">{progress.total}</span>
           </span>
-        )}
+          <span className="eval-status-label">scored</span>
+        </div>
+        <div className="eval-status-bar-col">
+          <div className="eval-progress-track">
+            <div
+              className={`eval-progress-fill ${progress.complete ? "is-complete" : ""}`}
+              style={{
+                width: `${progress.total > 0 ? Math.round((progress.scored / progress.total) * 100) : 0}%`,
+              }}
+            />
+          </div>
+          {progress.complete && <span className="eval-status-complete-label">Review complete</span>}
+        </div>
       </div>
 
       {/* Per-category completion summary */}
       {categorySummary.map((section) => (
-        <div key={section.sectionLabel} className="flex flex-wrap gap-ut-2">
+        <div key={section.sectionLabel} className="eval-categories">
           {section.categories.map((cat) => {
             const pct = cat.total > 0 ? Math.round((cat.scored / cat.total) * 100) : 0;
             const done = cat.scored >= cat.total && cat.total > 0;
+            const started = cat.scored > 0;
             return (
               <span
                 key={cat.categoryId}
-                className="cat-chip"
-                style={{ color: `var(--section-${cat.accentKey}-accent, var(--ut-navy))` }}
+                className={`cat-chip ${done ? "is-complete" : ""} ${started && !done ? "is-partial" : ""}`}
+                style={
+                  {
+                    "--chip-accent": `var(--section-${cat.accentKey}-accent, var(--ut-navy))`,
+                    "--chip-tint": `var(--section-${cat.accentKey}-tint, var(--ut-offwhite))`,
+                  } as React.CSSProperties
+                }
                 title={`${cat.scored} of ${cat.total} questions scored`}
               >
                 <span
                   className={`cat-chip-fill ${done ? "is-complete" : ""}`}
-                  style={{
-                    width: `${pct}%`,
-                    backgroundColor: done ? undefined : `color-mix(in srgb, var(--section-${cat.accentKey}-accent, var(--ut-navy)) 12%, var(--ut-grey))`,
-                  }}
+                  style={{ width: `${pct}%` }}
                 />
-                <span>{cat.label}</span>
-                <span className="font-bold">
+                <span className="cat-chip-name">{cat.label}</span>
+                <span className="cat-chip-score">
                   {cat.scored}/{cat.total}
                 </span>
                 {cat.unsureCount > 0 && (
                   <span
-                    className="text-ut-muted"
+                    className="cat-chip-unsure"
                     title={`${cat.unsureCount} question${cat.unsureCount !== 1 ? "s" : ""} marked Unsure`}
                   >
                     {cat.unsureCount}?
