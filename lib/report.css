@@ -761,10 +761,10 @@ table th {
   display: inline-block;
   border: 3px solid;
   border-radius: 6px;
-  padding: 8px 24px;
-  transform: rotate(-2deg);
+  padding: 16px 36px;
+  transform: rotate(-3deg);
   font-family: var(--ff-heading);
-  font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+  font-size: clamp(1.8rem, 5vw, 3rem);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
