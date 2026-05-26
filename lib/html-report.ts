@@ -715,6 +715,10 @@ ${metadata.termsConditionsUrl ? `<div style="font-size:0.8rem;color:var(--muted)
 ${categorySections}
 ${finalizationSection}
 ${unlinkedSection}
+<div class="bottom-bar"></div>
+<div class="footer">
+  TRUST Framework v1.1 · ${esc(metadata.toolName)} · ${scores.totalQuestions} questions · Evaluated ${formatDate(metadata.startTime)}
+</div>
 
 </body>
 </html>`;
