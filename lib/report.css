@@ -736,6 +736,13 @@ table th {
   margin-top: 2px;
   font-style: italic;
 }
+.nutrition-score-number {
+  font-family: var(--ff-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--magenta);
+  margin-top: 6px;
+}
 .nutrition-divider {
   height: 2px;
   background: var(--text);

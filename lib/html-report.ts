@@ -496,6 +496,7 @@ function buildNutritionLabelHtml(
         Framework Verdict
       </span>
     </div>
+    ${!scores.noEvaluation ? `<div class="nutrition-score-number">${scores.totalActual}/${scores.totalMax} points</div>` : ""}
     ${!scores.noEvaluation && !scores.isComplete ? `<div class="nutrition-status">${scores.answeredQuestions}/${scores.totalQuestions} questions answered</div>` : ""}
   </div>
 
