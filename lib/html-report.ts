@@ -252,8 +252,9 @@ function buildCategorySections(
       </div>
       <div class="category-table-wrap">
         <table>
+          <caption class="sr-only">Scoring for ${esc(PRINCIPLE_NAMES[p.id] ?? p.id)}</caption>
           <thead>
-            <tr><th>Code</th><th>Score</th><th>Level</th><th>Notes</th></tr>
+            <tr><th scope="col">Code</th><th scope="col">Score</th><th scope="col">Level</th><th scope="col">Notes</th></tr>
           </thead>
           <tbody>${rows}</tbody>
         </table>
@@ -522,7 +523,7 @@ function buildNutritionLabelHtml(
   <div class="nutrition-divider-thin"></div>
 
   <div class="nutrition-principles">
-    <table class="nutrition-principles-table">
+    <table class="nutrition-principles-table" role="presentation" aria-label="Principle scores">
       <tr>
         ${PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
           .map((p) => {
@@ -700,7 +701,8 @@ ${metadata.termsConditionsUrl ? `<div style="font-size:0.8rem;color:var(--muted)
 
 <h2 style="font-family:var(--ff-heading);text-transform:uppercase;letter-spacing:0.03em;color:var(--magenta);margin:0 0 8px;font-size:1rem">Quality Gates</h2>
 <table class="qg-table">
-  <thead><tr><th>Code</th><th>Result</th><th>Requirement</th><th>Notes</th></tr></thead>
+  <caption class="sr-only">Quality gates</caption>
+  <thead><tr><th scope="col">Code</th><th scope="col">Result</th><th scope="col">Requirement</th><th scope="col">Notes</th></tr></thead>
   <tbody>${gateRows}</tbody>
 </table>
 
