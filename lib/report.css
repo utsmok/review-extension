@@ -1043,8 +1043,7 @@ table th {
   @page {
     margin-bottom: 2cm;
     @bottom-center {
-      content: "Page " counter(page) " of " counter(pages) · "TRUST Framework Evaluation Report · "
-        "Confidential";
+      content: "Page " counter(page) " of " counter(pages) " · TRUST Framework Evaluation Report · " "Confidential";
       font-size: 8px;
       color: #6b7f94;
     }
