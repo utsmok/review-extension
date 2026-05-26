@@ -856,6 +856,19 @@ table th {
 .circle.filled {
   color: inherit;
 }
+.nutrition-principle-fraction {
+  font-family: var(--ff-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.nutrition-circle-legend {
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 6px 0 0;
+  font-style: italic;
+}
 .circle.empty {
   color: var(--border);
 }

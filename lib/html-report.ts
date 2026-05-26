@@ -539,7 +539,11 @@ function buildNutritionLabelHtml(
               (PRINCIPLE_NAMES[p.id] ?? "") +
               "</div><div>" +
               scoreCircles(avg) +
-              "</div></td>"
+              "</div>" +
+              (avg !== null
+                ? `<div class="nutrition-principle-fraction">${avg.toFixed(1)}</div>`
+                : "") +
+              "</td>"
             );
           })
           .join("")}
@@ -549,7 +553,7 @@ function buildNutritionLabelHtml(
         </td>
       </tr>
     </table>
-  </div>
+    <div class="nutrition-circle-legend">● = threshold met &nbsp; ○ = below threshold</div>
 
   ${swRow}
 
