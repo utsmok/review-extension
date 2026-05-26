@@ -514,10 +514,10 @@ function buildNutritionLabelHtml(
       )
       .join("");
     return items
-      ? '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gates-title">Quality Gate Issues</div>' +
+      ? '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gates-title">Quality Gate Notes</div>' +
           items +
           "</div>"
-      : "";
+      : '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gate-item" style="color:var(--muted)">All quality gates passed ✓</div></div>';
   })()}
 
   <div class="nutrition-divider-thin"></div>
