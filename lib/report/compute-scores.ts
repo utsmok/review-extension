@@ -4,7 +4,7 @@ import type { Evaluation, ReviewFinalization, RubricData } from "../types";
 
 const GRADE_COLORS: Record<string, string> = {
   pass: "#4a8355",
-  conditional: "#ea580c",
+  conditional: "#c2410c",
   fail: "#c60c30",
 };
 const GRADE_LABELS: Record<string, string> = {

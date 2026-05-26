@@ -34,7 +34,6 @@ export function getVisibleRubricQuestionIds(rubric: RubricData, usesAi: boolean)
   return ids;
 }
 
-
 export function getQuestionCode(categoryKey: string, questionIndex: number): string {
   return `${categoryKey}${questionIndex + 1}`;
 }
@@ -81,7 +80,11 @@ export function getCategoryLabel(categoryId: string): string {
   return CATEGORY_LABELS[categoryId] ?? categoryId;
 }
 
-export function computeCompletion(evaluations: Evaluation[], rubric: RubricData, usesAi: boolean = true): number {
+export function computeCompletion(
+  evaluations: Evaluation[],
+  rubric: RubricData,
+  usesAi: boolean = true,
+): number {
   const visibleIds = new Set(getVisibleRubricQuestionIds(rubric, usesAi));
   let scored = 0;
   for (const e of evaluations) {
@@ -158,7 +161,7 @@ export function getCategoryScores(
 
 const SCORE_COLORS: Record<number, string> = {
   0: "#c60c30",
-  1: "#ea580c",
+  1: "#c2410c",
   2: "#0e7490",
   3: "#4a8355",
 };
