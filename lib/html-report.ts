@@ -565,6 +565,7 @@ function buildNutritionLabelHtml(
       <span class="nutrition-footer-text">LISA-EIS / University of Twente / ${date}</span>
     </a>
     <img src="${UT_LOGO}" alt="University of Twente" style="height:22px" />
+    <div class="nutrition-footer-ref">See the detailed Evaluation Report for full analysis.</div>
   </div>
 </div>`;
 }
