@@ -926,6 +926,7 @@ table th {
 .nutrition-footer {
   padding: 10px 20px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   border-top: 2px solid var(--text);
@@ -942,7 +943,7 @@ table th {
   text-decoration: underline;
 }
 .nutrition-footer-ref {
-  width: 100%;
+  flex: 0 0 100%;
   text-align: center;
   font-size: 0.65rem;
   color: var(--muted);

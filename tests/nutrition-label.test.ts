@@ -153,6 +153,38 @@ describe("buildNutritionLabel", () => {
     expect(html).not.toContain('class="nutrition-sw"');
   });
 
+  it("shows only Strengths column when no weaknesses provided", async () => {
+    const html = await buildNutritionLabel(
+      makeMetadata(),
+      allHighScoringEvaluations(),
+      RUBRIC,
+      makeFinalization({
+        strengths: ["Excellent transparency"],
+        weaknesses: [],
+      }),
+    );
+    expect(html).toContain("Strengths");
+    expect(html).toContain("Excellent transparency");
+    expect(html).not.toContain("Weaknesses");
+    expect(html).not.toContain("nutrition-sw-divider");
+  });
+
+  it("shows only Weaknesses column when no strengths provided", async () => {
+    const html = await buildNutritionLabel(
+      makeMetadata(),
+      allHighScoringEvaluations(),
+      RUBRIC,
+      makeFinalization({
+        strengths: [],
+        weaknesses: ["Limited language support"],
+      }),
+    );
+    expect(html).toContain("Weaknesses");
+    expect(html).toContain("Limited language support");
+    expect(html).not.toContain("Strengths");
+    expect(html).not.toContain("nutrition-sw-divider");
+  });
+
   it("handles empty metadata fields gracefully", async () => {
     const html = await buildNutritionLabel(
       makeMetadata({ description: undefined, company: undefined }),
