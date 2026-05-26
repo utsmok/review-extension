@@ -453,17 +453,16 @@ function buildNutritionLabelHtml(
     strengthsHtml || weaknessesHtml
       ? `<div class="nutrition-divider-thin"></div>
 <div class="nutrition-sw">
-  <div class="nutrition-sw-col">
+  ${strengthsHtml ? `<div class="nutrition-sw-col">
     <div class="nutrition-sw-title">Strengths</div>
     <ul class="nutrition-sw-list">${strengthsHtml}</ul>
-  </div>
-  <div class="nutrition-sw-divider"></div>
-  <div class="nutrition-sw-col">
+  </div>` : ""}
+  ${strengthsHtml && weaknessesHtml ? '<div class="nutrition-sw-divider"></div>' : ""}
+  ${weaknessesHtml ? `<div class="nutrition-sw-col">
     <div class="nutrition-sw-title">Weaknesses</div>
     <ul class="nutrition-sw-list">${weaknessesHtml}</ul>
-  </div>
+  </div>` : ""}
 </div>`
-      : "";
 
   return `
 <div class="nutrition-label">
