@@ -202,7 +202,7 @@ describe("computeReportScores", () => {
       makeFinalization({ grade: "conditional" }),
     );
     expect(r.verdict).toBe("CAUTION");
-    expect(r.verdictColor).toBe("#ea580c");
+    expect(r.verdictColor).toBe("#c2410c");
   });
 
   // ── 9. Finalization override: grade 'fail' → NOT RECOMMENDED ──────

@@ -109,14 +109,14 @@ describe("buildNutritionLabel", () => {
     expect(html).toContain("CAUTION");
   });
 
-  it("contains Quality Gate Issues section when gates fail", async () => {
+  it("contains Quality Gate Notes section when gates fail", async () => {
     const html = await buildNutritionLabel(makeMetadata(), failQGEvaluations(), RUBRIC);
-    expect(html).toContain("Quality Gate Issues");
+    expect(html).toContain("Quality Gate Notes");
   });
 
-  it("no Quality Gate Issues section when all gates pass", async () => {
+  it("shows all-pass message when all gates pass", async () => {
     const html = await buildNutritionLabel(makeMetadata(), allHighScoringEvaluations(), RUBRIC);
-    expect(html).not.toContain("Quality Gate Issues");
+    expect(html).toContain("All quality gates passed");
   });
 
   it("contains principle scores table with principle codes (TR, RE, US, SE, TC)", async () => {

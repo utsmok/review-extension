@@ -313,7 +313,7 @@ describe("buildHtmlReport", () => {
     ];
     const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
     expect(html).toContain("#4a8355");
-    expect(html).toContain("#ea580c");
+    expect(html).toContain("#c2410c");
   });
 
   it("renders finalization verdict", async () => {

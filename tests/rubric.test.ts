@@ -478,7 +478,7 @@ describe("scoreColor", () => {
   });
 
   it("returns orange for 1", () => {
-    expect(scoreColor(1)).toBe("#ea580c");
+    expect(scoreColor(1)).toBe("#c2410c");
   });
 
   it("returns teal for 2", () => {
@@ -516,7 +516,7 @@ describe("distributionBar", () => {
   it("renders segments with correct colors", () => {
     const html = distributionBar([0, 1, 2, 3]);
     expect(html).toContain("#c60c30");
-    expect(html).toContain("#ea580c");
+    expect(html).toContain("#c2410c");
     expect(html).toContain("#0e7490");
     expect(html).toContain("#4a8355");
   });

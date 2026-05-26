@@ -380,6 +380,7 @@ table th {
   gap: 12px;
   padding: 12px;
   background: #f5f6f8;
+  /* biome-ignore lint/suspicious/noDuplicateProperties: progressive enhancement fallback */
   background: color-mix(in srgb, var(--accent) 6%, var(--white));
 }
 .category-letter-block {
@@ -434,6 +435,7 @@ table th {
   padding: 5px 8px;
   text-align: left;
   border-bottom: 2px solid rgba(0, 0, 0, 0.3);
+  /* biome-ignore lint/suspicious/noDuplicateProperties: progressive enhancement fallback */
   border-bottom: 2px solid color-mix(in srgb, var(--accent) 70%, black);
 }
 .category-section td {
