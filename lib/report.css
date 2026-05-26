@@ -248,6 +248,14 @@ body {
   height: 6px;
   margin-top: 12px;
 }
+.dist-labels {
+  display: flex;
+  gap: 6px;
+  font-size: 0.65rem;
+  font-family: var(--ff-mono);
+  font-weight: 700;
+  margin-top: 2px;
+}
 .verdict-block {
   text-align: center;
   padding: 24px 0;

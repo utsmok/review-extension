@@ -182,12 +182,14 @@ export function distributionBar(scores: (number | "na" | "unsure" | "" | undefin
   }
   if (numCount === 0) return '<div class="dist-bar"><div class="dist-empty">No scores</div></div>';
   let segments = "";
+  const labels: string[] = [];
   for (let i = 0; i < 4; i++) {
     const pct = (counts[i] / numCount) * 100;
     segments += `<div class="dist-seg" style="width:${pct}%;background:${scoreColor(i as 0 | 1 | 2 | 3)}"></div>`;
+    if (counts[i] > 0)
+      labels.push(`<span style="color:${scoreColor(i as 0 | 1 | 2 | 3)}">${i}:${counts[i]}</span>`);
   }
-  return `<div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px">${segments}</div>`;
-}
+  return `<div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px">${segments}</div><div class="dist-labels">${labels.join(" ")}</div>`;
 
 export function principleAverage(
   categoryId: string,
