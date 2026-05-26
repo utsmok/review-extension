@@ -178,7 +178,7 @@ function buildCategorySections(
                   if (!c) return "";
                   return `
         <div class="evidence-item${isWeakEvidence ? " evidence-weak" : ""}">
-          <img src="${compressedScreenshots.get(cid) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
+          <img src="${compressedScreenshots.get(cid) ?? c.screenshotBase64}" alt="Evidence for ${code}: ${esc(c.pageTitle || "screenshot")}" loading="lazy" />
           <div class="evidence-meta">
             <strong>${esc(c.pageTitle || "Capture")}</strong>
             <span class="evidence-time">${formatDate(c.timestamp)}</span>
@@ -391,7 +391,7 @@ function buildUnlinkedSection(
     .map(
       (c) => `
         <div class="unlinked-item">
-          <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="${esc(c.pageTitle || "Evidence screenshot")}" loading="lazy" />
+          <img src="${compressedScreenshots.get(c.id) ?? c.screenshotBase64}" alt="Additional evidence: ${esc(c.pageTitle || "screenshot")}" loading="lazy" />
           <div class="unlinked-meta">
             <strong>${esc(c.pageTitle || "Capture")}</strong>
             ${safeLink(c.sourceUrl)}
