@@ -16,7 +16,7 @@ export default function EvidenceThumbnails({
   if (captures.length === 0) return null;
   return (
     <div className="mb-ut-2">
-      <p className="text-ut-xs font-heading font-bold text-ut-slate uppercase mb-1">
+      <p className="text-ut-xs font-heading font-bold text-ut-slate uppercase tracking-ut-kicker mb-1">
         Evidence ({captures.length})
       </p>
       <div className="flex gap-1 overflow-x-auto">

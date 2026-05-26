@@ -204,7 +204,7 @@ function renderScoringScores(
             <textarea
               className="w-full border border-ut-border rounded-ut-sm text-ut-xs p-ut-2 resize-y bg-ut-grey"
               rows={2}
-              placeholder="Required: explain your custom scoring reasoning..."
+              placeholder="Describe why the standard 0–3 scale does not apply and justify your custom score…"
               value={ev?.customScore?.reasoning ?? ""}
               onChange={(e) => {
                 const currentScore = ev?.customScore?.score;
@@ -390,7 +390,7 @@ export const QuestionRow = React.memo(function QuestionRow({
                 ? Object.entries((question as PassFailQuestion).examples ?? {}).map(
                     ([key, desc]) => (
                       <div key={key} className="example-row">
-                        <span className="example-label">
+                        <span className="example-label" data-score={key === "pass" ? "pass" : key === "fail" ? "fail" : "na"}>
                           {key === "pass" ? "Pass" : key === "fail" ? "Fail" : "N/A"}
                         </span>
                         <span className="example-desc">{desc}</span>
@@ -401,7 +401,7 @@ export const QuestionRow = React.memo(function QuestionRow({
                     const ex = (question as ScoringQuestion).examples?.[level];
                     return ex ? (
                       <div key={level} className="example-row">
-                        <span className="example-badge">{level}</span>
+                        <span className="example-badge" data-score={level}>{level}</span>
                         <span className="example-desc">{ex}</span>
                       </div>
                     ) : null;
@@ -417,24 +417,26 @@ export const QuestionRow = React.memo(function QuestionRow({
           onViewEvidence={onViewEvidence}
         />
 
-        <button
-          type="button"
-          className="text-ut-xs text-ut-blue hover:text-ut-darkblue font-mono uppercase tracking-ut-label"
-          disabled={capturingFor === rubricId || isCapturing}
-          onClick={() => handleCaptureEvidence(rubricId)}
-        >
-          {capturingFor === rubricId ? "Capturing..." : "+ Capture Evidence"}
-        </button>
+        <div className="flex items-center gap-ut-1 mt-ut-1">
+          <button
+            type="button"
+            className="text-ut-xs text-ut-blue hover:text-ut-darkblue font-mono uppercase tracking-ut-label"
+            disabled={capturingFor === rubricId || isCapturing}
+            onClick={() => handleCaptureEvidence(rubricId)}
+          >
+            {capturingFor === rubricId ? "Capturing..." : "+ Capture Evidence"}
+          </button>
 
-        <button
-          type="button"
-          className="text-ut-xs text-ut-blue hover:text-ut-darkblue font-mono uppercase tracking-ut-label ml-ut-2"
-          onClick={() => setLinkPopoverFor(linkPopoverFor === rubricId ? null : rubricId)}
-        >
-          {linkPopoverFor === rubricId ? "Close" : "Link existing"}
-        </button>
+          <button
+            type="button"
+            className="text-ut-xs text-ut-blue hover:text-ut-darkblue font-mono uppercase tracking-ut-label"
+            onClick={() => setLinkPopoverFor(linkPopoverFor === rubricId ? null : rubricId)}
+          >
+            {linkPopoverFor === rubricId ? "Close" : "Link existing"}
+          </button>
+        </div>
         {linkPopoverFor === rubricId && (
-          <div className="border border-ut-border bg-ut-white rounded-ut-sm mt-ut-1 max-h-40 overflow-y-auto">
+          <div className="border border-ut-border bg-ut-white rounded-ut-sm mt-ut-1 max-h-40 overflow-y-auto animate-[omp-fade-in_200ms_ease-out]">
             {allCaptures.length === 0 ? (
               <p className="text-ut-xs text-ut-muted p-ut-2">No captures yet</p>
             ) : (
@@ -471,7 +473,7 @@ export const QuestionRow = React.memo(function QuestionRow({
         )}
 
         <textarea
-          className="w-full border border-ut-border rounded-ut-sm text-ut-xs p-ut-2 mt-ut-2 resize-y bg-ut-grey"
+          className="w-full border border-ut-border rounded-ut-sm text-ut-xs p-ut-2 mt-ut-2 resize-y bg-ut-white"
           rows={2}
           placeholder={isQG ? "Notes / remarks..." : "Notes..."}
           value={ev?.notes ?? ""}
@@ -573,7 +575,7 @@ export default function QuestionSection({
       <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta mb-ut-2">
         {headerText}
       </h2>
-      <p className="text-ut-xs text-ut-slate mb-ut-2">{descriptionText}</p>
+      <p className="text-ut-xs text-ut-slate mb-ut-5">{descriptionText}</p>
       {Object.entries(rubricSection).map(([category, questions]) => (
         <div key={category} className="mb-ut-3">
           <h3 className="section-kicker mb-1">{getCategoryLabel(category)}</h3>
