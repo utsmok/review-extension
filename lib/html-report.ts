@@ -112,7 +112,6 @@ function buildCategorySections(
   evalMap: Map<string, Evaluation>,
   usesAi: boolean,
 ): string {
-
   // Pre-compute capture ID → capture map for O(1) lookups
   const captureMap = new Map(captures.map((c) => [c.id, c]));
   // Pre-compute evidence count per principle: O(captures × evaluations) once instead of per principle
@@ -154,7 +153,6 @@ function buildCategorySections(
       );
       const rows = entries
         .map(([qId, levels], qIdx) => {
-
           const rubricId = `${p.id}.${qId}`;
           const ev = evalMap.get(rubricId);
           const isNa = ev?.score === "na";
@@ -266,8 +264,11 @@ function buildCategorySections(
     .join("");
 }
 
-function buildGateRows(rubric: RubricData, evalMap: Map<string, Evaluation>, usesAi: boolean): string {
-
+function buildGateRows(
+  rubric: RubricData,
+  evalMap: Map<string, Evaluation>,
+  usesAi: boolean,
+): string {
   return Object.entries(rubric.quality_gate)
     .map(([cat, questions]) =>
       Object.keys(questions)
@@ -478,7 +479,7 @@ function buildNutritionLabelHtml(
         ${logo ? '<span class="nutrition-sep">&middot;</span>' : ""}
         ${toolLink}<span class="nutrition-tool-name">${toolName}</span>${toolLinkClose}
         <span class="nutrition-sep">&middot;</span>
-        ${toolLink}<span class="nutrition-tool-url">${safeLink(metadata.toolUrl)}</span>${toolLinkClose}
+        <span class="nutrition-tool-url">${safeLink(metadata.toolUrl)}</span>
       </div>
       ${metadata.description ? `<div class="nutrition-description">${esc(metadata.description)}</div>` : ""}
     </div>
@@ -571,7 +572,13 @@ export async function buildNutritionLabel(
   if (!_logos) _logos = await import("./logos");
   const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = _logos;
   const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
-  const scores = computeReportScores(evaluations, rubric, finalization, evalMap, metadata.usesAi ?? true);
+  const scores = computeReportScores(
+    evaluations,
+    rubric,
+    finalization,
+    evalMap,
+    metadata.usesAi ?? true,
+  );
   const labelHtml = buildNutritionLabelHtml(
     metadata,
     evaluations,
@@ -619,7 +626,13 @@ export async function buildHtmlReport(
   );
 
   const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
-  const scores = computeReportScores(evaluations, rubric, finalization, evalMap, metadata.usesAi ?? true);
+  const scores = computeReportScores(
+    evaluations,
+    rubric,
+    finalization,
+    evalMap,
+    metadata.usesAi ?? true,
+  );
 
   // Build section parts
   const gateRows = buildGateRows(rubric, evalMap, metadata.usesAi ?? true);
