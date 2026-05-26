@@ -489,7 +489,7 @@ table th {
   background: #fef2f2;
 }
 .evidence-item img {
-  max-width: 100%;
+  max-width: 300px;
   height: auto;
   border: 1px solid var(--border);
   border-radius: 1px;
