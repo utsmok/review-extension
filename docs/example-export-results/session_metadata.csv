@@ -1,0 +1,3 @@
+Tool_Name,Tool_URL,Start_Time,Uses_AI,Rubric_Variant,Company,Pricing,Availability,Terms_Conditions_URL,Authentication_Method,Data_Sources,Search_Methods,Discipline,Notes,Tool_Logo_URL,Tool_Description
+Ai2 Asta,https://asta.allen.ai/,2026-05-07T15:52:23.399Z,true,trust-full,Ai2 (allen.ai),Free,"Open, free",https://allenai.org/terms/2024-09-25,,Semantic Scholar,Natural language; Faceted filtering,General,"[11:25 PM] this is a test
+[11:25 PM] another quick note",https://cdn.prod.website-files.com/682cbbf9ba382ffae9c7764d/68d466fa754211374f5b5a24_asta-logo.svg,"An AI (LLM)-based search tool that clearly explains all steps and reasoning, and evaluates found sources on how well they match the initial requirements. Open, free, transparant."

@@ -1,0 +1,16 @@
+Rubric_Category,Question_ID,Score,Notes,Custom_Reasoning,Linked_Capture_IDs
+Privacy & Security,privacy_and_security.data_privacy,pass,,,
+Privacy & Security,privacy_and_security.training_policy,unsure,regular: does allow for training. There is an option for self-hosting though.,,
+traceability,traceability.citation_mechanism,pass,,,a930ff21-2554-48f8-b054-f2a6b11f64f8
+Accessibility,accessibility.compliance,pass,-,,
+TR — Transparent,TR.data_source_clarity,3,,,
+TR — Transparent,TR.methodology_disclosure,3,,,
+RE — Reliable,RE.accuracy_and_hallucination,3,,,
+RE — Reliable,RE.variance_consistency,3,,,
+US — User-Centric,US.workflow_integration,2,,,
+US — User-Centric,US.cognitive_guardrails,2,,,
+SE — Sound,SE.algorithmic_fairness,2,,,
+SE — Sound,SE.data_handling,3,,,
+TC — Traceable,TC.source_attribution_depth,3,,,
+TC — Traceable,TC.bibliometric_credibility,2,,,
+Intellectual Property,intellectual_property.ip_preservation,unsure,,,
