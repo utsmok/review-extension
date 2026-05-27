@@ -1,5 +1,51 @@
 # Changelog
 
+
+## v0.5.0 — 2026-05-27
+
+### Report design overhaul
+
+- Add numeric score display to nutrition label
+- Add circle scale legend and score fractions (e.g. "2.5/4") to nutrition label
+- Enlarge nutrition label verdict stamp for better readability
+- Add score count labels (e.g. "1:3 2:5 3:2") to distribution bars
+- Add footer to full evaluation report with session metadata
+- Add full report reference link in nutrition label footer
+- Hide empty strengths/weaknesses columns in nutrition label
+- Rename "Quality Gate Issues" to "Notes" and show all-pass state
+
+### Evaluation tab redesign
+
+- Redesign evaluation score status area with improved visual hierarchy
+- Improve all evaluation tab parts — progress circles, score chips, question rows
+
+### Accessibility (WCAG AA)
+
+- Darken score-1 and CAUTION colors in report for 4.5:1 contrast ratio
+- Darken --score-1 sidepanel UI token for WCAG AA
+- Add table accessibility attributes (scope, headers) to report tables
+- Remove nested `<a>` tags in nutrition label header
+- Improve evidence image alt text for screen readers
+
+### Report robustness
+
+- Fix `@page` print content syntax error
+- Add color-mix() fallback values for older browsers
+- Close nutrition-principles `<div>` before footer to prevent layout breakage
+- Fix missing closing brace in `distributionBar()` function
+- Cap evidence image width to 300px on screen
+
+### Internal
+
+- Bump GitHub Actions to Node 24 compatible versions
+- Bump pnpm/action-setup v4 → v6
+- Add report design analysis documents (audit, typography, layout, color, UX critique, Tufte data viz, clarity, hardening, nutrition label)
+- Add example export result artifacts for reference
+
+### Tests
+
+- Update tests for color token changes and label renames
+
 ## v0.4.0 — 2026-05-23
 
 ### Rubric v1.1
