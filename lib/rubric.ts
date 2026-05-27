@@ -190,6 +190,7 @@ export function distributionBar(scores: (number | "na" | "unsure" | "" | undefin
       labels.push(`<span style="color:${scoreColor(i as 0 | 1 | 2 | 3)}">${i}:${counts[i]}</span>`);
   }
   return `<div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px">${segments}</div><div class="dist-labels">${labels.join(" ")}</div>`;
+}
 
 export function principleAverage(
   categoryId: string,
