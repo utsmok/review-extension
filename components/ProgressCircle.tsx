@@ -2,9 +2,7 @@ export type ProgressState = "empty" | "partial" | "complete";
 
 export function ProgressCircle({ state }: { state: ProgressState }) {
   const stateClass =
-    state === "complete"
-      ? "progress-circle progress-circle--complete"
-      : "progress-circle";
+    state === "complete" ? "progress-circle progress-circle--complete" : "progress-circle";
 
   if (state === "empty") {
     return (
@@ -57,7 +55,9 @@ export function getProgressState(
   hasScore: boolean,
   hasEvidence: boolean,
   hasNotes: boolean,
+  manualDone?: boolean,
 ): ProgressState {
+  if (manualDone) return "complete";
   const hasExtra = hasEvidence || hasNotes;
   if (hasScore && hasExtra) return "complete";
   if (hasScore || hasExtra) return "partial";
