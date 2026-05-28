@@ -56,14 +56,25 @@ function renderQGScores(
             className="judgment-label cursor-pointer select-none"
             data-judgment={val}
             data-active={isActive ? "true" : "false"}
+            onClick={(e) => {
+              e.preventDefault();
+              handleClick();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleClick();
+              }
+            }}
           >
             <input
               type="radio"
               name={rubricId}
               checked={isActive}
-              onChange={handleClick}
+              onChange={() => {}}
               className="sr-only"
               disabled={isDisabled}
+              tabIndex={-1}
             />
             {val === "pass"
               ? "✓ Pass"
@@ -110,14 +121,25 @@ function renderScoringScores(
             key={val}
             className={`score-row ${selected ? "is-selected" : ""}`}
             data-score={val}
+            onClick={(e) => {
+              e.preventDefault();
+              handleClick();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleClick();
+              }
+            }}
           >
             <input
               type="radio"
               name={rubricId}
               checked={selected}
-              onChange={handleClick}
+              onChange={() => {}}
               className="sr-only"
               disabled={isAutoNa}
+              tabIndex={-1}
             />
             <span className="score-badge select-none">{val}</span>
             <span className="score-desc">{desc}</span>
@@ -129,42 +151,73 @@ function renderScoringScores(
       <label
         className={`score-row score-row--meta-separator ${isNa ? "is-selected" : ""}`}
         data-score="na"
-      >
-        <input
-          type="radio"
-          name={rubricId}
-          checked={isNa}
-          onChange={() => {
+        onClick={(e) => {
+          e.preventDefault();
+          if (isAutoNa) return;
+          if (isNa) {
+            setEvaluation(rubricId, { score: "" });
+          } else {
+            setEvaluation(rubricId, { score: "na", customScore: undefined });
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
             if (isAutoNa) return;
             if (isNa) {
               setEvaluation(rubricId, { score: "" });
             } else {
               setEvaluation(rubricId, { score: "na", customScore: undefined });
             }
-          }}
+          }
+        }}
+      >
+        <input
+          type="radio"
+          name={rubricId}
+          checked={isNa}
+          onChange={() => {}}
           className="sr-only"
           disabled={isAutoNa}
+          tabIndex={-1}
         />
         <span className="score-badge select-none">—</span>
         <span className="score-desc">Not applicable</span>
       </label>
 
       {/* Unsure row */}
-      <label className={`score-row ${isUnsure ? "is-selected" : ""}`} data-score="unsure">
-        <input
-          type="radio"
-          name={rubricId}
-          checked={isUnsure}
-          onChange={() => {
+      <label
+        className={`score-row ${isUnsure ? "is-selected" : ""}`}
+        data-score="unsure"
+        onClick={(e) => {
+          e.preventDefault();
+          if (isAutoNa) return;
+          if (isUnsure) {
+            setEvaluation(rubricId, { score: "" });
+          } else {
+            setEvaluation(rubricId, { score: "unsure", customScore: undefined });
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
             if (isAutoNa) return;
             if (isUnsure) {
               setEvaluation(rubricId, { score: "" });
             } else {
               setEvaluation(rubricId, { score: "unsure", customScore: undefined });
             }
-          }}
+          }
+        }}
+      >
+        <input
+          type="radio"
+          name={rubricId}
+          checked={isUnsure}
+          onChange={() => {}}
           className="sr-only"
           disabled={isAutoNa}
+          tabIndex={-1}
         />
         <span className="score-badge select-none">?</span>
         <span className="score-desc">Insufficient information to score</span>
@@ -285,7 +338,7 @@ export const QuestionRow = React.memo(function QuestionRow({
   }
   const hasNotes = !!ev?.notes?.trim();
   const hasEvidence = evidence.length > 0;
-  const progress = getProgressState(hasScore, hasEvidence, hasNotes);
+  const progress = getProgressState(hasScore, hasEvidence, hasNotes, ev?.manualDone);
 
   // For scoring: determine scoreNum and isNa
   const scoreNum = typeof ev?.score === "number" ? (ev.score as number) : -1;
@@ -294,6 +347,7 @@ export const QuestionRow = React.memo(function QuestionRow({
   return (
     <details
       key={qId}
+      id={`question-${rubricId}`}
       className="question-details"
       data-accent-key={isQG ? "control" : getAccentKey(category)}
       style={isAutoNa ? { opacity: 0.5 } : undefined}
@@ -339,6 +393,20 @@ export const QuestionRow = React.memo(function QuestionRow({
           <span className="text-ut-xs text-ut-muted font-mono ml-1">
             N/A &mdash; tool does not use AI
           </span>
+        )}
+        {!isAutoNa && (
+          <button
+            type="button"
+            className={`ml-auto text-ut-xs font-mono uppercase tracking-ut-label px-ut-1 rounded-ut-sm border ${ev?.manualDone ? "border-ut-green bg-ut-green/10 text-ut-green" : "border-ut-border text-ut-muted hover:text-ut-text hover:border-ut-slate"} transition-colors`}
+            title={ev?.manualDone ? "Remove manual done override" : "Mark as done (override)"}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setEvaluation(rubricId, { manualDone: !ev?.manualDone });
+            }}
+          >
+            {ev?.manualDone ? "✓ Done" : "Done"}
+          </button>
         )}
       </summary>
       <div className="question-body">
@@ -390,7 +458,10 @@ export const QuestionRow = React.memo(function QuestionRow({
                 ? Object.entries((question as PassFailQuestion).examples ?? {}).map(
                     ([key, desc]) => (
                       <div key={key} className="example-row">
-                        <span className="example-label" data-score={key === "pass" ? "pass" : key === "fail" ? "fail" : "na"}>
+                        <span
+                          className="example-label"
+                          data-score={key === "pass" ? "pass" : key === "fail" ? "fail" : "na"}
+                        >
                           {key === "pass" ? "Pass" : key === "fail" ? "Fail" : "N/A"}
                         </span>
                         <span className="example-desc">{desc}</span>
@@ -401,7 +472,9 @@ export const QuestionRow = React.memo(function QuestionRow({
                     const ex = (question as ScoringQuestion).examples?.[level];
                     return ex ? (
                       <div key={level} className="example-row">
-                        <span className="example-badge" data-score={level}>{level}</span>
+                        <span className="example-badge" data-score={level}>
+                          {level}
+                        </span>
                         <span className="example-desc">{ex}</span>
                       </div>
                     ) : null;

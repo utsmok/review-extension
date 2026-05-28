@@ -72,6 +72,7 @@ export interface Evaluation {
     score: 0 | 1 | 2 | 3;
     reasoning: string;
   };
+  manualDone?: boolean;
 }
 
 export type FinalizationGrade = "pass" | "conditional" | "fail";
