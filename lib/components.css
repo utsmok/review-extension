@@ -990,175 +990,211 @@
 }
 
 
-/* ── Score status overview ─────────────────────────────────── */
+/* ── Score overview bar ────────────────────────────────────── */
 
-.eval-status-overview {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
+.score-overview-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--ut-white);
+  border-bottom: 1px solid var(--ut-border);
+  margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-4)) var(--space-3);
+  padding: var(--space-2) var(--space-4);
 }
 
-.eval-status-hero {
+.score-overview-bar__inner {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  flex-shrink: 0;
-  min-width: 3.5rem;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
-.eval-status-fraction {
-  font-family: var(--ff-heading);
+/* Fraction */
+.score-overview-bar__fraction {
+  font-family: var(--ff-mono);
+  font-size: var(--text-xs);
   font-weight: 700;
-  letter-spacing: var(--ls-heading);
-  white-space: nowrap;
-  line-height: 1;
-}
-
-.eval-status-scored {
-  font-size: var(--text-heading);
   color: var(--ut-text);
-  transition: color var(--duration-normal) ease-out;
-}
-.eval-status-scored.is-complete {
-  color: var(--state-success);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.eval-status-divider {
-  font-size: var(--text-sub);
+.score-overview-bar__scored {
+  color: var(--ut-text);
+}
+
+.score-overview-bar__divider {
   color: var(--ut-slate);
   margin: 0 1px;
 }
 
-.eval-status-total {
-  font-size: var(--text-md);
+.score-overview-bar__total {
   color: var(--ut-slate);
 }
 
-.eval-status-label {
-  font-family: var(--ff-heading);
-  font-size: 0.5625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--ls-kicker);
-  color: var(--ut-slate);
-  margin-top: 2px;
-}
-
-.eval-status-bar-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.eval-status-complete-label {
-  font-family: var(--ff-heading);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--ls-label);
-  color: var(--state-success);
-  animation: omp-fade-in var(--duration-normal) ease-out;
-}
-
-/* ── Progress bar ──────────────────────────────────────────── */
-
-.eval-progress-track {
-  height: 8px;
+/* Inline progress track */
+.score-overview-bar__track {
+  display: inline-block;
+  width: 60px;
+  height: 4px;
   background: var(--neutral-100);
-  border-radius: var(--radius-md);
+  border-radius: 2px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
-.eval-progress-fill {
+.score-overview-bar__fill {
+  display: block;
   height: 100%;
   background: var(--ut-muted);
-  border-radius: var(--radius-md);
-  transition: width var(--duration-accent) var(--ease-out-quart, ease-out),
-              background-color var(--duration-normal) ease-out;
+  border-radius: 2px;
+  transition: width var(--duration-normal) var(--ease-out-quart, ease-out);
 }
 
-.eval-progress-fill.is-complete {
-  background: var(--state-success);
+/* Thin separator before badges */
+.score-overview-bar__sep {
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  background: var(--ut-border);
+  flex-shrink: 0;
 }
 
-/* ── Category chips ────────────────────────────────────────── */
-
-.eval-categories {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-2);
-}
-
-.cat-chip {
-  position: relative;
+/* Per-question badge */
+.score-overview-bar__badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: 3px var(--space-2);
-  font-size: var(--text-xs);
+  gap: 2px;
+  padding: 1px 4px;
   font-family: var(--ff-mono);
-  color: var(--chip-accent);
-  background: var(--ut-grey);
+  font-size: 0.625rem;
+  line-height: 1;
+  border: 1px solid var(--ut-border);
   border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  overflow: hidden;
-  transition: border-color var(--duration-normal) ease-out,
-              background var(--duration-normal) ease-out;
+  background: var(--ut-white);
+  cursor: pointer;
+  transition: background var(--duration-fast) ease-out,
+              border-color var(--duration-fast) ease-out;
+  color: var(--ut-text);
 }
 
-.cat-chip.is-partial {
-  border-color: var(--chip-accent);
+.score-overview-bar__badge:hover {
+  background: var(--ut-grey);
+  border-color: var(--ut-slate);
 }
 
-.cat-chip.is-complete {
-  color: var(--state-success);
+.score-overview-bar__badge:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.score-overview-bar__badge.is-partial {
+  border-color: var(--ut-blue);
+}
+
+.score-overview-bar__badge.is-complete {
   border-color: var(--state-success);
   background: var(--state-success-tint);
 }
 
-.cat-chip-fill {
-  position: absolute;
-  inset: 0;
-  width: 0%;
-  background: var(--chip-tint);
-  transition: width var(--duration-accent) var(--ease-out-quart, ease-out);
-  pointer-events: none;
+/* Badge code text — colored by section accent */
+.score-overview-bar__code {
+  color: var(--ut-slate);
 }
 
-.cat-chip.is-complete .cat-chip-fill {
-  background: transparent;
+.score-overview-bar__badge[data-accent="control"] .score-overview-bar__code {
+  color: var(--section-control-accent);
 }
 
-.cat-chip-name {
-  position: relative;
-  z-index: 1;
-  font-family: var(--ff-heading);
+.score-overview-bar__badge[data-accent="tr"] .score-overview-bar__code {
+  color: var(--section-tr-accent);
+}
+
+.score-overview-bar__badge[data-accent="re"] .score-overview-bar__code {
+  color: var(--section-re-accent);
+}
+
+.score-overview-bar__badge[data-accent="uc"] .score-overview-bar__code {
+  color: var(--section-uc-accent);
+}
+
+.score-overview-bar__badge[data-accent="se"] .score-overview-bar__code {
+  color: var(--section-se-accent);
+}
+
+.score-overview-bar__badge[data-accent="tc"] .score-overview-bar__code {
+  color: var(--section-tc-accent);
+}
+
+/* Badge state indicator */
+.score-overview-bar__indicator {
+  font-size: 0.5rem;
+}
+
+.score-overview-bar__indicator[data-state="complete"] {
+  color: var(--state-success);
+}
+
+.score-overview-bar__indicator[data-state="partial"] {
+  color: var(--ut-blue);
+}
+
+.score-overview-bar__indicator[data-state="empty"] {
+  color: var(--ut-slate);
+}
+
+/* Divider line between QG and scoring groups */
+.score-overview-bar__divider-line {
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  background: var(--ut-border);
+  flex-shrink: 0;
+}
+
+/* "First needs work" button */
+.score-overview-bar__next {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: var(--text-xs);
   font-weight: 700;
-  letter-spacing: var(--ls-label);
+  color: var(--ut-white);
+  background: var(--ut-navy);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: background var(--duration-fast) ease-out;
 }
 
-.cat-chip-score {
-  position: relative;
-  z-index: 1;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+.score-overview-bar__next:hover {
+  background: var(--section-control-accent-strong);
 }
 
-.cat-chip-unsure {
-  position: relative;
-  z-index: 1;
-  color: var(--ut-muted);
-  opacity: 0.8;
+.score-overview-bar__next:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
 }
 
-.cat-chip > span {
-  position: relative;
-  z-index: 1;
+/* Narrow viewport adjustments */
+@media (max-width: 500px) {
+  .score-overview-bar__inner {
+    gap: var(--space-1);
+  }
+
+  .score-overview-bar__badge {
+    font-size: 0.5625rem;
+    padding: 1px 3px;
+  }
+
+  .score-overview-bar__track {
+    width: 40px;
+  }
 }
-
-
-/* ── Captures empty state float ─────────────────────────── */
 .captures-empty-icon {
   animation: omp-float 3s ease-in-out infinite;
 }

@@ -1,20 +1,15 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import EvidenceModal from "@/components/EvidenceModal";
 import QuestionSection from "@/components/QuestionSection";
+import ScoreOverviewBar from "@/components/ScoreOverviewBar";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useCaptureQueue } from "@/hooks/useCaptureQueue";
 import { useRubric } from "@/lib/contexts";
-import {
-  countUnsure,
-  getAccentKey,
-  getCategoryLabel,
-  getVisibleRubricQuestionIds,
-} from "@/lib/rubric";
 import type { Capture } from "@/lib/types";
 
 export default function Evaluation() {
-  const { evaluations, removeCapture, unlinkCaptureFromRubric } = useActiveSession();
+  const { evaluations, captures, removeCapture, unlinkCaptureFromRubric } = useActiveSession();
   const { rubric, usesAi } = useRubric();
   const [capturingFor, setCapturingFor] = useState<string | null>(null);
   const captureQueue = useCaptureQueue();
@@ -24,134 +19,19 @@ export default function Evaluation() {
   } | null>(null);
   const [viewCapture, setViewCapture] = useState<Capture | null>(null);
 
-  const progress = useMemo(() => {
-    if (!rubric) return { scored: 0, total: 0, complete: false };
-    const total = getVisibleRubricQuestionIds(rubric, usesAi).length;
-    const scored = evaluations.filter((e) => e.score !== "" && e.score !== undefined).length;
-    return { scored, total, complete: total > 0 && scored >= total };
-  }, [evaluations, rubric, usesAi]);
-
-  const categorySummary = useMemo(() => {
-    if (!rubric) return [];
-    const evalSet = new Set(
-      evaluations.filter((e) => e.score !== "" && e.score !== undefined).map((e) => e.rubricId),
-    );
-    const visibleIds = new Set(getVisibleRubricQuestionIds(rubric, usesAi));
-    const sections: { key: "quality_gate" | "scoring_rubric"; label: string }[] = [
-      { key: "quality_gate", label: "Quality Gates" },
-      { key: "scoring_rubric", label: "Scoring Rubric" },
-    ];
-    const result: {
-      sectionLabel: string;
-      categories: {
-        categoryId: string;
-        label: string;
-        scored: number;
-        total: number;
-        accentKey: string;
-        unsureCount: number;
-      }[];
-    }[] = [];
-    for (const { key, label } of sections) {
-      const rubricSection = rubric[key];
-      const cats: {
-        categoryId: string;
-        label: string;
-        scored: number;
-        total: number;
-        accentKey: string;
-        unsureCount: number;
-      }[] = [];
-      for (const [cat, questions] of Object.entries(rubricSection)) {
-        const allIds = Object.keys(questions);
-        const ids = allIds.filter((qId) => visibleIds.has(`${cat}.${qId}`));
-        const total = ids.length;
-        const scored = ids.filter((qId) => evalSet.has(`${cat}.${qId}`)).length;
-        cats.push({
-          categoryId: cat,
-          label: getCategoryLabel(cat),
-          scored,
-          total,
-          accentKey: getAccentKey(cat),
-          unsureCount:
-            key === "scoring_rubric" ? countUnsure(cat, evaluations, rubric, undefined, usesAi) : 0,
-        });
-      }
-      result.push({ sectionLabel: label, categories: cats });
-    }
-    return result;
-  }, [evaluations, rubric, usesAi]);
-
   const handleConfirmRemove = (capture: Capture, rubricId: string) => {
     setConfirmTarget({ capture, rubricId });
   };
+
   return (
     <div className="flex flex-col gap-ut-4 p-ut-4">
-      {/* Score status overview */}
-      <div className="eval-status-overview">
-        <div className="eval-status-hero">
-          <span className="eval-status-fraction">
-            <span className={`eval-status-scored ${progress.complete ? "is-complete" : ""}`}>
-              {progress.scored}
-            </span>
-            <span className="eval-status-divider">/</span>
-            <span className="eval-status-total">{progress.total}</span>
-          </span>
-          <span className="eval-status-label">scored</span>
-        </div>
-        <div className="eval-status-bar-col">
-          <div className="eval-progress-track">
-            <div
-              className={`eval-progress-fill ${progress.complete ? "is-complete" : ""}`}
-              style={{
-                width: `${progress.total > 0 ? Math.round((progress.scored / progress.total) * 100) : 0}%`,
-              }}
-            />
-          </div>
-          {progress.complete && <span className="eval-status-complete-label">Review complete</span>}
-        </div>
-      </div>
-
-      {/* Per-category completion summary */}
-      {categorySummary.map((section) => (
-        <div key={section.sectionLabel} className="eval-categories">
-          {section.categories.map((cat) => {
-            const pct = cat.total > 0 ? Math.round((cat.scored / cat.total) * 100) : 0;
-            const done = cat.scored >= cat.total && cat.total > 0;
-            const started = cat.scored > 0;
-            return (
-              <span
-                key={cat.categoryId}
-                className={`cat-chip ${done ? "is-complete" : ""} ${started && !done ? "is-partial" : ""}`}
-                style={
-                  {
-                    "--chip-accent": `var(--section-${cat.accentKey}-accent, var(--ut-navy))`,
-                    "--chip-tint": `var(--section-${cat.accentKey}-tint, var(--ut-offwhite))`,
-                  } as React.CSSProperties
-                }
-                title={`${cat.scored} of ${cat.total} questions scored`}
-              >
-                <span
-                  className={`cat-chip-fill ${done ? "is-complete" : ""}`}
-                  style={{ width: `${pct}%` }}
-                />
-                <span className="cat-chip-name">{cat.label}</span>
-                <span className="cat-chip-score">
-                  {cat.scored}/{cat.total}
-                </span>
-                {cat.unsureCount > 0 && (
-                  <span
-                    className="cat-chip-unsure"
-                    title={`${cat.unsureCount} question${cat.unsureCount !== 1 ? "s" : ""} marked Unsure`}
-                  >
-                    {cat.unsureCount}?
-                  </span>
-                )}
-              </span>
-            );
-          })}
-        </div>
-      ))}
+      {/* Sticky score overview bar */}
+      <ScoreOverviewBar
+        evaluations={evaluations}
+        captures={captures}
+        rubric={rubric}
+        usesAi={usesAi}
+      />
 
       {/* Quality Gates section (flat — no nested tabs) */}
       <QuestionSection
