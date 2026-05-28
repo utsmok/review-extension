@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { useTabNavigation } from "@/lib/contexts";
+import { useRubric, useTabNavigation } from "@/lib/contexts";
+import { PRINCIPLES } from "@/lib/principles";
+import { principleAverage } from "@/lib/rubric";
 import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
 import { useSessionStore } from "@/stores/session";
-
 const GRADES: { value: FinalizationGrade; label: string; color: string; tint: string }[] = [
   { value: "pass", label: "Pass", color: "bg-ut-green", tint: "bg-grade-pass-tint" },
   {
@@ -16,8 +17,17 @@ const GRADES: { value: FinalizationGrade; label: string; color: string; tint: st
 ];
 
 export default function FinalizationScreen() {
-  const { finalization, setFinalization } = useActiveSession();
+  const { finalization, setFinalization, evaluations } = useActiveSession();
+  const { rubric } = useRubric();
   const setActiveTab = useTabNavigation();
+
+  const principleScores = useMemo(() => {
+    if (!rubric) return [];
+    return PRINCIPLES.map((p) => {
+      const avg = principleAverage(p.id, evaluations, rubric);
+      return { id: p.id, code: p.code, color: p.color, avg };
+    });
+  }, [evaluations, rubric]);
 
   const [grade, setGrade] = useState<FinalizationGrade | "">(finalization?.grade ?? "");
   const [conclusion, setConclusion] = useState(finalization?.conclusion ?? "");
@@ -59,7 +69,7 @@ export default function FinalizationScreen() {
       setFinalization(data);
       setDraftSaved(true);
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
-      draftTimerRef.current = setTimeout(() => setDraftSaved(false), 2000);
+      draftTimerRef.current = setTimeout(() => setDraftSaved(false), 5000);
     }, 50);
 
     return () => {
@@ -188,6 +198,26 @@ export default function FinalizationScreen() {
               Export review &rarr;
             </button>
           </div>
+        </div>
+      )}
+      {/* Per-principle score summary */}
+      {rubric && (
+        <div className="grid grid-cols-5 gap-ut-1">
+          {principleScores.map((p) => (
+            <div
+              key={p.id}
+              className="text-center p-ut-2 rounded-ut-sm"
+              style={{ background: `${p.color}12` }}
+            >
+              <div className="font-mono text-ut-xs font-bold" style={{ color: p.color }}>
+                {p.code}
+              </div>
+              <div className="text-ut-lg font-bold text-ut-text">
+                {p.avg !== null ? p.avg.toFixed(1) : "–"}
+              </div>
+              <div className="text-ut-xs text-ut-muted">/3.0</div>
+            </div>
+          ))}
         </div>
       )}
 

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { captureActiveTab, captureForMetadataField } from "@/lib/capture";
 import { TabNavigationContext, useRubric } from "@/lib/contexts";
 import { useRovingTabIndex } from "@/lib/hooks";
@@ -49,6 +50,21 @@ export default function ActiveSession() {
   const [quickNoteText, setQuickNoteText] = useState("");
   const [capturing, setCapturing] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
+  useKeyboardShortcuts({
+    "1": () => setActiveTab("Evaluation"),
+    "2": () => setActiveTab("Metadata"),
+    "3": () => setActiveTab("Finalize"),
+    "4": () => setActiveTab("Captures"),
+    "Ctrl+Shift+S": () => {
+      if (!capturing) {
+        setCapturing(true);
+        captureActiveTab()
+          .then((result) => addCapture(result))
+          .catch((err) => toastError(err instanceof Error ? err.message : "Capture failed"))
+          .finally(() => setCapturing(false));
+      }
+    },
+  });
 
   useEffect(() => {
     if (quickNoteOpen) noteRef.current?.focus();
@@ -309,8 +325,7 @@ export default function ActiveSession() {
           role="tabpanel"
           id={tabIds[activeTab]}
           aria-labelledby={`tab-${activeTab.toLowerCase()}`}
-          className="flex-1 min-h-0 overflow-y-auto bg-ut-offwhite"
-          style={{ position: "relative" }}
+          className="flex-1 min-h-0 overflow-y-auto bg-ut-offwhite tab-panel-content"
         >
           {activeTab !== "Metadata" &&
             session &&
