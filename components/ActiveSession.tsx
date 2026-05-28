@@ -24,18 +24,18 @@ const tabIds: Record<(typeof tabs)[number], string> = {
 function TabCheck() {
   return (
     <svg
-      width="12"
-      height="12"
-      viewBox="0 0 12 12"
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
       className="inline-block ml-1 text-ut-green align-middle"
-      aria-hidden="true"
+      aria-label="Complete"
     >
-      <path d="M2.5 6.5l2.5 2.5 5-5" />
+      <path d="M3 7l3 3 5.5-5.5" />
     </svg>
   );
 }
@@ -112,7 +112,7 @@ export default function ActiveSession() {
             <svg
               width="16"
               height="16"
-              viewBox="0 0 18 18"
+              viewBox="0 0 16 16"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -120,7 +120,8 @@ export default function ActiveSession() {
               strokeLinejoin="round"
             >
               <title>Close</title>
-              <polyline points="12,14 7,9 12,4" />
+              <line x1="4" y1="4" x2="12" y2="12" />
+              <line x1="12" y1="4" x2="4" y2="12" />
             </svg>
           </button>
 

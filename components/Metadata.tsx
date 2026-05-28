@@ -395,18 +395,14 @@ export default function Metadata() {
         </span>
         <div className="flex items-center gap-ut-2">
           <input
+            type="url"
             className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue flex-1"
             placeholder="Paste logo image URL..."
             value={session.toolLogoUrl ?? ""}
             onChange={(e) => updateMetadata({ toolLogoUrl: e.target.value })}
           />
           {session?.toolLogoUrl && (
-            <img
-              src={session.toolLogoUrl}
-              alt="Logo"
-              className="meta-logo-img"
-
-            />
+            <img src={session.toolLogoUrl} alt="Logo" className="meta-logo-img" />
           )}
         </div>
         {(() => {
@@ -422,7 +418,6 @@ export default function Metadata() {
                     type="button"
                     onClick={() => removeCapture(linkedCapture.id)}
                     className="btn-icon-remove"
-
                     aria-label="Remove logo capture"
                   >
                     ✕
@@ -470,6 +465,7 @@ export default function Metadata() {
           Terms &amp; Conditions
         </span>
         <input
+          type="url"
           className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
           placeholder="Paste T&C URL..."
           value={session.termsConditionsUrl ?? ""}

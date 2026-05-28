@@ -25,6 +25,7 @@ export const ScoreOption = React.memo(function ScoreOption({
     <label
       className={className}
       data-active={isActive ? "true" : undefined}
+      data-disabled={isDisabled ? "true" : undefined}
       data-score={dataScore}
       data-judgment={dataJudgment}
       tabIndex={isDisabled ? -1 : 0}

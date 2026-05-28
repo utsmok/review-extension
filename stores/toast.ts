@@ -15,18 +15,42 @@ interface ToastStore {
 }
 
 let nextId = 0;
+const pendingTimers = new Map<number, ReturnType<typeof setTimeout>>();
+
+function clearTimer(id: number) {
+  const timer = pendingTimers.get(id);
+  if (timer !== undefined) {
+    clearTimeout(timer);
+    pendingTimers.delete(id);
+  }
+}
+
+function clearAllTimers() {
+  for (const timer of pendingTimers.values()) clearTimeout(timer);
+  pendingTimers.clear();
+}
 
 export const useToastStore = create<ToastStore>((set) => ({
   toasts: [],
   addToast: (type, message) => {
     const id = nextId++;
     set((s) => ({ toasts: [...s.toasts, { id, type, message }] }));
-    setTimeout(() => {
+    const timer = setTimeout(() => {
+      pendingTimers.delete(id);
       set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
     }, 5000);
+    pendingTimers.set(id, timer);
   },
-  removeToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+  removeToast: (id) => {
+    clearTimer(id);
+    set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
+  },
 }));
+
+/** Clear all pending auto-dismiss timers. Call in test afterEach. */
+export function clearAllToastTimers() {
+  clearAllTimers();
+}
 
 export function toastError(message: string) {
   useToastStore.getState().addToast("error", message);
