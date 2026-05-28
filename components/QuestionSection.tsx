@@ -32,7 +32,6 @@ function renderQGScores(
 ) {
   return (
     <div role="radiogroup" aria-label="Quality gate score" className="flex gap-ut-2 mb-ut-2">
-
       {(["pass", "fail", "na", "unsure"] as PassFailScore[]).map((val) => {
         const isActive =
           ev?.score === val ||
@@ -56,7 +55,6 @@ function renderQGScores(
           <ScoreOption
             key={val}
             name={rubricId}
-            value={val}
             isActive={isActive}
             isDisabled={isDisabled}
             className="judgment-label cursor-pointer select-none"
@@ -107,7 +105,6 @@ function renderScoringScores(
           <ScoreOption
             key={val}
             name={rubricId}
-            value={val}
             isActive={selected}
             isDisabled={isAutoNa}
             className={`score-row ${selected ? "is-selected" : ""}`}
@@ -123,7 +120,6 @@ function renderScoringScores(
       {/* N/A row */}
       <ScoreOption
         name={rubricId}
-        value="na"
         isActive={isNa}
         isDisabled={isAutoNa}
         className={`score-row score-row--meta-separator ${isNa ? "is-selected" : ""}`}
@@ -144,7 +140,6 @@ function renderScoringScores(
       {/* Unsure row */}
       <ScoreOption
         name={rubricId}
-        value="unsure"
         isActive={isUnsure}
         isDisabled={isAutoNa}
         className={`score-row ${isUnsure ? "is-selected" : ""}`}
