@@ -56,6 +56,8 @@ function renderQGScores(
             className="judgment-label cursor-pointer select-none"
             data-judgment={val}
             data-active={isActive ? "true" : "false"}
+            // biome-ignore lint/a11y/noNoninteractiveTabindex: label must be focusable since radio input is tabIndex={-1}
+            tabIndex={0}
             onClick={(e) => {
               e.preventDefault();
               handleClick();
@@ -121,6 +123,8 @@ function renderScoringScores(
             key={val}
             className={`score-row ${selected ? "is-selected" : ""}`}
             data-score={val}
+            // biome-ignore lint/a11y/noNoninteractiveTabindex: label must be focusable since radio input is tabIndex={-1}
+            tabIndex={0}
             onClick={(e) => {
               e.preventDefault();
               handleClick();
@@ -151,6 +155,8 @@ function renderScoringScores(
       <label
         className={`score-row score-row--meta-separator ${isNa ? "is-selected" : ""}`}
         data-score="na"
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: label must be focusable since radio input is tabIndex={-1}
+        tabIndex={0}
         onClick={(e) => {
           e.preventDefault();
           if (isAutoNa) return;
@@ -189,6 +195,8 @@ function renderScoringScores(
       <label
         className={`score-row ${isUnsure ? "is-selected" : ""}`}
         data-score="unsure"
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: label must be focusable since radio input is tabIndex={-1}
+        tabIndex={0}
         onClick={(e) => {
           e.preventDefault();
           if (isAutoNa) return;
@@ -402,7 +410,7 @@ export const QuestionRow = React.memo(function QuestionRow({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              setEvaluation(rubricId, { manualDone: !ev?.manualDone });
+              setEvaluation(rubricId, { manualDone: !ev?.manualDone || undefined });
             }}
           >
             {ev?.manualDone ? "✓ Done" : "Done"}

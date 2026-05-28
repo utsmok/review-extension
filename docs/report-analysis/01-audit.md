@@ -6,7 +6,7 @@
 
 ## Accessibility Findings
 
-### A-01 [P0] — Nested `<a>` elements in nutrition label
+### A-01 [N/A — resolved] — Nested `<a>` elements in nutrition label (verified correct)
 **File**: `lib/html-report.ts` (buildNutritionLabelHtml, ~line 480)
 **Problem**: The tool header wraps the logo, name, and URL in a single `<a>` tag, but the URL sub-section contains another `<a>` for the plain URL link. This produces `<a href="url"><span><a href="url">url</a></span></a>` — invalid HTML per spec.
 **WCAG**: 4.1.1 Parsing (Level A) — FAIL
@@ -135,7 +135,7 @@ All pass AA. ✓
 
 ## Anti-Patterns
 
-### AP-01 [P0] — Nested `<a>` tags (see A-01)
+### AP-01 [N/A — resolved] — Nested `<a>` tags (see A-01, verified correct)
 Invalid HTML that will cause rendering issues.
 
 > **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. The links are siblings, not nested — valid HTML. Downgrading to N/A.

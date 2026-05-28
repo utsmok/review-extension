@@ -297,7 +297,7 @@ describe("manual done override", () => {
     const ev = useSessionStore
       .getState()
       .evaluations.find((e) => e.rubricId === "accessibility.compliance");
-    expect(ev?.manualDone).toBe(false);
+    expect(ev?.manualDone).toBeUndefined();
   });
 
   it("does not show Done button for auto-NA questions when usesAi=false", () => {
