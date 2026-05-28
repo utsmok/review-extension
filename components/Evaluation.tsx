@@ -32,6 +32,16 @@ export default function Evaluation() {
         rubric={rubric}
         usesAi={usesAi}
       />
+      {evaluations.length === 0 && (
+        <div className="text-center py-ut-8 text-ut-muted">
+          <p className="text-ut-sm font-heading font-bold uppercase tracking-ut-label mb-ut-2">
+            No scores yet
+          </p>
+          <p className="text-ut-xs">
+            Expand a question below to begin scoring.
+          </p>
+        </div>
+      )}
 
       {/* Quality Gates section (flat — no nested tabs) */}
       <QuestionSection

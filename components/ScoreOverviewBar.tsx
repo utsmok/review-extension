@@ -21,6 +21,8 @@ interface QuestionBadge {
   accentKey: string;
   state: ProgressState;
   isAutoNa: boolean;
+  evidenceCount: number;
+
 }
 
 // ---------------------------------------------------------------------------
@@ -59,13 +61,15 @@ export default function ScoreOverviewBar({
 
   // Build capture→rubricId reverse index
   const captureMap = useMemo(() => {
+    const capById = new Map(captures.map((c) => [c.id, c]));
     const map = new Map<string, Capture[]>();
-    for (const c of captures) {
-      for (const ev of evaluations) {
-        if (ev.explicitEvidenceIds.includes(c.id)) {
+    for (const ev of evaluations) {
+      for (const cId of ev.explicitEvidenceIds) {
+        const cap = capById.get(cId);
+        if (cap) {
           const list = map.get(ev.rubricId);
-          if (list) list.push(c);
-          else map.set(ev.rubricId, [c]);
+          if (list) list.push(cap);
+          else map.set(ev.rubricId, [cap]);
         }
       }
     }
@@ -105,7 +109,9 @@ export default function ScoreOverviewBar({
           accentKey: "control",
           state: getProgressState(hasScore, hasEvidence, hasNotes, ev?.manualDone),
           isAutoNa,
+          evidenceCount: evidence.length,
         });
+
       }
     }
 
@@ -134,7 +140,9 @@ export default function ScoreOverviewBar({
           accentKey: getAccentKey(category),
           state: getProgressState(hasScore, hasEvidence, hasNotes, ev?.manualDone),
           isAutoNa,
+          evidenceCount: evidence.length,
         });
+
       }
     }
 
@@ -201,7 +209,13 @@ export default function ScoreOverviewBar({
             <span className="score-overview-bar__indicator" data-state={b.state}>
               {getStateIndicator(b.state)}
             </span>
+            {b.evidenceCount > 0 && (
+              <span className="score-overview-bar__evidence-count" title={`${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}`}>
+                {b.evidenceCount}
+              </span>
+            )}
           </button>
+
         ))}
 
         {/* Thin divider between QG and scoring */}
@@ -223,6 +237,11 @@ export default function ScoreOverviewBar({
             <span className="score-overview-bar__indicator" data-state={b.state}>
               {getStateIndicator(b.state)}
             </span>
+            {b.evidenceCount > 0 && (
+              <span className="score-overview-bar__evidence-count" title={`${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}`}>
+                {b.evidenceCount}
+              </span>
+            )}
           </button>
         ))}
 

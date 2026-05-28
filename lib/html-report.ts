@@ -92,13 +92,13 @@ async function compressScreenshot(dataUrl: string, maxWidth = 800, quality = 0.8
 
 const EMPTY_CIRCLE = '<span class="circle empty">&#9675;</span>';
 const FILLED_CIRCLE = '<span class="circle filled">&#9679;</span>';
-const ALL_EMPTY_CIRCLES = `<span class="circles">${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}</span>`;
+const ALL_EMPTY_CIRCLES = `<span class="circles">${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}</span><span class="circle-label">0/4</span>`;
 const EXAMPLE_LEVELS = ["0", "1", "2", "3"] as const;
 
 function scoreCircles(avg: number | null): string {
   if (avg === null) return ALL_EMPTY_CIRCLES;
   const filled = avg < 0.5 ? 0 : avg < 1.5 ? 1 : avg < 2.5 ? 2 : avg >= 3 ? 4 : 3;
-  return `<span class="circles">${FILLED_CIRCLE.repeat(filled)}${EMPTY_CIRCLE.repeat(4 - filled)}</span>`;
+  return `<span class="circles">${FILLED_CIRCLE.repeat(filled)}${EMPTY_CIRCLE.repeat(4 - filled)}</span><span class="circle-label">${filled}/4</span>`;
 }
 
 // ── Section builders ───────────────────────────────────────────────────
