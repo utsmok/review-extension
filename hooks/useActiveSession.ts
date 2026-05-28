@@ -74,8 +74,8 @@ export function useActiveSession() {
   const setFinalization = useSessionStore((s) => s.setFinalization);
 
   // Composite actions (delegate to lifecycle module)
-  const closeSession = () => {
-    lifecycle.saveCurrentSession();
+  const closeSession = async () => {
+    await lifecycle.saveCurrentSession();
     useSessionStore.getState().clear();
     useRegistryStore.getState().setActiveSessionId(null);
   };

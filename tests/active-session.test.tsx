@@ -24,7 +24,7 @@ const _lsStore: Record<string, string> = vi.hoisted(() => {
   return store;
 });
 
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getRubricQuestionIds } from "@/lib/rubric";
 import { useRegistryStore } from "@/stores/registry";
@@ -221,15 +221,17 @@ describe("ActiveSession", () => {
     expect(svgs).toHaveLength(0);
   });
 
-  it("calls closeSession when close button is clicked", () => {
+  it("calls closeSession when close button is clicked", async () => {
     seedActiveSession();
     render(<ActiveSession />, { wrapper: AllProviders });
 
     const closeBtn = screen.getByRole("button", { name: /close review/i });
     fireEvent.click(closeBtn);
 
-    expect(useSessionStore.getState().session).toBeNull();
-    expect(useRegistryStore.getState().activeSessionId).toBeNull();
+    await waitFor(() => {
+      expect(useSessionStore.getState().session).toBeNull();
+      expect(useRegistryStore.getState().activeSessionId).toBeNull();
+    });
   });
 
   it("unmounts inactive tab content when switching tabs", () => {
