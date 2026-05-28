@@ -190,18 +190,21 @@
   background: var(--judgment-pass-tint);
   border-color: var(--judgment-pass);
   color: var(--judgment-pass);
+  font-weight: 700;
 }
 
 .judgment-label[data-judgment="fail"][data-active="true"] {
   background: var(--judgment-fail-tint);
   border-color: var(--judgment-fail);
   color: var(--judgment-fail);
+  font-weight: 700;
 }
 
 .judgment-label[data-judgment="na"][data-active="true"] {
   background: color-mix(in srgb, var(--ut-slate) 10%, var(--ut-white));
   border-color: var(--ut-slate);
   color: var(--ut-muted);
+  font-weight: 700;
 }
 
 /* ── Reduced motion ─────────────────────────────────────────── */
@@ -337,6 +340,7 @@
 .score-row[data-score="unsure"].is-selected {
   background: color-mix(in srgb, var(--ut-slate) 12%, transparent);
   color: var(--ut-slate);
+  font-weight: 700;
 }
 .score-row--meta-separator {
   border-top: 1px dashed var(--ut-border);
@@ -347,18 +351,22 @@
 .score-row[data-score="0"].is-selected {
   background: var(--score-0-tint);
   color: var(--score-0);
+  font-weight: 700;
 }
 .score-row[data-score="1"].is-selected {
   background: var(--score-1-tint);
   color: var(--score-1);
+  font-weight: 700;
 }
 .score-row[data-score="2"].is-selected {
   background: var(--score-2-tint);
   color: var(--score-2);
+  font-weight: 700;
 }
 .score-row[data-score="3"].is-selected {
   background: var(--score-3-tint);
   color: var(--score-3);
+  font-weight: 700;
 }
 
 .score-row .score-badge {
@@ -854,8 +862,10 @@
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   background: var(--ut-white);
-  border: 1px solid var(--ut-border);
+  border: 2px solid var(--ut-blue);
+  border-radius: var(--radius-md);
   margin-bottom: var(--space-2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .quick-note-overlay textarea {
@@ -1096,6 +1106,12 @@
 
 .score-overview-bar__badge:hover {
   background: var(--ut-grey);
+  border-color: var(--ut-slate);
+}
+
+.score-overview-bar__badge:active {
+  transform: scale(0.97);
+  background: var(--ut-slate);
   border-color: var(--ut-slate);
 }
 

@@ -1,4 +1,4 @@
-export type ProgressState = "empty" | "partial" | "complete";
+export { type ProgressState, getProgressState } from "@/lib/evaluation-state";
 
 export function ProgressCircle({ state }: { state: ProgressState }) {
   const stateClass =
@@ -49,17 +49,4 @@ export function ProgressCircle({ state }: { state: ProgressState }) {
       />
     </svg>
   );
-}
-
-export function getProgressState(
-  hasScore: boolean,
-  hasEvidence: boolean,
-  hasNotes: boolean,
-  manualDone?: boolean,
-): ProgressState {
-  if (manualDone) return "complete";
-  const hasExtra = hasEvidence || hasNotes;
-  if (hasScore && hasExtra) return "complete";
-  if (hasScore || hasExtra) return "partial";
-  return "empty";
 }

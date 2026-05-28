@@ -64,6 +64,9 @@ export default function ActiveSession() {
           .finally(() => setCapturing(false));
       }
     },
+    Escape: () => {
+      if (quickNoteOpen) setQuickNoteOpen(false);
+    },
   });
 
   useEffect(() => {
@@ -360,7 +363,6 @@ export default function ActiveSession() {
                     e.preventDefault();
                     handleSaveQuickNote();
                   }
-                  if (e.key === "Escape") setQuickNoteOpen(false);
                 }}
               />
               <button
