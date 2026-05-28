@@ -404,7 +404,8 @@ export default function Metadata() {
             <img
               src={session.toolLogoUrl}
               alt="Logo"
-              style={{ width: 24, height: 24, objectFit: "contain", flexShrink: 0 }}
+              className="meta-logo-img"
+
             />
           )}
         </div>
@@ -420,14 +421,8 @@ export default function Metadata() {
                   <button
                     type="button"
                     onClick={() => removeCapture(linkedCapture.id)}
-                    style={{
-                      marginLeft: "auto",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "var(--ut-red, red)",
-                      fontSize: 13,
-                    }}
+                    className="btn-icon-remove"
+
                     aria-label="Remove logo capture"
                   >
                     ✕
@@ -500,13 +495,7 @@ export default function Metadata() {
                       <button
                         type="button"
                         onClick={() => removeCapture(c.id)}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          color: "var(--ut-red, red)",
-                          fontSize: 13,
-                        }}
+                        className="btn-icon-remove"
                         aria-label="Remove evidence"
                       >
                         ✕

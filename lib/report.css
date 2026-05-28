@@ -372,7 +372,7 @@ table th {
   border-top: 3px solid var(--accent);
 }
 .category-section.category-alt {
-  background: #fafafa;
+  background: #f0f1f3;
 }
 .category-header {
   display: flex;
@@ -468,6 +468,12 @@ table th {
   font-size: 0.75rem;
   font-weight: 700;
   border-radius: 1px;
+}
+.score-badge[data-score="na"] {
+  border: 1px dashed var(--muted);
+}
+.score-badge[data-score="unsure"] {
+  border: 1px dotted var(--muted);
 }
 
 .evidence-row td {
@@ -781,7 +787,7 @@ table th {
   display: inline-block;
   border: 3px solid;
   border-radius: 6px;
-  padding: 16px 36px;
+  padding: 0.5em 1em;
   transform: rotate(-3deg);
   font-family: var(--ff-heading);
   font-size: clamp(1.8rem, 5vw, 3rem);
@@ -875,6 +881,11 @@ table th {
 }
 .circle.filled {
   color: inherit;
+}
+.circle-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-left: 4px;
 }
 .nutrition-principle-fraction {
   font-family: var(--ff-mono);
