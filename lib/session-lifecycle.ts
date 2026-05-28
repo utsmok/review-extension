@@ -4,7 +4,88 @@ import { getRepository } from "@/lib/session-repository";
 import type { SessionData, SessionMetadata } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
-import { toastError } from "@/stores/toast";
+import { toastError, toastWarning } from "@/stores/toast";
+
+// --- Auto-save singleton state ---
+let autoSaveTimerRef: ReturnType<typeof setTimeout> | undefined;
+let autoSaveScheduledSessionId: string | null = null;
+let autoSaveUnsub: (() => void) | null = null;
+let autoSaveVisibilityHandler: (() => void) | null = null;
+
+async function autoSaveFlush(scheduledId?: string | null): Promise<void> {
+  const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
+  const activeId = useRegistryStore.getState().activeSessionId;
+  // Guard: skip if session switched between schedule and flush to prevent
+  // a stale debounced save from overwriting the new session's data.
+  if (scheduledId && activeId !== scheduledId) return;
+  if (s && activeId) {
+    const ok = await getRepository().save(activeId, {
+      metadata: s,
+      captures: c,
+      evaluations: e,
+      finalization: f,
+    });
+    if (ok) {
+      document.dispatchEvent(
+        new CustomEvent("trust-save-succeeded", { detail: { timestamp: Date.now() } }),
+      );
+    } else {
+      toastWarning("Auto-save failed — your work may not be saved.");
+      document.dispatchEvent(new CustomEvent("trust-save-failed"));
+    }
+  }
+}
+
+/**
+ * Initialize the auto-save singleton. Safe to call multiple times —
+ * subsequent calls are no-ops. Call from a single root component (App.tsx).
+ */
+export function initAutoSave(): void {
+  teardownAutoSave();
+
+  // Debounced auto-save on every store change
+  autoSaveUnsub = useSessionStore.subscribe(() => {
+    const { status } = useSessionStore.getState();
+    const activeId = useRegistryStore.getState().activeSessionId;
+    if (status !== "active" || !activeId) return;
+
+    if (autoSaveTimerRef !== undefined) clearTimeout(autoSaveTimerRef);
+    autoSaveScheduledSessionId = activeId;
+    autoSaveTimerRef = setTimeout(() => {
+      autoSaveFlush(autoSaveScheduledSessionId);
+    }, 1000);
+  });
+
+  // Flush on panel close / tab switch (single listener)
+  autoSaveVisibilityHandler = () => {
+    if (document.visibilityState === "hidden") {
+      // Cancel pending debounce — we're flushing now
+      if (autoSaveTimerRef !== undefined) clearTimeout(autoSaveTimerRef);
+      autoSaveTimerRef = undefined;
+      autoSaveFlush(autoSaveScheduledSessionId);
+    }
+  };
+  document.addEventListener("visibilitychange", autoSaveVisibilityHandler);
+}
+
+/**
+ * Tear down auto-save listeners. Only needed for hot-module reload in dev.
+ */
+export function teardownAutoSave(): void {
+  if (autoSaveUnsub) {
+    autoSaveUnsub();
+    autoSaveUnsub = null;
+  }
+  if (autoSaveVisibilityHandler) {
+    document.removeEventListener("visibilitychange", autoSaveVisibilityHandler);
+    autoSaveVisibilityHandler = null;
+  }
+  if (autoSaveTimerRef !== undefined) {
+    clearTimeout(autoSaveTimerRef);
+    autoSaveTimerRef = undefined;
+  }
+  autoSaveScheduledSessionId = null;
+}
 
 /** Snapshot current session store state as SessionData */
 function snapshot(): SessionData | null {

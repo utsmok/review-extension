@@ -7,21 +7,21 @@ import type { RubricData } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
 import { toastError } from "@/stores/toast";
+import { useSessionActions } from "./useSessionActions";
+import { useSessionData } from "./useSessionData";
 
 export function useActiveSession() {
-  // --- State from both stores (individual selectors for re-render safety) ---
+  const data = useSessionData();
+  const actions = useSessionActions();
+
+  // Registry state needed for effects
   const activeSessionId = useRegistryStore((s) => s.activeSessionId);
-  const status = useSessionStore((s) => s.status);
-  const session = useSessionStore((s) => s.session);
-  const captures = useSessionStore((s) => s.captures);
-  const evaluations = useSessionStore((s) => s.evaluations);
-  const finalization = useSessionStore((s) => s.finalization);
 
   // --- Lifecycle orchestration ---
 
   // Effect 1: Load/save on activeSessionId change
   useEffect(() => {
-    if (activeSessionId && status === "empty") {
+    if (activeSessionId && data.status === "empty") {
       lifecycle
         .loadSessionById(activeSessionId)
         .then((found) => {
@@ -33,7 +33,7 @@ export function useActiveSession() {
           useRegistryStore.setState({ activeSessionId: null });
           useSessionStore.setState({ status: "empty" });
         });
-    } else if (!activeSessionId && (status === "active" || status === "loading")) {
+    } else if (!activeSessionId && (data.status === "active" || data.status === "loading")) {
       const {
         session: curSession,
         captures: curCaptures,
@@ -50,7 +50,7 @@ export function useActiveSession() {
       }
       useSessionStore.getState().clear();
     }
-  }, [activeSessionId, status]);
+  }, [activeSessionId, data.status]);
 
   // Effect 2+3: Init auto-save singleton (debounced auto-save + visibility flush)
   // This replaces the per-consumer subscriptions that caused N-way amplification.
@@ -59,21 +59,8 @@ export function useActiveSession() {
     return () => teardownAutoSave();
   }, []);
 
-  // --- Forwarded actions ---
-  // Session store actions
-  const loadSession = useSessionStore((s) => s.loadSession);
-  const clear = useSessionStore((s) => s.clear);
-  const addCapture = useSessionStore((s) => s.addCapture);
-  const updateCapture = useSessionStore((s) => s.updateCapture);
-  const removeCapture = useSessionStore((s) => s.removeCapture);
-  const setEvaluation = useSessionStore((s) => s.setEvaluation);
-  const linkCaptureToRubric = useSessionStore((s) => s.linkCaptureToRubric);
-  const unlinkCaptureFromRubric = useSessionStore((s) => s.unlinkCaptureFromRubric);
-  const linkCaptureToMetadataField = useSessionStore((s) => s.linkCaptureToMetadataField);
-  const updateMetadata = useSessionStore((s) => s.updateMetadata);
-  const setFinalization = useSessionStore((s) => s.setFinalization);
+  // --- Composite actions (delegate to lifecycle module) ---
 
-  // Composite actions (delegate to lifecycle module)
   const closeSession = async () => {
     await lifecycle.saveCurrentSession();
     useSessionStore.getState().clear();
@@ -98,22 +85,8 @@ export function useActiveSession() {
   };
 
   return {
-    status,
-    session,
-    captures,
-    evaluations,
-    finalization,
-    loadSession,
-    clear,
-    addCapture,
-    updateCapture,
-    removeCapture,
-    setEvaluation,
-    linkCaptureToRubric,
-    unlinkCaptureFromRubric,
-    linkCaptureToMetadataField,
-    updateMetadata,
-    setFinalization,
+    ...data,
+    ...actions,
     closeSession,
     exportAndClose: doExportAndClose,
     switchToSession: lifecycle.switchToSession,

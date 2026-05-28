@@ -1,31 +1,7 @@
-import { minifyCss, minifyHtml } from "./minify";
-import { buildHtmlReport, buildNutritionLabel, REPORT_CSS } from "./html-report";
-import { getCategoryLabel } from "./rubric";
+import { prepareExportArtifacts, assembleZip, sanitizeFilename } from "./export-pipeline";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
-/** Subset of Capture written to session.json inside the ZIP — heavy blobs stored separately. */
-type LightweightCapture = Pick<Capture, "id" | "timestamp" | "sourceUrl" | "pageTitle"> & {
-  notes?: Capture["notes"];
-  /** Flag indicating an annotated version exists as `{shortId}_annotated.{ext}` in the ZIP. */
-  hasAnnotatedScreenshot?: boolean;
-  metadataField?: string;
-};
-
-// biome-ignore lint/complexity/useRegexLiterals: must use RegExp constructor to avoid noControlCharactersInRegex
-const INVALID_FILENAME_CHARS = new RegExp('[<>:"/\\\\|?*\u0000-\u001F]', "g");
-/**
- * Sanitize a string for use as a filename. Strips path separators, parent
- * directory references, and characters invalid on Windows.
- *
- * Used at the export/download boundary to prevent path traversal in ZIP
- * entry names and download filenames.
- */
-export function sanitizeFilename(name: string): string {
-  return (
-    name.replace(INVALID_FILENAME_CHARS, "_").replace(/\.+/g, ".").replace(/^\.+/, "").trim() ||
-    "review"
-  );
-}
+export { sanitizeFilename };
 
 export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
@@ -36,12 +12,8 @@ export function downloadBlob(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
-// Cached dynamic imports
+// Cached dynamic import (used by importSessionFromZip)
 let cachedJSZip: typeof import("jszip") | null = null;
-let cachedPapa: typeof import("papaparse") | null = null;
-let cachedPngToJpeg: typeof import("./image-convert").pngToJpeg | null = null;
-let cachedMinifiedCss: string | null = null;
-let cachedLogos: typeof import("./logos") | null = null;
 
 export async function exportSession(
   metadata: SessionMetadata,
@@ -50,217 +22,14 @@ export async function exportSession(
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
 ): Promise<Blob> {
-  if (!cachedJSZip) cachedJSZip = (await import("jszip")).default;
-  const JSZip = cachedJSZip;
-
-  if (!cachedPapa) cachedPapa = (await import("papaparse")).default;
-  const Papa = cachedPapa;
-
-  if (!cachedPngToJpeg) cachedPngToJpeg = (await import("./image-convert")).pngToJpeg;
-  // biome-ignore lint/style/noNonNullAssertion: guaranteed non-null by preceding guard
-  const pngToJpeg = cachedPngToJpeg!;
-
-  const zip = new JSZip();
-  const imgExtensions = new Map<string, "jpg" | "png">();
-  const annotatedExtensions = new Map<string, "jpg" | "png">();
-
-  /** Short ID: first 8 hex chars of capture UUID, unique within a session. */
-  const shortId = (id: string) => id.replace(/-/g, "").substring(0, 8);
-  const idMap = new Map(captures.map((c) => [c.id, shortId(c.id)]));
-
-  // Process captures in batches of 4 to limit memory pressure
-  const BATCH_SIZE = 4;
-  for (let i = 0; i < captures.length; i += BATCH_SIZE) {
-    const batch = captures.slice(i, i + BATCH_SIZE);
-    await Promise.all(batch.map(async (capture) => {
-      const sid = idMap.get(capture.id);
-      if (!sid) return;
-      const { dataUrl: converted, extension } = await pngToJpeg(capture.screenshotBase64, 0.8);
-      const base64Data = converted.split(",")[1] ?? "";
-      zip.file(`${sid}.${extension}`, base64Data, { base64: true });
-      zip.file(`${sid}.html`, minifyHtml(capture.htmlContent));
-      imgExtensions.set(capture.id, extension);
-      if (capture.annotatedScreenshotBase64) {
-        const { dataUrl: annConverted, extension: annExt } = await pngToJpeg(
-          capture.annotatedScreenshotBase64,
-          0.8,
-        );
-        const annBase64 = annConverted.split(",")[1] ?? "";
-        zip.file(`${sid}_annotated.${annExt}`, annBase64, { base64: true });
-        annotatedExtensions.set(capture.id, annExt);
-      }
-    }));
-  }
-
-  // Build capture map for HTML reports: reference annotated images by default,
-  // with clean versions also available. Falls back to clean if no annotated version.
-  const capturePathMap = new Map(
-    captures.map((c) => [c.id, `${idMap.get(c.id)}.${imgExtensions.get(c.id) ?? "png"}`]),
-  );
-  const annotatedPathMap = new Map(
-    captures
-      .filter((c) => c.annotatedScreenshotBase64)
-      .map((c) => [
-        c.id,
-        `${idMap.get(c.id)}_annotated.${annotatedExtensions.get(c.id) ?? imgExtensions.get(c.id) ?? "png"}`,
-      ]),
-  );
-  const capturesWithPaths = captures.map((c) => ({
-    ...c,
-    screenshotBase64: capturePathMap.get(c.id) ?? c.screenshotBase64,
-    annotatedScreenshotBase64: annotatedPathMap.has(c.id)
-      ? (annotatedPathMap.get(c.id) as string)
-      : c.annotatedScreenshotBase64,
-  }));
-  // Extract shared CSS to a single file — pre-minified on first call
-  if (!cachedMinifiedCss) {
-    cachedMinifiedCss = minifyCss(REPORT_CSS);
-  }
-  zip.file("report.css", cachedMinifiedCss);
-  zip.file(
-    "session_metadata.csv",
-    Papa.unparse([
-      {
-        Tool_Name: metadata.toolName,
-        Tool_URL: metadata.toolUrl,
-        Start_Time: metadata.startTime,
-        Uses_AI: String(metadata.usesAi ?? true),
-        Rubric_Variant: metadata.rubricId ?? "trust-full",
-        Company: metadata.company ?? "",
-        Pricing: metadata.pricing ?? "",
-        Availability: metadata.availability ?? "",
-        Terms_Conditions_URL: metadata.termsConditionsUrl ?? "",
-        Authentication_Method: metadata.authenticationMethod ?? "",
-        Data_Sources: (metadata.dataSources ?? []).join("; "),
-        Search_Methods: (metadata.searchMethods ?? []).join("; "),
-        Discipline: (metadata.discipline ?? []).join("; "),
-        Notes: metadata.notes ?? "",
-        Tool_Logo_URL: metadata.toolLogoUrl ?? "",
-        Tool_Description: metadata.description ?? "",
-      },
-    ]),
-  );
-
-  zip.file(
-    "rubric_scores.csv",
-    Papa.unparse(
-      evaluations.map((e) => {
-        const [category] = e.rubricId.split(".");
-        return {
-          Rubric_Category: getCategoryLabel(category),
-          Question_ID: e.rubricId,
-          Score: String(e.score),
-          Notes: e.notes,
-          Custom_Reasoning: e.customScore?.reasoning ?? "",
-          Linked_Capture_IDs: e.explicitEvidenceIds.join("; "),
-        };
-      }),
-    ),
-  );
-
-  zip.file(
-    "capture_log.csv",
-    Papa.unparse(
-      captures.map((c) => ({
-        Capture_ID: c.id,
-        Timestamp: c.timestamp,
-        Page_Title: c.pageTitle,
-        URL_Captured: c.sourceUrl,
-        User_Notes: c.notes,
-        Tagged_Rubric_IDs: (() => {
-          const parts: string[] = [];
-          for (const e of evaluations) {
-            if (e.explicitEvidenceIds.includes(c.id)) parts.push(e.rubricId);
-          }
-          return parts.join("; ");
-        })(),
-      })),
-    ),
-  );
-
-  if (finalization) {
-    zip.file(
-      "review_conclusions.csv",
-      Papa.unparse([
-        {
-          Grade: finalization.grade,
-          Conclusion: finalization.conclusion,
-          Strengths: finalization.strengths.join("; "),
-          Weaknesses: finalization.weaknesses.join("; "),
-          Recommendations: finalization.recommendations,
-          Finalized_At: finalization.finalizedAt,
-        },
-      ]),
-    );
-  }
-
-  // Full session data for re-import — strip heavy capture blobs since they're
-  // already stored as separate files in evidence/. Import reassembles from there.
-
-  const lightweightCaptures = captures.map((c): LightweightCapture => {
-    const entry: LightweightCapture = {
-      id: c.id,
-      timestamp: c.timestamp,
-      sourceUrl: c.sourceUrl,
-      pageTitle: c.pageTitle,
-    };
-    if (c.notes) entry.notes = c.notes;
-    if (c.metadataField) entry.metadataField = c.metadataField;
-    if (c.annotatedScreenshotBase64) entry.hasAnnotatedScreenshot = true;
-    return entry;
-  });
-
-  const sessionData: import("./types").SessionData = {
+  const artifacts = await prepareExportArtifacts(
     metadata,
-    captures: lightweightCaptures as import("./types").Capture[],
-    evaluations,
-    finalization,
-  };
-  zip.file("session.json", JSON.stringify(sessionData));
-
-  // Extract logo files as JPEG — avoid embedding 17KB+ of base64 in both HTML reports
-  if (!cachedLogos) cachedLogos = await import("./logos");
-  const { TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO } = cachedLogos;
-  const logoReplacements: [string, string][] = [];
-  for (const [name, dataUrl] of [
-    ["1.jpg", TRUST_LOGO],
-    ["2.jpg", LISA_EIS_LOGO],
-    ["3.jpg", UT_LOGO],
-  ] as const) {
-    const { dataUrl: jpegUrl } = await pngToJpeg(dataUrl, 0.95, 400);
-    const base64 = jpegUrl.split(",")[1] ?? "";
-    zip.file(name, base64, { base64: true });
-    logoReplacements.push([dataUrl, name]);
-  }
-
-  const replaceLogos = (html: string) => {
-    for (const [dataUrl, path] of logoReplacements) html = html.replaceAll(dataUrl, path);
-    return html;
-  };
-
-  const htmlReport = await buildHtmlReport(
-    metadata,
-    capturesWithPaths,
+    captures,
     evaluations,
     rubric,
     finalization,
   );
-  zip.file(
-    `Evaluation_Report_${sanitizeFilename(metadata.toolName)}.html`,
-    minifyHtml(replaceLogos(htmlReport)),
-  );
-
-  const labelHtml = await buildNutritionLabel(metadata, evaluations, rubric, finalization);
-  zip.file(
-    `TRUST_Label_${sanitizeFilename(metadata.toolName)}.html`,
-    minifyHtml(replaceLogos(labelHtml)),
-  );
-
-  return zip.generateAsync({
-    type: "blob",
-    compression: "DEFLATE",
-    compressionOptions: { level: 9 },
-  });
+  return assembleZip(artifacts);
 }
 
 // --- ZIP bomb protection limits ---
