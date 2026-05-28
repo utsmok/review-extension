@@ -78,11 +78,13 @@
 
 ## Key Findings
 
-### UX-01 [P0] — Circle rating system lacks scale context
+### UX-01 [P1] — Circle rating system lacks scale context
 The filled/empty circle system (●●●○) is used for both per-principle and overall scores. There is no legend, no numeric label, and no explanation of what the thresholds mean. A non-expert has no idea if 3/4 is excellent or mediocre.
 
 **Impact**: Non-experts (the nutrition label's primary audience) cannot interpret the scores.
 **Fix**: Add "3 of 4" text below circles, add a small legend: "● met threshold ○ below threshold".
+
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. The code renders `<div class="nutrition-circle-legend">● = threshold met &nbsp; ○ = below threshold</div>`. A legend exists. Downgraded from P0 to P1. Remaining work would be adding per-principle numeric context (e.g., "3/4" below circles).
 
 ### UX-02 [P1] — "Unsure" quality gate status is ambiguous
 The quality gates show results as PASS, FAIL, or UNSURE. "Unsure" could mean:

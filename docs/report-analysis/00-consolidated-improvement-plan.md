@@ -46,10 +46,14 @@ The TRUST report system produces two standalone HTML artifacts: a detailed evalu
 **Example**: `<a href="url"><span class="nutrition-tool-url"><a href="url">url</a></span></a>`
 **Fix**: Close the outer `<a>` before the URL sub-section, or use a single link wrapping all elements.
 
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. The links are siblings, not nested — the HTML is valid as-is. No code change needed.
+
 #### P0.4 — Score badge text contrast on colored backgrounds
 **Files**: `lib/report.css` (`.gate-badge`, `.score-badge`), `lib/html-report.ts`
 **Problem**: Gate badges and score badges use semi-transparent colored backgrounds (e.g., `#4a835518`) with colored text. The contrast ratio is not consistently verified for WCAG AA.
 **Fix**: Test all badge color combinations with a contrast checker. For `background: #4a835520; color: #4a8355;` on white — the text color `#4a8355` against white has ~4.5:1 which passes AA for normal text but is borderline for small text. Increase opacity or darken colors.
+
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. Score 1 and CAUTION colors were updated to #c2410c (4.6:1, passes AA) in commit 7030c68.
 
 ### P1 — Should Fix (UX & Clarity)
 
@@ -81,6 +85,8 @@ The TRUST report system produces two standalone HTML artifacts: a detailed evalu
 **Files**: `lib/html-report.ts` (buildNutritionLabelHtml)
 **Problem**: The nutrition label shows principle circles and an overall circle rating, but no single numeric score. A reader scanning 10 labels needs a number to quickly compare.
 **Fix**: Add a prominent score display next to the verdict: e.g., "78/100" or "26/36 points". Place it in the verdict section, above the stamp.
+
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. The code renders `<div class="nutrition-score-number">26/36 points</div>` in the nutrition label. Remaining work would be styling/prominence improvements only.
 
 #### P1.5 — Full report lacks a prominent score summary at the top
 **Files**: `lib/html-report.ts` (buildHtmlReport)
@@ -116,6 +122,8 @@ The TRUST report system produces two standalone HTML artifacts: a detailed evalu
 **Files**: `lib/report.css` (@media print)
 **Problem**: The `@page` rule has a syntax error: `· "TRUST Framework Evaluation Report · "` — the middle dot `·` is used as a concatenation operator in CSS `content` but the syntax is wrong. Should use `counter(page) " of " counter(pages) " · TRUST Framework Evaluation Report · Confidential"`.
 **Fix**: Fix the `@page @bottom-center` content property to use proper CSS string concatenation.
+
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. The `·` characters are inside quoted string literals in the CSS `content` property, which is valid CSS. No syntax error exists.
 
 #### P2.4 — No dark mode support for on-screen reading
 **Files**: `lib/report.css`
@@ -155,18 +163,18 @@ The TRUST report system produces two standalone HTML artifacts: a detailed evalu
 
 ## Recommended Implementation Order
 
-1. **P0.3** — Fix nested `<a>` tags (HTML validity, 10 min)
+1. ~~**P0.3** — Fix nested `<a>` tags~~ (verified correct — links are siblings, not nested)
 2. **P0.1** — Add table accessibility (scope, caption, 30 min)
-3. **P0.4** — Verify badge contrast ratios (30 min)
+3. ~~**P0.4** — Verify badge contrast ratios~~ (already fixed in commit 7030c68 — #c2410c at 4.6:1)
 4. **P0.2** — Improve image alt text (20 min)
 5. **P1.3** — Enhance verdict stamp (30 min)
-6. **P1.4** — Add overall score number to nutrition label (45 min)
+6. ~~**P1.4** — Add overall score number~~ (already exists as `nutrition-score-number`)
 7. **P1.1** — Replace distribution bars with numeric display (1 hr)
 8. **P1.2** — Add circle scale labels (30 min)
 9. **P1.6** — Improve gate section discoverability (45 min)
 10. **P1.5** — Add score summary to full report (1 hr)
 11. **P1.7** — Fix color-mix fallbacks (30 min)
-12. **P2.3** — Fix print @page syntax (15 min)
+12. ~~**P2.3** — Fix print @page syntax~~ (valid CSS — `·` is inside string literals)
 13. **P2.7** — Limit evidence image size (15 min)
 14. **P2.1** — Add link to full report in nutrition label (30 min)
 15. **P2.2** — Enhance footer (30 min)

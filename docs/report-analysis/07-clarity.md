@@ -55,6 +55,8 @@ This ambiguity makes the nutrition label's "Quality Gate Issues" section confusi
 **Problem**: The principle circles (●●●○) have no legend explaining what filled vs empty means. A reader unfamiliar with the TRUST framework has no idea what "3 filled circles" indicates.
 **Fix**: Add a small legend: "● threshold met ○ below threshold" or "Filled circles indicate the principle meets quality standards."
 
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. The code renders `<div class="nutrition-circle-legend">● = threshold met &nbsp; ○ = below threshold</div>`. The legend already exists.
+
 ### CL-10 [P2] — Verdict terminology is clear and well-chosen
 **Assessment**: The verdict terms — RECOMMENDED, CAUTION, NOT RECOMMENDED, INCOMPLETE, NOT EVALUATED — are clear, actionable, and unambiguous. This is well-done. ✓
 

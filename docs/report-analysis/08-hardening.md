@@ -114,6 +114,9 @@ Since this is a standalone HTML report (not a web app), users might open it in o
 **File**: `lib/report.css` (@media print, @page rule)
 **Problem**: The `@page @bottom-center` content property contains: `counter(pages) · "TRUST Framework..."` where `·` is a Unicode middle dot used as if it were a CSS concatenation operator. In CSS `content`, string concatenation is implicit (adjacent strings/values). The `·` should be inside a quoted string: `"Page " counter(page) " of " counter(pages) " · TRUST Framework Evaluation Report · Confidential"`.
 
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. The `·` characters are inside quoted string literals in the CSS `content` property, which is valid CSS. No syntax error exists.
+
+
 ### H-17 [P2] — Very small screens (< 320px)
 **Problem**: Below 320px, the 3px border + 20px padding on the nutrition label leaves ~274px for content. The principles table (6 columns) would need ~45px per column — very cramped but not broken.
 **Assessment**: Extremely unlikely use case. Acceptable.
@@ -144,6 +147,8 @@ The responsive 640px breakpoint helps (since 400% zoom on a 1920px screen = 480p
 **File**: `lib/html-report.ts` (buildNutritionLabelHtml, buildFinalizationSection)
 **Problem**: If finalization.strengths is an empty array, the section still renders the heading "Strengths" with an empty `<ul>`. This looks broken.
 **Fix**: Hide the section entirely when the array is empty: `{finalization.strengths.length > 0 ? '<div>...</div>' : ''}`.
+
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. Both rendering paths conditionally render based on truthiness of the arrays — empty arrays produce no output.
 
 ### H-23 [P2] — Score level text can contain HTML
 **File**: `lib/html-report.ts` (buildCategorySections, buildGateRows)

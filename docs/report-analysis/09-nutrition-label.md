@@ -38,6 +38,9 @@ RECOMMENDED
 ```
 Or a circular progress indicator showing the percentage.
 
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. The code renders `<div class="nutrition-score-number">26/36 points</div>` in the nutrition label. Remaining work would be styling/prominence improvements only.
+
+
 ### NL-03 [P1] — Principle circles lack numeric context
 **File**: `lib/html-report.ts` (scoreCircles), `lib/report.css` (.circles, .circle)
 **Problem**: 4 circles per principle, filled or empty. Without knowing the scale:
@@ -45,6 +48,8 @@ Or a circular progress indicator showing the percentage.
 - Is 2/4 failing? (It's borderline)
 - What's the difference between "●●●○" and "●●○○"?
 **Recommendation**: Add "3/4" text below each principle's circles. Add a scale legend: "● meets threshold ○ below threshold".
+
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. The code renders `<div class="nutrition-circle-legend">● = threshold met &nbsp; ○ = below threshold</div>`. The legend exists. Remaining work would be adding per-principle numeric context (e.g., "3/4" below circles).
 
 ### NL-04 [P2] — The 3px border doesn't evoke "nutrition label" strongly enough
 **File**: `lib/report.css` (.nutrition-label)

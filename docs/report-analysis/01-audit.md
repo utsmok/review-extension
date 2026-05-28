@@ -12,6 +12,9 @@
 **WCAG**: 4.1.1 Parsing (Level A) — FAIL
 **Fix**: Close the outer link before the URL span, or restructure to avoid nesting.
 
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. The actual code does NOT nest `<a>` tags — the links are siblings, not nested. This is valid HTML. Downgrading to N/A.
+
+
 ### A-02 [P0] — Data tables lack `scope` and `<caption>`
 **File**: `lib/html-report.ts` (buildGateRows, buildCategorySections, buildNutritionLabelHtml)
 **Problem**: Quality gates table, category scoring tables, and nutrition principles table have `<th>` elements without `scope` attributes and no `<caption>`. Screen readers cannot reliably associate data cells with headers.
@@ -63,6 +66,9 @@ All pass AA. ✓
 **File**: `lib/report.css` (~line 975)
 **Problem**: `content: "Page " counter(page) " of " counter(pages) · "TRUST Framework..."` — the `·` middle dot is invalid CSS concatenation. Should be a proper string concatenation.
 **Fix**: `content: "Page " counter(page) " of " counter(pages) " · TRUST Framework Evaluation Report · Confidential";`
+
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. The `·` characters are inside quoted string literals in the CSS `content` property, which is valid CSS. No syntax error exists.
+
 
 ### A-10 [P3] — No ARIA landmarks
 **File**: `lib/html-report.ts`
@@ -131,6 +137,8 @@ All pass AA. ✓
 
 ### AP-01 [P0] — Nested `<a>` tags (see A-01)
 Invalid HTML that will cause rendering issues.
+
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. The links are siblings, not nested — valid HTML. Downgrading to N/A.
 
 ### AP-02 [P2] — `border-radius: 1px` on badges
 **File**: `lib/report.css` (.gate-badge, .score-badge)

@@ -25,7 +25,7 @@
 | Score | Hex | Label | WCAG on White |
 |-------|-----|-------|--------------|
 | 0 | #c60c30 | Inadequate | 4.3:1 ✓ (borderline) |
-| 1 | #ea580c | Limited | 3.1:1 ✗ FAIL |
+| 1 | #c2410c | Limited | 4.6:1 ✓ |
 | 2 | #0e7490 | Adequate | 4.6:1 ✓ |
 | 3 | #4a8355 | Comprehensive | 4.5:1 ✓ |
 
@@ -33,7 +33,7 @@
 | Grade | Hex | Label | WCAG on White |
 |-------|-----|-------|--------------|
 | Pass | #4a8355 | RECOMMENDED | 4.5:1 ✓ |
-| Conditional | #ea580c | CAUTION | 3.1:1 ✗ FAIL |
+| Conditional | #c2410c | CAUTION | 4.6:1 ✓ |
 | Fail | #c60c30 | NOT RECOMMENDED | 4.3:1 ✓ (borderline) |
 
 ---
@@ -46,10 +46,14 @@
 **Impact**: Score "1" badges are the hardest to read of all score levels.
 **Fix**: Darken to #c2410c (same as SE reportColor), which achieves 4.6:1.
 
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. Score 1 now uses #c2410c (4.6:1, passes AA). Fixed in commit 7030c68.
+
 ### C-02 [P1] — Verdict "CAUTION" color (#ea580c) fails WCAG AA
 **File**: `lib/report/compute-scores.ts` (GRADE_COLORS)
 **Problem**: Same orange used for conditional/CAUTION verdict. At `clamp(1.4rem–2.2rem)` in the stamp, this qualifies as large text (≥18pt or ≥14pt bold), so 3:1 is the threshold. At the minimum clamp (1.4rem = ~21px), this passes for large text. However, the stamp text weight is 800, which combined with the size may qualify. **Borderline pass for the stamp, but the color is also used elsewhere at smaller sizes.**
 **Fix**: Darken to match the report variant approach: use a darker orange for text contexts.
+
+> **Update (2026-05-27)**: Verified via roborev review #351 that this is already addressed in the codebase. CAUTION verdict now uses #c2410c (4.6:1, passes AA). Fixed in commit 7030c68.
 
 ### C-03 [P2] — Score color progression is non-intuitive
 **Problem**: The score color spectrum goes: red → orange → teal → green. This breaks the expected "traffic light" or "heat map" progression (red → amber → yellow → green). The jump from orange (warm) to teal (cool) is jarring and semantically unclear.
