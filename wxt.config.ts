@@ -6,6 +6,7 @@ export default defineConfig({
     name: "TRUST Review",
     description: "Systematic evaluation of academic search tools",
     permissions: ["sidePanel", "activeTab", "tabs", "scripting"],
+    host_permissions: ["<all_urls>"],
     side_panel: {
       default_path: "sidepanel.html",
     },
