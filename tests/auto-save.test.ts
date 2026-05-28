@@ -104,7 +104,7 @@ describe("auto-save", () => {
     // Not yet called — debounce window
     expect(mockSave).not.toHaveBeenCalled();
 
-    advanceTimer(300);
+    advanceTimer(1000);
 
     expect(mockSave).toHaveBeenCalledExactlyOnceWith("sess-1", {
       metadata: expect.any(Object),
@@ -131,7 +131,7 @@ describe("auto-save", () => {
     // Still within debounce window (500ms elapsed, timer reset each time)
     expect(mockSave).not.toHaveBeenCalled();
 
-    advanceTimer(300);
+    advanceTimer(1000);
 
     // Only one save after final debounce settles
     expect(mockSave).toHaveBeenCalledTimes(1);
@@ -195,7 +195,7 @@ describe("auto-save", () => {
 
     initAutoSave();
     listener();
-    advanceTimer(300);
+    advanceTimer(1000);
 
     expect(mockSave).toHaveBeenCalledTimes(1); // Only from the second init
   });
@@ -206,7 +206,7 @@ describe("auto-save", () => {
 
     initAutoSave();
     listener();
-    advanceTimer(300);
+    advanceTimer(1000);
 
     expect(mockSave).not.toHaveBeenCalled();
   });
@@ -223,7 +223,7 @@ describe("auto-save", () => {
 
     initAutoSave();
     listener();
-    advanceTimer(300);
+    advanceTimer(1000);
 
     // Wait for the async flush to complete
     await vi.runAllTimersAsync();
@@ -246,7 +246,7 @@ describe("auto-save", () => {
 
     initAutoSave();
     listener();
-    advanceTimer(300);
+    advanceTimer(1000);
 
     await vi.runAllTimersAsync();
 
@@ -270,7 +270,7 @@ describe("auto-save", () => {
 
     initAutoSave();
     listener();
-    advanceTimer(300);
+    advanceTimer(1000);
 
     await vi.runAllTimersAsync();
 

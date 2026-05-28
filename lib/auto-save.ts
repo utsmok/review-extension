@@ -57,7 +57,7 @@ export function initAutoSave(): void {
     scheduledSessionId = activeId;
     timerRef = setTimeout(() => {
       flush(scheduledSessionId);
-    }, 300);
+    }, 1000);
   });
 
   // Effect 3: Flush on panel close / tab switch (single listener)

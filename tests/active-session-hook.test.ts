@@ -176,7 +176,7 @@ describe("lifecycle.markDoneAndClose", () => {
     useRegistryStore.getState().addSession(meta);
     useSessionStore.getState().loadSession(data);
 
-    lifecycle.markDoneAndClose("sess-done");
+    await lifecycle.markDoneAndClose("sess-done");
 
     expect(useRegistryStore.getState().sessionIndex["sess-done"].status).toBe("done");
     expect(useRegistryStore.getState().activeSessionId).toBeNull();

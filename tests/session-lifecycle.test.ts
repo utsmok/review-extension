@@ -221,7 +221,7 @@ describe("markDoneAndClose", () => {
     // Verify active
     expect(useSessionStore.getState().status).toBe("active");
 
-    markDoneAndClose(meta.id);
+    await markDoneAndClose(meta.id);
 
     // Registry should mark it done
     const { sessionIndex, activeSessionId } = useRegistryStore.getState();

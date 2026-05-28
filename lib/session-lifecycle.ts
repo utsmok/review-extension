@@ -84,9 +84,14 @@ export async function switchToSession(id: string): Promise<void> {
 }
 
 /** Mark session as done, save, and close. */
-export function markDoneAndClose(id: string): void {
+export async function markDoneAndClose(id: string): Promise<void> {
   useRegistryStore.getState().markSessionDone(id);
-  saveCurrentSession();
+  try {
+    await saveCurrentSessionAsync();
+  } catch (err) {
+    console.error("Failed to save before close:", err);
+    toastError("Failed to save final state. Your work may be lost.");
+  }
   useSessionStore.getState().clear();
   useRegistryStore.getState().setActiveSessionId(null);
 }
