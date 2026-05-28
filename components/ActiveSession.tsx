@@ -5,7 +5,7 @@ import { captureActiveTab, captureForMetadataField } from "@/lib/capture";
 import { TabNavigationContext, useRubric } from "@/lib/contexts";
 import { useRovingTabIndex } from "@/lib/hooks";
 import { computeCompletion } from "@/lib/rubric";
-import { toastError } from "@/stores/toast";
+import { toastError, toastSuccess } from "@/stores/toast";
 import Captures from "./Captures";
 import Evaluation from "./Evaluation";
 import FinalizationScreen from "./FinalizationScreen";
@@ -265,6 +265,33 @@ export default function ActiveSession() {
               </svg>
             </button>
           </div>
+          <button
+            type="button"
+            className="quick-action-btn"
+            title="Shortcuts: 1-4 = tabs, Ctrl+Shift+S = capture, Esc = close note"
+            aria-label="Keyboard shortcuts"
+            onClick={() =>
+              toastSuccess(
+                "Shortcuts: 1–4 = switch tabs · Ctrl+Shift+S = quick capture · Esc = close quick note",
+              )
+            }
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </button>
 
           <div className="ml-auto flex items-center gap-ut-2 min-w-0">
             <span className="text-ut-sm text-ut-slate shrink-0">Reviewing:</span>
@@ -329,6 +356,7 @@ export default function ActiveSession() {
           id={tabIds[activeTab]}
           aria-labelledby={`tab-${activeTab.toLowerCase()}`}
           className="flex-1 min-h-0 overflow-y-auto bg-ut-offwhite tab-panel-content"
+          aria-live="polite"
         >
           {activeTab !== "Metadata" &&
             session &&
@@ -359,6 +387,10 @@ export default function ActiveSession() {
                 value={quickNoteText}
                 onChange={(e) => setQuickNoteText(e.target.value)}
                 onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setQuickNoteOpen(false);
+                    return;
+                  }
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
                     handleSaveQuickNote();

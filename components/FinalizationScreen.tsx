@@ -202,11 +202,12 @@ export default function FinalizationScreen() {
       )}
       {/* Per-principle score summary */}
       {rubric && (
-        <div className="grid grid-cols-5 gap-ut-1">
+        <ul className="grid grid-cols-5 gap-ut-1 list-none p-0 m-0" aria-label="Principle scores">
           {principleScores.map((p) => (
-            <div
+            <li
               key={p.id}
               className="text-center p-ut-2 rounded-ut-sm"
+              aria-label={`${p.code}: ${p.avg !== null ? p.avg.toFixed(1) : "not scored"} out of 3.0`}
               style={{ background: `color-mix(in srgb, ${p.color} 7%, transparent)` }}
             >
               <div className="font-mono text-ut-xs font-bold" style={{ color: p.color }}>
@@ -216,9 +217,9 @@ export default function FinalizationScreen() {
                 {p.avg !== null ? p.avg.toFixed(1) : "–"}
               </div>
               <div className="text-ut-xs text-ut-muted">/3.0</div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
       {/* Grade selector */}

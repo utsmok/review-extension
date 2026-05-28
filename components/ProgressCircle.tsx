@@ -1,4 +1,7 @@
-export { type ProgressState, getProgressState } from "@/lib/evaluation-state";
+import { type ProgressState, getProgressState } from "@/lib/evaluation-state";
+
+export type { ProgressState };
+export { getProgressState };
 
 export function ProgressCircle({ state }: { state: ProgressState }) {
   const stateClass =

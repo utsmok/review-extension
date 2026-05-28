@@ -64,6 +64,17 @@ export default function Captures() {
         {capturing ? "Capturing..." : "+ Quick Capture"}
       </button>
 
+      {captures.length === 0 && (
+        <div className="text-center py-ut-6 text-ut-muted">
+          <p className="text-ut-sm mb-ut-2">No captures yet.</p>
+          <p className="text-ut-xs">
+            Use <strong>+ Quick Capture</strong> or press{" "}
+            <kbd className="px-1 py-0.5 bg-ut-grey rounded text-ut-xs font-mono">Ctrl+Shift+S</kbd>{" "}
+            to screenshot the current page.
+          </p>
+        </div>
+      )}
+
       {captures.length > 0 && (
         <div className="flex items-center gap-2 mb-1">
           <button

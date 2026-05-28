@@ -6,7 +6,7 @@ import {
   getQuestionCode,
   getVisibleRubricQuestionIds,
 } from "@/lib/rubric";
-import { getProgressState, type ProgressState } from "@/components/ProgressCircle";
+import { getProgressState, type ProgressState } from "@/lib/evaluation-state";
 import type { Capture, Evaluation, RubricData } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
@@ -37,6 +37,35 @@ function getStateIndicator(state: ProgressState): string {
     case "empty":
       return "○";
   }
+}
+
+function BadgeButton({ b, onNavigate }: { b: QuestionBadge; onNavigate: (id: string) => void }) {
+  return (
+    <button
+      type="button"
+      className={`score-overview-bar__badge ${b.state === "complete" ? "is-complete" : b.state === "partial" ? "is-partial" : ""}`}
+      title={b.title}
+      aria-label={`${b.title}, ${b.state}${b.evidenceCount > 0 ? `, ${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}` : ""}`}
+      data-accent={b.accentKey}
+      onClick={() => onNavigate(b.rubricId)}
+    >
+      <span className="score-overview-bar__code" aria-hidden="true">
+        {b.code}
+      </span>
+      <span className="score-overview-bar__indicator" data-state={b.state} aria-hidden="true">
+        {getStateIndicator(b.state)}
+      </span>
+      {b.evidenceCount > 0 && (
+        <span
+          className="score-overview-bar__evidence-count"
+          title={`${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}`}
+          aria-hidden="true"
+        >
+          {b.evidenceCount}
+        </span>
+      )}
+    </button>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -82,12 +111,13 @@ export default function ScoreOverviewBar({
     // Quality gates
     for (const [category, questions] of Object.entries(rubric.quality_gate)) {
       const catCode = getQGCategoryCode(category);
+      const qgKeys = Object.keys(questions);
       for (const [qId, question] of Object.entries(questions)) {
         const isAiOnly = question.ai_only ?? false;
         if (!usesAi && isAiOnly) continue;
 
         const rubricId = `${category}.${qId}`;
-        const qIdx = Object.keys(questions).indexOf(qId);
+        const qIdx = qgKeys.indexOf(qId);
         const ev = evalMap.get(rubricId);
         const evidence = captureMap.get(rubricId) ?? [];
         const isAutoNa = isAiOnly && !usesAi;
@@ -115,12 +145,13 @@ export default function ScoreOverviewBar({
 
     // Scoring rubric
     for (const [category, questions] of Object.entries(rubric.scoring_rubric)) {
+      const scoreKeys = Object.keys(questions);
       for (const [qId, question] of Object.entries(questions)) {
         const isAiOnly = question.ai_only ?? false;
         if (!usesAi && isAiOnly) continue;
 
         const rubricId = `${category}.${qId}`;
-        const qIdx = Object.keys(questions).indexOf(qId);
+        const qIdx = scoreKeys.indexOf(qId);
         const ev = evalMap.get(rubricId);
         const evidence = captureMap.get(rubricId) ?? [];
         const isAutoNa = isAiOnly && !usesAi;
@@ -194,31 +225,7 @@ export default function ScoreOverviewBar({
 
         {/* QG badges */}
         {badges.slice(0, qgCount).map((b) => (
-          <button
-            key={b.rubricId}
-            type="button"
-            className={`score-overview-bar__badge ${b.state === "complete" ? "is-complete" : b.state === "partial" ? "is-partial" : ""}`}
-            title={b.title}
-            aria-label={`${b.title}, ${b.state}${b.evidenceCount > 0 ? `, ${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}` : ""}`}
-            data-accent={b.accentKey}
-            onClick={() => navigateTo(b.rubricId)}
-          >
-            <span className="score-overview-bar__code" aria-hidden="true">
-              {b.code}
-            </span>
-            <span className="score-overview-bar__indicator" data-state={b.state} aria-hidden="true">
-              {getStateIndicator(b.state)}
-            </span>
-            {b.evidenceCount > 0 && (
-              <span
-                className="score-overview-bar__evidence-count"
-                title={`${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}`}
-                aria-hidden="true"
-              >
-                {b.evidenceCount}
-              </span>
-            )}
-          </button>
+          <BadgeButton key={b.rubricId} b={b} onNavigate={navigateTo} />
         ))}
 
         {/* Thin divider between QG and scoring */}
@@ -228,31 +235,7 @@ export default function ScoreOverviewBar({
 
         {/* Scoring badges */}
         {badges.slice(qgCount).map((b) => (
-          <button
-            key={b.rubricId}
-            type="button"
-            className={`score-overview-bar__badge ${b.state === "complete" ? "is-complete" : b.state === "partial" ? "is-partial" : ""}`}
-            title={b.title}
-            aria-label={`${b.title}, ${b.state}${b.evidenceCount > 0 ? `, ${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}` : ""}`}
-            data-accent={b.accentKey}
-            onClick={() => navigateTo(b.rubricId)}
-          >
-            <span className="score-overview-bar__code" aria-hidden="true">
-              {b.code}
-            </span>
-            <span className="score-overview-bar__indicator" data-state={b.state} aria-hidden="true">
-              {getStateIndicator(b.state)}
-            </span>
-            {b.evidenceCount > 0 && (
-              <span
-                className="score-overview-bar__evidence-count"
-                title={`${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}`}
-                aria-hidden="true"
-              >
-                {b.evidenceCount}
-              </span>
-            )}
-          </button>
+          <BadgeButton key={b.rubricId} b={b} onNavigate={navigateTo} />
         ))}
 
         {/* First needs work */}

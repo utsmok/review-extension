@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface ShortcutMap {
   [key: string]: () => void;
@@ -7,8 +7,12 @@ interface ShortcutMap {
 /**
  * Registers global keyboard shortcuts within the sidepanel.
  * Only active when not typing in an input/textarea/select element.
+ * Uses a ref internally so the handler never re-subscribes.
  */
 export function useKeyboardShortcuts(shortcuts: ShortcutMap) {
+  const ref = useRef(shortcuts);
+  ref.current = shortcuts;
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       // Ignore when user is typing in an input field
@@ -22,16 +26,11 @@ export function useKeyboardShortcuts(shortcuts: ShortcutMap) {
         return;
       }
 
-      const key = [
-        e.ctrlKey && "Ctrl",
-        e.shiftKey && "Shift",
-        e.altKey && "Alt",
-        e.key,
-      ]
+      const key = [e.ctrlKey && "Ctrl", e.shiftKey && "Shift", e.altKey && "Alt", e.key]
         .filter(Boolean)
         .join("+");
 
-      const action = shortcuts[key];
+      const action = ref.current[key];
       if (action) {
         e.preventDefault();
         action();
@@ -40,5 +39,5 @@ export function useKeyboardShortcuts(shortcuts: ShortcutMap) {
 
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [shortcuts]);
+  }, []);
 }
