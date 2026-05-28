@@ -52,6 +52,9 @@ export default function Captures() {
 
   return (
     <div className="flex flex-col gap-ut-3 p-ut-4">
+      <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta mb-ut-2">
+        Captures
+      </h2>
       <button
         type="button"
         className={`bg-trust-magenta text-white rounded-ut-sm px-ut-4 py-ut-2 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase hover:bg-trust-magenta-strong disabled:opacity-50 transition-colors ${capturing ? "animate-pulse-capture" : ""}`}
@@ -358,7 +361,7 @@ export default function Captures() {
               {reversed.map((capture) => {
                 return (
                   <div key={capture.id} className="captures-list-row">
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="captures-list-content">
                       <div className="captures-list-url">{capture.sourceUrl}</div>
                       {capture.pageTitle && (
                         <div className="text-ut-xs text-ut-text">{capture.pageTitle}</div>

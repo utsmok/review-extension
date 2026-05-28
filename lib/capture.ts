@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+
 import { compressCaptureScreenshot } from "./image-convert";
 import type { Capture } from "./types";
 
@@ -205,7 +205,7 @@ export async function captureActiveTab(): Promise<Capture> {
 
   const htmlContent = scriptResult?.html ?? "";
   const capture: Capture = {
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     timestamp: new Date().toISOString(),
     sourceUrl: tab.url,
     pageTitle: scriptResult?.title ?? "",

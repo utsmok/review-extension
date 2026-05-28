@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureCurrentPageInfo } from "@/lib/capture";
 import { useAutoFocus, useFocusTrap } from "@/lib/hooks";
@@ -54,7 +54,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
     if (!toolName.trim() || !toolUrl.trim() || submitting) return;
     setSubmitting(true);
 
-    const id = uuidv4();
+    const id = crypto.randomUUID();
     const metadata = {
       id,
       toolName: toolName.trim(),

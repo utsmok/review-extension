@@ -20,6 +20,7 @@ import type {
 import { toastError } from "@/stores/toast";
 import EvidenceThumbnails from "./EvidenceThumbnails";
 import { getProgressState, ProgressCircle } from "./ProgressCircle";
+import { ScoreOption } from "./ScoreOption";
 
 const NO_CAPTURES: Capture[] = [];
 
@@ -30,7 +31,8 @@ function renderQGScores(
   setEvaluation: (rubricId: string, patch: Partial<Evaluation>) => void,
 ) {
   return (
-    <div role="radiogroup" className="flex gap-ut-2 mb-ut-2">
+    <div role="radiogroup" aria-label="Quality gate score" className="flex gap-ut-2 mb-ut-2">
+
       {(["pass", "fail", "na", "unsure"] as PassFailScore[]).map((val) => {
         const isActive =
           ev?.score === val ||
@@ -51,33 +53,16 @@ function renderQGScores(
         };
 
         return (
-          <label
+          <ScoreOption
             key={val}
+            name={rubricId}
+            value={val}
+            isActive={isActive}
+            isDisabled={isDisabled}
             className="judgment-label cursor-pointer select-none"
-            data-judgment={val}
-            data-active={isActive ? "true" : "false"}
-            // biome-ignore lint/a11y/noNoninteractiveTabindex: label must be focusable since radio input is tabIndex={-1}
-            tabIndex={0}
-            onClick={(e) => {
-              e.preventDefault();
-              handleClick();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                handleClick();
-              }
-            }}
+            dataJudgment={val}
+            onClick={handleClick}
           >
-            <input
-              type="radio"
-              name={rubricId}
-              checked={isActive}
-              onChange={() => {}}
-              className="sr-only"
-              disabled={isDisabled}
-              tabIndex={-1}
-            />
             {val === "pass"
               ? "✓ Pass"
               : val === "fail"
@@ -85,7 +70,7 @@ function renderQGScores(
                 : val === "na"
                   ? "— N/A"
                   : "? Unsure"}
-          </label>
+          </ScoreOption>
         );
       })}
     </div>
@@ -103,7 +88,7 @@ function renderScoringScores(
   ev: Evaluation | undefined,
 ) {
   return (
-    <div role="radiogroup" className="my-ut-2">
+    <div role="radiogroup" aria-label="Rubric score" className="my-ut-2">
       {([0, 1, 2, 3] as RubricScore[]).map((val) => {
         if (val === "") return null;
         const desc = levels[String(val) as "0" | "1" | "2" | "3"];
@@ -119,46 +104,31 @@ function renderScoringScores(
         };
 
         return (
-          <label
+          <ScoreOption
             key={val}
+            name={rubricId}
+            value={val}
+            isActive={selected}
+            isDisabled={isAutoNa}
             className={`score-row ${selected ? "is-selected" : ""}`}
-            data-score={val}
-            // biome-ignore lint/a11y/noNoninteractiveTabindex: label must be focusable since radio input is tabIndex={-1}
-            tabIndex={0}
-            onClick={(e) => {
-              e.preventDefault();
-              handleClick();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                handleClick();
-              }
-            }}
+            dataScore={val}
+            onClick={handleClick}
           >
-            <input
-              type="radio"
-              name={rubricId}
-              checked={selected}
-              onChange={() => {}}
-              className="sr-only"
-              disabled={isAutoNa}
-              tabIndex={-1}
-            />
             <span className="score-badge select-none">{val}</span>
             <span className="score-desc">{desc}</span>
-          </label>
+          </ScoreOption>
         );
       })}
 
       {/* N/A row */}
-      <label
+      <ScoreOption
+        name={rubricId}
+        value="na"
+        isActive={isNa}
+        isDisabled={isAutoNa}
         className={`score-row score-row--meta-separator ${isNa ? "is-selected" : ""}`}
-        data-score="na"
-        // biome-ignore lint/a11y/noNoninteractiveTabindex: label must be focusable since radio input is tabIndex={-1}
-        tabIndex={0}
-        onClick={(e) => {
-          e.preventDefault();
+        dataScore="na"
+        onClick={() => {
           if (isAutoNa) return;
           if (isNa) {
             setEvaluation(rubricId, { score: "" });
@@ -166,39 +136,20 @@ function renderScoringScores(
             setEvaluation(rubricId, { score: "na", customScore: undefined });
           }
         }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            if (isAutoNa) return;
-            if (isNa) {
-              setEvaluation(rubricId, { score: "" });
-            } else {
-              setEvaluation(rubricId, { score: "na", customScore: undefined });
-            }
-          }
-        }}
       >
-        <input
-          type="radio"
-          name={rubricId}
-          checked={isNa}
-          onChange={() => {}}
-          className="sr-only"
-          disabled={isAutoNa}
-          tabIndex={-1}
-        />
         <span className="score-badge select-none">—</span>
         <span className="score-desc">Not applicable</span>
-      </label>
+      </ScoreOption>
 
       {/* Unsure row */}
-      <label
+      <ScoreOption
+        name={rubricId}
+        value="unsure"
+        isActive={isUnsure}
+        isDisabled={isAutoNa}
         className={`score-row ${isUnsure ? "is-selected" : ""}`}
-        data-score="unsure"
-        // biome-ignore lint/a11y/noNoninteractiveTabindex: label must be focusable since radio input is tabIndex={-1}
-        tabIndex={0}
-        onClick={(e) => {
-          e.preventDefault();
+        dataScore="unsure"
+        onClick={() => {
           if (isAutoNa) return;
           if (isUnsure) {
             setEvaluation(rubricId, { score: "" });
@@ -206,30 +157,10 @@ function renderScoringScores(
             setEvaluation(rubricId, { score: "unsure", customScore: undefined });
           }
         }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            if (isAutoNa) return;
-            if (isUnsure) {
-              setEvaluation(rubricId, { score: "" });
-            } else {
-              setEvaluation(rubricId, { score: "unsure", customScore: undefined });
-            }
-          }
-        }}
       >
-        <input
-          type="radio"
-          name={rubricId}
-          checked={isUnsure}
-          onChange={() => {}}
-          className="sr-only"
-          disabled={isAutoNa}
-          tabIndex={-1}
-        />
         <span className="score-badge select-none">?</span>
         <span className="score-desc">Insufficient information to score</span>
-      </label>
+      </ScoreOption>
       {/* Custom/Wildcard score */}
       <div className="mt-ut-2 border-t border-ut-border pt-ut-2">
         <details className="question-foldout">
