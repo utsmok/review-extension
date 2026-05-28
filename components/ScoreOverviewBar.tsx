@@ -22,7 +22,6 @@ interface QuestionBadge {
   state: ProgressState;
   isAutoNa: boolean;
   evidenceCount: number;
-
 }
 
 // ---------------------------------------------------------------------------
@@ -111,7 +110,6 @@ export default function ScoreOverviewBar({
           isAutoNa,
           evidenceCount: evidence.length,
         });
-
       }
     }
 
@@ -142,7 +140,6 @@ export default function ScoreOverviewBar({
           isAutoNa,
           evidenceCount: evidence.length,
         });
-
       }
     }
 
@@ -202,20 +199,26 @@ export default function ScoreOverviewBar({
             type="button"
             className={`score-overview-bar__badge ${b.state === "complete" ? "is-complete" : b.state === "partial" ? "is-partial" : ""}`}
             title={b.title}
+            aria-label={`${b.title}, ${b.state}${b.evidenceCount > 0 ? `, ${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}` : ""}`}
             data-accent={b.accentKey}
             onClick={() => navigateTo(b.rubricId)}
           >
-            <span className="score-overview-bar__code">{b.code}</span>
-            <span className="score-overview-bar__indicator" data-state={b.state}>
+            <span className="score-overview-bar__code" aria-hidden="true">
+              {b.code}
+            </span>
+            <span className="score-overview-bar__indicator" data-state={b.state} aria-hidden="true">
               {getStateIndicator(b.state)}
             </span>
             {b.evidenceCount > 0 && (
-              <span className="score-overview-bar__evidence-count" title={`${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}`}>
+              <span
+                className="score-overview-bar__evidence-count"
+                title={`${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}`}
+                aria-hidden="true"
+              >
                 {b.evidenceCount}
               </span>
             )}
           </button>
-
         ))}
 
         {/* Thin divider between QG and scoring */}
@@ -230,15 +233,22 @@ export default function ScoreOverviewBar({
             type="button"
             className={`score-overview-bar__badge ${b.state === "complete" ? "is-complete" : b.state === "partial" ? "is-partial" : ""}`}
             title={b.title}
+            aria-label={`${b.title}, ${b.state}${b.evidenceCount > 0 ? `, ${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}` : ""}`}
             data-accent={b.accentKey}
             onClick={() => navigateTo(b.rubricId)}
           >
-            <span className="score-overview-bar__code">{b.code}</span>
-            <span className="score-overview-bar__indicator" data-state={b.state}>
+            <span className="score-overview-bar__code" aria-hidden="true">
+              {b.code}
+            </span>
+            <span className="score-overview-bar__indicator" data-state={b.state} aria-hidden="true">
               {getStateIndicator(b.state)}
             </span>
             {b.evidenceCount > 0 && (
-              <span className="score-overview-bar__evidence-count" title={`${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}`}>
+              <span
+                className="score-overview-bar__evidence-count"
+                title={`${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}`}
+                aria-hidden="true"
+              >
                 {b.evidenceCount}
               </span>
             )}

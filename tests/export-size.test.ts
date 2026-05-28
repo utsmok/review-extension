@@ -5,7 +5,6 @@
  * Metric: METRIC zip_bytes=<value>
  */
 
-import { v4 as uuid } from "uuid";
 import { describe, expect, it } from "vitest";
 import { exportSession } from "@/lib/export";
 import {
@@ -138,7 +137,7 @@ function buildSession() {
   for (let i = 0; i < 5; i++) {
     captures.push(
       makeCapture({
-        id: uuid(),
+        id: crypto.randomUUID(),
         sourceUrl: `https://scholar.google.com/scholar?q=deep+learning&page=${i}`,
         pageTitle: `Deep Learning Results - Page ${i}`,
         screenshotBase64: screenshot,

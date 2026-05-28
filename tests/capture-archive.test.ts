@@ -199,3 +199,114 @@ describe("captureActiveTab XSS hardening", () => {
     expect(capture.htmlContent).not.toContain("data:text/html");
   });
 });
+
+describe("captureActiveTab XSS hardening — additional edge cases", () => {
+  function mockExecuteScriptRunsFunc() {
+    spyExecuteScript.mockImplementation(async ({ func }: { func: () => Promise<unknown> }) => {
+      const result = await func();
+      return [{ result }];
+    });
+  }
+
+  it("strips script elements but preserves surrounding content", async () => {
+    document.body.innerHTML = '<p>Safe</p><script>alert("xss")</script><p>Also safe</p>';
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    expect(capture.htmlContent).not.toContain("<script");
+    expect(capture.htmlContent).toContain("Safe");
+    expect(capture.htmlContent).toContain("Also safe");
+  });
+
+  it("strips noscript elements", async () => {
+    document.body.innerHTML =
+      '<p>Safe</p><noscript><img src="https://evil.com/tracker"></noscript>';
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    expect(capture.htmlContent).not.toContain("<noscript");
+    expect(capture.htmlContent).toContain("Safe");
+  });
+
+  it("injects a base tag for URL resolution", async () => {
+    document.body.innerHTML = "<p>Content</p>";
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    // Should contain a base tag for URL resolution
+    expect(capture.htmlContent).toContain("<base");
+  });
+
+  it("strips javascript: URLs from formaction attribute", async () => {
+    document.body.innerHTML = '<button formaction="javascript:alert(1)">Submit</button>';
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    expect(capture.htmlContent).not.toContain("javascript:");
+    expect(capture.htmlContent).toContain("Submit");
+  });
+
+  it("strips onerror handler from img elements", async () => {
+    document.body.innerHTML = '<img src="x" onerror="alert(1)" alt="test">';
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    expect(capture.htmlContent).not.toContain("onerror");
+    expect(capture.htmlContent).toContain('alt="test"');
+  });
+
+  it("strips applet and frame elements", async () => {
+    document.body.innerHTML =
+      '<p>Safe</p><applet code="Evil.class"></applet><frame src="https://evil.com">';
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    expect(capture.htmlContent).not.toContain("<applet");
+    expect(capture.htmlContent).not.toContain("<frame");
+    expect(capture.htmlContent).toContain("Safe");
+  });
+
+  it("preserves safe data: URIs (non-text/html)", async () => {
+    document.body.innerHTML = '<img src="data:image/png;base64,abc" alt="inline">';
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    expect(capture.htmlContent).toContain("data:image/png;base64,abc");
+  });
+
+  it("resolves relative URLs to absolute using page URL", async () => {
+    document.body.innerHTML = '<a href="/path">Link</a><img src="/img.png" alt="img">';
+    spyTabsQuery.mockResolvedValue([{ id: 1, url: "https://example.com/page", windowId: 1 }]);
+    spyCaptureVisibleTab.mockResolvedValue("data:image/png;base64,abc");
+    mockExecuteScriptRunsFunc();
+
+    const capture = await captureActiveTab();
+
+    // Relative URLs should be resolved to absolute (exact base depends on jsdom env)
+    expect(capture.htmlContent).not.toContain('href="/path"');
+    expect(capture.htmlContent).not.toContain('src="/img.png"');
+    // Should have a base tag for the source page
+    expect(capture.htmlContent).toContain("<base");
+  });
+});

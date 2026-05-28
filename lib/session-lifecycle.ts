@@ -34,22 +34,13 @@ export async function loadSessionById(id: string): Promise<boolean> {
   }
 }
 
-/** Save current session data to IDB (fire-and-forget). */
-export function saveCurrentSession(): void {
-  const data = snapshot();
-  if (data)
-    getRepository()
-      .save(data.metadata.id, data)
-      .catch((err) => console.error("Fire-and-forget IDB save failed:", err));
-}
-
-/** Save current session data to IDB (returns promise for callers that need to await). */
-export async function saveCurrentSessionAsync(): Promise<void> {
+/** Save current session data to IDB. Returns promise; callers may await or fire-and-forget. */
+export async function saveCurrentSession(): Promise<void> {
   const data = snapshot();
   if (data) {
     const ok = await getRepository().save(data.metadata.id, data);
     if (!ok) {
-      toastError("Failed to save current review before switching. Your work may be lost.");
+      toastError("Failed to save current review. Your work may be lost.");
     }
   }
 }
@@ -78,7 +69,7 @@ export async function deleteSession(id: string): Promise<void> {
 
 /** Switch from current session to another. Saves current first (awaited). */
 export async function switchToSession(id: string): Promise<void> {
-  await saveCurrentSessionAsync();
+  await saveCurrentSession();
   useSessionStore.getState().clear();
   useRegistryStore.getState().setActiveSessionId(id);
 }
@@ -87,7 +78,7 @@ export async function switchToSession(id: string): Promise<void> {
 export async function markDoneAndClose(id: string): Promise<void> {
   useRegistryStore.getState().markSessionDone(id);
   try {
-    await saveCurrentSessionAsync();
+    await saveCurrentSession();
   } catch (err) {
     console.error("Failed to save before close:", err);
     toastError("Failed to save final state. Your work may be lost.");

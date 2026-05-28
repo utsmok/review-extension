@@ -1160,7 +1160,7 @@
 }
 
 .score-overview-bar__evidence-count {
-  font-size: 0.45rem;
+  font-size: 0.6rem;
   color: var(--ut-muted);
   margin-left: 1px;
 }

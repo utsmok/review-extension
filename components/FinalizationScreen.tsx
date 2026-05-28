@@ -207,7 +207,7 @@ export default function FinalizationScreen() {
             <div
               key={p.id}
               className="text-center p-ut-2 rounded-ut-sm"
-              style={{ background: `${p.color}12` }}
+              style={{ background: `color-mix(in srgb, ${p.color} 7%, transparent)` }}
             >
               <div className="font-mono text-ut-xs font-bold" style={{ color: p.color }}>
                 {p.code}
