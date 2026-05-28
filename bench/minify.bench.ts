@@ -1,5 +1,5 @@
 import { bench, describe } from "vitest";
-import { minifyCss, minifyHtml } from "@/lib/export";
+import { minifyCss, minifyHtml } from "@/lib/minify";
 
 const SAMPLE_HTML = `<!DOCTYPE html>
 <html>

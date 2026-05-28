@@ -1,3 +1,4 @@
+import { minifyCss, minifyHtml } from "./minify";
 import { buildHtmlReport, buildNutritionLabel, REPORT_CSS } from "./html-report";
 import { getCategoryLabel } from "./rubric";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
@@ -35,60 +36,6 @@ export function downloadBlob(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
-// ── Pre-compiled regex patterns (avoid per-call RegExp allocation) ──
-const HTML_COMMENT_OR_TAG =
-  /<!--[\s\S]*?-->|<\/(?:li|dt|dd|p|tr|td|th|thead|tbody|tfoot|colgroup|option|optgroup)>/gi;
-const HTML_WS_COLLAPSE = /\s+/g;
-const HTML_SPACE_BEFORE_TAG = / (?=<|\/>)/g;
-
-const CSS_COMMENTS = /\/\*[\s\S]*?\*\/|\/\/.*$/gm;
-const CSS_VAR_DEF = /--([a-z-]+)\s*:\s*([^;{}]+)/g;
-const CSS_VAR_REF = /var\(--([a-z-]+)\)/g;
-const CSS_ROOT = /:root\s*\{[^}]*\}/g;
-const CSS_DELIMITERS = /\s*([{}:;,])\s*/g;
-const CSS_TRAILING_SEMI = /;\}/g;
-const CSS_WS_COLLAPSE = /\s+/g;
-// ────────────────────────────────────────────────────────────────────
-
-/** Strip whitespace, comments, and optional closing tags from HTML output for smaller ZIP entries. */
-export function minifyHtml(html: string): string {
-  return html
-    .replace(HTML_COMMENT_OR_TAG, "")
-    .replace(HTML_WS_COLLAPSE, " ")
-    .replace(HTML_SPACE_BEFORE_TAG, "")
-    .trim();
-}
-
-/** Strip whitespace, comments, and resolve CSS variables for smaller ZIP entries.
- *  Keeps vars needed by HTML inline styles (--magenta, --muted, --text, --ff-heading)
- *  in a compact :root block; resolves all others inline. */
-const CSS_KEEP_VARS = new Set(["--magenta", "--muted", "--text", "--ff-heading"]);
-export function minifyCss(css: string): string {
-  let result = css.replace(CSS_COMMENTS, "");
-
-  // Extract all CSS variable definitions and build root keeps in one pass
-  const vars = new Map<string, string>();
-  const rootKeepParts: string[] = [];
-  result = result.replace(CSS_VAR_DEF, (_, name, value) => {
-    const trimmed = value.trim();
-    vars.set(name, trimmed);
-    if (CSS_KEEP_VARS.has(`--${name}`)) rootKeepParts.push(`--${name}:${trimmed}`);
-    return "";
-  });
-
-  // Resolve all var() references in a single pass
-  result = result.replace(CSS_VAR_REF, (_, name) => vars.get(name) ?? `var(--${name})`);
-
-  // Remove :root block (now empty after var extraction) — handles leftover semicolons
-  result = result.replace(CSS_ROOT, "");
-  if (rootKeepParts.length > 0) result = `:root{${rootKeepParts.join(";")}}${result}`;
-
-  return result
-    .replace(CSS_DELIMITERS, "$1")
-    .replace(CSS_TRAILING_SEMI, "}")
-    .replace(CSS_WS_COLLAPSE, " ")
-    .trim();
-}
 // Cached dynamic imports
 let cachedJSZip: typeof import("jszip") | null = null;
 let cachedPapa: typeof import("papaparse") | null = null;
@@ -121,26 +68,28 @@ export async function exportSession(
   const shortId = (id: string) => id.replace(/-/g, "").substring(0, 8);
   const idMap = new Map(captures.map((c) => [c.id, shortId(c.id)]));
 
-  for (const capture of captures) {
-    // biome-ignore lint/style/noNonNullAssertion: idMap built from same captures array being iterated
-    const sid = idMap.get(capture.id)!;
-    const { dataUrl: converted, extension } = await pngToJpeg(capture.screenshotBase64, 0.8);
-    const base64Data = converted.split(",")[1] ?? "";
-    zip.file(`${sid}.${extension}`, base64Data, {
-      base64: true,
-    });
-    zip.file(`${sid}.html`, minifyHtml(capture.htmlContent));
-    imgExtensions.set(capture.id, extension);
-    // Export annotated screenshot alongside clean version
-    if (capture.annotatedScreenshotBase64) {
-      const { dataUrl: annConverted, extension: annExt } = await pngToJpeg(
-        capture.annotatedScreenshotBase64,
-        0.8,
-      );
-      const annBase64 = annConverted.split(",")[1] ?? "";
-      zip.file(`${sid}_annotated.${annExt}`, annBase64, { base64: true });
-      annotatedExtensions.set(capture.id, annExt);
-    }
+  // Process captures in batches of 4 to limit memory pressure
+  const BATCH_SIZE = 4;
+  for (let i = 0; i < captures.length; i += BATCH_SIZE) {
+    const batch = captures.slice(i, i + BATCH_SIZE);
+    await Promise.all(batch.map(async (capture) => {
+      const sid = idMap.get(capture.id);
+      if (!sid) return;
+      const { dataUrl: converted, extension } = await pngToJpeg(capture.screenshotBase64, 0.8);
+      const base64Data = converted.split(",")[1] ?? "";
+      zip.file(`${sid}.${extension}`, base64Data, { base64: true });
+      zip.file(`${sid}.html`, minifyHtml(capture.htmlContent));
+      imgExtensions.set(capture.id, extension);
+      if (capture.annotatedScreenshotBase64) {
+        const { dataUrl: annConverted, extension: annExt } = await pngToJpeg(
+          capture.annotatedScreenshotBase64,
+          0.8,
+        );
+        const annBase64 = annConverted.split(",")[1] ?? "";
+        zip.file(`${sid}_annotated.${annExt}`, annBase64, { base64: true });
+        annotatedExtensions.set(capture.id, annExt);
+      }
+    }));
   }
 
   // Build capture map for HTML reports: reference annotated images by default,

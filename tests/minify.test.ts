@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { minifyCss, minifyHtml } from "@/lib/export";
+import { minifyCss, minifyHtml } from "@/lib/minify";
 
 // ── minifyHtml ─────────────────────────────────────────────────────────────
 

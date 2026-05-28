@@ -1,5 +1,6 @@
 import { bench, describe } from "vitest";
-import { minifyCss, minifyHtml, sanitizeFilename } from "@/lib/export";
+import { sanitizeFilename } from "@/lib/export";
+import { minifyCss, minifyHtml } from "@/lib/minify";
 
 // ── HTML samples ──────────────────────────────────────────────────────
 
