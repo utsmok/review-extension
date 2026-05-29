@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
+import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureActiveTab } from "@/lib/capture";
 import { useRubric } from "@/lib/contexts";
@@ -159,6 +160,12 @@ function renderScoringScores(
       </div>
     </div>
   );
+}
+
+function MiniCaptureImg({ capture }: { capture: Capture }) {
+  const screenshotUrl = useScreenshotUrl(capture.id);
+  const src = screenshotUrl ?? capture.annotatedScreenshotBase64 ?? capture.screenshotBase64;
+  return <img src={src} alt="" className="h-6 w-auto border border-ut-border" />;
 }
 
 // ---------------------------------------------------------------------------
@@ -413,11 +420,7 @@ export const QuestionRow = React.memo(function QuestionRow({
                       setLinkPopoverFor(null);
                     }}
                   >
-                    <img
-                      src={c.annotatedScreenshotBase64 ?? c.screenshotBase64}
-                      alt=""
-                      className="h-6 w-auto border border-ut-border"
-                    />
+                    <MiniCaptureImg capture={c} />
                     <div className="flex-1 min-w-0">
                       <p className="text-ut-xs font-bold truncate">{c.pageTitle || "Capture"}</p>
                       <p className="text-ut-xs text-ut-muted truncate">

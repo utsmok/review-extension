@@ -1,5 +1,6 @@
 import { prepareExportArtifacts, assembleZip, sanitizeFilename, shortId } from "./export-pipeline";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
+import { saveScreenshot } from "./screenshot-store";
 
 export { sanitizeFilename };
 
@@ -180,6 +181,13 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
       }
     }
   }
+
+  // Persist screenshots to separate store
+  await Promise.all(
+    data.captures
+      .filter((c) => c.screenshotBase64)
+      .map((c) => saveScreenshot(c)),
+  );
 
   return data;
 }

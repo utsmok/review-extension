@@ -4,6 +4,7 @@ import { getRepository } from "@/lib/session-repository";
 import type { SessionData, SessionMetadata } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
+import { saveScreenshot } from "@/lib/screenshot-store";
 import { toastError, toastWarning } from "@/stores/toast";
 
 // --- Auto-save singleton state ---
@@ -41,9 +42,20 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
     return;
   }
   if (s && activeId) {
+    // Persist screenshots to separate IDB store, then strip from session data
+    for (const cap of c) {
+      if (cap.screenshotBase64) {
+        await saveScreenshot(cap);
+      }
+    }
+    const strippedCaptures = c.map((cap) => ({
+      ...cap,
+      screenshotBase64: "",
+      annotatedScreenshotBase64: undefined,
+    }));
     const ok = await getRepository().save(activeId, {
       metadata: s,
-      captures: c,
+      captures: strippedCaptures,
       evaluations: e,
       finalization: f,
     });
@@ -119,12 +131,30 @@ export function teardownAutoSave(): void {
   lastSaveTime = 0;
 }
 
-/** Snapshot current session store state as SessionData */
+/** Save all captures' screenshots to the separate screenshot IDB store. */
+async function saveCurrentScreenshots(): Promise<void> {
+  const state = useSessionStore.getState();
+  for (const c of state.captures) {
+    if (c.screenshotBase64) {
+      await saveScreenshot(c);
+    }
+  }
+}
+
+/** Snapshot current session store state as SessionData, stripping heavy screenshot data. */
 function snapshot(): SessionData | null {
   const { session, captures, evaluations, finalization } = useSessionStore.getState();
   if (!session) return null;
-  return { metadata: session, captures, evaluations, finalization };
+  // Strip heavy screenshot data from captures before saving to session IDB.
+  // Screenshots live in the separate screenshot IDB store.
+  const strippedCaptures = captures.map((c) => ({
+    ...c,
+    screenshotBase64: "",
+    annotatedScreenshotBase64: undefined,
+  }));
+  return { metadata: session, captures: strippedCaptures, evaluations, finalization };
 }
+
 
 /** Load a session from IDB into the session store. Returns true if data was found. */
 export async function loadSessionById(id: string): Promise<boolean> {
@@ -147,8 +177,10 @@ export async function loadSessionById(id: string): Promise<boolean> {
   }
 }
 
-/** Save current session data to IDB. Returns promise; callers may await or fire-and-forget. */
+/** Save current session data to IDB (screenshots stripped). Persists screenshots
+ *  to the separate screenshot IDB store first. */
 export async function saveCurrentSession(): Promise<void> {
+  await saveCurrentScreenshots();
   const data = snapshot();
   if (data) {
     const ok = await getRepository().save(data.metadata.id, data);
@@ -227,7 +259,20 @@ export async function importSessionFromZipFile(zipBlob: Blob): Promise<string> {
     );
   }
 
-  await getRepository().save(id, data);
+  // Persist imported screenshots to the separate screenshot IDB store
+  for (const c of data.captures) {
+    if (c.screenshotBase64) {
+      await saveScreenshot(c);
+    }
+  }
+
+  // Strip screenshots before saving to session IDB
+  const strippedCaptures = data.captures.map((c) => ({
+    ...c,
+    screenshotBase64: "",
+    annotatedScreenshotBase64: undefined as string | undefined,
+  }));
+  await getRepository().save(id, { ...data, captures: strippedCaptures });
   useRegistryStore.getState().addSession(data.metadata);
   return id;
 }

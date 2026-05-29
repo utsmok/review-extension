@@ -1,3 +1,19 @@
+import type { Capture } from "@/lib/types";
+import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
+
+function CaptureImg({ capture, className }: { capture: Capture; className?: string }) {
+  const screenshotUrl = useScreenshotUrl(capture.id);
+  const src = screenshotUrl ?? capture.annotatedScreenshotBase64 ?? capture.screenshotBase64;
+  return (
+    <img
+      src={src}
+      alt={`Screenshot of ${capture.pageTitle || capture.sourceUrl}`}
+      loading="lazy"
+      className={className}
+    />
+  );
+}
+
 import { useMemo, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureActiveTab } from "@/lib/capture";
@@ -6,9 +22,8 @@ import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
 import EvidenceModal from "./EvidenceModal";
-import EmptyState from "./EmptyState";
 import RubricChipGroup from "./RubricChipGroup";
-
+import EmptyState from "./EmptyState";
 export default function Captures() {
   const { rubric, usesAi } = useRubric();
   const {
@@ -137,12 +152,7 @@ export default function Captures() {
                           }
                         }}
                       >
-                        <img
-                          src={capture.annotatedScreenshotBase64 ?? capture.screenshotBase64}
-                          alt={`Screenshot of ${capture.pageTitle || capture.sourceUrl}`}
-                          loading="lazy"
-                          className="w-full aspect-video object-cover border border-ut-border"
-                        />
+                        <CaptureImg capture={capture} className="w-full aspect-video object-cover border border-ut-border" />
                         <div className="evidence-thumb-overlay">
                           <button
                             type="button"

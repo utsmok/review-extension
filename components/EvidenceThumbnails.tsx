@@ -1,4 +1,11 @@
+import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
 import type { Capture } from "@/lib/types";
+
+function ThumbnailImg({ capture }: { capture: Capture }) {
+  const screenshotUrl = useScreenshotUrl(capture.id);
+  const src = screenshotUrl ?? capture.annotatedScreenshotBase64 ?? capture.screenshotBase64;
+  return <img src={src} alt="Evidence" loading="lazy" />;
+}
 
 interface EvidenceThumbnailsProps {
   captures: Capture[];
@@ -22,11 +29,7 @@ export default function EvidenceThumbnails({
       <div className="flex gap-1 overflow-x-auto">
         {captures.map((c) => (
           <div key={c.id} className="evidence-thumb-wrap">
-            <img
-              src={c.annotatedScreenshotBase64 ?? c.screenshotBase64}
-              alt="Evidence"
-              loading="lazy"
-            />
+            <ThumbnailImg capture={c} />
             <div className="evidence-thumb-overlay">
               <button
                 type="button"

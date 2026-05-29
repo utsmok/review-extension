@@ -1,3 +1,4 @@
+import { saveAnnotatedScreenshot, saveScreenshot, deleteScreenshot } from "@/lib/screenshot-store";
 import { create } from "zustand";
 import type {
   Capture,
@@ -67,15 +68,33 @@ export const useSessionStore = create<SessionState>()((set) => ({
       session: s.session ? { ...s.session, ...patch } : null,
     })),
 
-  addCapture: (capture) => set((s) => ({ captures: [...s.captures, capture] })),
+  addCapture: (capture) => {
+    // Save heavy screenshot data to separate IDB store immediately
+    saveScreenshot(capture).catch((err) => {
+      console.error("Failed to persist screenshot:", err);
+    });
+    set((s) => ({ captures: [...s.captures, capture] }));
+  },
 
   updateCapture: (id, patch) =>
-    set((s) => ({
-      captures: s.captures.map((c) => (c.id === id ? { ...c, ...patch } : c)),
-    })),
+    set((s) => {
+      // If annotated screenshot is being updated, persist to screenshot store
+      if (patch.annotatedScreenshotBase64) {
+        saveAnnotatedScreenshot(id, patch.annotatedScreenshotBase64).catch((err) => {
+          console.error("Failed to persist annotated screenshot:", err);
+        });
+      }
+      return {
+        captures: s.captures.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+      };
+    }),
 
   removeCapture: (id) =>
     set((s) => {
+      // Delete screenshot from separate IDB store
+      deleteScreenshot(id).catch((err) => {
+        console.error("Failed to delete screenshot:", err);
+      });
       const removed = s.captures.find((c) => c.id === id);
       const metadataPatch: Partial<SessionMetadata> = {};
       if (removed?.metadataField === "toolLogoUrl") metadataPatch.toolLogoUrl = "";

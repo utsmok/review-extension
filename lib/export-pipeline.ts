@@ -1,3 +1,4 @@
+import { loadAllScreenshots } from "./screenshot-store";
 import { minifyCss, minifyHtml } from "./minify";
 import { buildHtmlReport, buildNutritionLabel, REPORT_CSS } from "./html-report";
 import { getCategoryLabel } from "./rubric";
@@ -62,6 +63,19 @@ export async function prepareExportArtifacts(
   rubric: RubricData,
   finalization: ReviewFinalization | null,
 ): Promise<ExportArtifacts> {
+  // Load screenshots from separate IDB store
+  const screenshotMap = await loadAllScreenshots(captures.map((c) => c.id));
+
+  // Merge screenshot data back into captures for export
+  const capturesWithScreenshots = captures.map((c) => {
+    const blob = screenshotMap.get(c.id);
+    return {
+      ...c,
+      screenshotBase64: c.screenshotBase64 || blob?.screenshotBase64 || "",
+      annotatedScreenshotBase64: c.annotatedScreenshotBase64 || blob?.annotatedScreenshotBase64,
+    };
+  });
+
   if (!cachedPapa) cachedPapa = (await import("papaparse")).default;
   const Papa = cachedPapa;
 
@@ -70,15 +84,15 @@ export async function prepareExportArtifacts(
   const pngToJpeg = cachedPngToJpeg!;
 
   // ── Image conversion (batched) ───────────────────────────────────────
-  const idMap = new Map(captures.map((c) => [c.id, shortId(c.id)]));
+  const idMap = new Map(capturesWithScreenshots.map((c) => [c.id, shortId(c.id)]));
   const imageFiles = new Map<string, string>();
   const captureHtmlFiles = new Map<string, string>();
   const imgExtensions = new Map<string, "jpg" | "png">();
   const annotatedExtensions = new Map<string, "jpg" | "png">();
 
   const BATCH_SIZE = 4;
-  for (let i = 0; i < captures.length; i += BATCH_SIZE) {
-    const batch = captures.slice(i, i + BATCH_SIZE);
+  for (let i = 0; i < capturesWithScreenshots.length; i += BATCH_SIZE) {
+    const batch = capturesWithScreenshots.slice(i, i + BATCH_SIZE);
     await Promise.all(
       batch.map(async (capture) => {
         const sid = idMap.get(capture.id);
@@ -103,17 +117,17 @@ export async function prepareExportArtifacts(
 
   // ── Build capture maps for HTML reports ───────────────────────────────
   const capturePathMap = new Map(
-    captures.map((c) => [c.id, `${idMap.get(c.id)}.${imgExtensions.get(c.id) ?? "png"}`]),
+    capturesWithScreenshots.map((c) => [c.id, `${idMap.get(c.id)}.${imgExtensions.get(c.id) ?? "png"}`]),
   );
   const annotatedPathMap = new Map(
-    captures
+    capturesWithScreenshots
       .filter((c) => c.annotatedScreenshotBase64)
       .map((c) => [
         c.id,
         `${idMap.get(c.id)}_annotated.${annotatedExtensions.get(c.id) ?? imgExtensions.get(c.id) ?? "png"}`,
       ]),
   );
-  const capturesWithPaths = captures.map((c) => ({
+  const capturesWithPaths = capturesWithScreenshots.map((c) => ({
     ...c,
     screenshotBase64: capturePathMap.get(c.id) ?? c.screenshotBase64,
     annotatedScreenshotBase64: annotatedPathMap.has(c.id)
@@ -163,7 +177,7 @@ export async function prepareExportArtifacts(
   );
 
   const captureLogCsv = Papa.unparse(
-    captures.map((c) => ({
+    capturesWithScreenshots.map((c) => ({
       Capture_ID: c.id,
       Timestamp: c.timestamp,
       Page_Title: c.pageTitle,
@@ -193,7 +207,7 @@ export async function prepareExportArtifacts(
     : null;
 
   // ── session.json ──────────────────────────────────────────────────────
-  const lightweightCaptures = captures.map((c): LightweightCapture => {
+  const lightweightCaptures = capturesWithScreenshots.map((c): LightweightCapture => {
     const entry: LightweightCapture = {
       id: c.id,
       timestamp: c.timestamp,

@@ -12,6 +12,7 @@ import {
 
 const Tldraw = lazy(() => import("tldraw").then((m) => ({ default: m.Tldraw })));
 
+import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useRubric } from "@/lib/contexts";
 import { useAutoFocus, useFocusTrap } from "@/hooks/useFocus";
@@ -51,7 +52,8 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
   const [imageShapeId, setImageShapeId] = useState<TLShapeId | null>(null);
   const [notes, setNotes] = useState(capture.notes);
 
-  const imageSrc = capture.annotatedScreenshotBase64 ?? capture.screenshotBase64;
+  const screenshotUrl = useScreenshotUrl(capture.id);
+  const imageSrc = screenshotUrl ?? capture.annotatedScreenshotBase64 ?? capture.screenshotBase64;
 
   /* ── Focus / keyboard ── */
   useFocusTrap(panelRef);
