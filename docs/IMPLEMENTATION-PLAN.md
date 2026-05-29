@@ -107,7 +107,7 @@ Focused refactoring. Each item is one commit.
 - **Create directory**: `lib/capture/`
 - **Split into**:
   - `lib/capture/sanitize.ts` — `archivePageHtml()` and all its helpers (lines 8–~200). Pure DOM manipulation, no Chrome APIs.
-  - `lib/capture/extract.ts` — `extractLogoFromPage()` and `extractTermsUrl()` (lines ~240–338). Runs via `chrome.scripting.executeScript`.
+  - `lib/capture/extract.ts` — `extractLogoFromPage()` (lines ~240–338). Runs via `chrome.scripting.executeScript`.
   - `lib/capture/browser.ts` — `captureActiveTab()`, `captureForMetadataField()`, `captureCurrentPageInfo()` (Chrome API calls).
   - `lib/capture/index.ts` — Re-exports public API so all consumers still import from `@/lib/capture`.
 - **Update imports**: Consumers currently import from `"@/lib/capture"` — no change needed if index.ts re-exports everything.
@@ -234,15 +234,14 @@ Mixed discipline. Grouped to minimize context-switching within each domain.
 - **Files**: `lib/session-lifecycle.ts`
 - **Verify**: Auto-save still fires on real changes. Add test confirming no save when state unchanged.
 
-#### 4.2 PERF-4: Memoize computeScores
-- **Current**: `components/Evaluation.tsx` calls `computeScores` on every render.
-- **Change**: Wrap in `useMemo` keyed by `JSON.stringify(evaluations)` (evaluations is a small array).
+#### 4.2 PERF-4: Optimize ScoreOverviewBar score computation
+- **Current**: `components/ScoreOverviewBar.tsx` computes badge states and scored counts inline on every render without memoization.
+- **Change**: Wrap the `scored/total` computation and badge-building logic in `useMemo` keyed by `evaluations`, `captures`, and `rubric`.
 - **Verify**: Rendering test passes. No visual change.
 
 #### 4.3 PERF-5: Exclude report.css from sidepanel bundle
-- **Current**: `lib/report.css` (1085 lines) is imported in the sidepanel entry but only used in exported HTML.
-- **Change**: Remove `import "./report.css"` from sidepanel entry. Only import it in `lib/html-report.ts` where it's inlined into the exported HTML string.
-- **Verify**: `pnpm build` — sidepanel chunk shrinks. Exported HTML still contains full report CSS.
+- **Current**: `lib/report.css` (1085 lines) is imported via `?raw` in `lib/html-report.ts` (line 23), so it's already only in the export path — not in the sidepanel JS bundle. **Verified: already optimized.**
+- **Status**: No change needed. The `?raw` import causes Vite to inline the CSS as a string constant, which is only referenced in the export function. It does not ship in the sidepanel chunk.
 
 ### Accessibility
 
@@ -383,11 +382,11 @@ Mixed discipline. Grouped to minimize context-switching within each domain.
 
 ### Performance
 
-#### 5.7 Lazy-load report.css and logos in export path
+#### 5.7 Lazy-load logos in export path
 - **Files**: `lib/html-report.ts`
-- **Current**: `report.css` and `logos.ts` are statically imported.
-- **Change**: Use dynamic `import()` for these within the export function (which is already async). Report CSS is read as a string for HTML embedding — use `import(/* @vite-ignore */ './report.css?raw')`.
-- **Verify**: Export still produces correct HTML. Sidepanel bundle doesn't include report.css.
+- **Current**: `report.css` is already loaded via `?raw` (not in sidepanel bundle). `logos.ts` is statically imported — small (16 lines of SVG constants), low priority.
+- **Change**: If bundle analysis shows logos in sidepanel chunk, convert to dynamic `import()`. Otherwise skip — marginal benefit for 16 lines.
+- **Verify**: Export still produces correct HTML.
 
 #### 5.8 Batch IDB writes during multi-capture
 - **File**: `lib/session-lifecycle.ts`
