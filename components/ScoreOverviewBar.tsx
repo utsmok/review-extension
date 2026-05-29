@@ -74,7 +74,10 @@ function RollingNumber({ value }: { value: number }) {
   }
 
   return (
-    <span className="score-overview-bar__scored score-overview-bar__scored--rolling" aria-live="polite">
+    <span
+      className="score-overview-bar__scored score-overview-bar__scored--rolling"
+      aria-live="polite"
+    >
       <span className="score-overview-bar__roll-old" key={`old-${displayOld}`}>
         {displayOld}
       </span>
@@ -264,7 +267,14 @@ export default function ScoreOverviewBar({
           state: getProgressState(hasScore, hasEvidence, hasNotes, ev?.manualDone),
           isAutoNa,
           evidenceCount: evidence.length,
-          scoreValue: sn >= 0 ? String(sn) : ev?.score === "na" ? "na" : ev?.score === "unsure" ? "unsure" : "",
+          scoreValue:
+            sn >= 0
+              ? String(sn)
+              : ev?.score === "na"
+                ? "na"
+                : ev?.score === "unsure"
+                  ? "unsure"
+                  : "",
         });
       }
     }
@@ -313,6 +323,7 @@ export default function ScoreOverviewBar({
     }
     if (!isComplete) {
       prevCompleteRef.current = false;
+      setCelebrating(false);
     }
   }, [scored, total]);
 
@@ -376,7 +387,9 @@ export default function ScoreOverviewBar({
     <div className={`score-overview-bar ${celebrating ? "score-overview-bar--celebrating" : ""}`}>
       <div className="score-overview-bar__inner">
         {/* Fraction with rolling counter */}
-        <span className={`score-overview-bar__fraction ${bumpFraction ? "score-overview-bar__fraction--bump" : ""}`}>
+        <span
+          className={`score-overview-bar__fraction ${bumpFraction ? "score-overview-bar__fraction--bump" : ""}`}
+        >
           <RollingNumber value={scored} />
           <span className="score-overview-bar__divider">/</span>
           <span className="score-overview-bar__total">{total}</span>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { type ProgressState, getProgressState } from "@/lib/evaluation-state";
 
 export type { ProgressState };
@@ -19,7 +19,6 @@ const PROGRESS_C = 2 * Math.PI * PROGRESS_R; // ~37.7
 const STATE_PCT: Record<ProgressState, number> = { empty: 0, partial: 0.5, complete: 1 };
 
 export function ProgressCircle({ state }: { state: ProgressState }) {
-  const prevPctRef = useRef(STATE_PCT[state]);
   const [animPct, setAnimPct] = useState(0); // start at 0 for mount animation
 
   useEffect(() => {
@@ -28,7 +27,6 @@ export function ProgressCircle({ state }: { state: ProgressState }) {
     const raf = requestAnimationFrame(() => {
       setAnimPct(STATE_PCT[state]);
     });
-    prevPctRef.current = STATE_PCT[state];
     return () => cancelAnimationFrame(raf);
   }, [state]);
 
@@ -80,13 +78,7 @@ export function ProgressCircle({ state }: { state: ProgressState }) {
       />
       {/* Center dot on complete */}
       {state === "complete" && (
-        <circle
-          cx="8"
-          cy="8"
-          r="3"
-          fill="var(--state-success)"
-          className="progress-circle__dot"
-        />
+        <circle cx="8" cy="8" r="3" fill="var(--state-success)" className="progress-circle__dot" />
       )}
     </svg>
   );
