@@ -226,7 +226,7 @@ export default function Metadata() {
 
       <label className="flex items-center gap-ut-2">
         <input
-          aria-describedby="desc-usesai"
+          {...(!(session.usesAi ?? true) ? { "aria-describedby": "desc-usesai" } : {})}
           type="checkbox"
           checked={session.usesAi ?? true}
           onChange={(e) => {

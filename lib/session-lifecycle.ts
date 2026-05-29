@@ -13,16 +13,20 @@ let autoSaveUnsub: (() => void) | null = null;
 let autoSaveVisibilityHandler: (() => void) | null = null;
 let lastSaveSignature: string | null = null;
 let lastSaveTime = 0;
-
-
+let rateLimitTimer: ReturnType<typeof setTimeout> | undefined;
 async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = false): Promise<void> {
   // Rate limit: 3-second hard minimum between saves (debounced calls only)
   if (!bypassRateLimit) {
     const now = Date.now();
     if (now - lastSaveTime < 3000) {
-      setTimeout(() => {
-        autoSaveFlush(scheduledId, false);
-      }, 3000 - (now - lastSaveTime));
+      if (rateLimitTimer !== undefined) clearTimeout(rateLimitTimer);
+      rateLimitTimer = setTimeout(
+        () => {
+          rateLimitTimer = undefined;
+          autoSaveFlush(scheduledId, false);
+        },
+        3000 - (now - lastSaveTime),
+      );
       return;
     }
   }
@@ -55,7 +59,6 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
   }
 }
 
-
 /**
  * Initialize the auto-save singleton. Safe to call multiple times —
  * subsequent calls are no-ops. Call from a single root component (App.tsx).
@@ -86,7 +89,6 @@ export function initAutoSave(): void {
       if (autoSaveTimerRef !== undefined) clearTimeout(autoSaveTimerRef);
       autoSaveTimerRef = undefined;
       autoSaveFlush(autoSaveScheduledSessionId, true);
-
     }
   };
   document.addEventListener("visibilitychange", autoSaveVisibilityHandler);
@@ -107,6 +109,10 @@ export function teardownAutoSave(): void {
   if (autoSaveTimerRef !== undefined) {
     clearTimeout(autoSaveTimerRef);
     autoSaveTimerRef = undefined;
+  }
+  if (rateLimitTimer !== undefined) {
+    clearTimeout(rateLimitTimer);
+    rateLimitTimer = undefined;
   }
   autoSaveScheduledSessionId = null;
   lastSaveSignature = null;
