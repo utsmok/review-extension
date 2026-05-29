@@ -49,7 +49,7 @@ let cachedPngToJpeg: typeof import("./image-convert").pngToJpeg | null = null;
 let cachedMinifiedCss: string | null = null;
 
 /** Short ID: first 8 hex chars of capture UUID, unique within a session. */
-const shortId = (id: string) => id.replace(/-/g, "").substring(0, 8);
+export const shortId = (id: string) => id.replace(/-/g, "").substring(0, 8);
 
 /**
  * Pure data transformation: prepares every artefact that will go into the

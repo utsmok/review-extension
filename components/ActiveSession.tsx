@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { useCaptureAction } from "@/hooks/useCaptureAction";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { captureActiveTab, captureForMetadataField } from "@/lib/capture";
 import { TabNavigationContext, useRubric } from "@/lib/contexts";
 import { useRovingTabIndex } from "@/lib/hooks";
 import { computeCompletion } from "@/lib/rubric";
-import { toastError, toastSuccess } from "@/stores/toast";
+import { toastSuccess } from "@/stores/toast";
 import Captures from "./Captures";
 import Evaluation from "./Evaluation";
 import FinalizationScreen from "./FinalizationScreen";
@@ -48,7 +49,7 @@ export default function ActiveSession() {
 
   const [quickNoteOpen, setQuickNoteOpen] = useState(false);
   const [quickNoteText, setQuickNoteText] = useState("");
-  const [capturing, setCapturing] = useState(false);
+  const { capturing, run } = useCaptureAction();
   const noteRef = useRef<HTMLTextAreaElement>(null);
   useKeyboardShortcuts({
     "1": () => setActiveTab("Evaluation"),
@@ -57,11 +58,10 @@ export default function ActiveSession() {
     "4": () => setActiveTab("Captures"),
     "Ctrl+Shift+S": () => {
       if (!capturing) {
-        setCapturing(true);
-        captureActiveTab()
-          .then((result) => addCapture(result))
-          .catch((err) => toastError(err instanceof Error ? err.message : "Capture failed"))
-          .finally(() => setCapturing(false));
+        run(async () => {
+          const result = await captureActiveTab();
+          addCapture(result);
+        });
       }
     },
     Escape: () => {
@@ -159,16 +159,11 @@ export default function ActiveSession() {
               title="Quick Capture — Screenshot current page"
               aria-label="Quick capture"
               disabled={capturing}
-              onClick={async () => {
-                setCapturing(true);
-                try {
+              onClick={() => {
+                run(async () => {
                   const result = await captureActiveTab();
                   addCapture(result);
-                } catch (err) {
-                  toastError(err instanceof Error ? err.message : "Capture failed");
-                } finally {
-                  setCapturing(false);
-                }
+                });
               }}
             >
               <svg
@@ -194,17 +189,12 @@ export default function ActiveSession() {
               title="Capture T&C — Save current page as Terms & Conditions evidence"
               aria-label="Capture Terms and Conditions"
               disabled={capturing}
-              onClick={async () => {
-                setCapturing(true);
-                try {
+              onClick={() => {
+                run(async () => {
                   const result = await captureForMetadataField("termsConditionsUrl");
                   addCapture(result.capture);
                   updateMetadata({ termsConditionsUrl: result.capture.sourceUrl });
-                } catch (err) {
-                  toastError(err instanceof Error ? err.message : "Capture failed");
-                } finally {
-                  setCapturing(false);
-                }
+                });
               }}
             >
               <svg
@@ -233,20 +223,15 @@ export default function ActiveSession() {
               title="Capture Logo — Save current page and extract tool logo"
               aria-label="Capture tool logo"
               disabled={capturing}
-              onClick={async () => {
-                setCapturing(true);
-                try {
+              onClick={() => {
+                run(async () => {
                   const result = await captureForMetadataField("toolLogoUrl");
                   addCapture(result.capture);
                   // Store the direct image link (SVG/PNG) as evidence
                   updateMetadata({
                     toolLogoUrl: result.logoUrl ?? "",
                   });
-                } catch (err) {
-                  toastError(err instanceof Error ? err.message : "Capture failed");
-                } finally {
-                  setCapturing(false);
-                }
+                });
               }}
             >
               <svg

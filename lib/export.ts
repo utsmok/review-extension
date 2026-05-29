@@ -1,4 +1,4 @@
-import { prepareExportArtifacts, assembleZip, sanitizeFilename } from "./export-pipeline";
+import { prepareExportArtifacts, assembleZip, sanitizeFilename, shortId } from "./export-pipeline";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 export { sanitizeFilename };
@@ -108,7 +108,6 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
   const data = validateSessionData(JSON.parse(raw));
 
   // Reassemble screenshot and HTML data — try root (current), e/, evidence/, capture_ prefix (legacy)
-  const shortId = (id: string) => id.replace(/-/g, "").substring(0, 8);
   const findFile = (patterns: string[]) => {
     for (const p of patterns) {
       const f = zip.file(p);

@@ -5,6 +5,7 @@ import { useRubric, useTabNavigation } from "@/lib/contexts";
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
 import ExportCompleteScreen from "./ExportCompleteScreen";
+import PillField from "./PillField";
 
 const DATA_SOURCE_OPTIONS = [
   "CrossRef",
@@ -76,11 +77,6 @@ const AUTH_METHOD_OPTIONS = [
   "None required",
 ] as const;
 
-/** Derive custom entries: those in the value array that aren't predefined */
-function getCustom<T extends string>(predefined: readonly T[], values: string[]): string[] {
-  const set = new Set<string>(predefined);
-  return values.filter((v) => !set.has(v));
-}
 
 export default function Metadata() {
   const { rubric } = useRubric();
@@ -104,9 +100,6 @@ export default function Metadata() {
   const [exportComplete, setExportComplete] = useState(false);
   const [exportFilename, setExportFilename] = useState("");
   const [showUsesAiConfirm, setShowUsesAiConfirm] = useState(false);
-  const [customSource, setCustomSource] = useState("");
-  const [customMethod, setCustomMethod] = useState("");
-  const [customDiscipline, setCustomDiscipline] = useState("");
   const [logoCapturing, setLogoCapturing] = useState(false);
   const [showExportConfirm, setShowExportConfirm] = useState(false);
   const [tcCapturing, setTcCapturing] = useState(false);
@@ -212,113 +205,6 @@ export default function Metadata() {
       />
     );
   }
-
-  // --- Pill field helpers ---
-
-  const currentSources = session.dataSources ?? [];
-  const customSources = getCustom(DATA_SOURCE_OPTIONS, currentSources);
-
-  const togglePredefinedSource = (opt: string) => {
-    const next = currentSources.includes(opt)
-      ? currentSources.filter((v) => v !== opt)
-      : [...currentSources, opt];
-    updateMetadata({ dataSources: next });
-  };
-
-  const removeCustomSource = (val: string) => {
-    updateMetadata({ dataSources: currentSources.filter((v) => v !== val) });
-  };
-
-  const addCustomSource = () => {
-    const val = customSource.trim();
-    if (val && !currentSources.includes(val)) {
-      updateMetadata({ dataSources: [...currentSources, val] });
-      setCustomSource("");
-    }
-  };
-
-  const currentMethods = session.searchMethods ?? [];
-  const customMethods = getCustom(SEARCH_METHOD_OPTIONS, currentMethods);
-
-  const togglePredefinedMethod = (opt: string) => {
-    const next = currentMethods.includes(opt)
-      ? currentMethods.filter((v) => v !== opt)
-      : [...currentMethods, opt];
-    updateMetadata({ searchMethods: next });
-  };
-
-  const removeCustomMethod = (val: string) => {
-    updateMetadata({ searchMethods: currentMethods.filter((v) => v !== val) });
-  };
-
-  const addCustomMethod = () => {
-    const val = customMethod.trim();
-    if (val && !currentMethods.includes(val)) {
-      updateMetadata({ searchMethods: [...currentMethods, val] });
-      setCustomMethod("");
-    }
-  };
-
-  const currentDisciplines: string[] = Array.isArray(session.discipline) ? session.discipline : [];
-  const customDisciplines = getCustom(DISCIPLINE_OPTIONS, currentDisciplines);
-
-  const togglePredefinedDiscipline = (opt: string) => {
-    const next = currentDisciplines.includes(opt)
-      ? currentDisciplines.filter((v) => v !== opt)
-      : [...currentDisciplines, opt];
-    updateMetadata({ discipline: next });
-  };
-
-  const removeCustomDiscipline = (val: string) => {
-    updateMetadata({ discipline: currentDisciplines.filter((v) => v !== val) });
-  };
-
-  const addCustomDiscipline = () => {
-    const val = customDiscipline.trim();
-    if (val && !currentDisciplines.includes(val)) {
-      updateMetadata({ discipline: [...currentDisciplines, val] });
-      setCustomDiscipline("");
-    }
-  };
-
-  // --- Reusable pill renderer ---
-  const renderPill = (
-    label: string,
-    isSelected: boolean,
-    onClick: () => void,
-    _isCustom: boolean,
-  ) => (
-    <button
-      key={label}
-      type="button"
-      className={`pill-toggle text-ut-xs px-ut-2 py-ut-1 border rounded-ut-sm ${isSelected ? "bg-trust-magenta text-white border-trust-magenta" : "border-ut-border text-ut-muted hover:border-ut-slate"}`}
-      onClick={onClick}
-    >
-      {label}
-    </button>
-  );
-
-  const renderCustomInput = (
-    placeholder: string,
-    value: string,
-    onChange: (v: string) => void,
-    onAdd: () => void,
-  ) => (
-    <div className="flex gap-ut-1">
-      <input
-        className="flex-1 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-xs text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            onAdd();
-          }
-        }}
-      />
-    </div>
-  );
 
   return (
     <div className="flex flex-col gap-ut-3 p-ut-4">
@@ -511,80 +397,47 @@ export default function Metadata() {
       </div>
 
       {/* Data Sources pill selector */}
-      <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
-        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Data Sources
-        </legend>
-        <div className="flex flex-wrap gap-ut-1 mb-ut-1">
-          {DATA_SOURCE_OPTIONS.map((opt) =>
-            renderPill(opt, currentSources.includes(opt), () => togglePredefinedSource(opt), false),
-          )}
-          {customSources.map((opt) => renderPill(opt, true, () => removeCustomSource(opt), true))}
-        </div>
-        {renderCustomInput("Add custom source...", customSource, setCustomSource, addCustomSource)}
-      </fieldset>
+      <PillField
+        label="Data Sources"
+        options={DATA_SOURCE_OPTIONS}
+        selected={session.dataSources ?? []}
+        onChange={(next) => updateMetadata({ dataSources: next })}
+        placeholder="Add custom source..."
+      />
       <hr className="border-ut-border my-ut-2" />
 
       {/* Search Methods pill selector */}
-      <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
-        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Search Methods
-        </legend>
-        <div className="flex flex-wrap gap-ut-1 mb-ut-1">
-          {SEARCH_METHOD_OPTIONS.map((opt) =>
-            renderPill(opt, currentMethods.includes(opt), () => togglePredefinedMethod(opt), false),
-          )}
-          {customMethods.map((opt) => renderPill(opt, true, () => removeCustomMethod(opt), true))}
-        </div>
-        {renderCustomInput("Add custom method...", customMethod, setCustomMethod, addCustomMethod)}
-      </fieldset>
+      <PillField
+        label="Search Methods"
+        options={SEARCH_METHOD_OPTIONS}
+        selected={session.searchMethods ?? []}
+        onChange={(next) => updateMetadata({ searchMethods: next })}
+        placeholder="Add custom method..."
+      />
       <hr className="border-ut-border my-ut-2" />
 
       {/* Discipline pill selector */}
-      <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
-        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Discipline
-        </legend>
-        <div className="flex flex-wrap gap-ut-1 mb-ut-1 max-h-48 overflow-y-auto">
-          {DISCIPLINE_OPTIONS.map((opt) =>
-            renderPill(
-              opt,
-              currentDisciplines.includes(opt),
-              () => togglePredefinedDiscipline(opt),
-              false,
-            ),
-          )}
-          {customDisciplines.map((opt) =>
-            renderPill(opt, true, () => removeCustomDiscipline(opt), true),
-          )}
-        </div>
-        {renderCustomInput(
-          "Add custom discipline...",
-          customDiscipline,
-          setCustomDiscipline,
-          addCustomDiscipline,
-        )}
-      </fieldset>
+      <PillField
+        label="Discipline"
+        options={DISCIPLINE_OPTIONS}
+        selected={Array.isArray(session.discipline) ? session.discipline : []}
+        onChange={(next) => updateMetadata({ discipline: next })}
+        placeholder="Add custom discipline..."
+        maxHeight="max-h-48 overflow-y-auto"
+      />
       <hr className="border-ut-border my-ut-2" />
+
       {/* Authentication Method single-select pill selector */}
-      <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
-        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Authentication Method
-        </legend>
-        <div className="flex flex-wrap gap-ut-1 mb-ut-1">
-          {AUTH_METHOD_OPTIONS.map((opt) =>
-            renderPill(
-              opt,
-              session.authenticationMethod === opt,
-              () =>
-                updateMetadata({
-                  authenticationMethod: session.authenticationMethod === opt ? undefined : opt,
-                }),
-              false,
-            ),
-          )}
-        </div>
-      </fieldset>
+      <PillField
+        label="Authentication Method"
+        options={AUTH_METHOD_OPTIONS}
+        selected={session.authenticationMethod ? [session.authenticationMethod] : []}
+        onChange={(next) =>
+          updateMetadata({ authenticationMethod: next[0] ?? undefined })
+        }
+        allowCustom={false}
+        single
+      />
       <hr className="border-ut-border my-ut-2" />
       {/* Review summary */}
       <div className="border-t-2 border-ut-border pt-ut-3 mt-1">
