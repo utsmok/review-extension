@@ -4,7 +4,7 @@ import { useCaptureAction } from "@/hooks/useCaptureAction";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { captureActiveTab, captureForMetadataField } from "@/lib/capture";
 import { TabNavigationContext, useRubric } from "@/lib/contexts";
-import { useRovingTabIndex } from "@/lib/hooks";
+import { useRovingTabIndex } from "@/hooks/useFocus";
 import { computeCompletion } from "@/lib/rubric";
 import { toastSuccess } from "@/stores/toast";
 import Captures from "./Captures";
@@ -288,7 +288,7 @@ export default function ActiveSession() {
                 alt=""
                 className="w-4 h-4 shrink-0"
                 onError={(e) => {
-                  e.currentTarget.style.display = "none";
+                  e.currentTarget.classList.add("hidden");
                 }}
               />
             ) : null}

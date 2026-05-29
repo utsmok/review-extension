@@ -14,7 +14,7 @@ const Tldraw = lazy(() => import("tldraw").then((m) => ({ default: m.Tldraw })))
 
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useRubric } from "@/lib/contexts";
-import { useAutoFocus, useFocusTrap } from "@/lib/hooks";
+import { useAutoFocus, useFocusTrap } from "@/hooks/useFocus";
 import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import type { Capture } from "@/lib/types";
 import RubricChipGroup from "./RubricChipGroup";

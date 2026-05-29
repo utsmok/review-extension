@@ -2,7 +2,7 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureCurrentPageInfo } from "@/lib/capture";
-import { useAutoFocus, useFocusTrap } from "@/lib/hooks";
+import { useAutoFocus, useFocusTrap } from "@/hooks/useFocus";
 import { toastError } from "@/stores/toast";
 
 interface NewSessionModalProps {

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useAutoFocus, useFocusTrap } from "@/lib/hooks";
+import { useAutoFocus, useFocusTrap } from "@/hooks/useFocus";
 
 interface ConfirmAction {
   label: string;
