@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import {
   AssetRecordType,
   createShapeId,
@@ -6,10 +6,11 @@ import {
   DefaultSizeStyle,
   type Editor,
   type TLShapeId,
-  Tldraw,
   track,
   useValue,
 } from "tldraw";
+
+const Tldraw = lazy(() => import("tldraw").then((m) => ({ default: m.Tldraw })));
 
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useRubric } from "@/lib/contexts";
@@ -237,16 +238,18 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
 
         {/* tldraw canvas */}
         <div className="tldraw-evidence-container">
-          <Tldraw
-            onMount={onMount}
-            hideUi
-            components={{
-              PageMenu: null,
-              DebugMenu: null,
-              HelperButtons: null,
-              NavigationPanel: null,
-            }}
-          />
+          <Suspense fallback={<div className="tldraw-loading">Loading annotation editor…</div>}>
+            <Tldraw
+              onMount={onMount}
+              hideUi
+              components={{
+                PageMenu: null,
+                DebugMenu: null,
+                HelperButtons: null,
+                NavigationPanel: null,
+              }}
+            />
+          </Suspense>
         </div>
 
         {/* Rubric tagging */}

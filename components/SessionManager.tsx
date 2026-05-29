@@ -125,7 +125,7 @@ export default function SessionManager() {
       </div>
 
       {/* Session list */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-ut-4">
+      <section aria-label="Review sessions" className="flex-1 min-h-0 overflow-y-auto px-ut-4">
         {sessions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-ut-8 text-center">
             <svg
@@ -265,7 +265,7 @@ export default function SessionManager() {
             ))}
           </div>
         )}
-      </div>
+      </section>
 
       {/* New session modal */}
       {showModal && <NewSessionModal onClose={() => setShowModal(false)} />}

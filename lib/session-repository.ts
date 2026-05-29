@@ -74,12 +74,13 @@ export class IdbSessionRepository implements SessionRepository {
       if (navigator.storage?.estimate) {
         const { quota, usage } = await navigator.storage.estimate();
         if (quota && usage) {
-          const payloadSize = JSON.stringify(data).length;
+          // Estimate: ~500KB base overhead + ~2MB per capture (screenshot + HTML archive)
+          const estimatedSize = 500_000 + data.captures.length * 2_000_000;
           const headroom = quota - usage;
-          if (payloadSize > headroom * 0.8) {
+          if (estimatedSize > headroom * 0.8) {
             console.warn(
               `Storage quota low: ${Math.round(usage / 1e6)}MB / ${Math.round(quota / 1e6)}MB, ` +
-                `payload ~${Math.round(payloadSize / 1e6)}MB. Save may fail.`,
+                `estimated ~${Math.round(estimatedSize / 1e6)}MB. Save may fail.`,
             );
           }
         }

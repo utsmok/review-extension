@@ -6,16 +6,33 @@ import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
 import { makeMetadata, RUBRIC } from "@/tests/fixtures";
 
-export function AllProviders({ children }: { children: React.ReactNode }) {
+export function AllProviders({
+  children,
+  usesAi = true,
+}: {
+  children: React.ReactNode;
+  usesAi?: boolean;
+}) {
   return (
-    <RubricContext.Provider value={{ rubric: RUBRIC, usesAi: true }}>
+    <RubricContext.Provider value={{ rubric: RUBRIC, usesAi }}>
       {children}
     </RubricContext.Provider>
   );
 }
 
-export function renderWithProviders(ui: React.ReactElement) {
-  return render(ui, { wrapper: AllProviders });
+export function renderWithProviders(
+  ui: React.ReactElement,
+  options?: { usesAi?: boolean },
+) {
+  const { usesAi } = options ?? {};
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
+    <AllProviders usesAi={usesAi}>{children}</AllProviders>
+  );
+  return render(ui, { wrapper: Wrapper });
+}
+
+export function renderWithoutAi(ui: React.ReactElement) {
+  return renderWithProviders(ui, { usesAi: false });
 }
 
 export function withRenderCount<P extends Record<string, unknown>>(
