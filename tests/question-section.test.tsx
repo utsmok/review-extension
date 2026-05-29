@@ -566,9 +566,8 @@ describe("merged gate badges (§2e)", () => {
     const category = rubricId.split(".")[0];
     const allDetails = document.querySelectorAll("details.question-details");
     for (const d of allDetails) {
-      // Merged gates have no radio inputs and live inside the QG section
+      // Merged gates have no radio inputs — identify by code span prefix
       if (d.querySelector('input[type="radio"]')) continue;
-      // Match by data-accent-key="control" (QG section) and font-mono code prefix
       const codeSpan = d.querySelector("summary span.font-mono");
       if (codeSpan?.textContent?.startsWith(category)) {
         return d as HTMLDetailsElement;
