@@ -1,11 +1,16 @@
 import { PRINCIPLES } from "../principles";
-import { getCategoryScores, getVisibleRubricQuestionIds, qualityGateResults } from "../rubric";
+import {
+  getCategoryScores,
+  getVisibleRubricQuestionIds,
+  qualityGateResults,
+  REPORT_SCORE_COLORS,
+} from "../rubric";
 import type { Evaluation, ReviewFinalization, RubricData } from "../types";
 
 const GRADE_COLORS: Record<string, string> = {
-  pass: "#4a8355",
-  conditional: "#c2410c",
-  fail: "#c60c30",
+  pass: REPORT_SCORE_COLORS[3],
+  conditional: REPORT_SCORE_COLORS[1],
+  fail: REPORT_SCORE_COLORS[0],
 };
 const GRADE_LABELS: Record<string, string> = {
   pass: "RECOMMENDED",
@@ -107,7 +112,7 @@ export function computeReportScores(
     verdictColor = MUTED_COLOR;
   } else {
     verdict = computedFailed ? "NOT RECOMMENDED" : "RECOMMENDED";
-    verdictColor = computedFailed ? "#c60c30" : "#4a8355";
+    verdictColor = computedFailed ? REPORT_SCORE_COLORS[0] : REPORT_SCORE_COLORS[3];
   }
 
   return {

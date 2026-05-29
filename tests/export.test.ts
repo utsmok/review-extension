@@ -418,7 +418,7 @@ describe("exportSession", () => {
 
     // Metadata should indicate AI-powered: No
     expect(html).toContain("AI-powered");
-    expect(html).toContain(">No<");
+    expect(html).toContain('muted">No</');
   });
 });
 

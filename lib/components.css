@@ -1329,10 +1329,6 @@ body {
   border-color: var(--ut-slate);
   background: color-mix(in srgb, var(--ut-slate) 10%, var(--ut-white));
 }
-/* Partial badges: subtle blue tint to indicate in-progress */
-.score-overview-bar__badge.is-partial[data-score] {
-  background: color-mix(in srgb, var(--ut-blue) 8%, var(--ut-white));
-}
 /* Badge code text — colored by section accent */
 .score-overview-bar__code {
   color: var(--ut-slate);

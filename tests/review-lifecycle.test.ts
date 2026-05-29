@@ -162,7 +162,7 @@ describe("review lifecycle", () => {
 
     // Verdict from finalization
     expect(scores.verdict).toBe("RECOMMENDED");
-    expect(scores.verdictColor).toBe("#4a8355");
+    expect(scores.verdictColor).toBe("#3d7249");
 
     // Category scores present
     expect(scores.catScores.size).toBe(5);

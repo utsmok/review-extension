@@ -116,7 +116,7 @@ describe("computeReportScores", () => {
   it("returns RECOMMENDED when all pass, ratio >= 0.6, no principle fail", () => {
     const r = computeReportScores(allPassEvals(), RUBRIC, null);
     expect(r.verdict).toBe("RECOMMENDED");
-    expect(r.verdictColor).toBe("#4a8355");
+    expect(r.verdictColor).toBe("#3d7249");
     expect(r.allPassed).toBe(true);
     expect(r.anyFail).toBe(false);
     expect(r.principleFail).toBe(false);
@@ -187,7 +187,7 @@ describe("computeReportScores", () => {
   it("finalization grade 'pass' overrides computed to RECOMMENDED", () => {
     const r = computeReportScores(allFailEvals(), RUBRIC, makeFinalization({ grade: "pass" }));
     expect(r.verdict).toBe("RECOMMENDED");
-    expect(r.verdictColor).toBe("#4a8355");
+    expect(r.verdictColor).toBe("#3d7249");
     // Underlying data still shows failure
     expect(r.anyFail).toBe(true);
     expect(r.computedFailed).toBe(true);
