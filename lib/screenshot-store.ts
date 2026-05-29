@@ -156,6 +156,24 @@ export async function saveAnnotatedScreenshot(
 }
 
 /** Delete all screenshot data — used for cleanup */
+/** Delete screenshots for a set of capture IDs (e.g., on session deletion). */
+export async function deleteScreenshotsForCaptures(captureIds: string[]): Promise<void> {
+  if (captureIds.length === 0) return;
+  try {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      for (const id of captureIds) {
+        store.delete(id);
+      }
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch {
+    // IDB unavailable — no-op
+  }
+}
 export async function deleteAllScreenshots(): Promise<void> {
   try {
     const db = await getDB();

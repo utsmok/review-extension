@@ -37,6 +37,7 @@ export default function Evaluation() {
         <EmptyState
           title="No scores yet"
           description="Expand a question below to begin scoring."
+          titleClassName="font-heading uppercase tracking-ut-label"
         />
       )}
 

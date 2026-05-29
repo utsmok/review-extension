@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { loadScreenshot } from "@/lib/screenshot-store";
 
 /**
- * Load a capture's screenshot from IDB and return an object URL for rendering.
- * Returns null while loading. Automatically revokes the URL on unmount or ID change.
+ * Load a capture's screenshot base64 from the separate IDB screenshot store.
+ * Returns null while loading. Falls back to null if the screenshot is not found.
  */
 export function useScreenshotUrl(captureId: string | null): string | null {
   const [url, setUrl] = useState<string | null>(null);

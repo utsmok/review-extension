@@ -4,7 +4,7 @@ import { getRepository } from "@/lib/session-repository";
 import type { SessionData, SessionMetadata } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
-import { saveScreenshot } from "@/lib/screenshot-store";
+import { deleteScreenshotsForCaptures, saveScreenshot } from "@/lib/screenshot-store";
 import { toastError, toastWarning } from "@/stores/toast";
 
 // --- Auto-save singleton state ---
@@ -155,7 +155,6 @@ function snapshot(): SessionData | null {
   return { metadata: session, captures: strippedCaptures, evaluations, finalization };
 }
 
-
 /** Load a session from IDB into the session store. Returns true if data was found. */
 export async function loadSessionById(id: string): Promise<boolean> {
   useSessionStore.getState().setStatus("loading");
@@ -207,8 +206,13 @@ export async function deleteSession(id: string): Promise<void> {
   if (activeSessionId === id) {
     useSessionStore.getState().clear();
   }
+  // Load session to get capture IDs for screenshot cleanup
+  const data = await getRepository().load(id);
+  const captureIds = data?.captures.map((c) => c.id) ?? [];
   // Delete from IDB first — if this fails, the registry entry stays valid
   await getRepository().delete(id);
+  // Clean up associated screenshots from the separate store
+  await deleteScreenshotsForCaptures(captureIds);
   useRegistryStore.getState().deleteSession(id);
 }
 
