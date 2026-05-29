@@ -451,10 +451,10 @@ const Toolbar = track(function Toolbar({
                 "css" in c
                   ? (c as { css: string }).css
                   : c.value === "black"
-                    ? "#172033"
+                    ? "var(--ut-text)"
                     : c.value === "red"
-                      ? "#c60c30"
-                      : "#007d9c",
+                      ? "var(--ut-red)"
+                      : "var(--ut-blue)",
             }}
             onClick={() => setColor(c.value)}
           />

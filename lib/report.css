@@ -9,6 +9,12 @@
   --panel: #f3f4f6;
   --white: #fafbfc;
   --link: #2563eb;
+  /* Score-level semantic colors — mirrors tokens.css for report context */
+  --score-0: #c60c30;
+  --score-1: #c2410c;
+  --score-2: #0e7490;
+  --score-3: #4a8355;
+  --score-0-tint: color-mix(in srgb, var(--score-0) 6%, var(--white));
   --ff-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   --ff-heading: "Arial Narrow", Arial, Helvetica, sans-serif;
   --ff-mono: "JetBrains Mono", "Cascadia Code", "Fira Code", ui-monospace, monospace;
@@ -42,6 +48,7 @@ body {
   padding: clamp(8px, 3vw, 24px);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-kerning: auto;
 }
 /* Responsive images — scale with viewport, never overflow */
 img {
@@ -113,6 +120,7 @@ img {
   font-family: var(--ff-heading);
   font-size: 1.8rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 .letterform-score .pct {
   font-size: 0.75rem;
@@ -196,7 +204,7 @@ img {
 .cat-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 8px;
+  margin-bottom: var(--rs-xs);
 }
 .cat-table td {
   padding: 6px 8px;
@@ -274,24 +282,25 @@ img {
 }
 .verdict-block {
   text-align: center;
-  padding: 24px 0;
+  padding: var(--rs-xl) 0;
 }
 .verdict-label {
   font-size: 0.75rem;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-bottom: 4px;
+  margin-bottom: var(--rs-2xs);
 }
 .verdict-text {
   font-family: var(--ff-heading);
   font-size: clamp(2rem, 6vw, 3.5rem);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 .verdict-reason {
   font-size: 0.9rem;
   color: var(--muted);
-  margin-top: 8px;
+  margin-top: var(--rs-xs);
 }
 
 .bottom-bar {
@@ -323,6 +332,7 @@ img {
   letter-spacing: 0.08em;
   color: var(--magenta);
   margin-bottom: var(--rs-xs);
+  text-wrap: balance;
 }
 .report-meta-url {
   color: var(--link);
@@ -371,6 +381,7 @@ img {
   color: var(--magenta);
   margin: var(--rs-md) 0 var(--rs-sm);
   font-size: 1rem;
+  text-wrap: balance;
 }
 
 /* Quality gates table */
@@ -470,7 +481,8 @@ table th {
   font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  margin-bottom: 4px;
+  margin-bottom: var(--rs-2xs);
+  text-wrap: balance;
 }
 .category-meta {
   display: flex;
@@ -478,7 +490,7 @@ table th {
   font-size: 0.75rem;
   color: var(--muted);
   font-family: var(--ff-mono);
-  margin-bottom: 6px;
+  margin-bottom: var(--rs-xs);
 }
 .category-table-wrap {
   overflow-x: auto;
@@ -535,6 +547,7 @@ table th {
   font-weight: 700;
   border-radius: 2px;
   line-height: 1.3;
+  font-variant-numeric: tabular-nums;
 }
 .score-badge[data-score="na"] {
   border: 1px dashed var(--muted);
@@ -561,8 +574,8 @@ table th {
   align-items: flex-start;
 }
 .evidence-item.evidence-weak {
-  border-left: 3px solid #c60c30;
-  background: #fef2f2;
+  border-top: 3px solid var(--score-0);
+  background: var(--score-0-tint);
 }
 .evidence-item img {
   width: 200px;
@@ -583,7 +596,7 @@ table th {
 }
 .evidence-meta strong {
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: var(--rs-2xs);
 }
 .evidence-time {
   color: var(--muted);
@@ -606,6 +619,7 @@ table th {
   font-family: var(--ff-heading);
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   padding: var(--rs-md) 0;
   margin-bottom: var(--rs-md);
   letter-spacing: 0.03em;
@@ -621,7 +635,7 @@ table th {
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  margin-bottom: 6px;
+  margin-bottom: var(--rs-xs);
 }
 .fin-block p,
 .fin-block li {
@@ -629,13 +643,13 @@ table th {
   line-height: 1.55;
 }
 .fin-block ul {
-  padding-left: 20px;
+  padding-left: var(--rs-lg);
 }
 .fin-block ul li {
-  margin-bottom: 4px;
+  margin-bottom: var(--rs-2xs);
 }
 .fin-timestamp {
-  margin-top: 8px;
+  margin-top: var(--rs-xs);
   font-size: 0.75rem;
   color: var(--slate);
   text-align: right;
@@ -743,7 +757,7 @@ table th {
 }
 .unlinked-meta strong {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: var(--rs-2xs);
 }
 .unlinked-meta a {
   color: var(--link);
@@ -859,7 +873,8 @@ table th {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--magenta);
-  margin-top: 6px;
+  margin-top: var(--rs-xs);
+  font-variant-numeric: tabular-nums;
 }
 .nutrition-divider {
   height: 2px;
@@ -918,7 +933,7 @@ table th {
   padding-left: 12px;
 }
 .nutrition-gate-item .fail {
-  color: #c60c30;
+  color: var(--score-0);
   font-weight: 700;
 }
 .nutrition-gate-item .unsure {
@@ -1012,11 +1027,11 @@ table th {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text);
-  margin-bottom: 6px;
+  margin-bottom: var(--rs-xs);
 }
 .nutrition-sw-list {
   margin: 0;
-  padding-left: 20px;
+  padding-left: var(--rs-lg);
   font-size: 0.82rem;
   color: var(--muted);
   line-height: 1.55;
@@ -1342,7 +1357,69 @@ table th {
     max-width: none;
     padding: 0;
     background: #fff;
+    color: #000;
   }
+
+  /* Black text for readability */
+  .header-tool,
+  .section-heading,
+  .report-header h1,
+  .trust-branding-tagline,
+  .nutrition-tool-name {
+    color: #000;
+  }
+
+  /* Subdued muted text in print */
+  .header-meta,
+  .verdict-label,
+  .verdict-reason,
+  .category-meta,
+  .category-section .level,
+  .category-section .notes,
+  .report-meta-label,
+  .report-meta-value--muted,
+  .footer {
+    color: #555;
+  }
+
+  /* Links: underline, dark color */
+  .unlinked-meta a,
+  .report-meta a,
+  .evidence-meta a,
+  .toc-item a,
+  .category-section a {
+    color: #000;
+    text-decoration: underline;
+  }
+  .toc-item {
+    text-decoration: underline;
+  }
+
+  /* Remove background fills to save ink */
+  .category-header,
+  .category-section.category-alt {
+    background: transparent;
+  }
+  .evidence-item {
+    background: transparent;
+  }
+  .evidence-item.evidence-weak {
+    background: #fff5f5;
+    border-top: 3px solid #c60c30;
+  }
+
+  /* Bar accents use print-safe dark gray */
+  .top-bar {
+    background: #000;
+  }
+  .divider,
+  .accent-bar,
+  .bottom-bar,
+  .verdict-bar,
+  .fin-bar {
+    background: #333;
+  }
+
   .top-bar,
   .divider,
   .accent-bar,
@@ -1382,6 +1459,16 @@ table th {
     display: none;
   }
 
+  /* Remove interactive states */
+  .ss,
+  .toc-item {
+    cursor: default;
+  }
+  .ss:hover,
+  .ss:focus-visible {
+    background: transparent;
+  }
+
   .report-header {
     page-break-before: always;
     border-top: none;
@@ -1407,7 +1494,7 @@ table th {
     max-width: 220px;
   }
 
-  /* Footer and non-essential elements simplified */
+  /* Footer simplified */
   .footer {
     font-size: 0.7rem;
   }

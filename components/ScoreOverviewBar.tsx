@@ -38,6 +38,8 @@ function getStateIndicator(state: ProgressState): string {
       return "●";
     case "empty":
       return "○";
+    default:
+      return "○";
   }
 }
 
@@ -346,7 +348,7 @@ export default function ScoreOverviewBar({
 
   // Dynamic gradient based on average score quality
   const fillGradientStyle = {
-    width: `${progressPct}%`,
+    transform: `scaleX(${progressPct / 100})`,
     "--fill-start":
       avgScore < 0
         ? "var(--ut-slate)"
@@ -373,7 +375,11 @@ export default function ScoreOverviewBar({
   const navigateTo = (rubricId: string) => {
     const el = document.getElementById(`question-${rubricId}`);
     if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      try {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch {
+        el.scrollIntoView({ block: "start" });
+      }
       if (el instanceof HTMLDetailsElement && !el.open) {
         el.open = true;
       }

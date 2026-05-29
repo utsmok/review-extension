@@ -50,6 +50,10 @@ export default {
         "ut-sm": "var(--text-sm)",
         "ut-md": "var(--text-md)",
         "ut-body": "var(--text-body)",
+        "ut-sub": "var(--text-sub)",
+        "ut-hero": "var(--text-hero)",
+        "ut-badge": "var(--text-badge)",
+        "ut-2xs": "var(--text-2xs)",
         "ut-heading": "var(--text-heading)",
       },
       borderRadius: {

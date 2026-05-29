@@ -213,8 +213,8 @@ describe("ScoreOverviewBar at narrow widths", () => {
 
     const fill = container.querySelector<HTMLSpanElement>(".score-overview-bar__fill");
     expect(fill).not.toBeNull();
-    // 14/14 = 100%
-    expect(fill?.style.width).toBe("100%");
+    // 14/14 = 100% → scaleX(1)
+    expect(fill?.style.transform).toBe("scaleX(1)");
   });
 
   it("progress fill shows correct percentage with partial scoring", () => {
@@ -223,7 +223,7 @@ describe("ScoreOverviewBar at narrow widths", () => {
 
     const fill = container.querySelector<HTMLSpanElement>(".score-overview-bar__fill");
     // 7/14 = 50%
-    expect(fill?.style.width).toBe("50%");
+    expect(fill?.style.transform).toBe("scaleX(0.5)");
   });
 
   it("renders next button when some questions are incomplete", () => {

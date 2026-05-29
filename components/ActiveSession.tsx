@@ -359,6 +359,7 @@ export default function ActiveSession() {
                 ref={noteRef}
                 rows={2}
                 placeholder="Add a note..."
+                maxLength={2000}
                 aria-label="Quick note"
                 value={quickNoteText}
                 onChange={(e) => setQuickNoteText(e.target.value)}

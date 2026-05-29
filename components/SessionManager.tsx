@@ -282,7 +282,7 @@ function SessionCard({
     <div
       role="button"
       tabIndex={0}
-      className={`border border-ut-border rounded-ut-sm px-ut-3 py-ut-2 flex items-center gap-ut-2 cursor-pointer hover:bg-trust-magenta-tint transition-colors group bg-transparent text-left w-full border-l-[3px] ${isComplete ? "border-l-ut-green" : "border-l-ut-navy"}`}
+      className={`border border-ut-border rounded-ut-sm px-ut-3 py-ut-2 flex items-center gap-ut-2 cursor-pointer hover:bg-trust-magenta-tint transition-colors group bg-transparent text-left w-full border-t-[3px] ${isComplete ? "border-t-ut-green" : "border-t-ut-navy"}`}
       onClick={onSwitch}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -322,7 +322,7 @@ function SessionCard({
             <div className="session-progress-bar">
               <div
                 className={`session-progress-bar__fill${progress.pct === 100 ? " session-progress-bar__fill--complete" : ""}`}
-                style={{ width: `${progress.pct}%` }}
+                style={{ transform: `scaleX(${progress.pct / 100})` }}
               />
             </div>
             <p className="session-progress-text">

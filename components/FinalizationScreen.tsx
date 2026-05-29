@@ -179,7 +179,7 @@ export default function FinalizationScreen() {
   }, [overallAvg]);
 
   return (
-    <div className="flex flex-col gap-ut-3 p-ut-4">
+    <div className="flex flex-col gap-ut-3 p-ut-4" style={{ containerType: "inline-size" }}>
       <p className="text-ut-xs font-heading font-bold uppercase tracking-ut-kicker text-ut-slate">
         Review Summary
       </p>
@@ -197,7 +197,8 @@ export default function FinalizationScreen() {
           className="finalized-banner rounded-ut-sm px-ut-4 py-ut-3 flex items-center gap-ut-3"
           style={{
             background: `linear-gradient(135deg, var(--trust-magenta-tint) 0%, color-mix(in srgb, var(--trust-magenta) 12%, var(--ut-white)) 100%)`,
-            borderLeft: "6px solid var(--trust-magenta)",
+            borderTop: "6px solid var(--trust-magenta)",
+            boxShadow: "inset 0 1px 0 0 color-mix(in srgb, var(--trust-magenta) 20%, transparent)",
           }}
         >
           <div className="flex flex-col flex-1 min-w-0">
@@ -244,7 +245,7 @@ export default function FinalizationScreen() {
                 ? `linear-gradient(180deg, color-mix(in srgb, ${overallColor} 10%, var(--ut-grey)) 0%, var(--ut-grey) 100%)`
                 : "var(--ut-grey)",
             borderTop:
-              overallAvg !== null ? `4px solid ${overallColor}` : "4px solid var(--ut-border)",
+              overallAvg !== null ? `6px solid ${overallColor}` : "6px solid var(--ut-border)",
           }}
           role="status"
           aria-label={
@@ -253,7 +254,7 @@ export default function FinalizationScreen() {
               : "No scores yet"
           }
         >
-          <div className="font-heading font-bold uppercase tracking-ut-kicker text-ut-xs text-ut-slate mb-1">
+          <div className="font-heading font-bold uppercase tracking-ut-kicker text-ut-sm text-ut-slate mb-1">
             Overall Score
           </div>
           {overallAvg !== null ? (
@@ -271,8 +272,8 @@ export default function FinalizationScreen() {
 
       {/* Per-principle score dashboard */}
       {rubric && (
-        <ul className="grid grid-cols-5 gap-ut-1 list-none p-0 m-0" aria-label="Principle scores">
-          {principleScores.map((p) => {
+        <ul className="finalization-principle-grid list-none p-0 m-0" aria-label="Principle scores">
+          {principleScores.length > 0 && principleScores.map((p) => {
             const pct = p.avg !== null ? (p.avg / 3) * 100 : 0;
             return (
               <li
@@ -281,7 +282,7 @@ export default function FinalizationScreen() {
                 aria-label={`${p.code}: ${p.avg !== null ? p.avg.toFixed(1) : "not scored"} out of 3.0`}
                 style={{
                   background: `color-mix(in srgb, ${p.color} 10%, var(--ut-white))`,
-                  borderLeft: `3px solid ${p.color}`,
+                  borderTop: `3px solid ${p.color}`,
                 }}
               >
                 <div className="font-mono text-ut-xs font-bold" style={{ color: p.color }}>
@@ -289,7 +290,7 @@ export default function FinalizationScreen() {
                 </div>
                 <div
                   className="font-bold text-ut-text"
-                  style={{ fontSize: "1.25rem", lineHeight: 1.1 }}
+                  style={{ fontSize: "var(--text-sub, 1.2rem)", lineHeight: 1.1, fontFamily: "var(--ff-heading)" }}
                 >
                   {p.avg !== null ? p.avg.toFixed(1) : "–"}
                 </div>
@@ -304,11 +305,13 @@ export default function FinalizationScreen() {
                 >
                   <div
                     style={{
-                      width: `${pct}%`,
+                      width: "100%",
                       height: "100%",
                       background: p.color,
                       borderRadius: "9999px",
-                      transition: "width var(--duration-normal) ease-out",
+                      transformOrigin: "left",
+                      transform: `scaleX(${pct / 100})`,
+                      transition: "transform var(--duration-normal) ease-out",
                     }}
                   />
                 </div>

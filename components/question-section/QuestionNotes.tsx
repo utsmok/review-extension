@@ -8,7 +8,7 @@ interface QuestionNotesProps {
 export function QuestionNotes({ value, onChange, placeholder, maxLength }: QuestionNotesProps) {
   return (
     <textarea
-      className="w-full border border-ut-border rounded-ut-sm text-ut-sm p-ut-2 mt-ut-2 resize-y bg-ut-white"
+      className="w-full border border-ut-border rounded-ut-sm text-ut-sm p-ut-2 mt-ut-2 resize-y bg-ut-white focus:outline-none focus:ring-2 focus:ring-ut-blue"
       rows={2}
       placeholder={placeholder ?? "Notes..."}
       value={value}

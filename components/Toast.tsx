@@ -36,7 +36,7 @@ export default function ToastContainer() {
         return (
           <div
             key={t.id}
-            className={`flex items-start gap-ut-2 px-ut-3 py-ut-2 border rounded-ut-sm ${style.bg} ${style.border}`}
+            className={`toast-enter flex items-start gap-ut-2 px-ut-3 py-ut-2 border rounded-ut-sm ${style.bg} ${style.border}`}
             role={t.type === "error" ? "alert" : "status"}
             aria-live={t.type === "error" ? "assertive" : "polite"}
           >

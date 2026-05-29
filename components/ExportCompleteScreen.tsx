@@ -94,7 +94,7 @@ export default function ExportCompleteScreen({
             strokeLinejoin="round"
           >
             <title>Checkmark</title>
-            <path d="M5 10.5l3.5 3.5 7-7" />
+            <path d="M5 10.5l3.5 3.5 7-7" className="export-check-path" />
           </svg>
         </div>
       )}
