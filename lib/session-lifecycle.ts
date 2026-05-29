@@ -12,8 +12,22 @@ let autoSaveScheduledSessionId: string | null = null;
 let autoSaveUnsub: (() => void) | null = null;
 let autoSaveVisibilityHandler: (() => void) | null = null;
 let lastSaveSignature: string | null = null;
+let lastSaveTime = 0;
 
-async function autoSaveFlush(scheduledId?: string | null): Promise<void> {
+
+async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = false): Promise<void> {
+  // Rate limit: 3-second hard minimum between saves (debounced calls only)
+  if (!bypassRateLimit) {
+    const now = Date.now();
+    if (now - lastSaveTime < 3000) {
+      setTimeout(() => {
+        autoSaveFlush(scheduledId, false);
+      }, 3000 - (now - lastSaveTime));
+      return;
+    }
+  }
+  lastSaveTime = Date.now();
+
   const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
   const activeId = useRegistryStore.getState().activeSessionId;
   // Guard: skip if session switched between schedule and flush to prevent
@@ -40,6 +54,7 @@ async function autoSaveFlush(scheduledId?: string | null): Promise<void> {
     }
   }
 }
+
 
 /**
  * Initialize the auto-save singleton. Safe to call multiple times —
@@ -70,7 +85,8 @@ export function initAutoSave(): void {
       // Cancel pending debounce — we're flushing now
       if (autoSaveTimerRef !== undefined) clearTimeout(autoSaveTimerRef);
       autoSaveTimerRef = undefined;
-      autoSaveFlush(autoSaveScheduledSessionId);
+      autoSaveFlush(autoSaveScheduledSessionId, true);
+
     }
   };
   document.addEventListener("visibilitychange", autoSaveVisibilityHandler);
@@ -94,6 +110,7 @@ export function teardownAutoSave(): void {
   }
   autoSaveScheduledSessionId = null;
   lastSaveSignature = null;
+  lastSaveTime = 0;
 }
 
 /** Snapshot current session store state as SessionData */

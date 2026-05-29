@@ -1,4 +1,4 @@
-import type { Evaluation, RubricData } from "./types";
+import type { Evaluation, HexColor, RubricData } from "./types";
 
 export function getRubricQuestionIds(rubric: RubricData): string[] {
   const ids: string[] = [];
@@ -159,13 +159,13 @@ export function getCategoryScores(
   return scores;
 }
 
-const SCORE_COLORS: Record<number, string> = {
+const SCORE_COLORS: Record<number, HexColor> = {
   0: "#c60c30",
   1: "#c2410c",
   2: "#0e7490",
   3: "#4a8355",
 };
-export function scoreColor(s: number | "na" | "unsure" | undefined): string {
+export function scoreColor(s: number | "na" | "unsure" | undefined): HexColor {
   if (s === "na" || s === undefined) return "#4c5e74";
   if (s === "unsure") return "#5a6e82";
   return SCORE_COLORS[s] ?? "#4c5e74";

@@ -90,39 +90,41 @@ export type PassFailScore = QualityGateScore;
 export type RubricScore = ScoringScore;
 
 export interface PassFailQuestion {
-  type: "pass_fail";
-  title: string;
-  requirement: string;
-  background?: string;
-  examples?: {
-    pass: string;
-    fail: string;
-    na?: string;
+  readonly type: "pass_fail";
+  readonly title: string;
+  readonly requirement: string;
+  readonly background?: string;
+  readonly examples?: {
+    readonly pass: string;
+    readonly fail: string;
+    readonly na?: string;
   };
-  ai_only?: boolean;
+  readonly ai_only?: boolean;
 }
 
 export interface ScoringQuestion {
-  title: string;
-  "0": string;
-  "1": string;
-  "2": string;
-  "3": string;
-  background?: string;
-  examples?: {
-    "0": string;
-    "1": string;
-    "2": string;
-    "3": string;
+  readonly title: string;
+  readonly "0": string;
+  readonly "1": string;
+  readonly "2": string;
+  readonly "3": string;
+  readonly background?: string;
+  readonly examples?: {
+    readonly "0": string;
+    readonly "1": string;
+    readonly "2": string;
+    readonly "3": string;
   };
-  ai_only?: boolean;
-  related_gate?: string;
-  merged_gate?: boolean;
+  readonly ai_only?: boolean;
+  readonly related_gate?: string;
+  readonly merged_gate?: boolean;
 }
 
+export type HexColor = `#${string}`;
+
 export interface RubricData {
-  framework_name: string;
-  version: string;
-  quality_gate: Record<string, Record<string, PassFailQuestion>>;
-  scoring_rubric: Record<string, Record<string, ScoringQuestion>>;
+  readonly framework_name: string;
+  readonly version: string;
+  readonly quality_gate: Readonly<Record<string, Readonly<Record<string, Readonly<PassFailQuestion>>>>>;
+  readonly scoring_rubric: Readonly<Record<string, Readonly<Record<string, Readonly<ScoringQuestion>>>>>;
 }

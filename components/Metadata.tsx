@@ -77,7 +77,6 @@ const AUTH_METHOD_OPTIONS = [
   "None required",
 ] as const;
 
-
 export default function Metadata() {
   const { rubric } = useRubric();
   const setActiveTab = useTabNavigation();
@@ -227,6 +226,7 @@ export default function Metadata() {
 
       <label className="flex items-center gap-ut-2">
         <input
+          aria-describedby="desc-usesai"
           type="checkbox"
           checked={session.usesAi ?? true}
           onChange={(e) => {
@@ -244,7 +244,7 @@ export default function Metadata() {
         </span>
       </label>
       {!(session.usesAi ?? true) && (
-        <p className="text-ut-xs text-ut-muted">
+        <p id="desc-usesai" className="text-ut-xs text-ut-muted">
           AI-specific questions are marked as not applicable.
         </p>
       )}
@@ -432,9 +432,7 @@ export default function Metadata() {
         label="Authentication Method"
         options={AUTH_METHOD_OPTIONS}
         selected={session.authenticationMethod ? [session.authenticationMethod] : []}
-        onChange={(next) =>
-          updateMetadata({ authenticationMethod: next[0] ?? undefined })
-        }
+        onChange={(next) => updateMetadata({ authenticationMethod: next[0] ?? undefined })}
         allowCustom={false}
         single
       />

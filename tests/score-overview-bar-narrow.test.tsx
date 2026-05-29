@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, within } from "@testing-library/react";
-import React from "react";
+import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ScoreOverviewBar from "@/components/ScoreOverviewBar";
 import type { Capture, Evaluation, EvaluationScore } from "@/lib/types";
@@ -61,10 +60,7 @@ const ALL_RUBRIC_IDS = [
 /** QG pass/fail rubricIds. */
 const QG_IDS = new Set(ALL_RUBRIC_IDS.slice(0, 4));
 
-function makeScoredEvaluation(
-  rubricId: string,
-  overrides?: Partial<Evaluation>,
-): Evaluation {
+function makeScoredEvaluation(rubricId: string, overrides?: Partial<Evaluation>): Evaluation {
   const isQG = QG_IDS.has(rubricId);
   const score: EvaluationScore = isQG ? "pass" : 3;
   return makeEvaluation({ rubricId, score, notes: "tested", ...overrides });
@@ -84,11 +80,7 @@ function linkCapture(eval_: Evaluation, capture: Capture): Evaluation {
  * Render ScoreOverviewBar in a narrow-width container.
  * Uses a wrapping div with inline style to simulate viewport width.
  */
-function renderNarrow(
-  evaluations: Evaluation[],
-  captures: Capture[],
-  width: number,
-) {
+function renderNarrow(evaluations: Evaluation[], captures: Capture[], width: number) {
   return render(
     <div style={{ width: `${width}px`, overflow: "hidden" }}>
       <ScoreOverviewBar
@@ -112,9 +104,7 @@ describe("ScoreOverviewBar at narrow widths", () => {
     const evaluations = makeAllEvaluations();
     const { container } = renderNarrow(evaluations, [], 320);
 
-    const badges = container.querySelectorAll<HTMLButtonElement>(
-      ".score-overview-bar__badge",
-    );
+    const badges = container.querySelectorAll<HTMLButtonElement>(".score-overview-bar__badge");
     expect(badges.length).toBe(14);
   });
 
@@ -122,9 +112,7 @@ describe("ScoreOverviewBar at narrow widths", () => {
     const evaluations = makeAllEvaluations();
     const { container } = renderNarrow(evaluations, [], 320);
 
-    const badges = container.querySelectorAll<HTMLButtonElement>(
-      ".score-overview-bar__badge",
-    );
+    const badges = container.querySelectorAll<HTMLButtonElement>(".score-overview-bar__badge");
     for (const badge of badges) {
       // offsetWidth is 0 when display:none or element is clipped.
       // In jsdom offsetWidth is computed from style; display:inline-flex ≠ 0.
@@ -136,9 +124,7 @@ describe("ScoreOverviewBar at narrow widths", () => {
     const evaluations = makeAllEvaluations();
     const { container } = renderNarrow(evaluations, [], 360);
 
-    const badges = container.querySelectorAll<HTMLButtonElement>(
-      ".score-overview-bar__badge",
-    );
+    const badges = container.querySelectorAll<HTMLButtonElement>(".score-overview-bar__badge");
     expect(badges.length).toBe(14);
     for (const badge of badges) {
       expect(badge.style.display).not.toBe("none");
@@ -157,9 +143,7 @@ describe("ScoreOverviewBar at narrow widths", () => {
 
   it("shows partial fraction when only some questions are scored", () => {
     // Only score the first 5 questions
-    const evaluations = ALL_RUBRIC_IDS.slice(0, 5).map((id) =>
-      makeScoredEvaluation(id),
-    );
+    const evaluations = ALL_RUBRIC_IDS.slice(0, 5).map((id) => makeScoredEvaluation(id));
     const { container } = renderNarrow(evaluations, [], 360);
 
     const scored = container.querySelector(".score-overview-bar__scored");
@@ -172,14 +156,13 @@ describe("ScoreOverviewBar at narrow widths", () => {
     const evaluations = makeAllEvaluations();
     const { container } = renderNarrow(evaluations, [], 360);
 
+    /* biome-ignore lint/style/noNonNullAssertion: DOM query in test */
     const inner = container.querySelector(".score-overview-bar__inner")!;
     const divider = inner.querySelector(".score-overview-bar__divider-line");
     expect(divider).not.toBeNull();
 
     // QG badges (4) come before the divider, scoring (10) after
-    const badges = inner.querySelectorAll<HTMLButtonElement>(
-      ".score-overview-bar__badge",
-    );
+    const badges = inner.querySelectorAll<HTMLButtonElement>(".score-overview-bar__badge");
     expect(badges.length).toBe(14);
   });
 
@@ -191,9 +174,7 @@ describe("ScoreOverviewBar at narrow widths", () => {
 
     const { container } = renderNarrow(evaluations, [cap], 360);
 
-    const evidenceCounts = container.querySelectorAll(
-      ".score-overview-bar__evidence-count",
-    );
+    const evidenceCounts = container.querySelectorAll(".score-overview-bar__evidence-count");
     // Only the first badge should show an evidence count
     expect(evidenceCounts.length).toBe(1);
     expect(evidenceCounts[0].textContent).toBe("1");
@@ -204,22 +185,16 @@ describe("ScoreOverviewBar at narrow widths", () => {
     // All have score + notes → complete (no evidence needed since hasNotes=true)
     const { container } = renderNarrow(evaluations, [], 360);
 
-    const completeBadges = container.querySelectorAll(
-      ".score-overview-bar__badge.is-complete",
-    );
+    const completeBadges = container.querySelectorAll(".score-overview-bar__badge.is-complete");
     expect(completeBadges.length).toBe(14);
   });
 
   it("marks partial badges correctly when only score is present", () => {
-    const evaluations = ALL_RUBRIC_IDS.map((id) =>
-      makeScoredEvaluation(id, { notes: "" }),
-    );
+    const evaluations = ALL_RUBRIC_IDS.map((id) => makeScoredEvaluation(id, { notes: "" }));
     const { container } = renderNarrow(evaluations, [], 360);
 
     // Score only, no notes, no evidence → partial
-    const partialBadges = container.querySelectorAll(
-      ".score-overview-bar__badge.is-partial",
-    );
+    const partialBadges = container.querySelectorAll(".score-overview-bar__badge.is-partial");
     expect(partialBadges.length).toBe(14);
   });
 
@@ -228,9 +203,7 @@ describe("ScoreOverviewBar at narrow widths", () => {
     const { container } = renderNarrow(evaluations, [], 360);
 
     // Indicators exist in DOM even though CSS @media ≤360px hides them
-    const indicators = container.querySelectorAll(
-      ".score-overview-bar__indicator",
-    );
+    const indicators = container.querySelectorAll(".score-overview-bar__indicator");
     expect(indicators.length).toBe(14);
   });
 
@@ -238,32 +211,24 @@ describe("ScoreOverviewBar at narrow widths", () => {
     const evaluations = makeAllEvaluations();
     const { container } = renderNarrow(evaluations, [], 320);
 
-    const fill = container.querySelector<HTMLSpanElement>(
-      ".score-overview-bar__fill",
-    );
+    const fill = container.querySelector<HTMLSpanElement>(".score-overview-bar__fill");
     expect(fill).not.toBeNull();
     // 14/14 = 100%
     expect(fill?.style.width).toBe("100%");
   });
 
   it("progress fill shows correct percentage with partial scoring", () => {
-    const evaluations = ALL_RUBRIC_IDS.slice(0, 7).map((id) =>
-      makeScoredEvaluation(id),
-    );
+    const evaluations = ALL_RUBRIC_IDS.slice(0, 7).map((id) => makeScoredEvaluation(id));
     const { container } = renderNarrow(evaluations, [], 360);
 
-    const fill = container.querySelector<HTMLSpanElement>(
-      ".score-overview-bar__fill",
-    );
+    const fill = container.querySelector<HTMLSpanElement>(".score-overview-bar__fill");
     // 7/14 = 50%
     expect(fill?.style.width).toBe("50%");
   });
 
   it("renders next button when some questions are incomplete", () => {
     // Score only QG questions, leave scoring questions incomplete
-    const evaluations = ALL_RUBRIC_IDS.slice(0, 4).map((id) =>
-      makeScoredEvaluation(id),
-    );
+    const evaluations = ALL_RUBRIC_IDS.slice(0, 4).map((id) => makeScoredEvaluation(id));
     const { container } = renderNarrow(evaluations, [], 500);
 
     const next = container.querySelector(".score-overview-bar__next");

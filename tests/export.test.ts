@@ -351,12 +351,16 @@ describe("exportSession", () => {
     // Filenames should use sanitized name (special chars replaced with _)
     const reportFile = [...files.keys()].find((k) => k.startsWith("Evaluation_Report_"));
     expect(reportFile).toBeDefined();
+    /* biome-ignore lint/style/noNonNullAssertion: guarded by toDefined above */
     expect(reportFile!).not.toContain("<");
+    /* biome-ignore lint/style/noNonNullAssertion: guarded by toDefined above */
     expect(reportFile!).not.toContain(">");
     // & and ' are valid in filenames — only <, >, " are stripped
+    /* biome-ignore lint/style/noNonNullAssertion: guarded by toDefined above */
     expect(reportFile!).not.toContain('"');
 
     // HTML report should not contain raw injection from tool name
+    /* biome-ignore lint/style/noNonNullAssertion: guarded by toDefined above */
     const html = files.get(reportFile!) as string;
     expect(html).not.toContain("<script>");
     expect(html).toContain("Tool");
@@ -371,6 +375,7 @@ describe("exportSession", () => {
     expect(reportFile).toBeDefined();
 
     // The filename should exist and be reasonable length (no OS path overflow)
+    /* biome-ignore lint/style/noNonNullAssertion: guarded by toDefined above */
     expect(reportFile!.length).toBeLessThan(350);
 
     // ZIP should still be valid

@@ -1,12 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  RUBRIC,
-  TINY_PNG,
-  makeMetadata,
-  makeCapture,
-  makeEvaluation,
-  makeFinalization,
-} from "./fixtures";
+import { RUBRIC, makeMetadata, makeCapture, makeEvaluation, makeFinalization } from "./fixtures";
 import { computeReportScores } from "@/lib/report/compute-scores";
 import { exportSession, importSessionFromZip } from "@/lib/export";
 import type { Capture, Evaluation, ReviewFinalization, SessionMetadata } from "@/lib/types";
@@ -277,9 +270,12 @@ describe("review lifecycle", () => {
     for (const orig of evaluations) {
       const imp = imported.evaluations.find((e) => e.rubricId === orig.rubricId);
       expect(imp).toBeDefined();
+      /* biome-ignore lint/style/noNonNullAssertion: guarded by toDefined above */
       expect(imp!.score).toBe(orig.score);
+      /* biome-ignore lint/style/noNonNullAssertion: guarded by toDefined above */
       expect(imp!.rubricId).toBe(orig.rubricId);
       // Evidence IDs preserved
+      /* biome-ignore lint/style/noNonNullAssertion: guarded by toDefined above */
       expect(imp!.explicitEvidenceIds).toEqual(orig.explicitEvidenceIds);
     }
 
@@ -288,20 +284,27 @@ describe("review lifecycle", () => {
     for (const orig of captures) {
       const imp = imported.captures.find((c) => c.id === orig.id);
       expect(imp).toBeDefined();
+      /* biome-ignore lint/style/noNonNullAssertion: guarded by toDefined above */
       expect(imp!.pageTitle).toBe(orig.pageTitle);
+      /* biome-ignore lint/style/noNonNullAssertion: guarded by toDefined above */
       expect(imp!.sourceUrl).toBe(orig.sourceUrl);
       // Screenshots reassembled from ZIP images
+      /* biome-ignore lint/style/noNonNullAssertion: guarded by toDefined above */
       expect(imp!.screenshotBase64).toBeTruthy();
     }
 
     // Finalization preserved
     expect(imported.finalization).not.toBeNull();
+    /* biome-ignore lint/style/noNonNullAssertion: guarded by not.toBeNull above */
     expect(imported.finalization!.grade).toBe("pass");
+    /* biome-ignore lint/style/noNonNullAssertion: guarded by not.toBeNull above */
     expect(imported.finalization!.conclusion).toBe("Tool meets trust criteria");
+    /* biome-ignore lint/style/noNonNullAssertion: guarded by not.toBeNull above */
     expect(imported.finalization!.strengths).toEqual([
       "Transparent data sources",
       "Good accessibility",
     ]);
+    /* biome-ignore lint/style/noNonNullAssertion: guarded by not.toBeNull above */
     expect(imported.finalization!.weaknesses).toEqual(["Some hallucination risk"]);
   });
 });
