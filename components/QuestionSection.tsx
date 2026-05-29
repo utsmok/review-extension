@@ -13,7 +13,6 @@ import type {
   Capture,
   Evaluation,
   PassFailQuestion,
-  PassFailScore,
   RubricScore,
   ScoringQuestion,
 } from "@/lib/types";
@@ -21,60 +20,11 @@ import { toastError } from "@/stores/toast";
 import EvidenceThumbnails from "./EvidenceThumbnails";
 import { getProgressState, ProgressCircle } from "./ProgressCircle";
 import { ScoreOption } from "./ScoreOption";
+import { DoneToggle } from "./question-section/DoneToggle";
+import { QualityGateSection } from "./question-section/QualityGateSection";
+import { QuestionNotes } from "./question-section/QuestionNotes";
 
 const NO_CAPTURES: Capture[] = [];
-
-function renderQGScores(
-  rubricId: string,
-  questionTitle: string,
-  ev: Evaluation | undefined,
-  isAutoNa: boolean,
-  setEvaluation: (rubricId: string, patch: Partial<Evaluation>) => void,
-) {
-  return (
-    <div role="radiogroup" aria-label={`Quality gate score for ${questionTitle}`} className="flex gap-ut-2 mb-ut-2">
-      {(["pass", "fail", "na", "unsure"] as PassFailScore[]).map((val) => {
-        const isActive =
-          ev?.score === val ||
-          (isAutoNa &&
-            val === "na" &&
-            ev?.score !== "pass" &&
-            ev?.score !== "fail" &&
-            ev?.score !== "unsure");
-        const isDisabled = isAutoNa && val !== "na";
-
-        const handleClick = () => {
-          if (isDisabled) return;
-          if (ev?.score === val) {
-            setEvaluation(rubricId, { score: "" });
-          } else {
-            setEvaluation(rubricId, { score: val });
-          }
-        };
-
-        return (
-          <ScoreOption
-            key={val}
-            name={rubricId}
-            isActive={isActive}
-            isDisabled={isDisabled}
-            className="judgment-label cursor-pointer select-none"
-            dataJudgment={val}
-            onClick={handleClick}
-          >
-            {val === "pass"
-              ? "✓ Pass"
-              : val === "fail"
-                ? "✗ Fail"
-                : val === "na"
-                  ? "— N/A"
-                  : "? Unsure"}
-          </ScoreOption>
-        );
-      })}
-    </div>
-  );
-}
 
 function renderScoringScores(
   rubricId: string,
@@ -331,18 +281,10 @@ export const QuestionRow = React.memo(function QuestionRow({
           </span>
         )}
         {!isAutoNa && (
-          <button
-            type="button"
-            className={`ml-auto text-ut-xs font-mono uppercase tracking-ut-label px-ut-1 rounded-ut-sm border ${ev?.manualDone ? "border-ut-green bg-ut-green/10 text-ut-green" : "border-ut-border text-ut-muted hover:text-ut-text hover:border-ut-slate"} transition-colors`}
-            title={ev?.manualDone ? "Remove manual done override" : "Mark as done (override)"}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setEvaluation(rubricId, { manualDone: !ev?.manualDone || undefined });
-            }}
-          >
-            {ev?.manualDone ? "✓ Done" : "Done"}
-          </button>
+          <DoneToggle
+            isDone={!!ev?.manualDone}
+            onToggle={() => setEvaluation(rubricId, { manualDone: !ev?.manualDone || undefined })}
+          />
         )}
       </summary>
       <div className="question-body">
@@ -354,19 +296,27 @@ export const QuestionRow = React.memo(function QuestionRow({
         )}
 
         {/* Score UI */}
-        {isQG
-          ? renderQGScores(rubricId, question.title, ev, isAutoNa, setEvaluation)
-          : renderScoringScores(
-              rubricId,
-              question.title,
-              scoreNum,
-              isNa,
-              ev?.score === "unsure",
-              isAutoNa,
-              question as ScoringQuestion,
-              setEvaluation,
-              ev,
-            )}
+        {isQG ? (
+          <QualityGateSection
+            rubricId={rubricId}
+            questionTitle={question.title}
+            score={ev}
+            isAutoNa={isAutoNa}
+            onScoreChange={setEvaluation}
+          />
+        ) : (
+          renderScoringScores(
+            rubricId,
+            question.title,
+            scoreNum,
+            isNa,
+            ev?.score === "unsure",
+            isAutoNa,
+            question as ScoringQuestion,
+            setEvaluation,
+            ev,
+          )
+        )}
 
         {/* Related quality gate cross-reference */}
         {!isQG && (question as ScoringQuestion).related_gate && (
@@ -482,12 +432,10 @@ export const QuestionRow = React.memo(function QuestionRow({
           </div>
         )}
 
-        <textarea
-          className="w-full border border-ut-border rounded-ut-sm text-ut-xs p-ut-2 mt-ut-2 resize-y bg-ut-white"
-          rows={2}
-          placeholder={isQG ? "Notes / remarks..." : "Notes..."}
+        <QuestionNotes
           value={ev?.notes ?? ""}
-          onChange={(e) => setEvaluation(rubricId, { notes: e.target.value })}
+          onChange={(value) => setEvaluation(rubricId, { notes: value })}
+          placeholder={isQG ? "Notes / remarks..." : "Notes..."}
         />
       </div>
     </details>

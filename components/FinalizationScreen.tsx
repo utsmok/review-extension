@@ -5,16 +5,8 @@ import { PRINCIPLES } from "@/lib/principles";
 import { principleAverage } from "@/lib/rubric";
 import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
 import { useSessionStore } from "@/stores/session";
-const GRADES: { value: FinalizationGrade; label: string; color: string; tint: string }[] = [
-  { value: "pass", label: "Pass", color: "bg-ut-green", tint: "bg-grade-pass-tint" },
-  {
-    value: "conditional",
-    label: "Conditional",
-    color: "bg-score-1-strong",
-    tint: "bg-grade-conditional-tint",
-  },
-  { value: "fail", label: "Fail", color: "bg-ut-red", tint: "bg-grade-fail-tint" },
-];
+import ExportActions from "@/components/finalization/ExportActions";
+import GradeSelector from "@/components/finalization/GradeSelector";
 
 export default function FinalizationScreen() {
   const { finalization, setFinalization, evaluations } = useActiveSession();
@@ -223,27 +215,7 @@ export default function FinalizationScreen() {
       )}
 
       {/* Grade selector */}
-      <div>
-        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-1 block">
-          Overall Grade
-        </span>
-        <div className="flex gap-ut-2">
-          {GRADES.map((g) => (
-            <button
-              key={g.value}
-              type="button"
-              onClick={() => handleGradeChange(g.value)}
-              className={`grade-btn flex-1 px-ut-3 py-ut-2 rounded-ut-sm text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase ${
-                grade === g.value
-                  ? `${g.color} text-white is-selected`
-                  : `border border-ut-border ${g.tint} text-ut-text hover:brightness-95`
-              }`}
-            >
-              {g.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <GradeSelector grade={grade} onGradeChange={handleGradeChange} />
 
       {/* Conclusion */}
       <label className="flex flex-col gap-1">
@@ -289,44 +261,13 @@ export default function FinalizationScreen() {
         />
       </label>
 
-      {/* Actions */}
-      <div className="border-t-2 border-ut-border pt-ut-3 mt-1 flex items-center gap-ut-2">
-        <button
-          type="button"
-          className="flex-1 rounded-ut-sm px-ut-4 py-ut-3 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase disabled:opacity-50 bg-trust-magenta text-white hover:bg-trust-magenta-strong transition-colors"
-          disabled={!grade}
-          onClick={handleSave}
-        >
-          Lock & Finalize Review
-        </button>
-        {saved && (
-          <span className="flex items-center gap-1 text-ut-green text-ut-xs font-heading font-bold uppercase tracking-ut-label shrink-0">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 14 14"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M3 7.5l3 3 6-6" />
-            </svg>
-            Saved
-          </span>
-        )}
-      </div>
-      {finalization && (
-        <button
-          type="button"
-          className="w-full rounded-ut-sm px-ut-4 py-2 text-ut-sm transition-colors font-heading font-bold uppercase tracking-ut-uppercase text-ut-slate hover:text-ut-red"
-          onClick={handleClear}
-        >
-          Clear Finalization
-        </button>
-      )}
+      <ExportActions
+        onFinalize={handleSave}
+        onClear={handleClear}
+        canFinalize={!!grade}
+        saved={saved}
+        showClear={!!finalization}
+      />
     </div>
   );
 }
