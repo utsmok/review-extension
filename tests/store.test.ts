@@ -1,29 +1,25 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Capture, SessionMetadata } from "@/lib/types";
 import { useSessionStore } from "@/stores/session";
+import { makeCapture as _makeCapture, makeMetadata as _makeMetadata } from "@/tests/fixtures";
 
 function makeMetadata(overrides?: Partial<SessionMetadata>): SessionMetadata {
-  return {
-    id: crypto.randomUUID(),
+  return _makeMetadata({
     toolName: "Test Tool",
     toolUrl: "https://example.com",
     startTime: "2025-01-01T00:00:00.000Z",
-    status: "started",
     ...overrides,
-  };
+  });
 }
 
 function makeCapture(overrides?: Partial<Capture>): Capture {
-  return {
-    id: crypto.randomUUID(),
+  return _makeCapture({
     timestamp: new Date().toISOString(),
     sourceUrl: "https://example.com/page",
-    pageTitle: "Test Page",
     screenshotBase64: "data:image/png;base64,abc123",
     htmlContent: "<html></html>",
-    notes: "",
     ...overrides,
-  };
+  });
 }
 
 describe("session lifecycle", () => {

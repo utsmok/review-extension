@@ -295,6 +295,125 @@ describe("exportSession", () => {
     expect(html).toContain("Needs improvement");
     expect(html).toContain("Limited docs");
   });
+
+  it("succeeds with empty captures and no capture-derived image files in ZIP", async () => {
+    const blob = await exportSession(makeMetadata(), [], [], RUBRIC);
+    const files = await unzipToFiles(blob);
+
+    // No capture-derived images should exist — only logos (1.jpg, 2.jpg, 3.jpg)
+    const captureImages = [...files.keys()].filter(
+      (k) => (k.endsWith(".jpg") || k.endsWith(".png")) && !["1.jpg", "2.jpg", "3.jpg"].includes(k),
+    );
+    expect(captureImages).toHaveLength(0);
+
+    // ZIP should still contain core files
+    expect(files.has("session_metadata.csv")).toBe(true);
+    expect(files.has("rubric_scores.csv")).toBe(true);
+    expect(files.has("session.json")).toBe(true);
+  });
+
+  it("handles missing optional metadata fields", async () => {
+    const metadata = makeMetadata({
+      company: undefined,
+      pricing: undefined,
+      availability: undefined,
+      termsConditionsUrl: undefined,
+      authenticationMethod: undefined,
+      dataSources: undefined,
+      searchMethods: undefined,
+      discipline: undefined,
+      notes: undefined,
+      toolLogoUrl: undefined,
+      description: undefined,
+    });
+
+    const blob = await exportSession(metadata, [], [], RUBRIC);
+    const files = await unzipToFiles(blob);
+
+    const csv = files.get("session_metadata.csv") as string;
+    const rows = parseCsv(csv);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].Company).toBe("");
+    expect(rows[0].Pricing).toBe("");
+    expect(rows[0].Discipline).toBe("");
+    expect(rows[0].Notes).toBe("");
+
+    // HTML report should still be generated
+    const html = files.get("Evaluation_Report_TestSearch.html") as string;
+    expect(html).toContain("<!DOCTYPE html>");
+  });
+
+  it("sanitizes special characters in tool name for filenames", async () => {
+    const toolName = `Tool<>&"'Test`;
+    const blob = await exportSession(makeMetadata({ toolName }), [], [], RUBRIC);
+    const files = await unzipToFiles(blob);
+
+    // Filenames should use sanitized name (special chars replaced with _)
+    const reportFile = [...files.keys()].find((k) => k.startsWith("Evaluation_Report_"));
+    expect(reportFile).toBeDefined();
+    expect(reportFile!).not.toContain("<");
+    expect(reportFile!).not.toContain(">");
+    // & and ' are valid in filenames — only <, >, " are stripped
+    expect(reportFile!).not.toContain('"');
+
+    // HTML report should not contain raw injection from tool name
+    const html = files.get(reportFile!) as string;
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("Tool");
+  });
+
+  it("handles very long tool name in filenames", async () => {
+    const toolName = "A".repeat(300);
+    const blob = await exportSession(makeMetadata({ toolName }), [], [], RUBRIC);
+    const files = await unzipToFiles(blob);
+
+    const reportFile = [...files.keys()].find((k) => k.startsWith("Evaluation_Report_"));
+    expect(reportFile).toBeDefined();
+
+    // The filename should exist and be reasonable length (no OS path overflow)
+    expect(reportFile!.length).toBeLessThan(350);
+
+    // ZIP should still be valid
+    expect(files.has("session.json")).toBe(true);
+  });
+
+  it("excludes AI-only questions from report when usesAi is false", async () => {
+    const metadata = makeMetadata({ usesAi: false });
+
+    // Score some non-AI questions so the report has content
+    const evaluations: Evaluation[] = [
+      {
+        rubricId: "TR.data_source_clarity",
+        score: 2,
+        notes: "Good",
+        explicitEvidenceIds: [],
+      },
+      {
+        rubricId: "US.workflow_integration",
+        score: 3,
+        notes: "Excellent",
+        explicitEvidenceIds: [],
+      },
+    ];
+
+    const blob = await exportSession(metadata, [], evaluations, RUBRIC);
+    const files = await unzipToFiles(blob);
+    const html = files.get("Evaluation_Report_TestSearch.html") as string;
+
+    // AI-only question titles should NOT appear in the report
+    expect(html).not.toContain("AI model training policy");
+    expect(html).not.toContain("Methodology disclosure");
+    expect(html).not.toContain("Accuracy and hallucination");
+    expect(html).not.toContain("Critical thinking prompts");
+
+    // Non-AI questions should still appear
+    // Non-AI questions should still appear (by code in the report)
+    expect(html).toContain("TR1"); // Data source clarity
+    expect(html).toContain("US1"); // Workflow integration
+
+    // Metadata should indicate AI-powered: No
+    expect(html).toContain("AI-powered: No");
+  });
 });
 
 describe("buildHtmlReport", () => {

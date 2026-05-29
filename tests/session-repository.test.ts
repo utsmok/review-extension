@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
 import "fake-indexeddb/auto";
 
 import {
@@ -178,5 +179,106 @@ describe("DI helpers", () => {
     setRepository(new InMemorySessionRepository());
     resetRepository();
     expect(getRepository()).toBeInstanceOf(IdbSessionRepository);
+  });
+});
+
+describe("IdbSessionRepository quota check", () => {
+  const repo = new IdbSessionRepository();
+
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    try {
+      await repo.delete("quota-test-id");
+    } catch {
+      // ignore
+    }
+  });
+
+  it("warns when storage headroom is low", async () => {
+    // quota=10MB, usage=9MB → headroom=1MB
+    // 1 capture → estimatedSize=2.5MB > 1MB*0.8=0.8MB → warning
+    const estimateMock = vi.fn().mockResolvedValue({
+      quota: 10_000_000,
+      usage: 9_000_000,
+    });
+    vi.stubGlobal(
+      "navigator",
+      Object.create(navigator, {
+        storage: {
+          value: { estimate: estimateMock },
+          enumerable: true,
+          configurable: true,
+        },
+      }),
+    );
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const data = makeSessionData({
+      captures: [
+        {
+          id: "cap-1",
+          timestamp: "2025-01-01T01:00:00.000Z",
+          sourceUrl: "https://example.com",
+          pageTitle: "Test",
+          screenshotBase64: "data:image/png;base64,abc",
+          htmlContent: "<html></html>",
+          notes: "",
+        },
+      ],
+    });
+
+    const result = await repo.save("quota-test-id", data);
+    expect(result).toBe(true);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Storage quota low"),
+    );
+  });
+
+  it("does not warn when there is plenty of space", async () => {
+    // quota=1GB, usage=10MB → headroom=~1014MB
+    // 0 captures → estimatedSize=0.5MB, well below 1014MB*0.8
+    const estimateMock = vi.fn().mockResolvedValue({
+      quota: 1_000_000_000,
+      usage: 10_000_000,
+    });
+    vi.stubGlobal(
+      "navigator",
+      Object.create(navigator, {
+        storage: {
+          value: { estimate: estimateMock },
+          enumerable: true,
+          configurable: true,
+        },
+      }),
+    );
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const data = makeSessionData();
+
+    const result = await repo.save("quota-test-id", data);
+    expect(result).toBe(true);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it("saves successfully when estimate API is unavailable", async () => {
+    // navigator.storage.estimate is undefined
+    vi.stubGlobal(
+      "navigator",
+      Object.create(navigator, {
+        storage: {
+          value: {},
+          enumerable: true,
+          configurable: true,
+        },
+      }),
+    );
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const data = makeSessionData();
+
+    const result = await repo.save("quota-test-id", data);
+    expect(result).toBe(true);
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });
