@@ -140,11 +140,13 @@ Single-context layout — one CONTEXT.md + docs/adr/ at repo root. See `docs/age
 
 ### Impeccable design skill
 
-- **Status:** fully set up and accessible from OMP. Skill resolved via `skill://impeccable`, scripts at `~/.claude/skills/impeccable/`.
+- **Status:** fully set up and accessible from OMP. Installed v3.5.0 (May 28, 2026).
+- **Locations:** project-local at `.agents/skills/impeccable/` + symlink `.claude/skills/impeccable/`; global at `~/.claude/skills/impeccable/`.
 - **Register:** `product` (design serves the product — correct for this evaluation instrument).
 - **Context files:** `PRODUCT.md` (users, brand, principles) and `DESIGN.md` (full design system: colors, typography, elevation, components, do's/don'ts) are both present and substantive at the project root.
-- **Path note:** the skill's SKILL.md references `node .claude/skills/impeccable/scripts/load-context.mjs` (relative), but the project's `.claude/skills/` has no `impeccable` symlink. Use the resolved absolute path instead: `node /home/sam/.claude/skills/impeccable/scripts/load-context.mjs`. Alternatively, add a symlink: `ln -s ~/.claude/skills/impeccable .claude/skills/impeccable`.
-- **Commands available:** 22 commands across build (craft, shape, teach, document, extract), evaluate (critique, audit), refine (polish, bolder, quieter, distill, harden, onboard), enhance (animate, colorize, typeset, layout, delight, overdrive), fix (clarify, adapt, optimize), and iterate (live). Plus pin/unpin management.
+- **Context script:** `node .agents/skills/impeccable/scripts/context.mjs` — reads PRODUCT.md + DESIGN.md. Run once per session before design work. If it reports `NO_PRODUCT_MD`, follow `reference/init.md`.
+- **Commands available:** 23 commands under `/impeccable`: create (craft, shape, init), evaluate (critique, audit), refine (polish, bolder, quieter, distill, typeset, layout, colorize, animate, delight, overdrive), simplify (adapt, clarify), harden (harden, onboard, optimize, polish), system (document, extract, live). Plus pin/unpin management and `npx impeccable detect` CLI.
+- **v3.5 changes:** per-provider compiled rules (GPT-5.5/Codex), Live Mode Beta, `/impeccable init` replaces `/impeccable teach`, bare `/impeccable` recommends next move, 41-rule detector (14 new), auto-update check, critique persistence to `.impeccable/critique/`.
 - **No `.impeccable.md`** — not needed; the native PRODUCT.md/DESIGN.md pair is richer.
 
 ### Roborev (automated code review)

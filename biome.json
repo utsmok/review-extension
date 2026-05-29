@@ -1,7 +1,13 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
   "files": {
-    "includes": ["**", "!!**/docs/example-export-results"]
+    "includes": [
+      "**",
+      "!!**/docs/example-export-results",
+      "!!.agents",
+      "!!.claude",
+      "!!.github/skills"
+    ]
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "vcs": {
