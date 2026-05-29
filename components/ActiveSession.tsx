@@ -14,6 +14,13 @@ import Metadata from "./Metadata";
 
 const tabs = ["Evaluation", "Metadata", "Finalize", "Captures"] as const;
 
+const tabDescs: Record<(typeof tabs)[number], string> = {
+  Evaluation: "Score rubric questions (1–4) and attach evidence",
+  Metadata: "Tool details, URLs, logo, and data sources",
+  Finalize: "Grade, conclusion, strengths, and export",
+  Captures: "Screenshot evidence and annotations",
+};
+
 const tabIds: Record<(typeof tabs)[number], string> = {
   Captures: "panel-captures",
   Evaluation: "panel-evaluation",
@@ -36,7 +43,7 @@ function TabCheck() {
       className="inline-block ml-1 text-ut-green align-middle"
       aria-label="Complete"
     >
-      <path d="M3 7l3 3 5.5-5.5" />
+      <path d="M3 7l3 3 5.5-5.5" className="tab-check-path" />
     </svg>
   );
 }
@@ -329,6 +336,7 @@ export default function ActiveSession() {
                 aria-controls={tabIds[tab]}
                 tabIndex={activeTab === tab ? 0 : -1}
                 className={`sidebar-tab ${activeTab === tab ? "is-active" : ""}`}
+                data-tab-desc={tabDescs[tab]}
                 onClick={() => setActiveTab(tab)}
               >
                 {tab}
@@ -345,25 +353,6 @@ export default function ActiveSession() {
           className="flex-1 min-h-0 overflow-y-auto bg-ut-offwhite tab-panel-content"
           aria-live="polite"
         >
-          {activeTab !== "Metadata" &&
-            session &&
-            !session.description?.trim() &&
-            (!session.dataSources || session.dataSources.length === 0) &&
-            !finalization?.finalizedAt && (
-              <div className="bg-score-1/10 border-b border-score-1/30 px-ut-4 py-ut-2 flex items-center justify-between">
-                <span className="text-ut-xs text-score-1 font-heading">
-                  Complete Tool Details on the Metadata tab before finalizing.
-                </span>
-                <button
-                  type="button"
-                  className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta hover:text-trust-magenta-strong"
-                  onClick={() => setActiveTab("Metadata")}
-                >
-                  Go to Metadata →
-                </button>
-              </div>
-            )}
-          {activeTab === "Captures" && <Captures />}
           {quickNoteOpen && (
             <div className="quick-note-overlay">
               <textarea
@@ -405,9 +394,30 @@ export default function ActiveSession() {
               </button>
             </div>
           )}
-          {activeTab === "Evaluation" && <Evaluation />}
-          {activeTab === "Metadata" && <Metadata />}
-          {activeTab === "Finalize" && <FinalizationScreen />}
+          <div key={activeTab} className="tab-panel-enter">
+            {activeTab !== "Metadata" &&
+              session &&
+              !session.description?.trim() &&
+              (!session.dataSources || session.dataSources.length === 0) &&
+              !finalization?.finalizedAt && (
+                <div className="bg-score-1/10 border-b border-score-1/30 px-ut-4 py-ut-2 flex items-center justify-between">
+                  <span className="text-ut-xs text-score-1 font-heading">
+                    Complete Tool Details on the Metadata tab before finalizing.
+                  </span>
+                  <button
+                    type="button"
+                    className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta hover:text-trust-magenta-strong"
+                    onClick={() => setActiveTab("Metadata")}
+                  >
+                    Go to Metadata →
+                  </button>
+                </div>
+              )}
+            {activeTab === "Captures" && <Captures />}
+            {activeTab === "Evaluation" && <Evaluation />}
+            {activeTab === "Metadata" && <Metadata />}
+            {activeTab === "Finalize" && <FinalizationScreen />}
+          </div>
         </div>
       </div>
     </TabNavigationContext.Provider>

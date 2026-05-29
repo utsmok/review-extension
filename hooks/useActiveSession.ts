@@ -77,10 +77,13 @@ export function useActiveSession() {
       } = useSessionStore.getState();
       if (!s) throw new Error("No active session");
       const blob = await exportSession(s, c, e, rubric, f);
+      if (blob.size === 0) throw new Error("Export produced an empty file. Please try again.");
       downloadBlob(blob, `TRUST_Review_${sanitizeFilename(s.toolName)}.zip`);
       await lifecycle.markDoneAndClose(s.id);
+      return { blobSize: blob.size };
     } catch (err) {
       toastError(err instanceof Error ? err.message : "Export failed. Please try again.");
+      return undefined;
     }
   };
 

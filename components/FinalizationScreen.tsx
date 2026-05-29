@@ -162,8 +162,27 @@ export default function FinalizationScreen() {
   // Show "Finalized" banner only when formally finalized (finalizedAt is set)
   const isFormallyFinalized = !!finalization?.finalizedAt;
 
+  // Overall average across all scored principles
+  const overallAvg = useMemo(() => {
+    const scored = principleScores.filter((p) => p.avg !== null);
+    if (scored.length === 0) return null;
+    return scored.reduce((sum, p) => sum + (p.avg ?? 0), 0) / scored.length;
+  }, [principleScores]);
+
+  // Score-to-color for the overall hero
+  const overallColor = useMemo(() => {
+    if (overallAvg === null) return "var(--ut-slate)";
+    if (overallAvg >= 2.5) return "var(--score-3)";
+    if (overallAvg >= 1.5) return "var(--score-2)";
+    if (overallAvg >= 0.5) return "var(--score-1)";
+    return "var(--score-0)";
+  }, [overallAvg]);
+
   return (
     <div className="flex flex-col gap-ut-3 p-ut-4">
+      <p className="text-ut-xs font-heading font-bold uppercase tracking-ut-kicker text-ut-slate">
+        Review Summary
+      </p>
       <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta">
         Finalize Review
       </h2>
@@ -174,43 +193,128 @@ export default function FinalizationScreen() {
       )}
 
       {isFormallyFinalized && (
-        <div className="bg-trust-magenta-tint rounded-ut-sm px-ut-3 py-ut-2">
-          <p className="text-ut-xs text-ut-muted font-mono">
-            Finalized {new Date(finalization.finalizedAt).toLocaleString()}
-          </p>
-          <div className="flex items-center gap-ut-2 mt-1">
-            <span className="text-ut-xs text-ut-muted font-heading uppercase tracking-ut-label">
-              Ready to export
-            </span>
-            <button
-              type="button"
-              className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta hover:text-trust-magenta-strong transition-colors"
-              onClick={() => setActiveTab("Metadata")}
-            >
-              Export review &rarr;
-            </button>
+        <div
+          className="finalized-banner rounded-ut-sm px-ut-4 py-ut-3 flex items-center gap-ut-3"
+          style={{
+            background: `linear-gradient(135deg, var(--trust-magenta-tint) 0%, color-mix(in srgb, var(--trust-magenta) 12%, var(--ut-white)) 100%)`,
+            borderLeft: "6px solid var(--trust-magenta)",
+          }}
+        >
+          <div className="flex flex-col flex-1 min-w-0">
+            <div className="flex items-center gap-ut-2">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+                aria-hidden="true"
+                style={{ color: "var(--trust-magenta)" }}
+              >
+                <path
+                  d="M9 1l2.1 4.3 4.9.7-3.5 3.4.8 4.6L9 11.8 4.7 14l.8-4.6L2 6l4.9-.7L9 1z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span className="font-heading font-bold uppercase tracking-ut-label text-trust-magenta text-ut-sm">
+                Review Finalized
+              </span>
+            </div>
+            <p className="text-ut-xs text-ut-muted font-mono mt-1">
+              {new Date(finalization.finalizedAt).toLocaleString()}
+            </p>
+            <div className="flex items-center gap-ut-2 mt-1">
+              <button
+                type="button"
+                className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta hover:text-trust-magenta-strong transition-colors"
+                onClick={() => setActiveTab("Metadata")}
+              >
+                Export review &rarr;
+              </button>
+            </div>
           </div>
         </div>
       )}
-      {/* Per-principle score summary */}
+      {/* Overall score hero */}
+      {rubric && (
+        <div
+          className="finalization-hero-score rounded-ut-sm p-ut-4 text-center"
+          style={{
+            background:
+              overallAvg !== null
+                ? `linear-gradient(180deg, color-mix(in srgb, ${overallColor} 10%, var(--ut-grey)) 0%, var(--ut-grey) 100%)`
+                : "var(--ut-grey)",
+            borderTop:
+              overallAvg !== null ? `4px solid ${overallColor}` : "4px solid var(--ut-border)",
+          }}
+          role="status"
+          aria-label={
+            overallAvg !== null
+              ? `Overall score: ${overallAvg.toFixed(1)} out of 3.0`
+              : "No scores yet"
+          }
+        >
+          <div className="font-heading font-bold uppercase tracking-ut-kicker text-ut-xs text-ut-slate mb-1">
+            Overall Score
+          </div>
+          {overallAvg !== null ? (
+            <div className="finalization-score-number" style={{ color: overallColor }}>
+              {overallAvg.toFixed(1)}
+            </div>
+          ) : (
+            <div className="finalization-score-number" style={{ color: "var(--ut-slate)" }}>
+              &ndash;
+            </div>
+          )}
+          <div className="text-ut-xs text-ut-muted font-mono mt-1">out of 3.0</div>
+        </div>
+      )}
+
+      {/* Per-principle score dashboard */}
       {rubric && (
         <ul className="grid grid-cols-5 gap-ut-1 list-none p-0 m-0" aria-label="Principle scores">
-          {principleScores.map((p) => (
-            <li
-              key={p.id}
-              className="text-center p-ut-2 rounded-ut-sm"
-              aria-label={`${p.code}: ${p.avg !== null ? p.avg.toFixed(1) : "not scored"} out of 3.0`}
-              style={{ background: `color-mix(in srgb, ${p.color} 7%, transparent)` }}
-            >
-              <div className="font-mono text-ut-xs font-bold" style={{ color: p.color }}>
-                {p.code}
-              </div>
-              <div className="text-ut-lg font-bold text-ut-text">
-                {p.avg !== null ? p.avg.toFixed(1) : "–"}
-              </div>
-              <div className="text-ut-xs text-ut-muted">/3.0</div>
-            </li>
-          ))}
+          {principleScores.map((p) => {
+            const pct = p.avg !== null ? (p.avg / 3) * 100 : 0;
+            return (
+              <li
+                key={p.id}
+                className="finalization-principle-card text-center p-ut-2 rounded-ut-sm"
+                aria-label={`${p.code}: ${p.avg !== null ? p.avg.toFixed(1) : "not scored"} out of 3.0`}
+                style={{
+                  background: `color-mix(in srgb, ${p.color} 10%, var(--ut-white))`,
+                  borderLeft: `3px solid ${p.color}`,
+                }}
+              >
+                <div className="font-mono text-ut-xs font-bold" style={{ color: p.color }}>
+                  {p.code}
+                </div>
+                <div
+                  className="font-bold text-ut-text"
+                  style={{ fontSize: "1.25rem", lineHeight: 1.1 }}
+                >
+                  {p.avg !== null ? p.avg.toFixed(1) : "–"}
+                </div>
+                {/* Mini progress bar */}
+                <div
+                  className="mt-1 mx-auto rounded-full overflow-hidden"
+                  style={{
+                    width: "100%",
+                    height: "3px",
+                    background: `color-mix(in srgb, ${p.color} 20%, var(--ut-white))`,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${pct}%`,
+                      height: "100%",
+                      background: p.color,
+                      borderRadius: "9999px",
+                      transition: "width var(--duration-normal) ease-out",
+                    }}
+                  />
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
 

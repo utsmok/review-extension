@@ -23,7 +23,7 @@ vi.hoisted(() => {
   globalThis.localStorage = shim as Storage;
 });
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { makeCapture } from "@/tests/fixtures";
@@ -124,6 +124,7 @@ describe("EvidenceModal", () => {
   });
 
   it("calls onClose when backdrop is clicked", () => {
+    vi.useFakeTimers();
     const onClose = vi.fn();
     renderModal({ onClose });
 
@@ -133,16 +134,29 @@ describe("EvidenceModal", () => {
     const backdrop = dialog.parentElement;
     if (backdrop) fireEvent.click(backdrop);
 
+    // Advance past the 200ms close animation
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+
     expect(onClose).toHaveBeenCalledOnce();
+    vi.useRealTimers();
   });
 
   it("calls onClose on Escape key", () => {
+    vi.useFakeTimers();
     const onClose = vi.fn();
     renderModal({ onClose });
 
     fireEvent.keyDown(document, { key: "Escape" });
 
+    // Advance past the 200ms close animation
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+
     expect(onClose).toHaveBeenCalledOnce();
+    vi.useRealTimers();
   });
 
   it("renders the dialog with correct aria attributes", () => {

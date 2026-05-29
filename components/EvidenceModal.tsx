@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AssetRecordType,
   createShapeId,
@@ -47,6 +47,12 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     useActiveSession();
   const { rubric, usesAi } = useRubric();
   const panelRef = useRef<HTMLDivElement>(null);
+  const [closing, setClosing] = useState(false);
+
+  const animateClose = useCallback(() => {
+    setClosing(true);
+    setTimeout(onClose, 200);
+  }, [onClose]);
 
   const [editor, setEditor] = useState<Editor | null>(null);
   const [imageShapeId, setImageShapeId] = useState<TLShapeId | null>(null);
@@ -61,11 +67,11 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") animateClose();
     };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [onClose]);
+  }, [animateClose]);
   /* ── Cleanup tldraw side-effect handlers on unmount ── */
   useEffect(() => {
     return () => {
@@ -195,7 +201,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     } catch {
       updateCapture(capture.id, { notes });
     }
-    onClose();
+    animateClose();
   };
 
   /* ── Clear annotations (remove non-image shapes) ── */
@@ -209,19 +215,19 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
   return (
     <button
       type="button"
-      className="modal-backdrop"
+      className={`modal-backdrop modal-backdrop--evidence ${closing ? "closing" : ""}`}
       tabIndex={-1}
-      onClick={onClose}
+      onClick={animateClose}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onClose();
+          animateClose();
         }
       }}
     >
       <div
         ref={panelRef}
-        className="modal-panel max-w-[720px] p-0"
+        className="modal-panel modal-panel--evidence max-w-[720px] p-0"
         role="dialog"
         aria-modal="true"
         aria-label="Evidence viewer and annotation"

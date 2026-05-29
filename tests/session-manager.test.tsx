@@ -51,7 +51,7 @@ vi.mock("@/lib/session-lifecycle", () => ({
 
 // Mock session-repository to avoid IndexedDB
 vi.mock("@/lib/session-repository", () => ({
-  getRepository: () => ({ save: vi.fn(), load: vi.fn(), delete: vi.fn() }),
+  getRepository: () => ({ save: vi.fn(), load: vi.fn().mockResolvedValue(null), delete: vi.fn() }),
 }));
 
 // Mock export utilities
@@ -97,8 +97,8 @@ describe("SessionManager", () => {
   it("shows empty state when no sessions exist", () => {
     renderSessionManager();
 
-    expect(screen.getByText("No reviews yet")).toBeDefined();
-    expect(screen.getByText("Start a new review or import one to begin evaluating.")).toBeDefined();
+    expect(screen.getByText("TRUST Review")).toBeDefined();
+    expect(screen.getByText(/Evaluate search tools against a structured rubric/)).toBeDefined();
   });
 
   it("renders session list with registered sessions", () => {

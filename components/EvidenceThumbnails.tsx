@@ -1,10 +1,17 @@
+import { useEffect, useRef } from "react";
 import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
 import type { Capture } from "@/lib/types";
 
 function ThumbnailImg({ capture }: { capture: Capture }) {
   const screenshotUrl = useScreenshotUrl(capture.id);
   const src = screenshotUrl ?? capture.annotatedScreenshotBase64 ?? capture.screenshotBase64;
-  return <img src={src} alt={capture.pageTitle ? `Evidence: ${capture.pageTitle}` : "Evidence capture"} loading="lazy" />;
+  return (
+    <img
+      src={src}
+      alt={capture.pageTitle ? `Evidence: ${capture.pageTitle}` : "Evidence capture"}
+      loading="lazy"
+    />
+  );
 }
 
 interface EvidenceThumbnailsProps {
@@ -20,15 +27,34 @@ export default function EvidenceThumbnails({
   onConfirmRemove,
   onViewEvidence,
 }: EvidenceThumbnailsProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const check = () => el.classList.toggle("is-scrollable", el.scrollWidth > el.clientWidth + 2);
+    check();
+    el.addEventListener("scroll", check);
+    window.addEventListener("resize", check);
+    return () => {
+      el.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+    };
+  }, []);
+
   if (captures.length === 0) return null;
   return (
     <div className="mb-ut-3">
       <p className="text-ut-xs font-heading font-bold text-ut-slate uppercase tracking-ut-kicker mb-ut-1">
         Evidence ({captures.length})
       </p>
-      <div className="flex gap-ut-1 overflow-x-auto">
-        {captures.map((c) => (
-          <div key={c.id} className="evidence-thumb-wrap">
+      <div ref={scrollRef} className="flex gap-ut-1 overflow-x-auto scroll-fade-right">
+        {captures.map((c, idx) => (
+          <div
+            key={c.id}
+            className="evidence-thumb-wrap capture-card-stagger"
+            style={{ animationDelay: `${idx * 40}ms` }}
+          >
             <ThumbnailImg capture={c} />
             <div className="evidence-thumb-overlay">
               <button

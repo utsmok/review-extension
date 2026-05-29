@@ -24,7 +24,7 @@ const _lsStore: Record<string, string> = vi.hoisted(() => {
   return store;
 });
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useSessionStore } from "@/stores/session";
 import { makeCapture } from "@/tests/fixtures";
@@ -120,10 +120,9 @@ describe("Captures", () => {
 
     expect(screen.getByText("No captures yet")).toBeDefined();
     expect(
-      screen.getByText("Use + Quick Capture or press Ctrl+Shift+S to screenshot the current page."),
+      screen.getByText(/Screenshot the current page to collect visual evidence/),
     ).toBeDefined();
   });
-
   it("shows captures in grid view", () => {
     const capture1 = makeCapture({ pageTitle: "Result Page" });
     const capture2 = makeCapture({ pageTitle: "About Page" });
@@ -167,6 +166,7 @@ describe("Captures", () => {
   });
 
   it("delete confirmation removes capture", () => {
+    vi.useFakeTimers();
     const capture1 = makeCapture({ pageTitle: "Keep Me" });
     const capture2 = makeCapture({ pageTitle: "Remove Me" });
     seedActiveSession({ captures: [capture1, capture2] });
@@ -184,11 +184,16 @@ describe("Captures", () => {
     const confirmBtn = screen.getByRole("button", { name: "Delete" });
     fireEvent.click(confirmBtn);
 
+    // Advance past the 250ms delete animation
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
     // Dialog should be gone
     expect(screen.queryByTestId("confirm-dialog")).toBeNull();
     // One capture should remain
     const images = screen.getAllByRole("img");
     expect(images).toHaveLength(1);
+    vi.useRealTimers();
   });
 
   it("switches to list view", () => {

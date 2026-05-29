@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getAccentKey,
   getQGCategoryCode,
@@ -186,6 +186,25 @@ export default function ScoreOverviewBar({
     return { scored: scoredCount, total: visibleIds.size };
   }, [evaluations, rubric, usesAi]);
 
+  // Progress change detection for delight animations
+  const prevScoredRef = useRef(scored);
+  const [bumpFraction, setBumpFraction] = useState(false);
+  const [glowFill, setGlowFill] = useState(false);
+
+  useEffect(() => {
+    if (scored > prevScoredRef.current) {
+      setBumpFraction(true);
+      setGlowFill(true);
+      const timer = setTimeout(() => {
+        setBumpFraction(false);
+        setGlowFill(false);
+      }, 300);
+      prevScoredRef.current = scored;
+      return () => clearTimeout(timer);
+    }
+    prevScoredRef.current = scored;
+  }, [scored]);
+
   // Find first incomplete question
   const firstIncomplete = useMemo(() => {
     return badges.find((b) => !b.isAutoNa && b.state !== "complete") ?? null;
@@ -211,13 +230,13 @@ export default function ScoreOverviewBar({
     <div className="score-overview-bar">
       <div className="score-overview-bar__inner">
         {/* Fraction + progress */}
-        <span className="score-overview-bar__fraction">
+        <span className={`score-overview-bar__fraction ${bumpFraction ? "score-overview-bar__fraction--bump" : ""}`}>
           <span className="score-overview-bar__scored">{scored}</span>
           <span className="score-overview-bar__divider">/</span>
           <span className="score-overview-bar__total">{total}</span>
         </span>
         <span className="score-overview-bar__track">
-          <span className="score-overview-bar__fill" style={{ width: `${progressPct}%` }} />
+          <span className={`score-overview-bar__fill ${glowFill ? "score-overview-bar__fill--glow" : ""}`} style={{ width: `${progressPct}%` }} />
         </span>
 
         {/* Thin separator before badges */}

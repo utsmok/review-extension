@@ -28,10 +28,10 @@ export default function GradeSelector({ grade, onGradeChange }: GradeSelectorPro
             key={g.value}
             type="button"
             onClick={() => onGradeChange(g.value)}
-            className={`grade-btn flex-1 px-ut-3 py-ut-2 rounded-ut-sm text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase ${
+            className={`grade-btn flex-1 px-ut-3 py-ut-3 rounded-ut-sm text-ut-body font-heading font-bold uppercase tracking-ut-uppercase ${
               grade === g.value
                 ? `${g.color} text-white is-selected`
-                : `border border-ut-border ${g.tint} text-ut-text hover:brightness-95`
+                : `border-2 border-ut-border ${g.tint} text-ut-text hover:brightness-95`
             }`}
           >
             {g.label}

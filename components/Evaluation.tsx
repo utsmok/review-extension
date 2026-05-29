@@ -6,7 +6,6 @@ import ScoreOverviewBar from "@/components/ScoreOverviewBar";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useCaptureQueue } from "@/hooks/useCaptureQueue";
 import { useRubric } from "@/lib/contexts";
-import EmptyState from "./EmptyState";
 import type { Capture } from "@/lib/types";
 
 export default function Evaluation() {
@@ -34,11 +33,28 @@ export default function Evaluation() {
         usesAi={usesAi}
       />
       {evaluations.length === 0 && (
-        <EmptyState
-          title="No scores yet"
-          description="Expand a question below to begin scoring."
-          titleClassName="font-heading uppercase tracking-ut-label"
-        />
+        <div className="tab-empty-state">
+          <div className="tab-empty-state__icon bg-[color-mix(in_srgb,var(--trust-magenta)_10%,var(--ut-white))]">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--trust-magenta)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 11l3 3L22 4" />
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
+          </div>
+          <p className="tab-empty-state__title">Begin your evaluation</p>
+          <p className="tab-empty-state__desc">
+            Expand a Quality Gate or Scoring Rubric question below to start scoring. Use the score overview bar to track your progress.
+          </p>
+        </div>
       )}
 
       {/* Quality Gates section (flat — no nested tabs) */}

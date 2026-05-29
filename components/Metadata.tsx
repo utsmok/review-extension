@@ -101,6 +101,8 @@ export default function Metadata() {
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [exportComplete, setExportComplete] = useState(false);
   const [exportFilename, setExportFilename] = useState("");
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [exportFileSize, setExportFileSize] = useState<number | null>(null);
   const [showUsesAiConfirm, setShowUsesAiConfirm] = useState(false);
   const [logoCapturing, setLogoCapturing] = useState(false);
   const [showExportConfirm, setShowExportConfirm] = useState(false);
@@ -170,12 +172,27 @@ export default function Metadata() {
 
   const handleExport = async () => {
     setExporting(true);
-    try {
-      await exportAndClose(rubric);
+    setExportError(null);
+    const result = await exportAndClose(rubric);
+    setExporting(false);
+    if (result) {
       setExportFilename(`TRUST_Review_${session.toolName}.zip`);
+      setExportFileSize(result.blobSize);
       setExportComplete(true);
-    } finally {
-      setExporting(false);
+    } else {
+      setExportError("Export failed. Please try again.");
+      setExportComplete(true);
+    }
+  };
+
+  const handleRetry = async () => {
+    setExporting(true);
+    const result = await exportAndClose(rubric);
+    setExporting(false);
+    if (result) {
+      setExportFilename(`TRUST_Review_${session.toolName}.zip`);
+      setExportFileSize(result.blobSize);
+      setExportError(null);
     }
   };
 
@@ -204,6 +221,10 @@ export default function Metadata() {
         scoredCount={scoredCount}
         finalization={finalization}
         filename={exportFilename}
+        error={exportError}
+        fileSize={exportFileSize ?? undefined}
+        loading={exporting}
+        onRetry={handleRetry}
         onDone={handleDone}
       />
     );
@@ -248,10 +269,14 @@ export default function Metadata() {
           Tool uses AI / LLM
         </span>
         {!(session.usesAi ?? true) && (
-          <span className="meta-ai-badge text-ut-xs font-mono bg-ut-offwhite text-ut-muted border border-ut-border rounded-ut-sm px-ut-1 ml-auto">OFF</span>
+          <span className="meta-ai-badge text-ut-xs font-mono bg-ut-offwhite text-ut-muted border border-ut-border rounded-ut-sm px-ut-1 ml-auto">
+            OFF
+          </span>
         )}
         {(session.usesAi ?? true) && (
-          <span className="meta-ai-badge text-ut-xs font-mono bg-state-success-tint text-ut-green border border-ut-green/30 rounded-ut-sm px-ut-1 ml-auto">ON</span>
+          <span className="meta-ai-badge text-ut-xs font-mono bg-state-success-tint text-ut-green border border-ut-green/30 rounded-ut-sm px-ut-1 ml-auto">
+            ON
+          </span>
         )}
       </label>
       {!(session.usesAi ?? true) && (
@@ -313,7 +338,12 @@ export default function Metadata() {
             />
           )}
           {session?.toolLogoUrl && logoError && (
-            <span className="meta-logo-img text-ut-xs text-state-warning flex items-center justify-center" title="Image failed to load">⚠</span>
+            <span
+              className="meta-logo-img text-ut-xs text-state-warning flex items-center justify-center"
+              title="Image failed to load"
+            >
+              ⚠
+            </span>
           )}
         </div>
         {(() => {
@@ -322,7 +352,13 @@ export default function Metadata() {
             <div className="meta-capture-panel">
               {linkedCapture ? (
                 <div className="meta-capture-item">
-                  <a href={linkedCapture.sourceUrl} target="_blank" rel="noopener noreferrer" className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap" title={linkedCapture.sourceUrl}>
+                  <a
+                    href={linkedCapture.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
+                    title={linkedCapture.sourceUrl}
+                  >
                     {linkedCapture.sourceUrl}
                   </a>
                   <button
@@ -393,7 +429,13 @@ export default function Metadata() {
                 <div className="meta-capture-linked">
                   {tcCaptures.map((c) => (
                     <div key={c.id} className="meta-capture-item">
-                      <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer" className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap" title={c.sourceUrl}>
+                      <a
+                        href={c.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
+                        title={c.sourceUrl}
+                      >
                         {c.pageTitle || c.sourceUrl}
                       </a>
                       <input

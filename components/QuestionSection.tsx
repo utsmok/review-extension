@@ -39,7 +39,7 @@ function renderScoringScores(
   ev: Evaluation | undefined,
 ) {
   return (
-    <div role="radiogroup" aria-label={`Rubric score for ${questionTitle}`} className="my-ut-2">
+    <div role="radiogroup" aria-label={`Rubric score for ${questionTitle}`} className="mt-ut-1">
       {([0, 1, 2, 3] as RubricScore[]).map((val) => {
         if (val === "") return null;
         const desc = levels[String(val) as "0" | "1" | "2" | "3"];
@@ -539,7 +539,7 @@ export default function QuestionSection({
       <p className="text-ut-sm text-ut-slate leading-normal mb-ut-5">{descriptionText}</p>
       {Object.entries(rubricSection).map(([category, questions]) => (
         <div key={category} className="mb-ut-3">
-          <h3 className="section-kicker mb-1">{getCategoryLabel(category)}</h3>
+          <h3 className="section-kicker">{getCategoryLabel(category)}</h3>
           {Object.entries(questions).map(([qId, questionRaw], qIdx) => {
             const question = questionRaw as PassFailQuestion | ScoringQuestion;
             const rubricId = `${category}.${qId}`;
@@ -576,7 +576,7 @@ export default function QuestionSection({
       {/* Merged gate questions shown in QG section */}
       {isQG && mergedGates.length > 0 && (
         <div className="mb-ut-3">
-          <h3 className="section-kicker mb-1">Merged Gates</h3>
+          <h3 className="section-kicker">Merged Gates</h3>
           {mergedGates.map(({ category, qId, question, code }) => {
             const rubricId = `${category}.${qId}`;
             const ev = evaluationMap.get(rubricId);

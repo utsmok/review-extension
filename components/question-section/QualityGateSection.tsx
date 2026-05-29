@@ -20,7 +20,7 @@ export function QualityGateSection({
     <div
       role="radiogroup"
       aria-label={`Quality gate score for ${questionTitle}`}
-      className="flex gap-ut-2 mb-ut-2"
+      className="flex gap-ut-2"
     >
       {(["pass", "fail", "na", "unsure"] as PassFailScore[]).map((val) => {
         const isActive =

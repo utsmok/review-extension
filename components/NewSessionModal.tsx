@@ -113,6 +113,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
               required
               aria-required="true"
             />
+            <p className="inline-hint">Auto-filled from your current browser tab.</p>
           </label>
 
           <label className="flex flex-col gap-1">
@@ -130,7 +131,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
             />
           </label>
 
-          <label className="flex items-center gap-ut-2">
+          <label className="flex items-center gap-ut-2 label-tooltip" data-hint="Controls whether AI-specific rubric questions (e.g. training data, model transparency) appear in your review. Uncheck for non-AI tools.">
             <input
               type="checkbox"
               checked={usesAi}
@@ -139,7 +140,6 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
             />
             <span
               className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy"
-              title="If unchecked, AI-specific rubric questions will be marked as not applicable."
             >
               Tool uses AI / LLM
             </span>

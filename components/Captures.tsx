@@ -14,7 +14,7 @@ function CaptureImg({ capture, className }: { capture: Capture; className?: stri
   );
 }
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureActiveTab } from "@/lib/capture";
 import { useRubric } from "@/lib/contexts";
@@ -23,7 +23,6 @@ import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
 import EvidenceModal from "./EvidenceModal";
 import RubricChipGroup from "./RubricChipGroup";
-import EmptyState from "./EmptyState";
 export default function Captures() {
   const { rubric, usesAi } = useRubric();
   const {
@@ -42,6 +41,7 @@ export default function Captures() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [viewCaptureId, setViewCaptureId] = useState<string | null>(null);
   const viewCapture = viewCaptureId ? (captures.find((c) => c.id === viewCaptureId) ?? null) : null;
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   const linkedIdsMap = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -51,6 +51,19 @@ export default function Captures() {
     return map;
   }, [captures, evaluations]);
   const reversedCaptures = useMemo(() => [...captures].reverse(), [captures]);
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  const handleDelete = useCallback(
+    (id: string) => {
+      setRemovingId(id);
+      setTimeout(() => {
+        removeCapture(id);
+        setRemovingId(null);
+        setDeleteTarget(null);
+      }, 250);
+    },
+    [removeCapture],
+  );
 
   const handleCapture = async () => {
     setCapturing(true);
@@ -82,27 +95,39 @@ export default function Captures() {
       </button>
 
       {captures.length === 0 && (
-        <EmptyState
-          title="No captures yet"
-          description="Use + Quick Capture or press Ctrl+Shift+S to screenshot the current page."
-          icon={
+        <div className="tab-empty-state">
+          <div className="tab-empty-state__icon bg-[color-mix(in_srgb,var(--trust-magenta)_10%,var(--ut-white))] captures-empty-icon">
             <svg
-              width="32"
-              height="32"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="var(--ut-slate)"
-              strokeWidth="1.5"
+              stroke="var(--trust-magenta)"
+              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="captures-empty-icon"
               aria-hidden="true"
             >
               <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
               <circle cx="12" cy="13" r="4" />
             </svg>
-          }
-        />
+          </div>
+          <p className="tab-empty-state__title">No captures yet</p>
+          <p className="tab-empty-state__desc">
+            Screenshot the current page to collect visual evidence for your review. You can annotate captures and tag them to rubric items.
+          </p>
+          <button
+            type="button"
+            className="tab-empty-state__action"
+            disabled={capturing}
+            onClick={handleCapture}
+          >
+            Capture current page
+          </button>
+          <p className="inline-hint">
+            Keyboard shortcut: <span className="shortcut-hint">Ctrl+Shift+S</span>
+          </p>
+        </div>
       )}
 
       {captures.length > 0 && (
@@ -140,13 +165,18 @@ export default function Captures() {
                 </p>
               )}
 
-              <div className="grid grid-cols-2 gap-ut-2">
-                {displayed.map((capture) => {
+              <div ref={gridRef} className="grid grid-cols-2 gap-ut-2">
+                {displayed.map((capture, idx) => {
                   const linkedRubricIds = linkedIdsMap.get(capture.id) ?? [];
                   const isExpanded = expanded === capture.id;
+                  const isRemoving = removingId === capture.id;
 
                   return (
-                    <div key={capture.id} className="capture-card-enter">
+                    <div
+                      key={capture.id}
+                      className={`capture-card-stagger ${isRemoving ? "capture-card-removing" : ""}`}
+                      style={{ animationDelay: `${idx * 40}ms` }}
+                    >
                       {/* Thumbnail card */}
                       <button
                         type="button"
@@ -425,8 +455,7 @@ export default function Captures() {
             {
               label: "Delete",
               handler: () => {
-                removeCapture(deleteTarget);
-                setDeleteTarget(null);
+                handleDelete(deleteTarget);
               },
               variant: "danger",
             },
