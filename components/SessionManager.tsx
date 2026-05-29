@@ -5,6 +5,7 @@ import { exportSessionById, importSessionFromZipFile } from "@/lib/session-lifec
 import { getRepository } from "@/lib/session-repository";
 import { useRegistryStore } from "@/stores/registry";
 import { toastError, toastSuccess } from "@/stores/toast";
+import EmptyState from "./EmptyState";
 import ConfirmDialog from "./ConfirmDialog";
 import NewSessionModal from "./NewSessionModal";
 
@@ -127,26 +128,25 @@ export default function SessionManager() {
       {/* Session list */}
       <section aria-label="Review sessions" className="flex-1 min-h-0 overflow-y-auto px-ut-4">
         {sessions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-ut-8 text-center">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="var(--ut-slate)"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mb-ut-2"
-              aria-hidden="true"
-            >
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-            </svg>
-            <p className="text-ut-sm text-ut-muted font-bold mb-ut-1">No reviews yet</p>
-            <p className="text-ut-xs text-ut-slate">
-              Start a new review to evaluate a search tool.
-            </p>
-          </div>
+          <EmptyState
+            title="No reviews yet"
+            description="Start a new review to evaluate a search tool."
+            icon={
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--ut-slate)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+              </svg>
+            }
+          />
         ) : (
           <div className="flex flex-col gap-ut-2">
             {sessions.map((s) => (

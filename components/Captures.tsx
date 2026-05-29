@@ -6,6 +6,7 @@ import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
 import EvidenceModal from "./EvidenceModal";
+import EmptyState from "./EmptyState";
 import RubricChipGroup from "./RubricChipGroup";
 
 export default function Captures() {
@@ -97,27 +98,10 @@ export default function Captures() {
       )}
 
       {captures.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-ut-8 text-center">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="var(--ut-slate)"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="captures-empty-icon mb-ut-2"
-            aria-hidden="true"
-          >
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-            <circle cx="12" cy="13" r="4" />
-          </svg>
-          <p className="text-ut-sm text-ut-muted font-bold mb-ut-1">No captures yet</p>
-          <p className="text-ut-xs text-ut-slate">
-            Use the capture button above to save screenshots as evidence.
-          </p>
-        </div>
+          <EmptyState
+            title="No captures yet"
+            description="Use the capture button above to save screenshots as evidence."
+          />
       )}
 
       {viewMode === "grid" &&

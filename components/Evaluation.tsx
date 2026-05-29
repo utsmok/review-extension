@@ -6,6 +6,7 @@ import ScoreOverviewBar from "@/components/ScoreOverviewBar";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useCaptureQueue } from "@/hooks/useCaptureQueue";
 import { useRubric } from "@/lib/contexts";
+import EmptyState from "./EmptyState";
 import type { Capture } from "@/lib/types";
 
 export default function Evaluation() {
@@ -33,14 +34,10 @@ export default function Evaluation() {
         usesAi={usesAi}
       />
       {evaluations.length === 0 && (
-        <div className="text-center py-ut-8 text-ut-muted">
-          <p className="text-ut-sm font-heading font-bold uppercase tracking-ut-label mb-ut-2">
-            No scores yet
-          </p>
-          <p className="text-ut-xs">
-            Expand a question below to begin scoring.
-          </p>
-        </div>
+        <EmptyState
+          title="No scores yet"
+          description="Expand a question below to begin scoring."
+        />
       )}
 
       {/* Quality Gates section (flat — no nested tabs) */}
