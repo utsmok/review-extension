@@ -364,4 +364,89 @@ describe("importSessionFromZip", () => {
     const result = await importSessionFromZip(blob);
     expect(result.metadata).toEqual(metadata);
   });
+  // --- Path traversal protection ---
+
+  it("rejects ZIP with path traversal entry (../../etc/passwd)", async () => {
+    const metadata = makeMetadata();
+    const zip = new JSZip();
+    zip.file("session.json", JSON.stringify({ metadata, captures: [], evaluations: [] }));
+    zip.file("../../etc/passwd", "malicious");
+    const blob = await zip.generateAsync({ type: "blob" });
+
+    await expect(importSessionFromZip(blob)).rejects.toThrow(/invalid path/i);
+  });
+
+  it("rejects ZIP with absolute path entry (/etc/shadow)", async () => {
+    const metadata = makeMetadata();
+    const zip = new JSZip();
+    zip.file("session.json", JSON.stringify({ metadata, captures: [], evaluations: [] }));
+    zip.file("/etc/shadow", "malicious");
+    const blob = await zip.generateAsync({ type: "blob" });
+
+    await expect(importSessionFromZip(blob)).rejects.toThrow(/invalid path/i);
+  });
+
+  it("rejects ZIP with backslash path entry (..\\..\\windows\\system32)", async () => {
+    const metadata = makeMetadata();
+    const zip = new JSZip();
+    zip.file("session.json", JSON.stringify({ metadata, captures: [], evaluations: [] }));
+    zip.file("..\\..\\windows\\system32\\config", "malicious");
+    const blob = await zip.generateAsync({ type: "blob" });
+
+    await expect(importSessionFromZip(blob)).rejects.toThrow(/invalid path/i);
+  });
+
+  // --- Schema validation (SEC-5) ---
+
+  it("rejects session with empty metadata.id", async () => {
+    const blob = await buildZip({
+      "session.json": {
+        metadata: { ...makeMetadata(), id: "" },
+        captures: [],
+        evaluations: [],
+      },
+    });
+
+    await expect(importSessionFromZip(blob)).rejects.toThrow("metadata.id must be a non-empty string");
+  });
+
+  it("rejects session with empty metadata.toolName", async () => {
+    const blob = await buildZip({
+      "session.json": {
+        metadata: { ...makeMetadata(), toolName: "" },
+        captures: [],
+        evaluations: [],
+      },
+    });
+
+    await expect(importSessionFromZip(blob)).rejects.toThrow("metadata.toolName must be a non-empty string");
+  });
+
+  it("rejects session with non-number schemaVersion", async () => {
+    const blob = await buildZip({
+      "session.json": {
+        metadata: makeMetadata(),
+        captures: [],
+        evaluations: [],
+        schemaVersion: "bad",
+      },
+    });
+
+    await expect(importSessionFromZip(blob)).rejects.toThrow("schemaVersion must be a number");
+  });
+
+  it("accepts session with numeric schemaVersion", async () => {
+    const metadata = makeMetadata();
+    const blob = await buildZip({
+      "session.json": {
+        metadata,
+        captures: [],
+        evaluations: [],
+        schemaVersion: 1,
+      },
+    });
+
+    const result = await importSessionFromZip(blob);
+    expect(result.metadata).toEqual(metadata);
+  });
 });

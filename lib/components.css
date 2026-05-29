@@ -577,8 +577,8 @@
 }
 
 .evidence-thumb-overlay button {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: 50%;
   cursor: pointer;

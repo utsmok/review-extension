@@ -11,13 +11,17 @@ let autoSaveTimerRef: ReturnType<typeof setTimeout> | undefined;
 let autoSaveScheduledSessionId: string | null = null;
 let autoSaveUnsub: (() => void) | null = null;
 let autoSaveVisibilityHandler: (() => void) | null = null;
+let lastSaveSignature: string | null = null;
 
 async function autoSaveFlush(scheduledId?: string | null): Promise<void> {
   const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
   const activeId = useRegistryStore.getState().activeSessionId;
   // Guard: skip if session switched between schedule and flush to prevent
   // a stale debounced save from overwriting the new session's data.
-  if (scheduledId && activeId !== scheduledId) return;
+  if (scheduledId && activeId !== scheduledId) {
+    lastSaveSignature = null;
+    return;
+  }
   if (s && activeId) {
     const ok = await getRepository().save(activeId, {
       metadata: s,
@@ -29,6 +33,7 @@ async function autoSaveFlush(scheduledId?: string | null): Promise<void> {
       document.dispatchEvent(
         new CustomEvent("trust-save-succeeded", { detail: { timestamp: Date.now() } }),
       );
+      lastSaveSignature = null;
     } else {
       toastWarning("Auto-save failed — your work may not be saved.");
       document.dispatchEvent(new CustomEvent("trust-save-failed"));
@@ -45,9 +50,12 @@ export function initAutoSave(): void {
 
   // Debounced auto-save on every store change
   autoSaveUnsub = useSessionStore.subscribe(() => {
-    const { status } = useSessionStore.getState();
+    const state = useSessionStore.getState();
     const activeId = useRegistryStore.getState().activeSessionId;
-    if (status !== "active" || !activeId) return;
+    if (state.status !== "active" || !activeId) return;
+    const signature = `${state.evaluations.length}:${state.captures.length}:${state.session?.finalizedAt ?? ""}`;
+    if (signature === lastSaveSignature) return;
+    lastSaveSignature = signature;
 
     if (autoSaveTimerRef !== undefined) clearTimeout(autoSaveTimerRef);
     autoSaveScheduledSessionId = activeId;
@@ -85,6 +93,7 @@ export function teardownAutoSave(): void {
     autoSaveTimerRef = undefined;
   }
   autoSaveScheduledSessionId = null;
+  lastSaveSignature = null;
 }
 
 /** Snapshot current session store state as SessionData */

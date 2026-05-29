@@ -2,6 +2,11 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { SessionMetadata, Settings } from "@/lib/types";
 
+/**
+ * Zustand registry store, persisted to IDB via zustand/middleware persist.
+ * The `settings` field contains reviewer name and email, stored unencrypted
+ * in IndexedDB. IDB is accessible to extensions sharing the same origin.
+ */
 interface RegistryState {
   sessionIndex: Record<string, SessionMetadata>;
   activeSessionId: string | null;

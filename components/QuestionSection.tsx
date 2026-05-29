@@ -26,12 +26,13 @@ const NO_CAPTURES: Capture[] = [];
 
 function renderQGScores(
   rubricId: string,
+  questionTitle: string,
   ev: Evaluation | undefined,
   isAutoNa: boolean,
   setEvaluation: (rubricId: string, patch: Partial<Evaluation>) => void,
 ) {
   return (
-    <div role="radiogroup" aria-label="Quality gate score" className="flex gap-ut-2 mb-ut-2">
+    <div role="radiogroup" aria-label={`Quality gate score for ${questionTitle}`} className="flex gap-ut-2 mb-ut-2">
       {(["pass", "fail", "na", "unsure"] as PassFailScore[]).map((val) => {
         const isActive =
           ev?.score === val ||
@@ -77,6 +78,7 @@ function renderQGScores(
 
 function renderScoringScores(
   rubricId: string,
+  questionTitle: string,
   scoreNum: number,
   isNa: boolean,
   isUnsure: boolean,
@@ -86,7 +88,7 @@ function renderScoringScores(
   ev: Evaluation | undefined,
 ) {
   return (
-    <div role="radiogroup" aria-label="Rubric score" className="my-ut-2">
+    <div role="radiogroup" aria-label={`Rubric score for ${questionTitle}`} className="my-ut-2">
       {([0, 1, 2, 3] as RubricScore[]).map((val) => {
         if (val === "") return null;
         const desc = levels[String(val) as "0" | "1" | "2" | "3"];
@@ -353,9 +355,10 @@ export const QuestionRow = React.memo(function QuestionRow({
 
         {/* Score UI */}
         {isQG
-          ? renderQGScores(rubricId, ev, isAutoNa, setEvaluation)
+          ? renderQGScores(rubricId, question.title, ev, isAutoNa, setEvaluation)
           : renderScoringScores(
               rubricId,
+              question.title,
               scoreNum,
               isNa,
               ev?.score === "unsure",

@@ -44,8 +44,8 @@ function validateSessionData(data: unknown): import("./types").SessionData {
   if (!d.metadata || typeof d.metadata !== "object")
     throw new Error("session.json is missing required fields (metadata)");
   const m = d.metadata as Record<string, unknown>;
-  if (typeof m.id !== "string") throw new Error("metadata.id must be a string");
-  if (typeof m.toolName !== "string") throw new Error("metadata.toolName must be a string");
+  if (typeof m.id !== "string" || !m.id) throw new Error("metadata.id must be a non-empty string");
+  if (typeof m.toolName !== "string" || !m.toolName) throw new Error("metadata.toolName must be a non-empty string");
   if (typeof m.startTime !== "string") throw new Error("metadata.startTime must be a string");
 
   // Validate captures is array of objects with string id
@@ -65,6 +65,10 @@ function validateSessionData(data: unknown): import("./types").SessionData {
     const ev = e as Record<string, unknown>;
     if (typeof ev.rubricId !== "string") throw new Error("evaluation.rubricId must be a string");
   }
+
+  // Validate schemaVersion if present
+  if (d.schemaVersion !== undefined && typeof d.schemaVersion !== "number")
+    throw new Error("schemaVersion must be a number");
 
   return data as import("./types").SessionData;
 }
@@ -86,6 +90,15 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
     throw new Error(
       `ZIP contains too many entries (${entryNames.length}). Maximum is ${MAX_ZIP_ENTRIES}.`,
     );
+  }
+
+  // Path traversal protection — reject entries that could escape the archive
+  for (const name of entryNames) {
+    if (name.startsWith("/") || name.includes("..") || name.includes("\\")) {
+      throw new Error(
+        `ZIP entry "${name}" has invalid path. Archive may be corrupted or malicious.`,
+      );
+    }
   }
 
   const sessionFile = zip.file("session.json");

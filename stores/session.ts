@@ -8,6 +8,12 @@ import type {
   StoreStatus,
 } from "@/lib/types";
 
+/**
+ * Zustand session store. Session metadata (including reviewer-provided fields
+ * like toolName, company, and notes) is stored unencrypted in IndexedDB via
+ * the session-repository layer. IDB is accessible to extensions sharing the
+ * same origin.
+ */
 interface SessionState {
   status: StoreStatus;
   session: SessionMetadata | null;
