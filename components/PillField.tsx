@@ -18,6 +18,8 @@ function getCustom(predefined: readonly string[], values: string[]): string[] {
   return values.filter((v) => !set.has(v));
 }
 
+const MAX_CUSTOM_LENGTH = 120;
+
 export default function PillField({
   label,
   options,
@@ -29,10 +31,12 @@ export default function PillField({
   maxHeight,
 }: PillFieldProps) {
   const [customInput, setCustomInput] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const custom = getCustom(options, selected);
 
   const togglePredefined = (opt: string) => {
+    setError(null);
     if (single) {
       // Single-select: toggle off if already selected
       onChange(selected.includes(opt) ? [] : [opt]);
@@ -50,10 +54,18 @@ export default function PillField({
 
   const addCustom = () => {
     const val = customInput.trim();
-    if (val && !selected.includes(val)) {
-      onChange([...selected, val]);
-      setCustomInput("");
+    if (!val) return;
+    if (val.length > MAX_CUSTOM_LENGTH) {
+      setError(`Entry too long (max ${MAX_CUSTOM_LENGTH} characters)`);
+      return;
     }
+    if (selected.includes(val)) {
+      setError("Already selected");
+      return;
+    }
+    onChange([...selected, val]);
+    setCustomInput("");
+    setError(null);
   };
 
   return (
@@ -68,7 +80,8 @@ export default function PillField({
           <button
             key={opt}
             type="button"
-            className={`pill-toggle text-ut-xs px-ut-2 py-ut-1 border rounded-ut-sm ${selected.includes(opt) ? "bg-trust-magenta text-white border-trust-magenta" : "border-ut-border text-ut-muted hover:border-ut-slate"}`}
+            title={opt}
+            className={`pill-toggle meta-pill-btn text-ut-xs px-ut-2 py-ut-1 border rounded-ut-sm truncate max-w-[200px] ${selected.includes(opt) ? "bg-trust-magenta text-white border-trust-magenta" : "border-ut-border text-ut-muted hover:border-ut-slate"}`}
             onClick={() => togglePredefined(opt)}
           >
             {opt}
@@ -78,20 +91,28 @@ export default function PillField({
           <button
             key={opt}
             type="button"
-            className="pill-toggle text-ut-xs px-ut-2 py-ut-1 border rounded-ut-sm bg-trust-magenta text-white border-trust-magenta"
+            title={opt}
+            className="pill-toggle meta-pill-btn text-ut-xs px-ut-2 py-ut-1 border rounded-ut-sm bg-trust-magenta text-white border-trust-magenta truncate max-w-[200px]"
             onClick={() => removeCustom(opt)}
           >
             {opt}
           </button>
         ))}
       </div>
+      {error && (
+        <p role="alert" className="text-ut-xs text-state-warning">{error}</p>
+      )}
       {allowCustom && placeholder && (
         <div className="flex gap-ut-1">
           <input
-            className="flex-1 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-xs text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+            className="meta-custom-input flex-1 min-w-0 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-xs text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
             placeholder={placeholder}
+            maxLength={MAX_CUSTOM_LENGTH}
             value={customInput}
-            onChange={(e) => setCustomInput(e.target.value)}
+            onChange={(e) => {
+              setCustomInput(e.target.value);
+              setError(null);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();

@@ -71,7 +71,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
       onClose();
     } catch (err) {
       console.error("Failed to create session:", err);
-      toastError(err instanceof Error ? err.message : "Failed to create review. Please try again.");
+      toastError(err instanceof Error ? err.message : "Could not create the review. Check that both fields are filled and try again.");
       setSubmitting(false);
     }
   };
@@ -124,7 +124,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
               className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
               value={toolUrl}
               onChange={(e) => setToolUrl(e.target.value)}
-              placeholder="https://..."
+              placeholder="e.g. https://www.semanticscholar.org"
               required
               aria-required="true"
             />
@@ -139,16 +139,16 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
             />
             <span
               className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy"
-              title="Mark whether the tool uses AI or LLMs. If unchecked, AI-specific questions will be marked as not applicable."
+              title="If unchecked, AI-specific rubric questions will be marked as not applicable."
             >
               Tool uses AI / LLM
             </span>
           </label>
-          {!usesAi && (
-            <p className="text-ut-xs text-ut-muted">
-              AI-specific questions will be marked as not applicable.
-            </p>
-          )}
+          <p className="text-ut-xs text-ut-muted">
+            {usesAi
+              ? "AI-specific rubric questions will be included in the review."
+              : "AI-specific rubric questions will be marked as not applicable."}
+          </p>
 
           <div className="flex gap-ut-2 mt-ut-2">
             <button

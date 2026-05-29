@@ -7,6 +7,9 @@ import ConfirmDialog from "./ConfirmDialog";
 import ExportCompleteScreen from "./ExportCompleteScreen";
 import PillField from "./PillField";
 
+const MAX_TEXT_LENGTH = 500;
+const MAX_URL_LENGTH = 2048;
+
 const DATA_SOURCE_OPTIONS = [
   "CrossRef",
   "OpenAlex",
@@ -102,6 +105,7 @@ export default function Metadata() {
   const [logoCapturing, setLogoCapturing] = useState(false);
   const [showExportConfirm, setShowExportConfirm] = useState(false);
   const [tcCapturing, setTcCapturing] = useState(false);
+  const [logoError, setLogoError] = useState(false);
 
   /** Collect all rubric IDs where ai_only is true */
   const getAiOnlyRubricIds = (): string[] => {
@@ -216,15 +220,16 @@ export default function Metadata() {
           Review Notes
         </span>
         <textarea
-          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text resize-y focus:outline-none focus:ring-2 focus:ring-ut-blue"
+          className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text resize-y focus:outline-none focus:ring-2 focus:ring-ut-blue"
           rows={3}
+          maxLength={MAX_TEXT_LENGTH}
           placeholder="General observations, context..."
           value={session.notes ?? ""}
           onChange={(e) => updateMetadata({ notes: e.target.value })}
         />
       </label>
 
-      <label className="flex items-center gap-ut-2">
+      <label className="meta-toggle-label flex items-center gap-ut-2 min-h-[44px] cursor-pointer">
         <input
           {...(!(session.usesAi ?? true) ? { "aria-describedby": "desc-usesai" } : {})}
           type="checkbox"
@@ -237,11 +242,17 @@ export default function Metadata() {
               updateMetadata({ usesAi: next });
             }
           }}
-          className="w-4 h-4 rounded-ut-sm border-ut-border text-ut-blue focus:ring-ut-blue"
+          className="meta-checkbox w-4 h-4 rounded-ut-sm border-ut-border text-ut-blue focus:ring-ut-blue"
         />
         <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
           Tool uses AI / LLM
         </span>
+        {!(session.usesAi ?? true) && (
+          <span className="meta-ai-badge text-ut-xs font-mono bg-ut-offwhite text-ut-muted border border-ut-border rounded-ut-sm px-ut-1 ml-auto">OFF</span>
+        )}
+        {(session.usesAi ?? true) && (
+          <span className="meta-ai-badge text-ut-xs font-mono bg-state-success-tint text-ut-green border border-ut-green/30 rounded-ut-sm px-ut-1 ml-auto">ON</span>
+        )}
       </label>
       {!(session.usesAi ?? true) && (
         <p id="desc-usesai" className="text-ut-xs text-ut-muted">
@@ -255,7 +266,8 @@ export default function Metadata() {
           Tool Description
         </span>
         <input
-          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+          className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
+          maxLength={MAX_TEXT_LENGTH}
           placeholder="e.g. Citation-based searching through a visual interface"
           value={session.description ?? ""}
           onChange={(e) => updateMetadata({ description: e.target.value })}
@@ -268,7 +280,8 @@ export default function Metadata() {
           Company
         </span>
         <input
-          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+          className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
+          maxLength={MAX_TEXT_LENGTH}
           placeholder="e.g. Elsevier"
           value={session.company ?? ""}
           onChange={(e) => updateMetadata({ company: e.target.value })}
@@ -282,13 +295,25 @@ export default function Metadata() {
         <div className="flex items-center gap-ut-2">
           <input
             type="url"
-            className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue flex-1"
+            className="meta-input meta-url-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue flex-1 min-w-0 overflow-hidden text-ellipsis"
+            maxLength={MAX_URL_LENGTH}
             placeholder="Paste logo image URL..."
             value={session.toolLogoUrl ?? ""}
-            onChange={(e) => updateMetadata({ toolLogoUrl: e.target.value })}
+            onChange={(e) => {
+              updateMetadata({ toolLogoUrl: e.target.value });
+              setLogoError(false);
+            }}
           />
-          {session?.toolLogoUrl && (
-            <img src={session.toolLogoUrl} alt="Logo" className="meta-logo-img" />
+          {session?.toolLogoUrl && !logoError && (
+            <img
+              src={session.toolLogoUrl}
+              alt="Logo"
+              className="meta-logo-img"
+              onError={() => setLogoError(true)}
+            />
+          )}
+          {session?.toolLogoUrl && logoError && (
+            <span className="meta-logo-img text-ut-xs text-state-warning flex items-center justify-center" title="Image failed to load">⚠</span>
           )}
         </div>
         {(() => {
@@ -297,7 +322,7 @@ export default function Metadata() {
             <div className="meta-capture-panel">
               {linkedCapture ? (
                 <div className="meta-capture-item">
-                  <a href={linkedCapture.sourceUrl} target="_blank" rel="noopener noreferrer">
+                  <a href={linkedCapture.sourceUrl} target="_blank" rel="noopener noreferrer" className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap" title={linkedCapture.sourceUrl}>
                     {linkedCapture.sourceUrl}
                   </a>
                   <button
@@ -327,7 +352,8 @@ export default function Metadata() {
           Pricing
         </span>
         <input
-          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+          className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
+          maxLength={MAX_TEXT_LENGTH}
           placeholder="e.g. Freemium, Subscription"
           value={session.pricing ?? ""}
           onChange={(e) => updateMetadata({ pricing: e.target.value })}
@@ -339,7 +365,8 @@ export default function Metadata() {
           Access Level
         </span>
         <input
-          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+          className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
+          maxLength={MAX_TEXT_LENGTH}
           placeholder="e.g. Institutional license required"
           value={session.availability ?? ""}
           onChange={(e) => updateMetadata({ availability: e.target.value })}
@@ -352,7 +379,8 @@ export default function Metadata() {
         </span>
         <input
           type="url"
-          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
+          className="meta-input meta-url-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
+          maxLength={MAX_URL_LENGTH}
           placeholder="Paste T&C URL..."
           value={session.termsConditionsUrl ?? ""}
           onChange={(e) => updateMetadata({ termsConditionsUrl: e.target.value })}
@@ -365,7 +393,7 @@ export default function Metadata() {
                 <div className="meta-capture-linked">
                   {tcCaptures.map((c) => (
                     <div key={c.id} className="meta-capture-item">
-                      <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer">
+                      <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer" className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap" title={c.sourceUrl}>
                         {c.pageTitle || c.sourceUrl}
                       </a>
                       <input

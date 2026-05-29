@@ -165,13 +165,28 @@ const SCORE_COLORS: Record<number, HexColor> = {
   2: "#0e7490",
   3: "#4a8355",
 };
+
+/** Darkened report-local score colors for WCAG AA contrast on light backgrounds */
+export const REPORT_SCORE_COLORS: Record<number, HexColor> = {
+  0: SCORE_COLORS[0],
+  1: SCORE_COLORS[1],
+  2: SCORE_COLORS[2],
+  3: "#3d7249",
+};
+
+/** Score color for report context (darkens score-3 green for AA compliance). */
+export function reportScoreColor(s: number | "na" | "unsure" | undefined): HexColor {
+  if (s === "na" || s === undefined) return "#4c5e74";
+  if (s === "unsure") return "#5a6e82";
+  return REPORT_SCORE_COLORS[s] ?? "#4c5e74";
+}
 export function scoreColor(s: number | "na" | "unsure" | undefined): HexColor {
   if (s === "na" || s === undefined) return "#4c5e74";
   if (s === "unsure") return "#5a6e82";
   return SCORE_COLORS[s] ?? "#4c5e74";
 }
 
-export function distributionBar(scores: (number | "na" | "unsure" | "" | undefined)[]): string {
+export function distributionBar(scores: (number | "na" | "unsure" | "" | undefined)[], colorFn: (s: number | "na" | "unsure" | undefined) => HexColor = scoreColor): string {
   let numCount = 0;
   const counts = [0, 0, 0, 0];
   for (const s of scores) {
@@ -185,12 +200,13 @@ export function distributionBar(scores: (number | "na" | "unsure" | "" | undefin
   const labels: string[] = [];
   for (let i = 0; i < 4; i++) {
     const pct = (counts[i] / numCount) * 100;
-    segments += `<div class="dist-seg" style="width:${pct}%;background:${scoreColor(i as 0 | 1 | 2 | 3)}"></div>`;
+    segments += `<div class="dist-seg" style="width:${pct}%;background:${colorFn(i as 0 | 1 | 2 | 3)}"></div>`;
     if (counts[i] > 0)
-      labels.push(`<span style="color:${scoreColor(i as 0 | 1 | 2 | 3)}">${i}:${counts[i]}</span>`);
+      labels.push(`<span style="color:${colorFn(i as 0 | 1 | 2 | 3)}">${i}:${counts[i]}</span>`);
   }
   return `<div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px">${segments}</div><div class="dist-labels">${labels.join(" ")}</div>`;
 }
+
 
 export function principleAverage(
   categoryId: string,

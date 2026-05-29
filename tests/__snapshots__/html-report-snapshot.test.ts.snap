@@ -13,7 +13,7 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 1`] = 
 </head>
 <body>
 
-
+<main id="report-content">
 
 
 <div class="nutrition-label">
@@ -55,9 +55,9 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 1`] = 
   <div class="nutrition-divider-thin"></div>
 
   <div class="nutrition-principles">
-    <table class="nutrition-principles-table" role="presentation" aria-label="Principle scores">
+    <table class="nutrition-principles-table" aria-label="Principle scores">
       <tr>
-        <td style="color:#2563eb"><div class="nutrition-principle-code">TR</div><div class="nutrition-principle-name">Transparency</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#15803d"><div class="nutrition-principle-code">RE</div><div class="nutrition-principle-name">Reliability</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#9333ea"><div class="nutrition-principle-code">US</div><div class="nutrition-principle-name">Usability</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#c2410c"><div class="nutrition-principle-code">SE</div><div class="nutrition-principle-name">Soundness</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#0f766e"><div class="nutrition-principle-code">TC</div><div class="nutrition-principle-name">Traceability</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td>
+        <td style="color:#2563eb"><div class="nutrition-principle-code">TR</div><div class="nutrition-principle-name">Transparency</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#127035"><div class="nutrition-principle-code">RE</div><div class="nutrition-principle-name">Reliability</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#9333ea"><div class="nutrition-principle-code">US</div><div class="nutrition-principle-name">Usability</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#c2410c"><div class="nutrition-principle-code">SE</div><div class="nutrition-principle-name">Soundness</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#0f766e"><div class="nutrition-principle-code">TC</div><div class="nutrition-principle-name">Traceability</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td>
         <td class="nutrition-overall-cell" style="color:var(--magenta)">
           <div class="nutrition-overall-label">Overall</div>
           <div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div>
@@ -118,7 +118,7 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 1`] = 
 
 <nav class="toc">
   <span class="toc-label">Contents</span>
-  <a href="#category-TR" class="toc-item" style="color:#2563eb"><span class="toc-code">TR</span> Transparency</a><a href="#category-RE" class="toc-item" style="color:#15803d"><span class="toc-code">RE</span> Reliability</a><a href="#category-US" class="toc-item" style="color:#9333ea"><span class="toc-code">US</span> Usability</a><a href="#category-SE" class="toc-item" style="color:#c2410c"><span class="toc-code">SE</span> Soundness</a><a href="#category-TC" class="toc-item" style="color:#0f766e"><span class="toc-code">TC</span> Traceability</a>
+  <a href="#category-TR" class="toc-item" style="color:#2563eb"><span class="toc-code">TR</span> Transparency</a><a href="#category-RE" class="toc-item" style="color:#127035"><span class="toc-code">RE</span> Reliability</a><a href="#category-US" class="toc-item" style="color:#9333ea"><span class="toc-code">US</span> Usability</a><a href="#category-SE" class="toc-item" style="color:#c2410c"><span class="toc-code">SE</span> Soundness</a><a href="#category-TC" class="toc-item" style="color:#0f766e"><span class="toc-code">TC</span> Traceability</a>
 </nav>
 
 <h2 style="font-family:var(--ff-heading);text-transform:uppercase;letter-spacing:0.03em;color:var(--magenta);margin:0 0 8px;font-size:1rem">Quality Gates</h2>
@@ -215,20 +215,20 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
 </table>
 
 
-    <section id="category-TR" class="category-section" style="--accent:#2563eb">
+    <section id="category-TR" class="category-section" style="--accent:#2563eb" aria-labelledby="heading-TR">
       <div class="category-header">
         <div class="category-letter-block">
           <div class="category-letter">TR</div>
           <div class="category-letter-name">Transparency</div>
         </div>
         <div class="category-info">
-          <h2>Transparency</h2>
+          <h2 id="heading-TR">Transparency</h2>
           <div class="category-meta">
             <span class="cat-score">6 / 6</span>
             <span class="cat-avg">avg 3.0</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#4a8355"></div></div><div class="dist-labels"><span style="color:#4a8355">3:2</span></div>
+          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#3d7249"></div></div><div class="dist-labels"><span style="color:#3d7249">3:2</span></div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -241,7 +241,7 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
     <tr class="score-row">
       <td class="code" style="color:#2563eb">TR1</td>
       <td class="score-cell">
-        <span class="score-badge" style="background:#4a835520;color:#4a8355">
+        <span class="score-badge" style="background:#3d724920;color:#3d7249">
           3
         </span>
       </td>
@@ -266,7 +266,7 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
     <tr class="score-row">
       <td class="code" style="color:#2563eb">TR2</td>
       <td class="score-cell">
-        <span class="score-badge" style="background:#4a835520;color:#4a8355">
+        <span class="score-badge" style="background:#3d724920;color:#3d7249">
           3
         </span>
       </td>
@@ -292,20 +292,20 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
       </div>
     </section>
   
-    <section id="category-RE" class="category-section category-alt" style="--accent:#15803d">
+    <section id="category-RE" class="category-section category-alt" style="--accent:#127035" aria-labelledby="heading-RE">
       <div class="category-header">
         <div class="category-letter-block">
           <div class="category-letter">RE</div>
           <div class="category-letter-name">Reliability</div>
         </div>
         <div class="category-info">
-          <h2>Reliability</h2>
+          <h2 id="heading-RE">Reliability</h2>
           <div class="category-meta">
             <span class="cat-score">6 / 6</span>
             <span class="cat-avg">avg 3.0</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#4a8355"></div></div><div class="dist-labels"><span style="color:#4a8355">3:2</span></div>
+          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#3d7249"></div></div><div class="dist-labels"><span style="color:#3d7249">3:2</span></div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -316,9 +316,9 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
           </thead>
           <tbody>
     <tr class="score-row">
-      <td class="code" style="color:#15803d">RE1</td>
+      <td class="code" style="color:#127035">RE1</td>
       <td class="score-cell">
-        <span class="score-badge" style="background:#4a835520;color:#4a8355">
+        <span class="score-badge" style="background:#3d724920;color:#3d7249">
           3
         </span>
       </td>
@@ -341,9 +341,9 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
     
   
     <tr class="score-row">
-      <td class="code" style="color:#15803d">RE2</td>
+      <td class="code" style="color:#127035">RE2</td>
       <td class="score-cell">
-        <span class="score-badge" style="background:#4a835520;color:#4a8355">
+        <span class="score-badge" style="background:#3d724920;color:#3d7249">
           3
         </span>
       </td>
@@ -371,20 +371,20 @@ For deterministic, index-based databases, identical queries should yield identic
       </div>
     </section>
   
-    <section id="category-US" class="category-section" style="--accent:#9333ea">
+    <section id="category-US" class="category-section" style="--accent:#9333ea" aria-labelledby="heading-US">
       <div class="category-header">
         <div class="category-letter-block">
           <div class="category-letter">US</div>
           <div class="category-letter-name">Usability</div>
         </div>
         <div class="category-info">
-          <h2>Usability</h2>
+          <h2 id="heading-US">Usability</h2>
           <div class="category-meta">
             <span class="cat-score">6 / 6</span>
             <span class="cat-avg">avg 3.0</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#4a8355"></div></div><div class="dist-labels"><span style="color:#4a8355">3:2</span></div>
+          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#3d7249"></div></div><div class="dist-labels"><span style="color:#3d7249">3:2</span></div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -397,7 +397,7 @@ For deterministic, index-based databases, identical queries should yield identic
     <tr class="score-row">
       <td class="code" style="color:#9333ea">US1</td>
       <td class="score-cell">
-        <span class="score-badge" style="background:#4a835520;color:#4a8355">
+        <span class="score-badge" style="background:#3d724920;color:#3d7249">
           3
         </span>
       </td>
@@ -422,7 +422,7 @@ For deterministic, index-based databases, identical queries should yield identic
     <tr class="score-row">
       <td class="code" style="color:#9333ea">US2</td>
       <td class="score-cell">
-        <span class="score-badge" style="background:#4a835520;color:#4a8355">
+        <span class="score-badge" style="background:#3d724920;color:#3d7249">
           3
         </span>
       </td>
@@ -448,20 +448,20 @@ For deterministic, index-based databases, identical queries should yield identic
       </div>
     </section>
   
-    <section id="category-SE" class="category-section category-alt" style="--accent:#c2410c">
+    <section id="category-SE" class="category-section category-alt" style="--accent:#c2410c" aria-labelledby="heading-SE">
       <div class="category-header">
         <div class="category-letter-block">
           <div class="category-letter">SE</div>
           <div class="category-letter-name">Soundness</div>
         </div>
         <div class="category-info">
-          <h2>Soundness</h2>
+          <h2 id="heading-SE">Soundness</h2>
           <div class="category-meta">
             <span class="cat-score">6 / 6</span>
             <span class="cat-avg">avg 3.0</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#4a8355"></div></div><div class="dist-labels"><span style="color:#4a8355">3:2</span></div>
+          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#3d7249"></div></div><div class="dist-labels"><span style="color:#3d7249">3:2</span></div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -474,7 +474,7 @@ For deterministic, index-based databases, identical queries should yield identic
     <tr class="score-row">
       <td class="code" style="color:#c2410c">SE1</td>
       <td class="score-cell">
-        <span class="score-badge" style="background:#4a835520;color:#4a8355">
+        <span class="score-badge" style="background:#3d724920;color:#3d7249">
           3
         </span>
       </td>
@@ -499,7 +499,7 @@ For deterministic, index-based databases, identical queries should yield identic
     <tr class="score-row">
       <td class="code" style="color:#c2410c">SE2</td>
       <td class="score-cell">
-        <span class="score-badge" style="background:#4a835520;color:#4a8355">
+        <span class="score-badge" style="background:#3d724920;color:#3d7249">
           3
         </span>
       </td>
@@ -525,20 +525,20 @@ For deterministic, index-based databases, identical queries should yield identic
       </div>
     </section>
   
-    <section id="category-TC" class="category-section" style="--accent:#0f766e">
+    <section id="category-TC" class="category-section" style="--accent:#0f766e" aria-labelledby="heading-TC">
       <div class="category-header">
         <div class="category-letter-block">
           <div class="category-letter">TC</div>
           <div class="category-letter-name">Traceability</div>
         </div>
         <div class="category-info">
-          <h2>Traceability</h2>
+          <h2 id="heading-TC">Traceability</h2>
           <div class="category-meta">
             <span class="cat-score">6 / 6</span>
             <span class="cat-avg">avg 3.0</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#4a8355"></div></div><div class="dist-labels"><span style="color:#4a8355">3:2</span></div>
+          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#3d7249"></div></div><div class="dist-labels"><span style="color:#3d7249">3:2</span></div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -551,7 +551,7 @@ For deterministic, index-based databases, identical queries should yield identic
     <tr class="score-row">
       <td class="code" style="color:#0f766e">TC1</td>
       <td class="score-cell">
-        <span class="score-badge" style="background:#4a835520;color:#4a8355">
+        <span class="score-badge" style="background:#3d724920;color:#3d7249">
           3
         </span>
       </td>
@@ -576,7 +576,7 @@ For deterministic, index-based databases, identical queries should yield identic
     <tr class="score-row">
       <td class="code" style="color:#0f766e">TC2</td>
       <td class="score-cell">
-        <span class="score-badge" style="background:#4a835520;color:#4a8355">
+        <span class="score-badge" style="background:#3d724920;color:#3d7249">
           3
         </span>
       </td>
@@ -656,6 +656,7 @@ For deterministic, index-based databases, identical queries should yield identic
       
     </section>
   
+</main>
 <div class="bottom-bar"></div>
 <div class="footer">
   TRUST Framework v1.1 · SnapshotTestTool · 14 questions · Evaluated 2025-06-15 10:00
@@ -677,6 +678,7 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 2`] = 
 <link rel="stylesheet" href="report.css" />
 </head>
 <body>
+<main id="report-content">
 
 <div class="nutrition-label">
   <div class="trust-branding">
@@ -717,9 +719,9 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 2`] = 
   <div class="nutrition-divider-thin"></div>
 
   <div class="nutrition-principles">
-    <table class="nutrition-principles-table" role="presentation" aria-label="Principle scores">
+    <table class="nutrition-principles-table" aria-label="Principle scores">
       <tr>
-        <td style="color:#2563eb"><div class="nutrition-principle-code">TR</div><div class="nutrition-principle-name">Transparency</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#15803d"><div class="nutrition-principle-code">RE</div><div class="nutrition-principle-name">Reliability</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#9333ea"><div class="nutrition-principle-code">US</div><div class="nutrition-principle-name">Usability</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#c2410c"><div class="nutrition-principle-code">SE</div><div class="nutrition-principle-name">Soundness</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#0f766e"><div class="nutrition-principle-code">TC</div><div class="nutrition-principle-name">Traceability</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td>
+        <td style="color:#2563eb"><div class="nutrition-principle-code">TR</div><div class="nutrition-principle-name">Transparency</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#127035"><div class="nutrition-principle-code">RE</div><div class="nutrition-principle-name">Reliability</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#9333ea"><div class="nutrition-principle-code">US</div><div class="nutrition-principle-name">Usability</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#c2410c"><div class="nutrition-principle-code">SE</div><div class="nutrition-principle-name">Soundness</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td><td style="color:#0f766e"><div class="nutrition-principle-code">TC</div><div class="nutrition-principle-name">Traceability</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div><div class="nutrition-principle-fraction">3.0</div></td>
         <td class="nutrition-overall-cell" style="color:var(--magenta)">
           <div class="nutrition-overall-label">Overall</div>
           <div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span></span><span class="circle-label">4/4</span></div>
@@ -753,6 +755,7 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 2`] = 
     <div class="nutrition-footer-ref">See the detailed Evaluation Report for full analysis.</div>
   </div>
 </div>
+</main>
 </body>
 </html>"
 `;
@@ -770,7 +773,7 @@ exports[`HTML report snapshot > matches snapshot for partially-scored session 1`
 </head>
 <body>
 
-
+<main id="report-content">
 
 
 <div class="nutrition-label">
@@ -812,9 +815,9 @@ exports[`HTML report snapshot > matches snapshot for partially-scored session 1`
   <div class="nutrition-divider-thin"></div>
 
   <div class="nutrition-principles">
-    <table class="nutrition-principles-table" role="presentation" aria-label="Principle scores">
+    <table class="nutrition-principles-table" aria-label="Principle scores">
       <tr>
-        <td style="color:#2563eb"><div class="nutrition-principle-code">TR</div><div class="nutrition-principle-name">Transparency</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span></span><span class="circle-label">2/4</span></div><div class="nutrition-principle-fraction">2.0</div></td><td style="color:#15803d"><div class="nutrition-principle-code">RE</div><div class="nutrition-principle-name">Reliability</div><div><span class="circles"><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span></span><span class="circle-label">0/4</span></div></td><td style="color:#9333ea"><div class="nutrition-principle-code">US</div><div class="nutrition-principle-name">Usability</div><div><span class="circles"><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span></span><span class="circle-label">0/4</span></div></td><td style="color:#c2410c"><div class="nutrition-principle-code">SE</div><div class="nutrition-principle-name">Soundness</div><div><span class="circles"><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span></span><span class="circle-label">0/4</span></div></td><td style="color:#0f766e"><div class="nutrition-principle-code">TC</div><div class="nutrition-principle-name">Traceability</div><div><span class="circles"><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span></span><span class="circle-label">0/4</span></div></td>
+        <td style="color:#2563eb"><div class="nutrition-principle-code">TR</div><div class="nutrition-principle-name">Transparency</div><div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span></span><span class="circle-label">2/4</span></div><div class="nutrition-principle-fraction">2.0</div></td><td style="color:#127035"><div class="nutrition-principle-code">RE</div><div class="nutrition-principle-name">Reliability</div><div><span class="circles"><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span></span><span class="circle-label">0/4</span></div></td><td style="color:#9333ea"><div class="nutrition-principle-code">US</div><div class="nutrition-principle-name">Usability</div><div><span class="circles"><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span></span><span class="circle-label">0/4</span></div></td><td style="color:#c2410c"><div class="nutrition-principle-code">SE</div><div class="nutrition-principle-name">Soundness</div><div><span class="circles"><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span></span><span class="circle-label">0/4</span></div></td><td style="color:#0f766e"><div class="nutrition-principle-code">TC</div><div class="nutrition-principle-name">Traceability</div><div><span class="circles"><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span></span><span class="circle-label">0/4</span></div></td>
         <td class="nutrition-overall-cell" style="color:var(--magenta)">
           <div class="nutrition-overall-label">Overall</div>
           <div><span class="circles"><span class="circle filled">&#9679;</span><span class="circle filled">&#9679;</span><span class="circle empty">&#9675;</span><span class="circle empty">&#9675;</span></span><span class="circle-label">2/4</span></div>
@@ -864,7 +867,7 @@ exports[`HTML report snapshot > matches snapshot for partially-scored session 1`
 
 <nav class="toc">
   <span class="toc-label">Contents</span>
-  <a href="#category-TR" class="toc-item" style="color:#2563eb"><span class="toc-code">TR</span> Transparency</a><a href="#category-RE" class="toc-item" style="color:#15803d"><span class="toc-code">RE</span> Reliability</a><a href="#category-US" class="toc-item" style="color:#9333ea"><span class="toc-code">US</span> Usability</a><a href="#category-SE" class="toc-item" style="color:#c2410c"><span class="toc-code">SE</span> Soundness</a><a href="#category-TC" class="toc-item" style="color:#0f766e"><span class="toc-code">TC</span> Traceability</a>
+  <a href="#category-TR" class="toc-item" style="color:#2563eb"><span class="toc-code">TR</span> Transparency</a><a href="#category-RE" class="toc-item" style="color:#127035"><span class="toc-code">RE</span> Reliability</a><a href="#category-US" class="toc-item" style="color:#9333ea"><span class="toc-code">US</span> Usability</a><a href="#category-SE" class="toc-item" style="color:#c2410c"><span class="toc-code">SE</span> Soundness</a><a href="#category-TC" class="toc-item" style="color:#0f766e"><span class="toc-code">TC</span> Traceability</a>
 </nav>
 
 <h2 style="font-family:var(--ff-heading);text-transform:uppercase;letter-spacing:0.03em;color:var(--magenta);margin:0 0 8px;font-size:1rem">Quality Gates</h2>
@@ -941,20 +944,20 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
 </table>
 
 
-    <section id="category-TR" class="category-section" style="--accent:#2563eb">
+    <section id="category-TR" class="category-section" style="--accent:#2563eb" aria-labelledby="heading-TR">
       <div class="category-header">
         <div class="category-letter-block">
           <div class="category-letter">TR</div>
           <div class="category-letter-name">Transparency</div>
         </div>
         <div class="category-info">
-          <h2>Transparency</h2>
+          <h2 id="heading-TR">Transparency</h2>
           <div class="category-meta">
             <span class="cat-score">2 / 3</span>
             <span class="cat-avg">avg 2.0</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:100%;background:#0e7490"></div><div class="dist-seg" style="width:0%;background:#4a8355"></div></div><div class="dist-labels"><span style="color:#0e7490">2:1</span></div>
+          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:100%;background:#0e7490"></div><div class="dist-seg" style="width:0%;background:#3d7249"></div></div><div class="dist-labels"><span style="color:#0e7490">2:1</span></div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -993,14 +996,14 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
       </div>
     </section>
   
-    <section id="category-RE" class="category-section category-alt" style="--accent:#15803d">
+    <section id="category-RE" class="category-section category-alt" style="--accent:#127035" aria-labelledby="heading-RE">
       <div class="category-header">
         <div class="category-letter-block">
           <div class="category-letter">RE</div>
           <div class="category-letter-name">Reliability</div>
         </div>
         <div class="category-info">
-          <h2>Reliability</h2>
+          <h2 id="heading-RE">Reliability</h2>
           <div class="category-meta">
             <span class="cat-score">0 / 0</span>
             <span class="cat-avg">avg —</span>
@@ -1017,7 +1020,7 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
           </thead>
           <tbody>
     <tr class="score-row">
-      <td class="code" style="color:#15803d">RE1</td>
+      <td class="code" style="color:#127035">RE1</td>
       <td class="score-cell">
         <span class="score-badge" style="background:#4c5e7420;color:#4c5e74">
           —
@@ -1047,14 +1050,14 @@ For deterministic, index-based databases, identical queries should yield identic
       </div>
     </section>
   
-    <section id="category-US" class="category-section" style="--accent:#9333ea">
+    <section id="category-US" class="category-section" style="--accent:#9333ea" aria-labelledby="heading-US">
       <div class="category-header">
         <div class="category-letter-block">
           <div class="category-letter">US</div>
           <div class="category-letter-name">Usability</div>
         </div>
         <div class="category-info">
-          <h2>Usability</h2>
+          <h2 id="heading-US">Usability</h2>
           <div class="category-meta">
             <span class="cat-score">0 / 0</span>
             <span class="cat-avg">avg —</span>
@@ -1099,14 +1102,14 @@ For deterministic, index-based databases, identical queries should yield identic
       </div>
     </section>
   
-    <section id="category-SE" class="category-section category-alt" style="--accent:#c2410c">
+    <section id="category-SE" class="category-section category-alt" style="--accent:#c2410c" aria-labelledby="heading-SE">
       <div class="category-header">
         <div class="category-letter-block">
           <div class="category-letter">SE</div>
           <div class="category-letter-name">Soundness</div>
         </div>
         <div class="category-info">
-          <h2>Soundness</h2>
+          <h2 id="heading-SE">Soundness</h2>
           <div class="category-meta">
             <span class="cat-score">0 / 0</span>
             <span class="cat-avg">avg —</span>
@@ -1176,14 +1179,14 @@ For deterministic, index-based databases, identical queries should yield identic
       </div>
     </section>
   
-    <section id="category-TC" class="category-section" style="--accent:#0f766e">
+    <section id="category-TC" class="category-section" style="--accent:#0f766e" aria-labelledby="heading-TC">
       <div class="category-header">
         <div class="category-letter-block">
           <div class="category-letter">TC</div>
           <div class="category-letter-name">Traceability</div>
         </div>
         <div class="category-info">
-          <h2>Traceability</h2>
+          <h2 id="heading-TC">Traceability</h2>
           <div class="category-meta">
             <span class="cat-score">0 / 0</span>
             <span class="cat-avg">avg —</span>
@@ -1270,6 +1273,7 @@ For deterministic, index-based databases, identical queries should yield identic
       
     </section>
   
+</main>
 <div class="bottom-bar"></div>
 <div class="footer">
   TRUST Framework v1.1 · PartialTool · 10 questions · Evaluated 2025-06-15 10:00

@@ -4,7 +4,7 @@ import type { Capture } from "@/lib/types";
 function ThumbnailImg({ capture }: { capture: Capture }) {
   const screenshotUrl = useScreenshotUrl(capture.id);
   const src = screenshotUrl ?? capture.annotatedScreenshotBase64 ?? capture.screenshotBase64;
-  return <img src={src} alt="Evidence" loading="lazy" />;
+  return <img src={src} alt={capture.pageTitle ? `Evidence: ${capture.pageTitle}` : "Evidence capture"} loading="lazy" />;
 }
 
 interface EvidenceThumbnailsProps {
@@ -22,11 +22,11 @@ export default function EvidenceThumbnails({
 }: EvidenceThumbnailsProps) {
   if (captures.length === 0) return null;
   return (
-    <div className="mb-ut-2">
-      <p className="text-ut-xs font-heading font-bold text-ut-slate uppercase tracking-ut-kicker mb-1">
+    <div className="mb-ut-3">
+      <p className="text-ut-xs font-heading font-bold text-ut-slate uppercase tracking-ut-kicker mb-ut-1">
         Evidence ({captures.length})
       </p>
-      <div className="flex gap-1 overflow-x-auto">
+      <div className="flex gap-ut-1 overflow-x-auto">
         {captures.map((c) => (
           <div key={c.id} className="evidence-thumb-wrap">
             <ThumbnailImg capture={c} />

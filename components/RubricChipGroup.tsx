@@ -21,7 +21,7 @@ export default function RubricChipGroup({
   onToggle,
 }: RubricChipGroupProps) {
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="flex flex-wrap gap-ut-1">
       {Object.entries(questions).map(([qId, question], qIdx) => {
         const rubricId = `${categoryKey}.${qId}`;
         const linked = linkedIds.includes(rubricId);

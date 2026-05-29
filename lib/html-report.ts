@@ -167,14 +167,14 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
         .join("");
 
       return `
-    <section id="category-${p.id}" class="category-section${sectionIdx % 2 === 1 ? " category-alt" : ""}" style="--accent:${p.reportColor}">
+    <section id="category-${p.id}" class="category-section${sectionIdx % 2 === 1 ? " category-alt" : ""}" style="--accent:${p.reportColor}" aria-labelledby="heading-${p.id}">
       <div class="category-header">
         <div class="category-letter-block">
           <div class="category-letter">${p.code}</div>
           <div class="category-letter-name">${p.fullName}</div>
         </div>
         <div class="category-info">
-          <h2>${esc(p.fullName)}</h2>
+          <h2 id="heading-${p.id}">${esc(p.fullName)}</h2>
           <div class="category-meta">
             <span class="cat-score">${p.total} / ${p.max}</span>
             <span class="cat-avg">avg ${p.avg}</span>
@@ -437,7 +437,7 @@ function buildNutritionLabelHtml(
   <div class="nutrition-divider-thin"></div>
 
   <div class="nutrition-principles">
-    <table class="nutrition-principles-table" role="presentation" aria-label="Principle scores">
+    <table class="nutrition-principles-table" aria-label="Principle scores">
       <tr>
         ${PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
           .map((p) => {
@@ -516,7 +516,9 @@ export async function buildNutritionLabel(
 <link rel="stylesheet" href="report.css" />
 </head>
 <body>
+<main id="report-content">
 ${labelHtml}
+</main>
 </body>
 </html>`;
 }
@@ -574,7 +576,7 @@ export async function buildHtmlReport(
 </head>
 <body>
 
-
+<main id="report-content">
 
 ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, model.scores, TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO, model.evalMap)}
 
@@ -617,6 +619,7 @@ ${metadata.termsConditionsUrl ? `<div style="font-size:0.8rem;color:var(--muted)
 ${categorySections}
 ${finalizationSection}
 ${unlinkedSection}
+</main>
 <div class="bottom-bar"></div>
 <div class="footer">
   TRUST Framework v1.1 · ${esc(metadata.toolName)} · ${model.scores.totalQuestions} questions · Evaluated ${formatDate(metadata.startTime)}

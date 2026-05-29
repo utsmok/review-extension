@@ -120,7 +120,7 @@ describe("Captures", () => {
 
     expect(screen.getByText("No captures yet")).toBeDefined();
     expect(
-      screen.getByText("Use the capture button above to save screenshots as evidence."),
+      screen.getByText("Use + Quick Capture or press Ctrl+Shift+S to screenshot the current page."),
     ).toBeDefined();
   });
 

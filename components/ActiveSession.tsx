@@ -118,6 +118,7 @@ export default function ActiveSession() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              aria-hidden="true"
             >
               <title>Close</title>
               <line x1="4" y1="4" x2="12" y2="12" />

@@ -436,7 +436,7 @@ describe("buildHtmlReport", () => {
       { rubricId: "RE.result_accuracy", score: 1, notes: "Needs work", explicitEvidenceIds: [] },
     ];
     const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
-    expect(html).toContain("#4a8355");
+    expect(html).toContain("#3d7249");
     expect(html).toContain("#c2410c");
   });
 

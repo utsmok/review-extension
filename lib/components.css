@@ -178,7 +178,11 @@
   align-items: center;
   gap: var(--space-1);
   position: relative;
+  font-family: var(--ff-heading);
   font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
   cursor: pointer;
   padding: var(--space-1) var(--space-2);
   border: 1px solid var(--ut-border);
@@ -299,6 +303,7 @@
 .question-details > summary > span:not([class]) {
   font-family: var(--ff-body);
   font-weight: 500;
+  font-size: var(--text-sm);
 }
 
 .question-details > .question-body {
@@ -412,8 +417,8 @@
 }
 
 .score-row .score-desc {
-  font-size: var(--text-xs);
-  line-height: 1.4;
+  font-size: var(--text-sm);
+  line-height: var(--lh-body);
 }
 
 /* ── Summary score badge (collapsed question row) ─────────── */
@@ -474,8 +479,8 @@
   padding: var(--space-1) var(--space-2);
   cursor: pointer;
   font-family: var(--ff-mono);
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: var(--text-xs);
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--ls-label);
   color: var(--ut-muted);
@@ -504,9 +509,9 @@
 
 .question-foldout-content {
   padding: 0 var(--space-3) var(--space-3);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   color: var(--ut-slate);
-  line-height: 1.5;
+  line-height: var(--lh-body);
 }
 
 .example-row {
@@ -539,8 +544,8 @@
 .example-label[data-score="fail"] { color: var(--judgment-fail); }
 
 .example-desc {
-  font-size: var(--text-xs);
-  line-height: 1.4;
+  font-size: var(--text-sm);
+  line-height: var(--lh-body);
 }
 
 /* ── Evidence thumbnail with hover overlay ─────────────────── */
@@ -548,6 +553,7 @@
 .evidence-thumb-wrap {
   position: relative;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .evidence-thumb-wrap img {
@@ -1306,8 +1312,7 @@
 /* ── Finalize grade button transition ────────────────────── */
 .grade-btn {
   transition: transform var(--duration-fast) ease-out,
-              background-color var(--duration-fast) ease-out,
-              box-shadow var(--duration-fast) ease-out;
+              background-color var(--duration-fast) ease-out;
 }
 
 .grade-btn:active {
@@ -1405,4 +1410,57 @@
 /* ── Tab panel scroll container ──────────────────────────────── */
 .tab-panel-content {
   position: relative;
+}
+/* ── Metadata tab hardening ────────────────────────────────────── */
+
+/* Input base: minimum 44px touch target for sidepanel use */
+.meta-input {
+  min-height: 44px;
+}
+
+/* URL-specific: mono font for URLs, no zoom on iOS */
+.meta-url-input {
+  font-family: var(--ff-mono);
+  font-size: var(--text-sm);
+}
+
+/* AI toggle: 44px minimum touch target */
+.meta-toggle-label {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding-block: var(--space-1);
+}
+
+/* Larger checkbox hit area — visual size stays 16×16 but padded */
+.meta-checkbox {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+/* AI state badge */
+.meta-ai-badge {
+  flex-shrink: 0;
+  line-height: 1;
+  padding-block: 2px;
+}
+
+/* Pill buttons: 44px touch target */
+.meta-pill-btn {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+}
+
+/* Custom input in pill fields */
+.meta-custom-input {
+  min-height: 36px;
+}
+
+/* Broken logo placeholder */
+.meta-logo-img[title] {
+  font-size: var(--text-xs);
 }

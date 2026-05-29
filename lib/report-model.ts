@@ -4,7 +4,7 @@ import {
   distributionBar,
   getQGQuestionCode,
   getQuestionCode,
-  scoreColor,
+  reportScoreColor,
 } from "./rubric";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
@@ -181,7 +181,7 @@ export function buildReportModel(
       }
 
       const isWeakEvidence = score >= 0 && score <= 1;
-      const badgeColor = scoreColor(
+      const badgeColor = reportScoreColor(
         isNa ? "na" : isUnsure ? "unsure" : score >= 0 ? (score as 0 | 1 | 2 | 3) : undefined,
       );
 
@@ -218,7 +218,7 @@ export function buildReportModel(
       evidenceCount,
       catScores,
       questions: scoringRows,
-      distributionBarHtml: distributionBar(catScores),
+      distributionBarHtml: distributionBar(catScores, reportScoreColor),
     };
   });
 

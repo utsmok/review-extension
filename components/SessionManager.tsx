@@ -62,7 +62,7 @@ export default function SessionManager() {
       );
     } catch (err) {
       console.error("Export failed:", err);
-      toastError(err instanceof Error ? err.message : "Export failed. Please try again.");
+      toastError(err instanceof Error ? err.message : "Could not export this review. Try again or check the console for details.");
     }
   };
 
@@ -73,11 +73,11 @@ export default function SessionManager() {
     try {
       const id = await importSessionFromZipFile(file);
       const meta = useRegistryStore.getState().sessionIndex[id];
-      toastSuccess(`Review imported: ${meta?.toolName ?? "unknown tool"}`);
+      toastSuccess(`Review imported: ${meta?.toolName ?? "Untitled review"}`);
       switchToSession(id);
     } catch (err) {
       console.error("Import failed:", err);
-      toastError(err instanceof Error ? err.message : "Import failed.");
+      toastError(err instanceof Error ? err.message : "Could not import this file. Make sure it is a TRUST Review export (.zip).");
     } finally {
       setImporting(false);
       // Reset input so the same file can be re-selected
@@ -121,7 +121,7 @@ export default function SessionManager() {
           onClick={() => fileInputRef.current?.click()}
           disabled={importing}
         >
-          {importing ? "Importing..." : "Import from Export"}
+          {importing ? "Importing\u2026" : "Import Review"}
         </button>
       </div>
 
@@ -130,7 +130,7 @@ export default function SessionManager() {
         {sessions.length === 0 ? (
           <EmptyState
             title="No reviews yet"
-            description="Start a new review to evaluate a search tool."
+            description="Start a new review or import one to begin evaluating."
             icon={
               <svg
                 width="32"
@@ -170,7 +170,7 @@ export default function SessionManager() {
                           : "bg-[color-mix(in_srgb,var(--trust-magenta)_20%,var(--ut-white))] text-trust-magenta-strong"
                       }`}
                     >
-                      {s.status === "done" ? "Done" : "Started"}
+                      {s.status === "done" ? "Complete" : "In Progress"}
                     </span>
                     {s.finalizedAt && (
                       <span className="text-ut-xs font-heading font-bold uppercase tracking-ut-label px-1.5 py-0.5 rounded bg-[color-mix(in_srgb,var(--trust-magenta)_20%,var(--ut-white))] text-trust-magenta">
@@ -203,6 +203,7 @@ export default function SessionManager() {
                       strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
+                      aria-hidden="true"
                     >
                       <title>Open in new tab</title>
                       <path d="M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3" />
@@ -228,6 +229,7 @@ export default function SessionManager() {
                       strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
+                      aria-hidden="true"
                     >
                       <title>Download report</title>
                       <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" />
@@ -253,6 +255,7 @@ export default function SessionManager() {
                       strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
+                      aria-hidden="true"
                     >
                       <title>Delete review</title>
                       <path d="M2 4h12" />
@@ -273,7 +276,7 @@ export default function SessionManager() {
       {/* Delete confirmation */}
       {deleteTargetId && deleteTargetMeta && (
         <ConfirmDialog
-          message={`Delete review of "${deleteTargetMeta.toolName}"? This cannot be undone.`}
+          message={`Permanently delete the review of \u201C${deleteTargetMeta.toolName}\u201D? All scores, evidence captures, and notes will be lost.`}
           actions={[
             { label: "Cancel", handler: () => setDeleteTargetId(null), variant: "cancel" },
             { label: "Delete", handler: confirmDelete, variant: "danger" },

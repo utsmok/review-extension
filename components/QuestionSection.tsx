@@ -142,7 +142,7 @@ function renderScoringScores(
               })}
             </div>
             <textarea
-              className="w-full border border-ut-border rounded-ut-sm text-ut-xs p-ut-2 resize-y bg-ut-grey"
+              className="w-full border border-ut-border rounded-ut-sm text-ut-sm p-ut-2 resize-y bg-ut-grey"
               rows={2}
               placeholder="Describe why the standard 0–3 scale does not apply and justify your custom score…"
               value={ev?.customScore?.reasoning ?? ""}
@@ -297,7 +297,7 @@ export const QuestionRow = React.memo(function QuestionRow({
       <div className="question-body">
         {/* QG: requirement text. Scoring: nothing extra. */}
         {isQG && (
-          <p className="text-ut-xs text-ut-muted leading-relaxed mb-ut-2">
+          <p className="text-ut-sm text-ut-muted leading-relaxed mb-ut-2">
             {(question as PassFailQuestion).requirement}
           </p>
         )}
@@ -533,10 +533,10 @@ export default function QuestionSection({
 
   return (
     <section>
-      <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta mb-ut-2">
+      <h2 className="font-heading text-ut-heading font-bold uppercase tracking-ut-heading text-trust-magenta mb-ut-2">
         {headerText}
       </h2>
-      <p className="text-ut-xs text-ut-slate mb-ut-5">{descriptionText}</p>
+      <p className="text-ut-sm text-ut-slate leading-normal mb-ut-5">{descriptionText}</p>
       {Object.entries(rubricSection).map(([category, questions]) => (
         <div key={category} className="mb-ut-3">
           <h3 className="section-kicker mb-1">{getCategoryLabel(category)}</h3>

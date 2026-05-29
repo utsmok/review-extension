@@ -259,12 +259,12 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
           <summary className="text-ut-xs font-heading font-bold uppercase tracking-ut-kicker text-ut-muted cursor-pointer hover:text-ut-navy">
             Tag to rubric items ({linkedRubricIds.length})
           </summary>
-          <div className="mt-1 space-y-1.5 pb-1">
+          <div className="mt-ut-2 space-y-ut-2 pb-ut-1">
             {/* Quality Gates */}
             <div>
-              <p className="section-kicker mb-1">Quality Gates</p>
+              <p className="section-kicker mb-ut-1">Quality Gates</p>
               {Object.entries(rubric.quality_gate).map(([cat, questions]) => (
-                <div key={cat} className="ml-ut-1 mb-1" data-accent-key="control">
+                <div key={cat} className="mb-ut-1" data-accent-key="control">
                   <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
                   <RubricChipGroup
                     questions={questions}
@@ -283,9 +283,9 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
             </div>
             {/* Scoring Rubric */}
             <div>
-              <p className="section-kicker mb-1">Scoring Rubric</p>
+              <p className="section-kicker mb-ut-1">Scoring Rubric</p>
               {Object.entries(rubric.scoring_rubric).map(([cat, questions]) => (
-                <div key={cat} className="ml-ut-1 mb-1" data-accent-key={getAccentKey(cat)}>
+                <div key={cat} className="mb-ut-1" data-accent-key={getAccentKey(cat)}>
                   <p className="text-ut-xs text-ut-slate">{getCategoryLabel(cat)}</p>
                   <RubricChipGroup
                     questions={questions}
@@ -307,10 +307,10 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         {/* Notes + Metadata */}
         <div className="p-ut-3">
           {capture.pageTitle && (
-            <p className="text-ut-xs font-bold text-ut-text mb-1">{capture.pageTitle}</p>
+            <p className="text-ut-xs font-bold text-ut-text mb-ut-1">{capture.pageTitle}</p>
           )}
-          <p className="text-ut-xs font-mono text-ut-muted mb-1 break-all">{capture.sourceUrl}</p>
-          <p className="text-ut-xs text-ut-slate mb-2">
+          <p className="text-ut-xs font-mono text-ut-muted mb-ut-1 break-all">{capture.sourceUrl}</p>
+          <p className="text-ut-xs text-ut-slate mb-ut-2">
             {new Date(capture.timestamp).toLocaleString()}
           </p>
           <textarea

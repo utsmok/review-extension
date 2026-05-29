@@ -50,6 +50,7 @@ export default function Captures() {
     }
     return map;
   }, [captures, evaluations]);
+  const reversedCaptures = useMemo(() => [...captures].reverse(), [captures]);
 
   const handleCapture = async () => {
     setCapturing(true);
@@ -81,41 +82,9 @@ export default function Captures() {
       </button>
 
       {captures.length === 0 && (
-        <div className="text-center py-ut-6 text-ut-muted">
-          <p className="text-ut-sm mb-ut-2">No captures yet.</p>
-          <p className="text-ut-xs">
-            Use <strong>+ Quick Capture</strong> or press{" "}
-            <kbd className="px-1 py-0.5 bg-ut-grey rounded text-ut-xs font-mono">Ctrl+Shift+S</kbd>{" "}
-            to screenshot the current page.
-          </p>
-        </div>
-      )}
-
-      {captures.length > 0 && (
-        <div className="flex items-center gap-2 mb-1">
-          <button
-            type="button"
-            className={`text-ut-xs px-2 py-1 rounded ${viewMode === "grid" ? "bg-trust-magenta text-white" : "bg-ut-grey text-ut-text"}`}
-            onClick={() => setViewMode("grid")}
-            aria-label="Grid view"
-          >
-            Grid
-          </button>
-          <button
-            type="button"
-            className={`text-ut-xs px-2 py-1 rounded ${viewMode === "list" ? "bg-trust-magenta text-white" : "bg-ut-grey text-ut-text"}`}
-            onClick={() => setViewMode("list")}
-            aria-label="List view"
-          >
-            List
-          </button>
-        </div>
-      )}
-
-      {captures.length === 0 && (
         <EmptyState
           title="No captures yet"
-          description="Use the capture button above to save screenshots as evidence."
+          description="Use + Quick Capture or press Ctrl+Shift+S to screenshot the current page."
           icon={
             <svg
               width="32"
@@ -136,16 +105,37 @@ export default function Captures() {
         />
       )}
 
+      {captures.length > 0 && (
+        <div className="flex items-center gap-ut-2 mb-ut-2">
+          <button
+            type="button"
+            className={`text-ut-xs px-ut-2 py-ut-1 rounded-ut-sm ${viewMode === "grid" ? "bg-trust-magenta text-white" : "bg-ut-grey text-ut-text"}`}
+            onClick={() => setViewMode("grid")}
+            aria-label="Grid view"
+          >
+            Grid
+          </button>
+          <button
+            type="button"
+            className={`text-ut-xs px-ut-2 py-ut-1 rounded-ut-sm ${viewMode === "list" ? "bg-trust-magenta text-white" : "bg-ut-grey text-ut-text"}`}
+            onClick={() => setViewMode("list")}
+            aria-label="List view"
+          >
+            List
+          </button>
+        </div>
+      )}
+
       {viewMode === "grid" &&
         captures.length > 0 &&
         (() => {
-          const reversed = [...captures].reverse();
+          const reversed = reversedCaptures;
           const displayed = showAll ? reversed : reversed.slice(0, 12);
           const needsPagination = reversed.length > 12;
           return (
             <>
               {needsPagination && (
-                <p className="text-ut-xs text-ut-slate text-center">
+                <p className="text-ut-xs text-ut-slate text-center mb-ut-2">
                   Showing {displayed.length} of {reversed.length} captures
                 </p>
               )}
@@ -237,12 +227,12 @@ export default function Captures() {
                       {isExpanded && (
                         <section
                           aria-label="Capture details"
-                          className="border border-ut-border border-t-0 bg-ut-white p-ut-2"
+                          className="border-t border-ut-border bg-ut-offwhite p-ut-3"
                           onKeyDown={(e) => {
                             if (e.key === "Escape") setExpanded(null);
                           }}
                         >
-                          <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center justify-between mb-ut-2">
                             <p className="text-ut-xs text-ut-muted font-mono truncate flex-1 mr-ut-2">
                               {capture.sourceUrl}
                             </p>
@@ -263,7 +253,7 @@ export default function Captures() {
                               </button>
                               <button
                                 type="button"
-                                className="text-ut-xs text-ut-slate hover:text-ut-text ml-1"
+                                className="text-ut-xs text-ut-slate hover:text-ut-text ml-ut-1"
                                 onClick={() => setExpanded(null)}
                                 aria-label="Close details"
                               >
@@ -272,7 +262,7 @@ export default function Captures() {
                             </div>
                           </div>
                           {capture.pageTitle && (
-                            <p className="text-ut-xs font-bold text-ut-text truncate mb-0.5">
+                            <p className="text-ut-xs font-bold text-ut-text truncate mb-ut-1">
                               {capture.pageTitle}
                             </p>
                           )}
@@ -304,12 +294,12 @@ export default function Captures() {
                               Tag to rubric items ({linkedRubricIds.length})
                             </summary>
 
-                            <div className="mt-1 space-y-1.5">
+                            <div className="mt-ut-2 space-y-ut-2">
                               {/* Quality Gates */}
                               <div>
-                                <p className="section-kicker mb-1">Quality Gates</p>
+                                <p className="section-kicker mb-ut-1">Quality Gates</p>
                                 {Object.entries(rubric.quality_gate).map(([cat, questions]) => (
-                                  <div key={cat} className="ml-ut-1 mb-1" data-accent-key="control">
+                                  <div key={cat} className="mb-ut-1" data-accent-key="control">
                                     <p className="text-ut-xs text-ut-slate">
                                       {getCategoryLabel(cat)}
                                     </p>
@@ -331,11 +321,11 @@ export default function Captures() {
 
                               {/* Scoring Rubric */}
                               <div>
-                                <p className="section-kicker mb-1">Scoring Rubric</p>
+                                <p className="section-kicker mb-ut-1">Scoring Rubric</p>
                                 {Object.entries(rubric.scoring_rubric).map(([cat, questions]) => (
                                   <div
                                     key={cat}
-                                    className="ml-ut-1 mb-1"
+                                    className="mb-ut-1"
                                     data-accent-key={getAccentKey(cat)}
                                   >
                                     <p className="text-ut-xs text-ut-slate">
@@ -380,7 +370,7 @@ export default function Captures() {
       {viewMode === "list" &&
         captures.length > 0 &&
         (() => {
-          const reversed = [...captures].reverse();
+          const reversed = reversedCaptures;
           return (
             <div className="border border-ut-border rounded-ut-sm overflow-hidden">
               {reversed.map((capture) => {

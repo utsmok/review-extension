@@ -98,7 +98,7 @@ describe("SessionManager", () => {
     renderSessionManager();
 
     expect(screen.getByText("No reviews yet")).toBeDefined();
-    expect(screen.getByText("Start a new review to evaluate a search tool.")).toBeDefined();
+    expect(screen.getByText("Start a new review or import one to begin evaluating.")).toBeDefined();
   });
 
   it("renders session list with registered sessions", () => {
@@ -133,8 +133,8 @@ describe("SessionManager", () => {
     expect(screen.getByText("Done Tool")).toBeDefined();
 
     // Status badges
-    expect(screen.getByText("Started")).toBeDefined();
-    expect(screen.getByText("Done")).toBeDefined();
+    expect(screen.getByText("In Progress")).toBeDefined();
+    expect(screen.getByText("Complete")).toBeDefined();
   });
 
   it("clicking a session card calls switchToSession", () => {
@@ -159,7 +159,7 @@ describe("SessionManager", () => {
     const deleteButtons = screen.getAllByTitle("Delete review");
     fireEvent.click(deleteButtons[0]);
 
-    expect(screen.getByText(/Delete review of "ToDelete"/)).toBeDefined();
+    expect(screen.getByText(/Permanently delete the review of/)).toBeDefined();
   });
 
   it("confirming delete calls deleteSession", async () => {
