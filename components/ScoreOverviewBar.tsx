@@ -41,6 +41,54 @@ function getStateIndicator(state: ProgressState): string {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Rolling counter — animates the scored number when it changes
+// ---------------------------------------------------------------------------
+
+function RollingNumber({ value }: { value: number }) {
+  const prevRef = useRef(value);
+  const [displayOld, setDisplayOld] = useState(value);
+  const [displayNew, setDisplayNew] = useState(value);
+  const [animating, setAnimating] = useState(false);
+
+  useEffect(() => {
+    if (value !== prevRef.current) {
+      setDisplayOld(prevRef.current);
+      setDisplayNew(value);
+      setAnimating(true);
+      const timer = setTimeout(() => {
+        setAnimating(false);
+        prevRef.current = value;
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+    prevRef.current = value;
+  }, [value]);
+
+  if (!animating) {
+    return (
+      <span className="score-overview-bar__scored" aria-live="polite">
+        {value}
+      </span>
+    );
+  }
+
+  return (
+    <span className="score-overview-bar__scored score-overview-bar__scored--rolling" aria-live="polite">
+      <span className="score-overview-bar__roll-old" key={`old-${displayOld}`}>
+        {displayOld}
+      </span>
+      <span className="score-overview-bar__roll-new" key={`new-${displayNew}`}>
+        {displayNew}
+      </span>
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Badge button — constellation floating handled via CSS nth-child
+// ---------------------------------------------------------------------------
+
 function BadgeButton({ b, onNavigate }: { b: QuestionBadge; onNavigate: (id: string) => void }) {
   return (
     <button
@@ -68,6 +116,48 @@ function BadgeButton({ b, onNavigate }: { b: QuestionBadge; onNavigate: (id: str
         </span>
       )}
     </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CSS confetti burst (no JS lib)
+// ---------------------------------------------------------------------------
+
+function ConfettiBurst() {
+  // 8 particles radiating outward
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 8 }, (_, i) => ({
+        angle: (360 / 8) * i,
+        delay: i * 25,
+        color:
+          i % 4 === 0
+            ? "var(--state-success)"
+            : i % 4 === 1
+              ? "var(--ut-blue)"
+              : i % 4 === 2
+                ? "var(--trust-magenta)"
+                : "var(--score-2)",
+      })),
+    [],
+  );
+
+  return (
+    <span className="score-overview-bar__confetti" aria-hidden="true">
+      {particles.map((p) => (
+        <span
+          key={p.angle}
+          className="score-overview-bar__confetti-particle"
+          style={
+            {
+              "--confetti-angle": `${p.angle}deg`,
+              animationDelay: `${p.delay}ms`,
+              "--confetti-color": p.color,
+            } as React.CSSProperties
+          }
+        />
+      ))}
+    </span>
   );
 }
 
@@ -195,6 +285,7 @@ export default function ScoreOverviewBar({
   const prevScoredRef = useRef(scored);
   const [bumpFraction, setBumpFraction] = useState(false);
   const [glowFill, setGlowFill] = useState(false);
+  const [celebrating, setCelebrating] = useState(false);
 
   useEffect(() => {
     if (scored > prevScoredRef.current) {
@@ -209,6 +300,21 @@ export default function ScoreOverviewBar({
     }
     prevScoredRef.current = scored;
   }, [scored]);
+
+  // Completion celebration: fire once when progress reaches 100%
+  const prevCompleteRef = useRef(false);
+  useEffect(() => {
+    const isComplete = total > 0 && scored === total;
+    if (isComplete && !prevCompleteRef.current) {
+      setCelebrating(true);
+      const timer = setTimeout(() => setCelebrating(false), 800);
+      prevCompleteRef.current = true;
+      return () => clearTimeout(timer);
+    }
+    if (!isComplete) {
+      prevCompleteRef.current = false;
+    }
+  }, [scored, total]);
 
   // Find first incomplete question
   const firstIncomplete = useMemo(() => {
@@ -227,11 +333,12 @@ export default function ScoreOverviewBar({
       : -1;
   }, [evaluations]);
 
-  const progressFillStyle = {
+  // Dynamic gradient based on average score quality
+  const fillGradientStyle = {
     width: `${progressPct}%`,
-    "--fill-color":
+    "--fill-start":
       avgScore < 0
-        ? "var(--ut-muted)"
+        ? "var(--ut-slate)"
         : avgScore >= 2.5
           ? "var(--score-3)"
           : avgScore >= 1.5
@@ -239,6 +346,16 @@ export default function ScoreOverviewBar({
             : avgScore >= 0.5
               ? "var(--score-1)"
               : "var(--score-0)",
+    "--fill-end":
+      avgScore < 0
+        ? "var(--ut-muted)"
+        : avgScore >= 2.5
+          ? "color-mix(in srgb, var(--score-3) 70%, var(--ut-blue))"
+          : avgScore >= 1.5
+            ? "color-mix(in srgb, var(--score-2) 70%, var(--ut-blue))"
+            : avgScore >= 0.5
+              ? "color-mix(in srgb, var(--score-1) 70%, var(--score-2))"
+              : "color-mix(in srgb, var(--score-0) 70%, var(--score-1))",
   } as React.CSSProperties;
 
   // Navigate to question
@@ -256,16 +373,21 @@ export default function ScoreOverviewBar({
   const qgCount = badges.filter((b) => b.section === "quality_gate").length;
 
   return (
-    <div className="score-overview-bar">
+    <div className={`score-overview-bar ${celebrating ? "score-overview-bar--celebrating" : ""}`}>
       <div className="score-overview-bar__inner">
-        {/* Fraction + progress */}
+        {/* Fraction with rolling counter */}
         <span className={`score-overview-bar__fraction ${bumpFraction ? "score-overview-bar__fraction--bump" : ""}`}>
-          <span className="score-overview-bar__scored">{scored}</span>
+          <RollingNumber value={scored} />
           <span className="score-overview-bar__divider">/</span>
           <span className="score-overview-bar__total">{total}</span>
         </span>
+
+        {/* Progress track with gradient fill + shimmer */}
         <span className="score-overview-bar__track">
-          <span className={`score-overview-bar__fill ${glowFill ? "score-overview-bar__fill--glow" : ""}`} style={progressFillStyle} />
+          <span
+            className={`score-overview-bar__fill ${glowFill ? "score-overview-bar__fill--glow" : ""}`}
+            style={fillGradientStyle}
+          />
         </span>
 
         {/* Thin separator before badges */}
@@ -298,6 +420,9 @@ export default function ScoreOverviewBar({
           </button>
         )}
       </div>
+
+      {/* Confetti burst on 100% completion */}
+      {celebrating && <ConfettiBurst />}
     </div>
   );
 }
