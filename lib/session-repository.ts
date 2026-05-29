@@ -1,4 +1,5 @@
 import type { SessionData } from "@/lib/types";
+import { CURRENT_SCHEMA_VERSION as SCHEMA_VERSION, runMigrations } from "./migrations";
 
 // --- Interface ---
 
@@ -13,7 +14,7 @@ export interface SessionRepository {
 
 const DB_NAME = "trust-review-sessions";
 const STORE_NAME = "sessions";
-export const SCHEMA_VERSION = 3;
+export { CURRENT_SCHEMA_VERSION as SCHEMA_VERSION } from "./migrations";
 
 // --- IdbSessionRepository ---
 
@@ -107,7 +108,7 @@ export class IdbSessionRepository implements SessionRepository {
       req.onsuccess = () => {
         const data = req.result ?? null;
         if (data && data.schemaVersion !== SCHEMA_VERSION) {
-          resolve(migrateSessionData(data));
+          resolve(runMigrations(data));
         } else {
           resolve(data);
         }
@@ -152,32 +153,6 @@ export class InMemorySessionRepository implements SessionRepository {
     return true;
   }
 }
-
-// --- Schema Migration ---
-
-/**
- * Apply in-memory transformations to upgrade stored session data to the current
- * schema version. Add version-specific migration steps as needed.
- * This runs at load time so data is always up-to-date before reaching the store.
- */
-function migrateSessionData(data: SessionData): SessionData {
-  // Version 1→2: ensure finalization field exists (added in schema v2)
-  if (!data.schemaVersion || data.schemaVersion < 2) {
-    data.finalization = data.finalization ?? null;
-  }
-  // Version 2→v3: discipline changed from string to string[]
-  if (!data.schemaVersion || data.schemaVersion < 3) {
-    const d = (data.metadata as unknown as Record<string, unknown>)?.discipline;
-    if (typeof d === "string" && d.length > 0) {
-      data.metadata.discipline = [d];
-    } else if (typeof d === "string") {
-      data.metadata.discipline = undefined;
-    }
-  }
-  data.schemaVersion = SCHEMA_VERSION;
-  return data;
-}
-
 // --- Module-level DI ---
 
 let currentRepository: SessionRepository = new IdbSessionRepository();

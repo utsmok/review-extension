@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import "fake-indexeddb/auto";
 
+import { CURRENT_SCHEMA_VERSION, runMigrations } from "@/lib/migrations";
 import { IdbSessionRepository, SCHEMA_VERSION } from "@/lib/session-repository";
 import type { SessionData } from "@/lib/types";
 import { makeCapture, makeEvaluation, makeFinalization, makeMetadata } from "@/tests/fixtures";
@@ -50,7 +51,74 @@ async function writeRaw(id: string, data: SessionData): Promise<void> {
   });
 }
 
-// ── Tests ────────────────────────────────────────────────────────────────
+// ── Unit tests for runMigrations ─────────────────────────────────────────
+
+describe("runMigrations (unit)", () => {
+  it("migrates v1 data (no schemaVersion) to current version", () => {
+    const raw = makeRawSession();
+    delete (raw as unknown as Record<string, unknown>).finalization;
+    delete (raw as unknown as Record<string, unknown>).schemaVersion;
+
+    const result = runMigrations(raw);
+    expect(result.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    expect(result.finalization).toBeNull();
+  });
+
+  it("migrates v2 data with discipline string to string[]", () => {
+    const raw = makeRawSession({ schemaVersion: 2 });
+    (raw.metadata as unknown as Record<string, unknown>).discipline = "Physics";
+
+    const result = runMigrations(raw);
+    expect(result.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    expect(result.metadata.discipline).toEqual(["Physics"]);
+  });
+
+  it("migrates v2 data with empty string discipline to undefined", () => {
+    const raw = makeRawSession({ schemaVersion: 2 });
+    (raw.metadata as unknown as Record<string, unknown>).discipline = "";
+
+    const result = runMigrations(raw);
+    expect(result.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    expect(result.metadata.discipline).toBeUndefined();
+  });
+
+  it("returns v3 (current) data unchanged", () => {
+    const fin = makeFinalization();
+    const raw = makeRawSession({ schemaVersion: CURRENT_SCHEMA_VERSION, finalization: fin });
+
+    const result = runMigrations(raw);
+    expect(result.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    expect(result.finalization).toEqual(fin);
+  });
+
+  it("returns future-version data as-is with no migrations applied", () => {
+    const raw = makeRawSession({ schemaVersion: 99 } as Partial<SessionData>);
+    // Cast to bypass type check for future version
+    const future = raw as SessionData & { schemaVersion: number };
+
+    const result = runMigrations(future);
+    // schemaVersion gets stamped to CURRENT_SCHEMA_VERSION (downgrade protection not in scope)
+    expect(result.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    // But no migration logic ran — data is otherwise untouched
+    expect(result.captures).toEqual([]);
+    expect(result.evaluations).toEqual([]);
+  });
+
+  it("applies each migration in order (v1→v2→v3)", () => {
+    const raw = makeRawSession({ schemaVersion: 1 });
+    delete (raw as unknown as Record<string, unknown>).finalization;
+    (raw.metadata as unknown as Record<string, unknown>).discipline = "Biology";
+
+    const result = runMigrations(raw);
+    expect(result.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    // v1→v2 applied: finalization was set
+    expect(result.finalization).toBeNull();
+    // v2→v3 applied: discipline converted
+    expect(result.metadata.discipline).toEqual(["Biology"]);
+  });
+});
+
+// ── Integration tests (via IdbSessionRepository.load) ────────────────────
 
 describe("migrateSessionData (via IdbSessionRepository.load)", () => {
   const repo = new IdbSessionRepository();
