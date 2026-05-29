@@ -110,7 +110,7 @@ function renderScoringScores(
         <span className="score-desc">Insufficient information to score</span>
       </ScoreOption>
       {/* Custom/Wildcard score */}
-      <div className="mt-ut-2 border-t border-ut-border pt-ut-2">
+      <div className="mt-ut-2">
         <details className="question-foldout">
           <summary className="question-foldout-summary">Custom score</summary>
           <div className="question-foldout-content">
@@ -328,8 +328,8 @@ export const QuestionRow = React.memo(function QuestionRow({
         {/* Related quality gate cross-reference */}
         {!isQG && (question as ScoringQuestion).related_gate && (
           <p className="text-ut-xs text-ut-slate italic mt-ut-1">
-            Builds on quality gate:{" "}
-            <span className="font-mono font-bold not-italic">
+            Gate:{" "}
+            <span className="font-mono not-italic">
               {(question as ScoringQuestion).related_gate}
             </span>
           </p>
@@ -512,8 +512,8 @@ export default function QuestionSection({
   const rubricSection = isQG ? rubric.quality_gate : rubric.scoring_rubric;
   const headerText = isQG ? "Quality Gates" : "Scoring Rubric";
   const descriptionText = isQG
-    ? "Mandatory pass/fail thresholds. Gate failures are flagged but you can continue scoring all questions."
-    : "Score each criterion on a 0–3 scale.";
+    ? "Mandatory pass/fail thresholds. Gate failures are flagged but you can continue scoring."
+    : "";
 
   // Collect merged-gate scoring questions for display in QG section
   const mergedGates = useMemo(() => {
@@ -532,13 +532,13 @@ export default function QuestionSection({
   }, [isQG, rubric.scoring_rubric]);
 
   return (
-    <section>
-      <h2 className="font-heading text-ut-heading font-bold uppercase tracking-ut-heading text-trust-magenta mb-ut-2">
+    <section data-section-type={isQG ? "quality_gate" : "scoring_rubric"}>
+      <h2 className={`font-heading text-ut-heading font-bold uppercase tracking-ut-heading mb-ut-2 ${isQG ? "text-ut-navy" : "text-trust-magenta"}`}>
         {headerText}
       </h2>
-      <p className="text-ut-sm text-ut-slate leading-normal mb-ut-5">{descriptionText}</p>
+      {descriptionText && <p className="text-ut-sm text-ut-slate leading-normal mb-ut-5">{descriptionText}</p>}
       {Object.entries(rubricSection).map(([category, questions]) => (
-        <div key={category} className="mb-ut-3">
+        <div key={category} className="mb-ut-3" data-accent-key={isQG ? "control" : getAccentKey(category)}>
           <h3 className="section-kicker">{getCategoryLabel(category)}</h3>
           {Object.entries(questions).map(([qId, questionRaw], qIdx) => {
             const question = questionRaw as PassFailQuestion | ScoringQuestion;
@@ -597,28 +597,24 @@ export default function QuestionSection({
                     <span
                       className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-ut-xs font-bold mr-1 ${
                         gateResult === "pass"
-                          ? "bg-ut-green/20 text-ut-green"
+                          ? "text-ut-green"
                           : gateResult === "fail"
-                            ? "bg-red-200 text-red-700"
-                            : "bg-ut-grey text-ut-slate"
+                            ? "text-ut-red"
+                            : "text-ut-slate"
                       }`}
+                      style={gateResult === "pass" ? { background: "var(--judgment-pass-tint)" } : gateResult === "fail" ? { background: "var(--judgment-fail-tint)" } : undefined}
                     >
                       {gateResult === "pass" ? "✓" : gateResult === "fail" ? "✗" : "—"}
                     </span>
                   )}
                   <span className="font-mono text-ut-slate text-ut-xs">{code}</span>
                   <span>{question.title}</span>
-                  <span className="text-ut-xs text-ut-muted ml-1">(merged)</span>
                 </summary>
                 <div className="question-body">
                   <p className="text-ut-xs text-ut-slate italic mt-ut-1">
-                    This gate is merged with{" "}
-                    <strong>
-                      {code} ({question.title})
-                    </strong>{" "}
-                    in the Scoring Rubric. Score it there.
-                    {gateResult === "pass" && " Currently: PASS (score > 0)."}
-                    {gateResult === "fail" && " Currently: FAIL (score = 0)."}
+                    Scored in the Scoring Rubric under <strong>{code}</strong>.
+                    {gateResult === "pass" && " Currently: PASS."}
+                    {gateResult === "fail" && " Currently: FAIL."}
                     {gateResult === "na" && " Currently: N/A."}
                   </p>
                 </div>

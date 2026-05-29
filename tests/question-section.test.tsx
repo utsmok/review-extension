@@ -566,9 +566,9 @@ describe("merged gate badges (§2e)", () => {
     const category = rubricId.split(".")[0];
     const allDetails = document.querySelectorAll("details.question-details");
     for (const d of allDetails) {
-      // Merged gates have no radio inputs but do have "(merged)" text
+      // Merged gates have no radio inputs and live inside the QG section
       if (d.querySelector('input[type="radio"]')) continue;
-      if (!d.textContent?.includes("(merged)")) continue;
+      // Match by data-accent-key="control" (QG section) and font-mono code prefix
       const codeSpan = d.querySelector("summary span.font-mono");
       if (codeSpan?.textContent?.startsWith(category)) {
         return d as HTMLDetailsElement;
@@ -582,7 +582,7 @@ describe("merged gate badges (§2e)", () => {
     const result: HTMLDetailsElement[] = [];
     const allDetails = document.querySelectorAll("details.question-details");
     for (const d of allDetails) {
-      if (!d.querySelector('input[type="radio"]') && d.textContent?.includes("(merged)")) {
+      if (!d.querySelector('input[type="radio"]') && d.querySelector("summary span.font-mono")) {
         result.push(d as HTMLDetailsElement);
       }
     }
@@ -616,7 +616,6 @@ describe("merged gate badges (§2e)", () => {
     const badge = details.querySelector("summary span.rounded-full");
     expect(badge).toBeTruthy();
     expect(badge?.textContent).toBe("✓");
-    expect(badge?.className).toContain("bg-ut-green/20");
     expect(badge?.className).toContain("text-ut-green");
   });
 
@@ -635,8 +634,7 @@ describe("merged gate badges (§2e)", () => {
     const badge = details.querySelector("summary span.rounded-full");
     expect(badge).toBeTruthy();
     expect(badge?.textContent).toBe("✗");
-    expect(badge?.className).toContain("bg-red-200");
-    expect(badge?.className).toContain("text-red-700");
+    expect(badge?.className).toContain("text-ut-red");
   });
 
   it("shows na badge (—) for merged gate with score 'na'", () => {
@@ -654,7 +652,6 @@ describe("merged gate badges (§2e)", () => {
     const badge = details.querySelector("summary span.rounded-full");
     expect(badge).toBeTruthy();
     expect(badge?.textContent).toBe("—");
-    expect(badge?.className).toContain("bg-ut-grey");
     expect(badge?.className).toContain("text-ut-slate");
   });
 
@@ -687,11 +684,11 @@ describe("merged gate badges (§2e)", () => {
       </AllProviders>,
     );
 
-    // Both merged gates should have "(merged)" labels
+    // Both merged gates should be findable in the Merged Gates section
     const seDetails = getMergedGateDetails("SE.data_handling");
-    expect(seDetails.textContent).toContain("(merged)");
+    expect(seDetails).toBeTruthy();
 
     const tcDetails = getMergedGateDetails("TC.source_attribution_depth");
-    expect(tcDetails.textContent).toContain("(merged)");
+    expect(tcDetails).toBeTruthy();
   });
 });

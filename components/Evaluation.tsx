@@ -67,8 +67,6 @@ export default function Evaluation() {
         onViewEvidence={setViewCapture}
       />
 
-      <hr className="border-ut-border my-ut-4" />
-
       {/* Scoring Rubric section (flat — below QG) */}
       <QuestionSection
         section="scoring_rubric"

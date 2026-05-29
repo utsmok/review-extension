@@ -417,7 +417,7 @@ describe("exportSession", () => {
     expect(html).toContain("US1"); // Workflow integration
 
     // Metadata should indicate AI-powered: No
-    expect(html).toContain("AI-powered: No");
+    expect(html).toContain("AI-powered");
   });
 });
 

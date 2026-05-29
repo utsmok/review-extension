@@ -22,6 +22,8 @@ interface QuestionBadge {
   state: ProgressState;
   isAutoNa: boolean;
   evidenceCount: number;
+  /** Normalised score for colouring: "0"–"3", "pass", "fail", "na", "unsure", or "" */
+  scoreValue: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -47,6 +49,7 @@ function BadgeButton({ b, onNavigate }: { b: QuestionBadge; onNavigate: (id: str
       title={b.title}
       aria-label={`${b.title}, ${b.state}${b.evidenceCount > 0 ? `, ${b.evidenceCount} evidence item${b.evidenceCount !== 1 ? "s" : ""}` : ""}`}
       data-accent={b.accentKey}
+      data-score={b.scoreValue || undefined}
       onClick={() => onNavigate(b.rubricId)}
     >
       <span className="score-overview-bar__code" aria-hidden="true">
@@ -139,6 +142,7 @@ export default function ScoreOverviewBar({
           state: getProgressState(hasScore, hasEvidence, hasNotes, ev?.manualDone),
           isAutoNa,
           evidenceCount: evidence.length,
+          scoreValue: typeof ev?.score === "string" ? ev.score : "",
         });
       }
     }
@@ -170,6 +174,7 @@ export default function ScoreOverviewBar({
           state: getProgressState(hasScore, hasEvidence, hasNotes, ev?.manualDone),
           isAutoNa,
           evidenceCount: evidence.length,
+          scoreValue: sn >= 0 ? String(sn) : ev?.score === "na" ? "na" : ev?.score === "unsure" ? "unsure" : "",
         });
       }
     }
@@ -212,6 +217,30 @@ export default function ScoreOverviewBar({
 
   const progressPct = total > 0 ? Math.round((scored / total) * 100) : 0;
 
+  // Compute average score for progress fill coloring
+  const avgScore = useMemo(() => {
+    const numericScores = evaluations
+      .filter((e) => typeof e.score === "number")
+      .map((e) => e.score as number);
+    return numericScores.length > 0
+      ? numericScores.reduce((a, b) => a + b, 0) / numericScores.length
+      : -1;
+  }, [evaluations]);
+
+  const progressFillStyle = {
+    width: `${progressPct}%`,
+    "--fill-color":
+      avgScore < 0
+        ? "var(--ut-muted)"
+        : avgScore >= 2.5
+          ? "var(--score-3)"
+          : avgScore >= 1.5
+            ? "var(--score-2)"
+            : avgScore >= 0.5
+              ? "var(--score-1)"
+              : "var(--score-0)",
+  } as React.CSSProperties;
+
   // Navigate to question
   const navigateTo = (rubricId: string) => {
     const el = document.getElementById(`question-${rubricId}`);
@@ -236,7 +265,7 @@ export default function ScoreOverviewBar({
           <span className="score-overview-bar__total">{total}</span>
         </span>
         <span className="score-overview-bar__track">
-          <span className={`score-overview-bar__fill ${glowFill ? "score-overview-bar__fill--glow" : ""}`} style={{ width: `${progressPct}%` }} />
+          <span className={`score-overview-bar__fill ${glowFill ? "score-overview-bar__fill--glow" : ""}`} style={progressFillStyle} />
         </span>
 
         {/* Thin separator before badges */}

@@ -172,7 +172,6 @@
   text-transform: uppercase;
   letter-spacing: var(--ls-kicker);
   color: var(--section-accent, var(--ut-navy));
-  border-bottom: 2px solid var(--section-accent, var(--trust-magenta));
   padding: var(--space-1) var(--space-2);
   padding-left: 0;
   margin-top: var(--space-6);
@@ -216,22 +215,25 @@
 }
 
 .judgment-label[data-judgment="pass"][data-active="true"] {
-  background: var(--judgment-pass-tint);
+  background: color-mix(in srgb, var(--judgment-pass) 14%, var(--ut-white));
   border-color: var(--judgment-pass);
+  border-left: 3px solid var(--judgment-pass);
   color: var(--judgment-pass);
   font-weight: 700;
 }
 
 .judgment-label[data-judgment="fail"][data-active="true"] {
-  background: var(--judgment-fail-tint);
+  background: color-mix(in srgb, var(--judgment-fail) 14%, var(--ut-white));
   border-color: var(--judgment-fail);
+  border-left: 3px solid var(--judgment-fail);
   color: var(--judgment-fail);
   font-weight: 700;
 }
 
 .judgment-label[data-judgment="na"][data-active="true"] {
-  background: color-mix(in srgb, var(--ut-slate) 10%, var(--ut-white));
+  background: color-mix(in srgb, var(--ut-slate) 12%, var(--ut-white));
   border-color: var(--ut-slate);
+  border-left: 3px solid var(--ut-slate);
   color: var(--ut-muted);
   font-weight: 700;
 }
@@ -258,12 +260,21 @@
     transition-duration: 0ms;
   }
 }
-
 /* ── Collapsible question details ──────────────────────────── */
 
 .question-details {
   background: var(--section-tint, var(--ut-white));
   border-bottom: 1px solid var(--section-border, var(--ut-border));
+}
+
+/* ── Section type differentiation (QG vs scoring) ─────────── */
+
+[data-section-type="quality_gate"] .question-details {
+  background: var(--section-control-tint);
+}
+
+[data-section-type="scoring_rubric"] .question-details {
+  background: var(--section-tint, var(--ut-white));
 }
 
 .question-details:last-child {
@@ -358,6 +369,8 @@
   font-weight: 700;
   opacity: 1;
   box-shadow: inset 0 0 0 1px currentColor;
+  border-left: 3px solid var(--badge-color);
+  padding-left: calc(var(--space-2) - 1px);
 }
 
 .score-row[data-score="0"] {
@@ -473,10 +486,10 @@
   --badge-color: var(--ut-slate);
 }
 .summary-score-badge[data-score="pass"] {
-  --badge-color: var(--score-3);
+  --badge-color: var(--judgment-pass);
 }
 .summary-score-badge[data-score="fail"] {
-  --badge-color: var(--score-0);
+  --badge-color: var(--judgment-fail);
 }
 
 /* ── Question foldouts (Background / Examples) ─────────────── */
@@ -549,15 +562,35 @@
   font-weight: 700;
   color: var(--ut-slate);
   min-width: 22px;
+  padding: 1px 4px;
+  border-radius: var(--radius-sm);
 }
 
-.example-badge[data-score="0"] { color: var(--score-0); }
-.example-badge[data-score="1"] { color: var(--score-1); }
-.example-badge[data-score="2"] { color: var(--score-2); }
-.example-badge[data-score="3"] { color: var(--score-3); }
+.example-badge[data-score="0"] {
+  color: var(--score-0);
+  background: var(--score-0-tint);
+}
+.example-badge[data-score="1"] {
+  color: var(--score-1);
+  background: var(--score-1-tint);
+}
+.example-badge[data-score="2"] {
+  color: var(--score-2);
+  background: var(--score-2-tint);
+}
+.example-badge[data-score="3"] {
+  color: var(--score-3);
+  background: var(--score-3-tint);
+}
 
-.example-label[data-score="pass"] { color: var(--judgment-pass); }
-.example-label[data-score="fail"] { color: var(--judgment-fail); }
+.example-label[data-score="pass"] {
+  color: var(--judgment-pass);
+  background: var(--judgment-pass-tint);
+}
+.example-label[data-score="fail"] {
+  color: var(--judgment-fail);
+  background: var(--judgment-fail-tint);
+}
 
 .example-desc {
   font-size: var(--text-sm);
@@ -1115,9 +1148,10 @@
 .score-overview-bar__fill {
   display: block;
   height: 100%;
-  background: var(--ut-muted);
+  background: var(--fill-color, var(--ut-muted));
   border-radius: 2px;
-  transition: width var(--duration-normal) var(--ease-out-quart, ease-out);
+  transition: width var(--duration-normal) var(--ease-out-quart, ease-out),
+              background-color var(--duration-normal) ease-out;
 }
 
 /* Thin separator before badges */
@@ -1167,12 +1201,49 @@
 
 .score-overview-bar__badge.is-partial {
   border-color: var(--ut-blue);
+  background: color-mix(in srgb, var(--ut-blue) 8%, var(--ut-white));
 }
 
 .score-overview-bar__badge.is-complete {
   border-color: var(--state-success);
-  background: var(--state-success-tint);
   animation: omp-badge-complete 250ms var(--ease-out-quart) both;
+}
+/* Score-aware badge backgrounds — override the neutral default */
+.score-overview-bar__badge[data-score="0"].is-complete {
+  border-color: var(--score-0);
+  background: var(--score-0-tint);
+}
+.score-overview-bar__badge[data-score="1"].is-complete {
+  border-color: var(--score-1);
+  background: var(--score-1-tint);
+}
+.score-overview-bar__badge[data-score="2"].is-complete {
+  border-color: var(--score-2);
+  background: var(--score-2-tint);
+}
+.score-overview-bar__badge[data-score="3"].is-complete {
+  border-color: var(--score-3);
+  background: var(--score-3-tint);
+}
+.score-overview-bar__badge[data-score="pass"].is-complete {
+  border-color: var(--judgment-pass);
+  background: var(--judgment-pass-tint);
+}
+.score-overview-bar__badge[data-score="fail"].is-complete {
+  border-color: var(--judgment-fail);
+  background: var(--judgment-fail-tint);
+}
+.score-overview-bar__badge[data-score="na"].is-complete {
+  border-color: var(--ut-slate);
+  background: color-mix(in srgb, var(--ut-slate) 10%, var(--ut-white));
+}
+.score-overview-bar__badge[data-score="unsure"].is-complete {
+  border-color: var(--ut-slate);
+  background: color-mix(in srgb, var(--ut-slate) 10%, var(--ut-white));
+}
+/* Partial badges: subtle blue tint to indicate in-progress */
+.score-overview-bar__badge.is-partial[data-score] {
+  background: color-mix(in srgb, var(--ut-blue) 8%, var(--ut-white));
 }
 /* Badge code text — colored by section accent */
 .score-overview-bar__code {
@@ -1211,6 +1282,25 @@
 .score-overview-bar__indicator[data-state="complete"] {
   color: var(--state-success);
 }
+/* Score-aware indicator overrides for completed badges */
+.score-overview-bar__badge[data-score="0"] .score-overview-bar__indicator[data-state="complete"] {
+  color: var(--score-0);
+}
+.score-overview-bar__badge[data-score="1"] .score-overview-bar__indicator[data-state="complete"] {
+  color: var(--score-1);
+}
+.score-overview-bar__badge[data-score="2"] .score-overview-bar__indicator[data-state="complete"] {
+  color: var(--score-2);
+}
+.score-overview-bar__badge[data-score="3"] .score-overview-bar__indicator[data-state="complete"] {
+  color: var(--score-3);
+}
+.score-overview-bar__badge[data-score="pass"] .score-overview-bar__indicator[data-state="complete"] {
+  color: var(--judgment-pass);
+}
+.score-overview-bar__badge[data-score="fail"] .score-overview-bar__indicator[data-state="complete"] {
+  color: var(--judgment-fail);
+}
 
 .score-overview-bar__indicator[data-state="partial"] {
   color: var(--ut-blue);
@@ -1219,7 +1309,6 @@
 .score-overview-bar__indicator[data-state="empty"] {
   color: var(--ut-slate);
 }
-
 .score-overview-bar__evidence-count {
   font-size: 0.625rem;
   color: var(--ut-muted);

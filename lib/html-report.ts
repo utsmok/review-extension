@@ -583,25 +583,27 @@ ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, model.sco
 <!-- Full Report -->
 
 <div class="report-header">
-  <div class="trust-branding" style="margin-bottom:12px">
+  <div class="trust-branding">
     <img src="${TRUST_LOGO}" alt="TRUST" />
     <div class="trust-branding-tagline">Information Tool Reviews</div>
   </div>
   <h1>Detailed Report</h1>
-  <div style="font-size:0.85rem;color:var(--muted)">
+  <div class="report-meta-value report-meta-value--muted">
     ${esc(metadata.toolName)} &middot; ${safeLink(metadata.toolUrl, 'class="report-meta-url"')} &middot; Evaluated ${formatDate(metadata.startTime)}
   </div>
-  ${metadata.description ? `<div style="font-size:0.85rem;color:var(--text);font-style:italic;margin-top:2px">${esc(metadata.description)}</div>` : ""}
-  ${metadata.dataSources?.length ? `<div style="font-size:0.8rem;color:var(--muted)">Data sources: ${esc(metadata.dataSources.join(", "))}</div>` : ""}
-  ${metadata.searchMethods?.length ? `<div style="font-size:0.8rem;color:var(--muted)">Search methods: ${esc(metadata.searchMethods.join(", "))}</div>` : ""}
-  ${metadata.discipline?.length ? `<div style="font-size:0.8rem;color:var(--muted)">Discipline: ${esc(metadata.discipline.join(", "))}</div>` : ""}
-${metadata.company ? `<div style="font-size:0.8rem;color:var(--muted)">Publisher: ${esc(metadata.company)}</div>` : ""}
-${metadata.pricing ? `<div style="font-size:0.8rem;color:var(--muted)">Pricing: ${esc(metadata.pricing)}</div>` : ""}
-${metadata.availability ? `<div style="font-size:0.8rem;color:var(--muted)">Availability: ${esc(metadata.availability)}</div>` : ""}
-${metadata.authenticationMethod ? `<div style="font-size:0.8rem;color:var(--muted)">Authentication: ${esc(metadata.authenticationMethod)}</div>` : ""}
-${metadata.termsConditionsUrl ? `<div style="font-size:0.8rem;color:var(--muted)">Terms: ${safeLink(metadata.termsConditionsUrl)}</div>` : ""}
-<div style="font-size:0.8rem;color:var(--muted)">AI-powered: ${(metadata.usesAi ?? true) ? "Yes" : "No"}</div>
-  ${metadata.notes ? `<div style="font-size:0.8rem;color:var(--muted);font-style:italic;margin-top:4px">${esc(metadata.notes)}</div>` : ""}
+  <dl class="report-meta">
+    ${metadata.description ? `<dt class="report-meta-label">Description</dt><dd class="report-meta-value report-meta-value--italic">${esc(metadata.description)}</dd>` : ""}
+    ${metadata.dataSources?.length ? `<dt class="report-meta-label">Data sources</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.dataSources.join(", "))}</dd>` : ""}
+    ${metadata.searchMethods?.length ? `<dt class="report-meta-label">Search methods</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.searchMethods.join(", "))}</dd>` : ""}
+    ${metadata.discipline?.length ? `<dt class="report-meta-label">Discipline</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.discipline.join(", "))}</dd>` : ""}
+    ${metadata.company ? `<dt class="report-meta-label">Publisher</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.company)}</dd>` : ""}
+    ${metadata.pricing ? `<dt class="report-meta-label">Pricing</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.pricing)}</dd>` : ""}
+    ${metadata.availability ? `<dt class="report-meta-label">Availability</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.availability)}</dd>` : ""}
+    ${metadata.authenticationMethod ? `<dt class="report-meta-label">Authentication</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.authenticationMethod)}</dd>` : ""}
+    ${metadata.termsConditionsUrl ? `<dt class="report-meta-label">Terms</dt><dd class="report-meta-value report-meta-value--muted">${safeLink(metadata.termsConditionsUrl)}</dd>` : ""}
+    <dt class="report-meta-label">AI-powered</dt><dd class="report-meta-value report-meta-value--muted">${(metadata.usesAi ?? true) ? "Yes" : "No"}</dd>
+    ${metadata.notes ? `<dt class="report-meta-label">Notes</dt><dd class="report-meta-value report-meta-value--muted report-meta-value--italic">${esc(metadata.notes)}</dd>` : ""}
+  </dl>
 </div>
 
 <nav class="toc">
@@ -609,7 +611,7 @@ ${metadata.termsConditionsUrl ? `<div style="font-size:0.8rem;color:var(--muted)
   ${tocItems}
 </nav>
 
-<h2 style="font-family:var(--ff-heading);text-transform:uppercase;letter-spacing:0.03em;color:var(--magenta);margin:0 0 8px;font-size:1rem">Quality Gates</h2>
+<h2 class="section-heading">Quality Gates</h2>
 <table class="qg-table">
   <caption class="sr-only">Quality gates</caption>
   <thead><tr><th scope="col">Code</th><th scope="col">Result</th><th scope="col">Requirement</th><th scope="col">Notes</th></tr></thead>

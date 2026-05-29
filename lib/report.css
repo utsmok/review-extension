@@ -12,6 +12,15 @@
   --ff-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   --ff-heading: "Arial Narrow", Arial, Helvetica, sans-serif;
   --ff-mono: "JetBrains Mono", "Cascadia Code", "Fira Code", ui-monospace, monospace;
+  /* Spacing scale — systematic rhythm for major sections */
+  --rs-3xl: 56px;
+  --rs-2xl: 40px;
+  --rs-xl: 32px;
+  --rs-lg: 24px;
+  --rs-md: 16px;
+  --rs-sm: 12px;
+  --rs-xs: 8px;
+  --rs-2xs: 4px;
 }
 *,
 *::before,
@@ -30,16 +39,21 @@ body {
   line-height: 1.55;
   max-width: 900px;
   margin: 0 auto;
-  padding: 24px;
+  padding: clamp(8px, 3vw, 24px);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+/* Responsive images — scale with viewport, never overflow */
+img {
+  max-width: 100%;
+  height: auto;
 }
 
 /* Top bar */
 .top-bar {
   height: 6px;
   background: var(--magenta);
-  margin: 0 -24px 24px;
+  margin: 0 calc(-1 * clamp(8px, 3vw, 24px)) var(--rs-lg);
 }
 
 /* Header */
@@ -47,7 +61,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 12px;
+  margin-bottom: var(--rs-sm);
 }
 .header-tool {
   font-family: var(--ff-heading);
@@ -66,7 +80,7 @@ body {
 .divider {
   height: 4px;
   background: var(--navy);
-  margin: 0 0 16px;
+  margin: 0 0 var(--rs-md);
 }
 
 /* TRUST letterform */
@@ -74,7 +88,7 @@ body {
   display: flex;
   align-items: baseline;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: var(--rs-md);
 }
 .letterform-letter {
   font-family: var(--ff-heading);
@@ -111,7 +125,7 @@ body {
   justify-content: space-between;
   padding: 8px 0;
   border-bottom: 4px solid var(--navy);
-  margin-bottom: 12px;
+  margin-bottom: var(--rs-sm);
   font-family: var(--ff-heading);
   font-weight: 700;
   font-size: 1rem;
@@ -122,7 +136,7 @@ body {
 .accent-bar {
   height: 3px;
   background: var(--navy);
-  margin: 8px 0;
+  margin: var(--rs-xs) 0;
 }
 
 /* Table of Contents */
@@ -130,7 +144,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: var(--rs-md);
   padding: 10px 12px;
   background: var(--white);
   border: 1px solid var(--border);
@@ -165,7 +179,7 @@ body {
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--rs-md);
   font-size: 0.78rem;
 }
 .legend-label {
@@ -248,7 +262,7 @@ body {
 /* Verdict */
 .verdict-bar {
   height: 6px;
-  margin-top: 12px;
+  margin-top: var(--rs-sm);
 }
 .dist-labels {
   display: flex;
@@ -283,7 +297,7 @@ body {
 .bottom-bar {
   height: 4px;
   background: var(--magenta);
-  margin: 16px 0 8px;
+  margin: var(--rs-md) 0 var(--rs-xs);
 }
 
 /* Footer */
@@ -293,14 +307,14 @@ body {
   align-items: center;
   font-size: 0.75rem;
   color: var(--slate);
-  margin-bottom: 32px;
+  margin-bottom: var(--rs-xl);
 }
 
 /* Full report section */
 .report-header {
-  padding-top: 32px;
+  padding-top: var(--rs-xl);
   border-top: 4px solid var(--magenta);
-  margin-top: 48px;
+  margin-top: var(--rs-3xl);
 }
 .report-header h1 {
   font-family: var(--ff-heading);
@@ -308,17 +322,62 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--magenta);
-  margin-bottom: 4px;
+  margin-bottom: var(--rs-xs);
 }
 .report-meta-url {
   color: var(--link);
+}
+/* Report header metadata grid */
+.report-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--rs-2xs) var(--rs-sm);
+  margin-top: var(--rs-sm);
+  max-width: 600px;
+}
+.report-meta dt,
+.report-meta-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+  margin: 0;
+}
+.report-meta dd,
+.report-meta-value {
+  font-size: 0.8rem;
+  color: var(--text);
+  margin: 0;
+}
+.report-meta-value--muted {
+  color: var(--muted);
+}
+.report-meta-value--italic {
+  font-style: italic;
+}
+
+/* Report header overrides */
+.report-header > .report-meta-value {
+  font-size: 0.85rem;
+  margin-bottom: var(--rs-2xs);
+}
+
+
+/* Section heading for quality gates */
+.section-heading {
+  font-family: var(--ff-heading);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-heading, 0.03em);
+  color: var(--magenta);
+  margin: var(--rs-md) 0 var(--rs-sm);
+  font-size: 1rem;
 }
 
 /* Quality gates table */
 .qg-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 24px;
+  margin-bottom: var(--rs-lg);
   table-layout: fixed;
   font-size: 0.85rem;
 }
@@ -372,7 +431,7 @@ table th {
 
 /* Category section */
 .category-section {
-  margin-bottom: 32px;
+  margin-bottom: var(--rs-xl);
   border-top: 3px solid var(--accent);
 }
 .category-section.category-alt {
@@ -381,8 +440,8 @@ table th {
 .category-header {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
+  gap: var(--rs-sm);
+  padding: var(--rs-sm) var(--rs-md);
   background: #f5f6f8;
   /* biome-ignore lint/suspicious/noDuplicateProperties: progressive enhancement fallback */
   background: color-mix(in srgb, var(--accent) 6%, var(--white));
@@ -485,35 +544,42 @@ table th {
 }
 
 .evidence-row td {
-  padding: 0 8px 8px 52px !important;
+  padding: 0 var(--rs-xs) var(--rs-xs) 52px !important;
   border-bottom: none !important;
 }
 .evidence-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--rs-xs);
 }
 .evidence-item {
   display: flex;
-  gap: 12px;
-  padding: 8px;
+  gap: var(--rs-sm);
+  padding: var(--rs-xs);
   background: var(--panel);
   border-radius: 2px;
+  align-items: flex-start;
 }
 .evidence-item.evidence-weak {
   border-left: 3px solid #c60c30;
   background: #fef2f2;
 }
 .evidence-item img {
-  max-width: 240px;
+  width: 200px;
+  max-width: 40%;
   height: auto;
   flex-shrink: 0;
+  object-fit: cover;
   border: 1px solid var(--border);
   border-radius: 2px;
 }
 .evidence-meta {
   font-size: 0.78rem;
   min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--rs-2xs);
 }
 .evidence-meta strong {
   display: block;
@@ -528,27 +594,27 @@ table th {
 /* Finalization */
 .finalization-section {
   border-top: 4px solid var(--magenta);
-  padding-top: 16px;
-  margin-bottom: 32px;
+  padding-top: var(--rs-md);
+  margin-bottom: var(--rs-xl);
 }
 .fin-bar {
   height: 4px;
-  margin-bottom: 12px;
+  margin-bottom: var(--rs-sm);
 }
 .fin-grade {
   text-align: center;
   font-family: var(--ff-heading);
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 700;
-  padding: 16px 0;
-  margin-bottom: 16px;
+  padding: var(--rs-md) 0;
+  margin-bottom: var(--rs-md);
   letter-spacing: 0.03em;
   border: 2px solid currentColor;
   border-radius: 2px;
   opacity: 0.95;
 }
 .fin-block {
-  margin-bottom: 16px;
+  margin-bottom: var(--rs-md);
 }
 .fin-block h3 {
   font-family: var(--ff-heading);
@@ -641,31 +707,39 @@ table th {
 /* Unlinked evidence */
 .unlinked-section {
   border-top: 2px solid var(--magenta);
-  padding-top: 16px;
-  margin-bottom: 32px;
+  padding-top: var(--rs-md);
+  margin-bottom: var(--rs-xl);
 }
 .unlinked-section h2 {
   font-family: var(--ff-heading);
   font-size: 1rem;
   text-transform: uppercase;
   color: var(--magenta);
-  margin-bottom: 12px;
+  margin-bottom: var(--rs-sm);
 }
 .unlinked-item {
   display: flex;
   gap: 16px;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
+  margin-bottom: var(--rs-md);
+  padding-bottom: var(--rs-md);
   border-bottom: 1px solid var(--panel);
 }
 .unlinked-item img {
-  max-width: 100%;
+  width: 200px;
+  max-width: 40%;
   height: auto;
+  flex-shrink: 0;
+  object-fit: cover;
   border: 1px solid var(--border);
   border-radius: 2px;
 }
 .unlinked-meta {
   font-size: 0.8rem;
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--rs-2xs);
 }
 .unlinked-meta strong {
   display: block;
@@ -692,12 +766,15 @@ table th {
 .nutrition-label {
   border: 3px solid var(--text);
   padding: 0;
-  margin-bottom: 24px;
+  margin-bottom: var(--rs-lg);
   overflow: hidden;
 }
 .trust-branding {
   text-align: center;
-  padding: 20px 20px 12px;
+  padding: var(--rs-lg) var(--rs-lg) var(--rs-sm);
+}
+.report-header > .trust-branding {
+  margin-bottom: var(--rs-sm);
 }
 .trust-branding img {
   height: 28px;
@@ -714,7 +791,7 @@ table th {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 16px 20px 12px;
+  padding: var(--rs-md) var(--rs-lg) var(--rs-sm);
 }
 .nutrition-header-center {
   display: flex;
@@ -795,7 +872,7 @@ table th {
   margin: 0;
 }
 .nutrition-verdict {
-  padding: 20px;
+  padding: var(--rs-xl) var(--rs-lg);
   text-align: center;
 }
 .nutrition-verdict-stamp {
@@ -823,7 +900,7 @@ table th {
   vertical-align: middle;
 }
 .nutrition-gates {
-  padding: 8px 20px 12px;
+  padding: var(--rs-xs) var(--rs-lg) var(--rs-sm);
 }
 .nutrition-gates-title {
   font-family: var(--ff-heading);
@@ -849,7 +926,7 @@ table th {
   font-weight: 700;
 }
 .nutrition-principles {
-  padding: 12px 20px 16px;
+  padding: var(--rs-sm) var(--rs-lg) var(--rs-md);
 }
 .nutrition-principles-table {
   width: 100%;
@@ -875,8 +952,8 @@ table th {
 .nutrition-overall-cell {
   text-align: center;
   vertical-align: middle;
-  padding-left: 16px;
-  border-left: 1px solid var(--border);
+  padding-left: var(--rs-md);
+  border-left: 2px solid var(--text);
 }
 .nutrition-overall-label {
   font-family: var(--ff-heading);
@@ -913,7 +990,7 @@ table th {
   font-size: 0.7rem;
   color: var(--muted);
   text-align: center;
-  padding: 6px 0 0;
+  padding: var(--rs-xs) 0 0;
   font-style: italic;
 }
 .circle.empty {
@@ -921,7 +998,7 @@ table th {
 }
 .nutrition-sw {
   display: flex;
-  padding: 12px 20px;
+  padding: var(--rs-sm) var(--rs-lg);
   gap: 0;
 }
 .nutrition-sw-col {
@@ -954,7 +1031,7 @@ table th {
   flex-shrink: 0;
 }
 .nutrition-footer {
-  padding: 10px 20px;
+  padding: var(--rs-xs) var(--rs-lg);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -981,6 +1058,37 @@ table th {
   padding-top: 4px;
 }
 
+/* ── Responsive: Tablet / small desktop (481–640px) ───────────── */
+@media (min-width: 481px) and (max-width: 640px) {
+  /* Header can stay row but tighten */
+  .header {
+    gap: 8px;
+  }
+
+  /* Tables get scroll on tight widths */
+  .cat-table,
+  .qg-table,
+  .category-section table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Nutrition: principles table adapts */
+  .nutrition-principles-table {
+    table-layout: auto;
+  }
+  .nutrition-principles-table td {
+    padding: 6px 3px;
+  }
+
+  /* Strengths/weaknesses still horizontal but tighter */
+  .nutrition-sw {
+    padding: 10px 16px;
+  }
+}
+
+/* ── Responsive: Common mobile & tablet (≤640px) ───────────────── */
 @media (max-width: 640px) {
   body {
     padding: 12px;
@@ -1025,6 +1133,207 @@ table th {
   }
 }
 
+/* ── Responsive: Mobile (≤480px) — overrides ≤640px ────────────── */
+@media (max-width: 480px) {
+  html {
+    font-size: 14px;
+  }
+  body {
+    padding: 8px;
+  }
+
+  /* Top bar flush with edges */
+  .top-bar {
+    margin: -8px -8px 16px;
+  }
+
+  /* Header stacks vertically */
+  .header {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .header-meta {
+    text-align: left;
+  }
+
+  /* Letterform wraps on narrow screens */
+  .letterform {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .letterform-letters {
+    padding: 4px 8px;
+  }
+  .letterform-score {
+    margin-left: 0;
+    width: 100%;
+    text-align: left;
+  }
+
+  /* Gate summary wraps */
+  .gate-summary {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+
+  /* TOC wraps naturally */
+  .toc {
+    padding: 8px;
+    gap: 4px;
+  }
+
+  /* Score legend wraps tightly */
+  .score-legend {
+    gap: 4px;
+  }
+
+  /* All tables get horizontal scroll wrappers */
+  .cat-table,
+  .qg-table,
+  .category-section table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .qg-table {
+    table-layout: auto;
+  }
+  .category-section table {
+    table-layout: auto;
+  }
+
+  /* Category header stacks */
+  .category-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 8px;
+  }
+  .category-letter-block {
+    min-width: 40px;
+  }
+  .category-meta {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+  }
+
+  /* Evidence items go single-column */
+  .evidence-item {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .evidence-item img {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Unlinked items stack */
+  .unlinked-item {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .unlinked-item img {
+    max-width: 100%;
+  }
+
+  /* ── Nutrition label mobile adaptations ── */
+  .nutrition-label {
+    border-width: 2px;
+  }
+  .trust-branding {
+    padding: 12px 12px 8px;
+  }
+  .trust-branding img {
+    height: 22px;
+  }
+  .nutrition-header {
+    padding: 12px;
+    flex-direction: column;
+  }
+  .nutrition-tool-logo {
+    width: 32px;
+    height: 32px;
+  }
+  .nutrition-tool-name {
+    font-size: 1.1rem;
+  }
+  .nutrition-verdict {
+    padding: 12px;
+  }
+  .nutrition-verdict-stamp {
+    padding: 0.3em 0.6em;
+  }
+
+  /* Principles table: stack on very narrow screens */
+  .nutrition-principles {
+    padding: 8px 12px 12px;
+  }
+  .nutrition-principles-table {
+    table-layout: auto;
+  }
+  .nutrition-principles-table td {
+    padding: 4px 2px;
+    font-size: 0.85rem;
+  }
+  .nutrition-principle-code {
+    font-size: 1rem;
+  }
+  .nutrition-principle-name {
+    font-size: 0.6rem;
+    letter-spacing: 0.02em;
+  }
+  .nutrition-overall-cell {
+    padding-left: 8px;
+  }
+
+  /* Strengths/weaknesses stack vertically */
+  .nutrition-sw {
+    flex-direction: column;
+    padding: 8px 12px;
+  }
+  .nutrition-sw-divider {
+    width: auto;
+    height: 1px;
+    margin: 8px 0;
+  }
+
+  /* Nutrition footer stacks */
+  .nutrition-footer {
+    padding: 8px 12px;
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+
+  /* Nutrition gates & header padding */
+  .nutrition-gates {
+    padding: 6px 12px 8px;
+  }
+
+  /* Verdict block tighter */
+  .verdict-block {
+    padding: 16px 0;
+  }
+
+  /* Footer wraps */
+  .footer {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+}
+
+/* ── Responsive: Large desktop (≥1200px) ──────────────────────── */
+@media (min-width: 1200px) {
+  /* Cap line length for readability; body already max-width: 900px */
+  body {
+    padding: 32px 48px;
+  }
+  .top-bar {
+    margin-left: -48px;
+    margin-right: -48px;
+  }
+}
+
+/* ── Print ─────────────────────────────────────────────────────── */
 @media print {
   html {
     font-size: 12px;
@@ -1056,9 +1365,23 @@ table th {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
+  /* Ensure nutrition label colors print */
   .nutrition-label {
     page-break-inside: avoid;
   }
+  .nutrition-principles-table td,
+  .nutrition-verdict-stamp,
+  .nutrition-score-number,
+  .nutrition-gate-item .fail,
+  .nutrition-gate-item .unsure {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .nutrition-sw-divider {
+    display: none;
+  }
+
   .report-header {
     page-break-before: always;
     border-top: none;
@@ -1082,6 +1405,14 @@ table th {
   }
   .unlinked-item img {
     max-width: 220px;
+  }
+
+  /* Footer and non-essential elements simplified */
+  .footer {
+    font-size: 0.7rem;
+  }
+  .toc {
+    page-break-after: avoid;
   }
 
   @page {
