@@ -513,7 +513,7 @@ export async function buildNutritionLabel(
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <title>TRUST Label: ${esc(metadata.toolName)}</title>
-<link rel="stylesheet" href="report.css" />
+<style>${REPORT_CSS}</style>
 </head>
 <body>
 <main id="report-content">
@@ -572,7 +572,7 @@ export async function buildHtmlReport(
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <title>TRUST Review: ${esc(metadata.toolName)}</title>
-<link rel="stylesheet" href="report.css" />
+<style>${REPORT_CSS}</style>
 </head>
 <body>
 

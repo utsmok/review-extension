@@ -9,7 +9,7 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 1`] = 
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <title>TRUST Review: SnapshotTestTool</title>
-<link rel="stylesheet" href="report.css" />
+<style></style>
 </head>
 <body>
 
@@ -677,7 +677,7 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 2`] = 
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <title>TRUST Label: SnapshotTestTool</title>
-<link rel="stylesheet" href="report.css" />
+<style></style>
 </head>
 <body>
 <main id="report-content">
@@ -771,7 +771,7 @@ exports[`HTML report snapshot > matches snapshot for partially-scored session 1`
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <title>TRUST Review: PartialTool</title>
-<link rel="stylesheet" href="report.css" />
+<style></style>
 </head>
 <body>
 

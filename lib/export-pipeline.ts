@@ -1,8 +1,20 @@
 import { loadAllScreenshots } from "./screenshot-store";
 import { minifyCss, minifyHtml } from "./minify";
 import { buildHtmlReport, buildNutritionLabel, REPORT_CSS } from "./html-report";
-import { getCategoryLabel } from "./rubric";
-import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
+import {
+  getCategoryLabel,
+  getQGQuestionCode,
+  getQuestionCode,
+  getRubricQuestionIds,
+} from "./rubric";
+import type {
+  Capture,
+  Evaluation,
+  EvaluationScore,
+  ReviewFinalization,
+  RubricData,
+  SessionMetadata,
+} from "./types";
 
 // biome-ignore lint/complexity/useRegexLiterals: must use RegExp constructor to avoid noControlCharactersInRegex
 const INVALID_FILENAME_CHARS = new RegExp('[<>:"/\\\\|?*\u0000-\u001F]', "g");
@@ -117,7 +129,10 @@ export async function prepareExportArtifacts(
 
   // ── Build capture maps for HTML reports ───────────────────────────────
   const capturePathMap = new Map(
-    capturesWithScreenshots.map((c) => [c.id, `${idMap.get(c.id)}.${imgExtensions.get(c.id) ?? "png"}`]),
+    capturesWithScreenshots.map((c) => [
+      c.id,
+      `${idMap.get(c.id)}.${imgExtensions.get(c.id) ?? "png"}`,
+    ]),
   );
   const annotatedPathMap = new Map(
     capturesWithScreenshots
@@ -141,60 +156,157 @@ export async function prepareExportArtifacts(
   }
 
   // ── CSV generation ────────────────────────────────────────────────────
-  const metadataCsv = Papa.unparse([
-    {
-      Tool_Name: metadata.toolName,
-      Tool_URL: metadata.toolUrl,
-      Start_Time: metadata.startTime,
-      Uses_AI: String(metadata.usesAi ?? true),
-      Rubric_Variant: metadata.rubricId ?? "trust-full",
-      Company: metadata.company ?? "",
-      Pricing: metadata.pricing ?? "",
-      Availability: metadata.availability ?? "",
-      Terms_Conditions_URL: metadata.termsConditionsUrl ?? "",
-      Authentication_Method: metadata.authenticationMethod ?? "",
-      Data_Sources: (metadata.dataSources ?? []).join("; "),
-      Search_Methods: (metadata.searchMethods ?? []).join("; "),
-      Discipline: (metadata.discipline ?? []).join("; "),
-      Notes: metadata.notes ?? "",
-      Tool_Logo_URL: metadata.toolLogoUrl ?? "",
-      Tool_Description: metadata.description ?? "",
-    },
-  ]);
 
-  const scoresCsv = Papa.unparse(
-    evaluations.map((e) => {
-      const [category] = e.rubricId.split(".");
-      return {
-        Rubric_Category: getCategoryLabel(category),
-        Question_ID: e.rubricId,
-        Score: String(e.score),
-        Notes: e.notes,
-        Custom_Reasoning: e.customScore?.reasoning ?? "",
-        Linked_Capture_IDs: e.explicitEvidenceIds.join("; "),
-      };
-    }),
-  );
+  /** UTF-8 BOM — ensures Excel (Windows) decodes special characters correctly. */
+  const BOM = "\uFEFF";
 
-  const captureLogCsv = Papa.unparse(
-    capturesWithScreenshots.map((c) => ({
-      Capture_ID: c.id,
-      Timestamp: c.timestamp,
-      Page_Title: c.pageTitle,
-      URL_Captured: c.sourceUrl,
-      User_Notes: c.notes,
-      Tagged_Rubric_IDs: (() => {
-        const parts: string[] = [];
-        for (const e of evaluations) {
-          if (e.explicitEvidenceIds.includes(c.id)) parts.push(e.rubricId);
-        }
-        return parts.join("; ");
-      })(),
-    })),
-  );
+  /** Human-readable label for a score value. */
+  function scoreLabel(score: EvaluationScore): string {
+    if (score === "") return "—";
+    if (score === "na") return "N/A";
+    if (score === "unsure") return "Unsure";
+    if (score === "pass") return "Pass";
+    if (score === "fail") return "Fail";
+    return String(score);
+  }
+
+  /** Look up question title from rubric by dot-separated ID. */
+  function questionTitle(rubricId: string): string {
+    const [cat, qKey] = rubricId.split(".");
+    const qgSection = rubric.quality_gate[cat as keyof typeof rubric.quality_gate];
+    if (qgSection) {
+      const q = qgSection[qKey as keyof typeof qgSection];
+      if (q) return q.title;
+    }
+    const srSection = rubric.scoring_rubric[cat as keyof typeof rubric.scoring_rubric];
+    if (srSection) {
+      const q = srSection[qKey as keyof typeof srSection];
+      if (q) return q.title;
+    }
+    return "";
+  }
+
+  /** Determine question type from rubric. */
+  function questionType(rubricId: string): string {
+    const [cat, _qKey] = rubricId.split(".");
+    const qgSection = rubric.quality_gate[cat as keyof typeof rubric.quality_gate];
+    if (qgSection) return "quality_gate";
+    return "scoring";
+  }
+
+  /** Whether a question is AI-only. */
+  function questionAiOnly(rubricId: string): boolean {
+    const [cat, qKey] = rubricId.split(".");
+    const qgSection = rubric.quality_gate[cat as keyof typeof rubric.quality_gate];
+    if (qgSection) {
+      const q = qgSection[qKey as keyof typeof qgSection];
+      return (q as { ai_only?: boolean })?.ai_only ?? false;
+    }
+    const srSection = rubric.scoring_rubric[cat as keyof typeof rubric.scoring_rubric];
+    if (srSection) {
+      const q = srSection[qKey as keyof typeof srSection];
+      return (q as { ai_only?: boolean })?.ai_only ?? false;
+    }
+    return false;
+  }
+
+  /** Build a short display code (e.g. TR1, PS2) from a rubric ID. */
+  function questionCode(rubricId: string): string {
+    const [cat, qKey] = rubricId.split(".");
+    // Quality gate categories use getQGQuestionCode
+    const qgSection = rubric.quality_gate[cat as keyof typeof rubric.quality_gate];
+    if (qgSection) {
+      const keys = Object.keys(qgSection);
+      const idx = keys.indexOf(qKey);
+      return getQGQuestionCode(cat, idx >= 0 ? idx : 0);
+    }
+    // Scoring categories use getQuestionCode
+    const srSection = rubric.scoring_rubric[cat as keyof typeof rubric.scoring_rubric];
+    if (srSection) {
+      const keys = Object.keys(srSection);
+      const idx = keys.indexOf(qKey);
+      return getQuestionCode(cat, idx >= 0 ? idx : 0);
+    }
+    return rubricId;
+  }
+
+  // Build evaluation lookup
+  const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
+
+  const metadataCsv =
+    BOM +
+    Papa.unparse([
+      {
+        Tool_Name: metadata.toolName,
+        Tool_URL: metadata.toolUrl,
+        Start_Time: metadata.startTime,
+        Status: metadata.status,
+        Uses_AI: String(metadata.usesAi ?? true),
+        Rubric_Variant: metadata.rubricId ?? "trust-full",
+        Company: metadata.company ?? "",
+        Pricing: metadata.pricing ?? "",
+        Availability: metadata.availability ?? "",
+        Terms_Conditions_URL: metadata.termsConditionsUrl ?? "",
+        Authentication_Method: metadata.authenticationMethod ?? "",
+        Data_Sources: (metadata.dataSources ?? []).join("; "),
+        Search_Methods: (metadata.searchMethods ?? []).join("; "),
+        Discipline: (metadata.discipline ?? []).join("; "),
+        Tool_Description: metadata.description ?? "",
+        Tool_Logo_URL: metadata.toolLogoUrl ?? "",
+        Favicon_URL: metadata.faviconUrl ?? "",
+        Finalized_At: metadata.finalizedAt ?? "",
+        Notes: metadata.notes ?? "",
+      },
+    ]);
+
+  // All rubric questions — including unanswered ones
+  const allQuestionIds = getRubricQuestionIds(rubric);
+  const scoresCsv =
+    BOM +
+    Papa.unparse(
+      allQuestionIds.map((rubricId) => {
+        const [category] = rubricId.split(".");
+        const ev = evalMap.get(rubricId);
+        return {
+          Code: questionCode(rubricId),
+          Category: getCategoryLabel(category),
+          Question_ID: rubricId,
+          Title: questionTitle(rubricId),
+          Type: questionType(rubricId),
+          AI_Only: String(questionAiOnly(rubricId)),
+          Score: ev ? scoreLabel(ev.score) : "—",
+          Manual_Done: ev?.manualDone ? "Yes" : "",
+          Notes: ev?.notes ?? "",
+          Custom_Score: ev?.customScore?.score ?? "",
+          Custom_Reasoning: ev?.customScore?.reasoning ?? "",
+          Linked_Capture_IDs: ev?.explicitEvidenceIds.join("; ") ?? "",
+        };
+      }),
+    );
+
+  const captureLogCsv =
+    BOM +
+    Papa.unparse(
+      capturesWithScreenshots.map((c) => ({
+        Capture_ID: c.id,
+        Timestamp: c.timestamp,
+        Page_Title: c.pageTitle,
+        URL_Captured: c.sourceUrl,
+        Metadata_Field: c.metadataField ?? "",
+        User_Notes: c.notes,
+        Tagged_Rubric_IDs: (() => {
+          const parts: string[] = [];
+          for (const e of evaluations) {
+            if (e.explicitEvidenceIds.includes(c.id)) parts.push(e.rubricId);
+          }
+          return parts.join("; ");
+        })(),
+      })),
+    );
 
   const conclusionsCsv = finalization
-    ? Papa.unparse([
+    ? BOM +
+      Papa.unparse([
         {
           Grade: finalization.grade,
           Conclusion: finalization.conclusion,

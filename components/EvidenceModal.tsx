@@ -227,7 +227,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     >
       <div
         ref={panelRef}
-        className="modal-panel modal-panel--evidence max-w-[720px] p-0"
+        className="modal-panel modal-panel--evidence p-0"
         role="dialog"
         aria-modal="true"
         aria-label="Evidence viewer and annotation"
@@ -261,7 +261,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         </div>
 
         {/* Rubric tagging */}
-        <details className="mx-ut-3 mt-ut-2">
+        <details className="mx-ut-3 mt-ut-2 shrink-0 overflow-y-auto max-h-[20vh]">
           <summary className="text-ut-xs font-heading font-bold uppercase tracking-ut-kicker text-ut-muted cursor-pointer hover:text-ut-navy">
             Tag to rubric items ({linkedRubricIds.length})
           </summary>
@@ -315,7 +315,9 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
           {capture.pageTitle && (
             <p className="text-ut-xs font-bold text-ut-text mb-ut-1">{capture.pageTitle}</p>
           )}
-          <p className="text-ut-xs font-mono text-ut-muted mb-ut-1 break-all">{capture.sourceUrl}</p>
+          <p className="text-ut-xs font-mono text-ut-muted mb-ut-1 break-all">
+            {capture.sourceUrl}
+          </p>
           <p className="text-ut-xs text-ut-slate mb-ut-2">
             {new Date(capture.timestamp).toLocaleString()}
           </p>
