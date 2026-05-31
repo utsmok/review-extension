@@ -206,7 +206,6 @@ body {
   letter-spacing: var(--ls-kicker);
   color: var(--section-accent, var(--ut-navy));
   padding: var(--space-1) var(--space-2);
-  padding-left: 0;
   margin-top: var(--space-6);
   margin-bottom: var(--space-1);
   background: var(--section-tint, var(--ut-offwhite));
@@ -496,14 +495,16 @@ body {
 
 .score-row .score-badge {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border: 2px solid var(--ut-border);
   border-radius: 50%;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--ff-mono);
-  font-size: var(--text-xs);
+  font-size: 0.625rem;
+  line-height: 1;
   font-weight: 700;
   color: var(--ut-muted);
   transition: all var(--duration-fast) ease;
@@ -525,13 +526,14 @@ body {
 
 .summary-score-badge {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--ff-mono);
-  font-size: var(--text-xs, 0.75rem);
+  font-size: 0.625rem;
   font-weight: 700;
   line-height: 1;
   background: var(--badge-color, var(--ut-border));
@@ -806,9 +808,9 @@ body {
   color: var(--ut-muted);
 }
 
-/* ── Drawing canvas toolbar ────────────────────────────────── */
+/* ── Annotation action bar ────────────────────────────────── */
 
-.drawing-toolbar {
+.annotation-actions {
   position: relative;
   z-index: 10;
   display: flex;
@@ -819,60 +821,76 @@ body {
   background: var(--ut-offwhite);
 }
 
-.drawing-toolbar button {
+.annotation-actions__btn {
   padding: var(--space-1) var(--space-2);
   font-size: var(--text-xs);
   font-family: var(--ff-mono);
   border: 1px solid var(--ut-border);
   background: var(--ut-white);
   cursor: pointer;
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
 }
 
-.drawing-toolbar button:focus-visible {
+.annotation-actions__btn:hover {
+  background: var(--ut-grey);
+}
+
+.annotation-actions__btn:focus-visible {
   outline: 2px solid var(--ut-magenta);
   outline-offset: 2px;
 }
 
-.drawing-toolbar button.is-active {
-  background: var(--ut-navy);
-  color: var(--ut-on-accent);
-  border-color: var(--ut-navy);
+.annotation-actions__zoom {
+  min-width: 48px;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+  font-family: var(--ff-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  border: 1px solid var(--ut-border);
+  background: var(--ut-white);
+  cursor: pointer;
+  transition: background var(--duration-fast) ease;
 }
 
-.drawing-toolbar .btn-save {
-  background: var(--ut-green) !important;
-  color: var(--ut-on-accent) !important;
-  border: 0;
+.annotation-actions__zoom:hover {
+  background: var(--ut-grey);
 }
 
-.drawing-toolbar .btn-save:hover {
-  opacity: 0.85;
+.annotation-actions__zoom:focus-visible {
+  outline: 2px solid var(--ut-magenta);
+  outline-offset: 2px;
 }
-.toolbar-separator {
+
+.annotation-actions__sep {
   width: 1px;
   height: 16px;
   background: var(--ut-border);
   margin: 0 2px;
 }
 
-.zoom-display {
-  min-width: 40px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
+.annotation-actions__save {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  font-family: var(--ff-heading);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  background: var(--ut-green);
+  color: var(--ut-on-accent);
+  border: 0;
   cursor: pointer;
+  transition: opacity var(--duration-fast) ease;
 }
 
-.color-swatch {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid var(--ut-border);
-  cursor: pointer;
+.annotation-actions__save:hover {
+  opacity: 0.85;
 }
 
-.color-swatch.is-active {
-  border-color: var(--ut-text);
-  outline: 2px solid var(--ut-text);
+.annotation-actions__save:focus-visible {
+  outline: 2px solid var(--ut-magenta);
   outline-offset: 2px;
 }
 

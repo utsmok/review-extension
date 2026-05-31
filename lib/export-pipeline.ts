@@ -99,8 +99,6 @@ export async function prepareExportArtifacts(
   const idMap = new Map(capturesWithScreenshots.map((c) => [c.id, shortId(c.id)]));
   const imageFiles = new Map<string, string>();
   const captureHtmlFiles = new Map<string, string>();
-  const imgExtensions = new Map<string, "jpg" | "png">();
-  const annotatedExtensions = new Map<string, "jpg" | "png">();
 
   const BATCH_SIZE = 4;
   for (let i = 0; i < capturesWithScreenshots.length; i += BATCH_SIZE) {
@@ -113,42 +111,19 @@ export async function prepareExportArtifacts(
         const base64Data = converted.split(",")[1] ?? "";
         imageFiles.set(`${sid}.${extension}`, base64Data);
         captureHtmlFiles.set(`${sid}.html`, minifyHtml(capture.htmlContent));
-        imgExtensions.set(capture.id, extension);
         if (capture.annotatedScreenshotBase64) {
           const { dataUrl: annConverted, extension: annExt } = await pngToJpeg(
             capture.annotatedScreenshotBase64,
             0.8,
           );
-          const annBase64 = annConverted.split(",")[1] ?? "";
-          imageFiles.set(`${sid}_annotated.${annExt}`, annBase64);
-          annotatedExtensions.set(capture.id, annExt);
+          imageFiles.set(`${sid}_annotated.${annExt}`, annConverted.split(",")[1] ?? "");
         }
       }),
     );
   }
 
-  // ── Build capture maps for HTML reports ───────────────────────────────
-  const capturePathMap = new Map(
-    capturesWithScreenshots.map((c) => [
-      c.id,
-      `${idMap.get(c.id)}.${imgExtensions.get(c.id) ?? "png"}`,
-    ]),
-  );
-  const annotatedPathMap = new Map(
-    capturesWithScreenshots
-      .filter((c) => c.annotatedScreenshotBase64)
-      .map((c) => [
-        c.id,
-        `${idMap.get(c.id)}_annotated.${annotatedExtensions.get(c.id) ?? imgExtensions.get(c.id) ?? "png"}`,
-      ]),
-  );
-  const capturesWithPaths = capturesWithScreenshots.map((c) => ({
-    ...c,
-    screenshotBase64: capturePathMap.get(c.id) ?? c.screenshotBase64,
-    annotatedScreenshotBase64: annotatedPathMap.has(c.id)
-      ? (annotatedPathMap.get(c.id) as string)
-      : c.annotatedScreenshotBase64,
-  }));
+  // Captures pass through with original base64 data URLs (inline in HTML)
+  const capturesForReport = capturesWithScreenshots;
 
   // ── CSS (minified once) ───────────────────────────────────────────────
   if (!cachedMinifiedCss) {
@@ -350,24 +325,10 @@ export async function prepareExportArtifacts(
     const base64 = jpegUrl.split(",")[1] ?? "";
     imageFiles.set(name, base64);
   }
-
-  // ── HTML reports ──────────────────────────────────────────────────────
-  // Replace inline logo data-URLs with file references
-  const replaceLogos = (html: string) => {
-    let result = html;
-    for (const [dataUrl, path] of [
-      [TRUST_LOGO, "1.jpg"],
-      [LISA_EIS_LOGO, "2.jpg"],
-      [UT_LOGO, "3.jpg"],
-    ] as const) {
-      result = result.replaceAll(dataUrl, path);
-    }
-    return result;
-  };
-
+  // ── HTML reports (fully standalone — all images inline) ─────────────
   const htmlReport = await buildHtmlReport(
     metadata,
-    capturesWithPaths,
+    capturesForReport,
     evaluations,
     rubric,
     finalization,
@@ -382,8 +343,8 @@ export async function prepareExportArtifacts(
     captureLogCsv,
     conclusionsCsv,
     sessionJson: JSON.stringify(sessionData),
-    htmlReport: minifyHtml(replaceLogos(htmlReport)),
-    nutritionLabel: minifyHtml(replaceLogos(labelHtml)),
+    htmlReport: minifyHtml(htmlReport),
+    nutritionLabel: minifyHtml(labelHtml),
     imageFiles,
     captureHtmlFiles,
     css: cachedMinifiedCss,

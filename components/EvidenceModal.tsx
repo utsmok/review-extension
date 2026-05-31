@@ -2,12 +2,11 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import {
   AssetRecordType,
   createShapeId,
-  DefaultColorStyle,
-  DefaultSizeStyle,
   type Editor,
   type TLShapeId,
-  track,
   useValue,
+  type TLComponents,
+  type TLUiOverrides,
 } from "tldraw";
 
 const Tldraw = lazy(() => import("tldraw").then((m) => ({ default: m.Tldraw })));
@@ -20,20 +19,39 @@ import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/
 import type { Capture } from "@/lib/types";
 import RubricChipGroup from "./RubricChipGroup";
 
-/* ── Color palette (maps tldraw named colors → display labels) ── */
-const PEN_COLORS = [
-  { label: "Black", value: "black" },
-  { label: "Red", value: "red" },
-  { label: "Blue", value: "blue" },
-] as const;
+/* ── tldraw UI configuration ─────────────────────────────────────── */
+const TL_UI_COMPONENTS: TLComponents = {
+  MainMenu: null,
+  Minimap: null,
+  ContextMenu: null,
+  ActionsMenu: null,
+  QuickActions: null,
+  SharePanel: null,
+  CursorChatBubble: null,
+  TopPanel: null,
+  MenuPanel: null,
+  DebugPanel: null,
+  DebugMenu: null,
+  HelperButtons: null,
+  NavigationPanel: null,
+  PageMenu: null,
+  FollowingIndicator: null,
+  RichTextToolbar: null,
+  ImageToolbar: null,
+  VideoToolbar: null,
+};
 
-const HIGHLIGHTER_COLORS = [
-  { label: "Yellow", value: "yellow", css: "#ffe033" },
-  { label: "Pink", value: "violet", css: "#ff66c4" },
-  { label: "Green", value: "light-green", css: "#66ff8c" },
-] as const;
-
-type ToolId = "arrow" | "draw" | "eraser";
+const TL_UI_OVERRIDES: TLUiOverrides = {
+  tools(_editor, tools) {
+    // Remove tools we don't need in the annotation context
+    delete tools.text;
+    delete tools.note;
+    delete tools.frame;
+    delete tools.embed;
+    delete tools.asset;
+    return tools;
+  },
+};
 
 /* ── Props ──────────────────────────────────────────────────────── */
 
@@ -58,13 +76,12 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
   const [imageShapeId, setImageShapeId] = useState<TLShapeId | null>(null);
   const [notes, setNotes] = useState(capture.notes);
   const [hintVisible, setHintVisible] = useState(true);
-
   const screenshotUrl = useScreenshotUrl(capture.id);
   const imageSrc = screenshotUrl ?? capture.annotatedScreenshotBase64 ?? capture.screenshotBase64;
 
   /* ── Focus / keyboard ── */
   useFocusTrap(panelRef);
-  useAutoFocus(panelRef, ".drawing-toolbar button");
+  useAutoFocus(panelRef, ".annotation-actions button");
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -146,9 +163,8 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         return { ...prev, isLocked: true };
       });
 
-      // Set default tool to arrow with larger stroke
+      // Set default tool to arrow
       ed.setCurrentTool("arrow");
-      ed.setStyleForNextShapes(DefaultSizeStyle, "m");
       ed.clearHistory();
 
       setImageShapeId(shapeId);
@@ -241,9 +257,9 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        {/* Toolbar */}
+        {/* Action bar — Save / Clear / Zoom */}
         {editor && (
-          <Toolbar
+          <ActionBar
             editor={editor}
             imageShapeId={imageShapeId}
             onClear={handleClear}
@@ -251,19 +267,10 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
           />
         )}
 
-        {/* tldraw canvas */}
+        {/* tldraw canvas with built-in UI */}
         <div className="tldraw-evidence-container">
           <Suspense fallback={<div className="tldraw-loading">Loading annotation editor…</div>}>
-            <Tldraw
-              onMount={onMount}
-              hideUi
-              components={{
-                PageMenu: null,
-                DebugMenu: null,
-                HelperButtons: null,
-                NavigationPanel: null,
-              }}
-            />
+            <Tldraw onMount={onMount} components={TL_UI_COMPONENTS} overrides={TL_UI_OVERRIDES} />
           </Suspense>
           {/* Edge-fade overlay: subtle shadow when image extends beyond viewport */}
           <div className="tldraw-edge-fade" aria-hidden="true" />
@@ -362,59 +369,28 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
   );
 }
 
-/* ── Toolbar (reactive via track) ──────────────────────────────────── */
+/* ── Action bar (Save / Clear / Zoom) ─────────────────────────────── */
 
-interface ToolbarProps {
+interface ActionBarProps {
   editor: Editor;
   imageShapeId: TLShapeId | null;
   onClear: () => void;
   onSave: () => void;
 }
 
-const Toolbar = track(function Toolbar({ editor, imageShapeId, onClear, onSave }: ToolbarProps) {
-  const currentToolId = useValue("currentToolId", () => editor.getCurrentToolId(), [editor]);
+const ZOOM_STEP = 0.1;
+
+function ActionBar({ editor, imageShapeId, onClear, onSave }: ActionBarProps) {
   const zoomLevel = useValue("zoomLevel", () => editor.getCamera().z, [editor]);
-  const [activeColor, setActiveColor] = useState<string>("black");
-  const [isHighlighter, setIsHighlighter] = useState(false);
-  const [strokeSize, setStrokeSize] = useState<"s" | "m" | "l" | "xl">("l");
 
-  const applySize = (size: "s" | "m" | "l" | "xl") => {
-    setStrokeSize(size);
-    editor.setStyleForNextShapes(DefaultSizeStyle, isHighlighter ? "xl" : size);
+  const handleZoomIn = () => {
+    const { x, y, z } = editor.getCamera();
+    editor.setCamera({ x, y, z: z + ZOOM_STEP }, { animation: { duration: 150 } });
   };
 
-  const applyHighlighterStyles = (on: boolean) => {
-    editor.setOpacityForNextShapes(on ? 0.4 : 1);
-    editor.setStyleForNextShapes(DefaultSizeStyle, on ? "xl" : strokeSize);
-    if (on) {
-      const hlColor =
-        activeColor === "black" || activeColor === "red" || activeColor === "blue"
-          ? "yellow"
-          : activeColor;
-      setActiveColor(hlColor);
-      editor.setStyleForNextShapes(DefaultColorStyle, hlColor as never);
-    }
-  };
-
-  const selectTool = (tool: ToolId) => {
-    editor.setCurrentTool(tool);
-    if (tool === "draw" && isHighlighter) {
-      applyHighlighterStyles(true);
-    }
-  };
-
-  const toggleHighlighter = () => {
-    const next = !isHighlighter;
-    setIsHighlighter(next);
-    if (currentToolId === "draw" || next) {
-      applyHighlighterStyles(next);
-      if (currentToolId !== "draw") editor.setCurrentTool("draw");
-    }
-  };
-
-  const setColor = (color: string) => {
-    setActiveColor(color);
-    editor.setStyleForNextShapes(DefaultColorStyle, color as never);
+  const handleZoomOut = () => {
+    const { x, y, z } = editor.getCamera();
+    editor.setCamera({ x, y, z: Math.max(0.1, z - ZOOM_STEP) }, { animation: { duration: 150 } });
   };
 
   const handleZoomToFit = () => {
@@ -425,145 +401,45 @@ const Toolbar = track(function Toolbar({ editor, imageShapeId, onClear, onSave }
     editor.zoomToBounds({ x: 0, y: 0, w, h }, { inset: 16 });
   };
 
-  const SIZE_ORDER: ("s" | "m" | "l" | "xl")[] = ["s", "m", "l", "xl"];
-  const sizeIdx = SIZE_ORDER.indexOf(isHighlighter ? "xl" : strokeSize);
-
   const zoomPct = `${Math.round(zoomLevel * 100)}%`;
+
   return (
-    <div className="drawing-toolbar" role="toolbar" aria-label="Annotation tools">
-      {/* Drawing tools */}
+    <div className="annotation-actions" role="toolbar" aria-label="Annotation actions">
       <button
         type="button"
-        title="Arrow — draw arrows (A)"
-        aria-label="Arrow tool"
-        aria-pressed={currentToolId === "arrow"}
-        className={currentToolId === "arrow" ? "is-active" : ""}
-        onClick={() => selectTool("arrow")}
-      >
-        → Arrow
-      </button>
-      <button
-        type="button"
-        title="Highlighter — semi-transparent wide strokes (H)"
-        aria-label="Highlighter"
-        aria-pressed={currentToolId === "draw" && isHighlighter}
-        className={currentToolId === "draw" && isHighlighter ? "is-active" : ""}
-        onClick={() => {
-          if (currentToolId !== "draw") selectTool("draw");
-          toggleHighlighter();
-        }}
-      >
-        ☐ Highlighter
-      </button>
-      <button
-        type="button"
-        title="Pen — freehand drawing (P)"
-        aria-label="Pen"
-        aria-pressed={currentToolId === "draw" && !isHighlighter}
-        className={currentToolId === "draw" && !isHighlighter ? "is-active" : ""}
-        onClick={() => {
-          setIsHighlighter(false);
-          selectTool("draw");
-          editor.setOpacityForNextShapes(1);
-          editor.setStyleForNextShapes(DefaultSizeStyle, "m");
-        }}
-      >
-        ✏ Draw
-      </button>
-      <button
-        type="button"
-        title="Eraser — remove annotations (E)"
-        aria-label="Eraser"
-        aria-pressed={currentToolId === "eraser"}
-        className={currentToolId === "eraser" ? "is-active" : ""}
-        onClick={() => selectTool("eraser")}
-      >
-        ✕ Eraser
-      </button>
-
-      <span className="toolbar-separator" />
-
-      {/* Colors */}
-      <div role="radiogroup" aria-label={isHighlighter ? "Highlighter color" : "Pen color"}>
-        {(isHighlighter ? HIGHLIGHTER_COLORS : PEN_COLORS).map((c) => (
-          <button
-            key={c.value}
-            type="button"
-            title={c.label}
-            aria-label={c.label}
-            aria-pressed={activeColor === c.value}
-            className={`color-swatch ${activeColor === c.value ? "is-active" : ""}`}
-            style={{
-              background:
-                "css" in c
-                  ? (c as { css: string }).css
-                  : c.value === "black"
-                    ? "var(--ut-text)"
-                    : c.value === "red"
-                      ? "var(--ut-red)"
-                      : "var(--ut-blue)",
-            }}
-            onClick={() => setColor(c.value)}
-          />
-        ))}
-      </div>
-
-      <span className="toolbar-separator" />
-
-      {/* Stroke size */}
-      <button
-        type="button"
-        title="Thinner stroke"
-        aria-label="Decrease stroke size"
-        disabled={sizeIdx <= 0}
-        onClick={() => applySize(SIZE_ORDER[sizeIdx - 1])}
-      >
-        ≪
-      </button>
-      <button
-        type="button"
-        title="Thicker stroke"
-        aria-label="Increase stroke size"
-        disabled={sizeIdx >= SIZE_ORDER.length - 1}
-        onClick={() => applySize(SIZE_ORDER[sizeIdx + 1])}
-      >
-        ≫
-      </button>
-
-      <span className="toolbar-separator" />
-      {/* Zoom controls */}
-      <button
-        type="button"
-        title="Zoom out (Ctrl −)"
+        title="Zoom out"
         aria-label="Zoom out"
-        onClick={() => editor.zoomOut()}
+        className="annotation-actions__btn"
+        onClick={handleZoomOut}
       >
         −
       </button>
       <button
         type="button"
         title="Fit image to view"
-        aria-label={`Zoom: ${zoomPct}. Click to fit image.`}
-        className="zoom-display"
+        aria-label={`Zoom: ${zoomPct}. Click to fit.`}
+        className="annotation-actions__zoom"
         onClick={handleZoomToFit}
       >
         {zoomPct}
       </button>
       <button
         type="button"
-        title="Zoom in (Ctrl +)"
+        title="Zoom in"
         aria-label="Zoom in"
-        onClick={() => editor.zoomIn()}
+        className="annotation-actions__btn"
+        onClick={handleZoomIn}
       >
         +
       </button>
 
-      <span className="toolbar-separator" />
+      <span className="annotation-actions__sep" />
 
       <button
         type="button"
         title="Clear all annotations"
         aria-label="Clear annotations"
+        className="annotation-actions__btn"
         onClick={onClear}
       >
         Clear
@@ -574,11 +450,11 @@ const Toolbar = track(function Toolbar({ editor, imageShapeId, onClear, onSave }
       <button
         type="button"
         title="Save and close"
-        className="btn-save px-ut-3 py-ut-1 text-ut-xs font-heading font-bold uppercase tracking-ut-label cursor-pointer"
+        className="annotation-actions__save"
         onClick={onSave}
       >
         Save
       </button>
     </div>
   );
-});
+}
