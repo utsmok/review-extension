@@ -369,7 +369,7 @@ function buildNutritionLabelHtml(
     <div class="nutrition-sw-empty">Not specified</div>
   </div>`
   }
-  ${strengthsHtml && weaknessesHtml ? '<div class="nutrition-sw-divider"></div>' : ""}
+  <div class="nutrition-sw-divider"></div>
   ${
     weaknessesHtml
       ? `<div class="nutrition-sw-col">

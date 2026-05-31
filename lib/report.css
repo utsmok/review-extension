@@ -1039,6 +1039,11 @@ table th {
 .nutrition-sw-list li {
   margin-bottom: 2px;
 }
+.nutrition-sw-empty {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-style: italic;
+}
 .nutrition-sw-divider {
   width: 1px;
   background: var(--border);
