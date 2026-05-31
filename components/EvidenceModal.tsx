@@ -146,8 +146,9 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         return { ...prev, isLocked: true };
       });
 
-      // Set default tool to arrow
+      // Set default tool to arrow with larger stroke
       ed.setCurrentTool("arrow");
+      ed.setStyleForNextShapes(DefaultSizeStyle, "m");
       ed.clearHistory();
 
       setImageShapeId(shapeId);
@@ -268,7 +269,22 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
           <div className="tldraw-edge-fade" aria-hidden="true" />
           {/* Pan/zoom hint */}
           <div className={`tldraw-hint${hintVisible ? "" : " hidden"}`} aria-hidden="true">
-            Scroll to pan · Ctrl+Scroll to zoom
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ verticalAlign: "-2px" }}
+            >
+              <title>Right-click</title>
+              <rect x="6" y="4" width="12" height="16" rx="1" />
+              <line x1="12" y1="18" x2="12" y2="18.01" />
+            </svg>{" "}
+            Right-click to pan · Ctrl+Scroll to zoom
           </div>
         </div>
 
@@ -360,10 +376,16 @@ const Toolbar = track(function Toolbar({ editor, imageShapeId, onClear, onSave }
   const zoomLevel = useValue("zoomLevel", () => editor.getCamera().z, [editor]);
   const [activeColor, setActiveColor] = useState<string>("black");
   const [isHighlighter, setIsHighlighter] = useState(false);
+  const [strokeSize, setStrokeSize] = useState<"s" | "m" | "l" | "xl">("l");
+
+  const applySize = (size: "s" | "m" | "l" | "xl") => {
+    setStrokeSize(size);
+    editor.setStyleForNextShapes(DefaultSizeStyle, isHighlighter ? "xl" : size);
+  };
 
   const applyHighlighterStyles = (on: boolean) => {
     editor.setOpacityForNextShapes(on ? 0.4 : 1);
-    editor.setStyleForNextShapes(DefaultSizeStyle, on ? "xl" : "m");
+    editor.setStyleForNextShapes(DefaultSizeStyle, on ? "xl" : strokeSize);
     if (on) {
       const hlColor =
         activeColor === "black" || activeColor === "red" || activeColor === "blue"
@@ -403,8 +425,10 @@ const Toolbar = track(function Toolbar({ editor, imageShapeId, onClear, onSave }
     editor.zoomToBounds({ x: 0, y: 0, w, h }, { inset: 16 });
   };
 
-  const zoomPct = `${Math.round(zoomLevel * 100)}%`;
+  const SIZE_ORDER: ("s" | "m" | "l" | "xl")[] = ["s", "m", "l", "xl"];
+  const sizeIdx = SIZE_ORDER.indexOf(isHighlighter ? "xl" : strokeSize);
 
+  const zoomPct = `${Math.round(zoomLevel * 100)}%`;
   return (
     <div className="drawing-toolbar" role="toolbar" aria-label="Annotation tools">
       {/* Drawing tools */}
@@ -486,6 +510,27 @@ const Toolbar = track(function Toolbar({ editor, imageShapeId, onClear, onSave }
 
       <span className="toolbar-separator" />
 
+      {/* Stroke size */}
+      <button
+        type="button"
+        title="Thinner stroke"
+        aria-label="Decrease stroke size"
+        disabled={sizeIdx <= 0}
+        onClick={() => applySize(SIZE_ORDER[sizeIdx - 1])}
+      >
+        ≪
+      </button>
+      <button
+        type="button"
+        title="Thicker stroke"
+        aria-label="Increase stroke size"
+        disabled={sizeIdx >= SIZE_ORDER.length - 1}
+        onClick={() => applySize(SIZE_ORDER[sizeIdx + 1])}
+      >
+        ≫
+      </button>
+
+      <span className="toolbar-separator" />
       {/* Zoom controls */}
       <button
         type="button"

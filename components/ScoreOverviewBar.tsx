@@ -94,9 +94,36 @@ function RollingNumber({ value }: { value: number }) {
 // Badge button — constellation floating handled via CSS nth-child
 // ---------------------------------------------------------------------------
 
-function BadgeButton({ b, onNavigate }: { b: QuestionBadge; onNavigate: (id: string) => void }) {
+function BadgeButton({
+  b,
+  onNavigate,
+  mouseX,
+  barRef,
+  index: _index,
+}: {
+  b: QuestionBadge;
+  onNavigate: (id: string) => void;
+  mouseX: number | null;
+  barRef: React.RefObject<HTMLDivElement | null>;
+  index: number;
+}) {
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const waveOffset = useMemo(() => {
+    if (mouseX === null || !barRef.current || !btnRef.current) return 0;
+    const barRect = barRef.current.getBoundingClientRect();
+    const btnRect = btnRef.current.getBoundingClientRect();
+    const btnCenter = btnRect.left + btnRect.width / 2 - barRect.left;
+    const dist = Math.abs(mouseX - btnCenter);
+    const maxDist = 120;
+    if (dist > maxDist) return 0;
+    const t = 1 - dist / maxDist;
+    return Math.round(t * t * 4); // quadratic ease, max 4px
+  }, [mouseX, barRef]);
+
   return (
     <button
+      ref={btnRef}
       type="button"
       className={`score-overview-bar__badge ${b.state === "complete" ? "is-complete" : b.state === "partial" ? "is-partial" : ""}`}
       title={b.title}
@@ -104,6 +131,7 @@ function BadgeButton({ b, onNavigate }: { b: QuestionBadge; onNavigate: (id: str
       data-accent={b.accentKey}
       data-score={b.scoreValue || undefined}
       onClick={() => onNavigate(b.rubricId)}
+      style={{ "--wave-y": `${waveOffset}px` } as React.CSSProperties}
     >
       <span className="score-overview-bar__code" aria-hidden="true">
         {b.code}
@@ -183,6 +211,8 @@ export default function ScoreOverviewBar({
   rubric,
   usesAi,
 }: ScoreOverviewBarProps) {
+  const barRef = useRef<HTMLDivElement>(null);
+  const [mouseX, setMouseX] = useState<number | null>(null);
   const evalMap = useMemo(() => new Map(evaluations.map((e) => [e.rubricId, e])), [evaluations]);
 
   // Build capture→rubricId reverse index
@@ -389,8 +419,20 @@ export default function ScoreOverviewBar({
   // Find QG/scoring split index
   const qgCount = badges.filter((b) => b.section === "quality_gate").length;
 
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMouseX(e.clientX - rect.left);
+  };
+
+  const handleMouseLeave = () => setMouseX(null);
+
   return (
-    <div className={`score-overview-bar ${celebrating ? "score-overview-bar--celebrating" : ""}`}>
+    <div
+      ref={barRef}
+      className={`score-overview-bar ${celebrating ? "score-overview-bar--celebrating" : ""}`}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
       <div className="score-overview-bar__inner">
         {/* Fraction with rolling counter */}
         <span
@@ -413,18 +455,31 @@ export default function ScoreOverviewBar({
         <span className="score-overview-bar__sep" aria-hidden="true" />
 
         {/* QG badges */}
-        {badges.slice(0, qgCount).map((b) => (
-          <BadgeButton key={b.rubricId} b={b} onNavigate={navigateTo} />
+        {badges.slice(0, qgCount).map((b, i) => (
+          <BadgeButton
+            key={b.rubricId}
+            b={b}
+            onNavigate={navigateTo}
+            mouseX={mouseX}
+            barRef={barRef}
+            index={i}
+          />
         ))}
-
         {/* Thin divider between QG and scoring */}
         {qgCount > 0 && qgCount < badges.length && (
           <span className="score-overview-bar__divider-line" aria-hidden="true" />
         )}
 
         {/* Scoring badges */}
-        {badges.slice(qgCount).map((b) => (
-          <BadgeButton key={b.rubricId} b={b} onNavigate={navigateTo} />
+        {badges.slice(qgCount).map((b, i) => (
+          <BadgeButton
+            key={b.rubricId}
+            b={b}
+            onNavigate={navigateTo}
+            mouseX={mouseX}
+            barRef={barRef}
+            index={qgCount + i}
+          />
         ))}
 
         {/* First needs work */}

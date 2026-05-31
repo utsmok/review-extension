@@ -221,7 +221,7 @@ describe("Captures", () => {
     fireEvent.click(screen.getByLabelText("List view"));
 
     // List view has Annotate and Delete buttons
-    expect(screen.getByRole("button", { name: "Annotate" })).toBeDefined();
-    expect(screen.getByRole("button", { name: "Delete" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "Annotate capture" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "Delete capture" })).toBeDefined();
   });
 });

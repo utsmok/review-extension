@@ -237,7 +237,6 @@ describe("review lifecycle", () => {
 
     // Required files
     expect(fileNames).toContain("session.json");
-    expect(fileNames).toContain("report.css");
     expect(fileNames).toContain("session_metadata.csv");
     expect(fileNames).toContain("rubric_scores.csv");
     expect(fileNames).toContain("capture_log.csv");

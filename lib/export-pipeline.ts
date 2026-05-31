@@ -410,9 +410,6 @@ export async function assembleZip(artifacts: ExportArtifacts): Promise<Blob> {
     zip.file(filename, content);
   }
 
-  // Add CSS
-  zip.file("report.css", artifacts.css);
-
   // Add CSVs
   zip.file("session_metadata.csv", artifacts.metadataCsv);
   zip.file("rubric_scores.csv", artifacts.scoresCsv);

@@ -47,14 +47,18 @@ export default function GradeSelector({ grade, onGradeChange }: GradeSelectorPro
             key={g.value}
             type="button"
             onClick={() => onGradeChange(g.value)}
-            className={`grade-btn flex-1 px-ut-3 py-ut-3 rounded-ut-sm text-ut-body font-heading font-bold uppercase tracking-ut-uppercase ${
+            className={`grade-btn flex-1 px-ut-3 py-ut-3 rounded-ut-sm font-heading font-semibold uppercase tracking-ut-label ${
               grade === g.value
                 ? `${g.color} text-white is-selected`
                 : `border-2 border-ut-border ${g.tint} text-ut-text hover:brightness-95`
             }`}
           >
-            {g.label}
-            <span className="block text-[10px] font-normal normal-case tracking-normal opacity-80 mt-0.5 leading-tight">
+            <span
+              className={`text-ut-sm leading-snug ${grade === g.value ? "font-bold" : "font-semibold"}`}
+            >
+              {g.label}
+            </span>
+            <span className="block text-ut-xs font-normal normal-case tracking-normal opacity-80 mt-0.5 leading-relaxed">
               {g.description}
             </span>
           </button>

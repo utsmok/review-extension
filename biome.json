@@ -38,7 +38,8 @@
         "useButtonType": "warn",
         "useKeyWithClickEvents": "warn",
         "noNoninteractiveElementToInteractiveRole": "warn",
-        "useSemanticElements": "off"
+        "useSemanticElements": "off",
+        "noStaticElementInteractions": "off"
       },
       "complexity": {
         "noImportantStyles": "off"

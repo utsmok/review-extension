@@ -296,8 +296,9 @@ describe("FinalizationScreen autosave", () => {
       useSessionStore.getState().setFinalization(existingFinalization);
     });
 
-    const passBtn = screen.getByText("Pass");
-    expect(passBtn.className).toContain("bg-ut-green");
+    const passLabel = screen.getByText("Pass");
+    const passBtn = passLabel.closest("button");
+    expect(passBtn?.className).toContain("bg-ut-green");
   });
 
   it("does not create feedback loop between autosave and sync effect", () => {

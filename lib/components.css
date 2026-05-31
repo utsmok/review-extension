@@ -961,7 +961,9 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  box-shadow: inset 0 4px 8px -4px rgba(0, 0, 0, 0.08), inset 0 -4px 8px -4px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    inset 0 4px 8px -4px rgba(0, 0, 0, 0.08),
+    inset 0 -4px 8px -4px rgba(0, 0, 0, 0.08);
   z-index: 5;
 }
 
@@ -1210,7 +1212,7 @@ body {
     )
     1;
   margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-4)) var(--space-3);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4) var(--space-2);
   will-change: transform;
 }
 .score-overview-bar,
@@ -1453,68 +1455,10 @@ body {
   margin-left: 1px;
 }
 
-/* ── Badge constellation: gentle floating with staggered delays ─── */
-@keyframes omp-badge-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-2px);
-  }
-}
-
+/* ── Badge constellation: mouse-reactive wave ─── */
 .score-overview-bar__badge {
-  animation: omp-badge-float 3s ease-in-out infinite;
-}
-
-.score-overview-bar__badge:nth-child(1) {
-  animation-delay: 0ms;
-}
-.score-overview-bar__badge:nth-child(2) {
-  animation-delay: 200ms;
-}
-.score-overview-bar__badge:nth-child(3) {
-  animation-delay: 400ms;
-}
-.score-overview-bar__badge:nth-child(4) {
-  animation-delay: 600ms;
-}
-.score-overview-bar__badge:nth-child(5) {
-  animation-delay: 150ms;
-}
-.score-overview-bar__badge:nth-child(6) {
-  animation-delay: 350ms;
-}
-.score-overview-bar__badge:nth-child(7) {
-  animation-delay: 550ms;
-}
-.score-overview-bar__badge:nth-child(8) {
-  animation-delay: 100ms;
-}
-.score-overview-bar__badge:nth-child(9) {
-  animation-delay: 300ms;
-}
-.score-overview-bar__badge:nth-child(10) {
-  animation-delay: 500ms;
-}
-.score-overview-bar__badge:nth-child(11) {
-  animation-delay: 250ms;
-}
-.score-overview-bar__badge:nth-child(12) {
-  animation-delay: 450ms;
-}
-.score-overview-bar__badge:nth-child(13) {
-  animation-delay: 50ms;
-}
-.score-overview-bar__badge:nth-child(14) {
-  animation-delay: 380ms;
-}
-.score-overview-bar__badge:nth-child(15) {
-  animation-delay: 180ms;
-}
-.score-overview-bar__badge:nth-child(n + 16) {
-  animation-delay: 280ms;
+  transform: translateY(var(--wave-y, 0px));
+  transition: transform 0.15s ease-out;
 }
 
 /* Divider line between QG and scoring groups */
@@ -1697,6 +1641,32 @@ body {
 /* ── Bullet item slide-in ─────────────────────────────── */
 .bullet-item-enter {
   animation: omp-slide-in var(--duration-normal) ease-out both;
+}
+
+.bullet-action-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: var(--ut-offwhite);
+  color: var(--ut-slate);
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.bullet-action-btn--edit:hover {
+  background: var(--ut-blue);
+  color: var(--ut-on-accent);
+}
+
+.bullet-action-btn--remove:hover {
+  background: var(--ut-red);
+  color: var(--ut-on-accent);
 }
 
 @keyframes omp-slide-in {
@@ -2772,6 +2742,38 @@ body {
   object-fit: cover;
   border: 1px solid var(--ut-border);
   flex-shrink: 0;
+}
+
+.list-action-btns {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.list-action-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  transition: opacity var(--duration-fast);
+}
+
+.list-action-btn:hover {
+  opacity: 0.85;
+}
+
+.list-action-btn--annotate {
+  background: var(--ut-blue);
+  color: var(--ut-on-accent);
+}
+
+.list-action-btn--delete {
+  background: var(--ut-red);
+  color: var(--ut-on-accent);
 }
 
 /* ── Help popover ──────────────────────────────────────────── */
