@@ -278,7 +278,6 @@ function SessionCard({
 
   const isComplete = s.status === "done";
   return (
-    // biome-ignore lint/a11y/useSemanticElements: must be div to nest action buttons
     <div
       role="button"
       tabIndex={0}

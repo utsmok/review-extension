@@ -190,10 +190,7 @@ export default function Captures() {
                           }
                         }}
                       >
-                        <CaptureImg
-                          capture={capture}
-                          className="w-full aspect-video object-cover border border-ut-border"
-                        />
+                        <CaptureImg capture={capture} className="" />
                         <div className="evidence-thumb-overlay">
                           <button
                             type="button"
@@ -405,44 +402,156 @@ export default function Captures() {
           return (
             <div className="border border-ut-border rounded-ut-sm overflow-hidden">
               {reversed.map((capture) => {
+                const linkedRubricIds = linkedIdsMap.get(capture.id) ?? [];
+                const isExpanded = expanded === capture.id;
                 return (
-                  <div key={capture.id} className="captures-list-row">
-                    <CaptureImg capture={capture} className="captures-list-thumb" />
-                    <div className="captures-list-content">
-                      <div className="captures-list-url">{capture.sourceUrl}</div>
-                      {capture.pageTitle && (
-                        <div className="text-ut-xs text-ut-text">{capture.pageTitle}</div>
-                      )}
-                      {capture.metadataField && (
-                        <div className="text-ut-xs text-trust-magenta">
-                          →{" "}
-                          {capture.metadataField === "termsConditionsUrl"
-                            ? "Terms & Conditions"
-                            : capture.metadataField === "toolLogoUrl"
-                              ? "Tool Logo"
-                              : capture.metadataField}
+                  <div key={capture.id}>
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className="captures-list-row"
+                      onClick={() => setExpanded(isExpanded ? null : capture.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setExpanded(isExpanded ? null : capture.id);
+                        }
+                      }}
+                    >
+                      <CaptureImg capture={capture} className="captures-list-thumb" />
+                      <div className="captures-list-content">
+                        <div className="captures-list-url">{capture.sourceUrl}</div>
+                        {capture.pageTitle && (
+                          <div className="text-ut-xs text-ut-text">{capture.pageTitle}</div>
+                        )}
+                        {capture.metadataField && (
+                          <div className="text-ut-xs text-trust-magenta">
+                            →{" "}
+                            {capture.metadataField === "termsConditionsUrl"
+                              ? "Terms & Conditions"
+                              : capture.metadataField === "toolLogoUrl"
+                                ? "Tool Logo"
+                                : capture.metadataField}
+                          </div>
+                        )}
+                      </div>
+                      <div className="captures-list-meta">
+                        {new Date(capture.timestamp).toLocaleDateString()}
+                      </div>
+                      <div className="flex gap-ut-1 shrink-0">
+                        <button
+                          type="button"
+                          className="text-ut-xs text-ut-blue hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setViewCaptureId(capture.id);
+                          }}
+                        >
+                          Annotate
+                        </button>
+                        <button
+                          type="button"
+                          className="text-ut-xs text-ut-slate hover:text-ut-red"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteTarget(capture.id);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                    {isExpanded && (
+                      <section
+                        aria-label="Capture details"
+                        className="border-t border-ut-border bg-ut-offwhite p-ut-3"
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape") setExpanded(null);
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-ut-2">
+                          <p className="text-ut-xs text-ut-muted font-mono truncate flex-1 mr-ut-2">
+                            {capture.sourceUrl}
+                          </p>
+                          <div className="flex gap-ut-1 shrink-0">
+                            <button
+                              type="button"
+                              className="text-ut-xs text-ut-slate hover:text-ut-text ml-ut-1"
+                              onClick={() => setExpanded(null)}
+                              aria-label="Close details"
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    <div className="captures-list-meta">
-                      {new Date(capture.timestamp).toLocaleDateString()}
-                    </div>
-                    <div className="flex gap-ut-1 shrink-0">
-                      <button
-                        type="button"
-                        className="text-ut-xs text-ut-blue hover:underline"
-                        onClick={() => setViewCaptureId(capture.id)}
-                      >
-                        Annotate
-                      </button>
-                      <button
-                        type="button"
-                        className="text-ut-xs text-ut-slate hover:text-ut-red"
-                        onClick={() => setDeleteTarget(capture.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+                        <p className="text-ut-xs text-ut-slate">
+                          {new Date(capture.timestamp).toLocaleString()} · {linkedRubricIds.length}{" "}
+                          tag
+                          {linkedRubricIds.length !== 1 && "s"}
+                        </p>
+                        <textarea
+                          className="w-full border border-ut-border rounded-ut-sm text-ut-xs p-ut-2 mt-ut-2 resize-y bg-ut-grey"
+                          rows={2}
+                          placeholder="Notes..."
+                          value={capture.notes}
+                          onChange={(e) => updateCapture(capture.id, { notes: e.target.value })}
+                        />
+                        <details open className="mt-ut-2">
+                          <summary className="text-ut-xs font-heading font-bold uppercase tracking-ut-kicker text-ut-muted cursor-pointer hover:text-ut-navy">
+                            Tag to rubric items ({linkedRubricIds.length})
+                          </summary>
+                          <div className="mt-ut-2 space-y-ut-2">
+                            <div>
+                              <p className="section-kicker mb-ut-1">Quality Gates</p>
+                              {Object.entries(rubric.quality_gate).map(([cat, questions]) => (
+                                <div key={cat} className="mb-ut-1" data-accent-key="control">
+                                  <p className="text-ut-xs text-ut-slate">
+                                    {getCategoryLabel(cat)}
+                                  </p>
+                                  <RubricChipGroup
+                                    questions={questions}
+                                    categoryKey={cat}
+                                    linkedIds={linkedRubricIds}
+                                    usesAi={usesAi}
+                                    isQG
+                                    onToggle={(rubricId, linked) =>
+                                      linked
+                                        ? unlinkCaptureFromRubric(capture.id, rubricId)
+                                        : linkCaptureToRubric(capture.id, rubricId)
+                                    }
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                            <div>
+                              <p className="section-kicker mb-ut-1">Scoring Rubric</p>
+                              {Object.entries(rubric.scoring_rubric).map(([cat, questions]) => (
+                                <div
+                                  key={cat}
+                                  className="mb-ut-1"
+                                  data-accent-key={getAccentKey(cat)}
+                                >
+                                  <p className="text-ut-xs text-ut-slate">
+                                    {getCategoryLabel(cat)}
+                                  </p>
+                                  <RubricChipGroup
+                                    questions={questions}
+                                    categoryKey={cat}
+                                    linkedIds={linkedRubricIds}
+                                    usesAi={usesAi}
+                                    onToggle={(rubricId, linked) =>
+                                      linked
+                                        ? unlinkCaptureFromRubric(capture.id, rubricId)
+                                        : linkCaptureToRubric(capture.id, rubricId)
+                                    }
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </details>
+                      </section>
+                    )}
                   </div>
                 );
               })}

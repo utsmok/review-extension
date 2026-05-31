@@ -672,26 +672,27 @@ body {
 
 .evidence-thumb-wrap {
   position: relative;
-  flex-shrink: 0;
+  display: block;
+  border-radius: var(--radius-md);
   overflow: hidden;
+  aspect-ratio: 16 / 9;
 }
 
 .evidence-thumb-wrap img {
   display: block;
-  width: 80px;
-  height: auto;
-  aspect-ratio: 16 / 10;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border: 1px solid var(--ut-border);
 }
 
 .evidence-thumb-overlay {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-end;
   gap: 4px;
+  padding: 4px;
   background: var(--ut-overlay);
   opacity: 0;
   transition: opacity var(--duration-fast) ease;
@@ -738,7 +739,7 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  padding: var(--space-3);
+  padding: var(--space-8) var(--space-3) var(--space-3);
 }
 
 .modal-panel {
@@ -1084,34 +1085,6 @@ body {
 .quick-note-overlay .note-action-btn.note-cancel:hover {
   color: var(--ut-red);
   border-color: var(--ut-red);
-}
-
-/* ── Captures list view ──────────────────────────────────── */
-
-.captures-list-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--ut-border);
-  font-size: var(--text-sm, 0.8125rem);
-}
-
-.captures-list-row:hover {
-  background: var(--ut-offwhite);
-}
-
-.captures-list-url {
-  font-family: monospace;
-  color: var(--ut-blue);
-  font-size: var(--text-xs, 0.75rem);
-  word-break: break-all;
-}
-
-.captures-list-meta {
-  color: var(--ut-muted);
-  font-size: var(--text-xs, 0.75rem);
-  flex-shrink: 0;
 }
 
 /* ── Metadata capture panel (URL fields) ─────────────────── */
@@ -1906,8 +1879,8 @@ body {
 .modal-panel--evidence {
   width: 100%;
   max-width: 680px;
-  max-height: 95vh;
-  height: 90vh;
+  max-height: calc(100vh - var(--space-10));
+  height: 85vh;
   display: flex;
   flex-direction: column;
   animation: omp-panel-in var(--duration-normal) var(--ease-out-quart) both;
@@ -2687,55 +2660,6 @@ body {
   }
 }
 
-/* ── Captures tab ────────────────────────────────────────────── */
-
-/* Grid view — thumbnail cards */
-.evidence-thumb-wrap {
-  position: relative;
-  display: block;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  aspect-ratio: 16 / 9;
-}
-
-.evidence-thumb-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: 4px;
-  padding: 4px;
-  opacity: 0;
-  transition: opacity var(--duration-fast);
-  background: transparent;
-}
-
-.evidence-thumb-wrap:hover .evidence-thumb-overlay,
-.evidence-thumb-wrap:focus-within .evidence-thumb-overlay {
-  opacity: 1;
-}
-
-.evidence-thumb-overlay .btn-view,
-.evidence-thumb-overlay .btn-remove {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.evidence-thumb-overlay .btn-view:hover,
-.evidence-thumb-overlay .btn-remove:hover {
-  background: rgba(0, 0, 0, 0.85);
-}
-
 @keyframes fadeSlideIn {
   from {
     opacity: 0;
@@ -2772,6 +2696,11 @@ body {
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--ut-border);
+  font: inherit;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+  transition: background var(--duration-fast);
 }
 
 .captures-list-row:hover {
@@ -2805,4 +2734,31 @@ body {
   object-fit: cover;
   border: 1px solid var(--ut-border);
   flex-shrink: 0;
+}
+
+/* ── Help popover ──────────────────────────────────────────── */
+
+.help-popover {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: var(--space-2);
+  background: var(--ut-white);
+  border: 1px solid var(--ut-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: var(--space-3);
+  z-index: 100;
+  min-width: 200px;
+}
+
+.help-kbd {
+  display: inline-block;
+  padding: 0 var(--space-1);
+  background: var(--ut-offwhite);
+  border: 1px solid var(--ut-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--ff-mono);
+  font-size: var(--text-xs);
+  line-height: 1.6;
 }

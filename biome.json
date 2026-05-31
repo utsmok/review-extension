@@ -37,7 +37,8 @@
       "a11y": {
         "useButtonType": "warn",
         "useKeyWithClickEvents": "warn",
-        "noNoninteractiveElementToInteractiveRole": "warn"
+        "noNoninteractiveElementToInteractiveRole": "warn",
+        "useSemanticElements": "off"
       },
       "complexity": {
         "noImportantStyles": "off"

@@ -6,7 +6,6 @@ import { captureActiveTab, captureForMetadataField } from "@/lib/capture";
 import { TabNavigationContext, useRubric } from "@/lib/contexts";
 import { useRovingTabIndex } from "@/hooks/useFocus";
 import { computeCompletion } from "@/lib/rubric";
-import { toastSuccess } from "@/stores/toast";
 import Captures from "./Captures";
 import Evaluation from "./Evaluation";
 import FinalizationScreen from "./FinalizationScreen";
@@ -56,6 +55,7 @@ export default function ActiveSession() {
 
   const [quickNoteOpen, setQuickNoteOpen] = useState(false);
   const [quickNoteText, setQuickNoteText] = useState("");
+  const [helpOpen, setHelpOpen] = useState(false);
   const { capturing, run } = useCaptureAction();
   const noteRef = useRef<HTMLTextAreaElement>(null);
   useKeyboardShortcuts({
@@ -259,33 +259,50 @@ export default function ActiveSession() {
               </svg>
             </button>
           </div>
-          <button
-            type="button"
-            className="quick-action-btn"
-            title="Shortcuts: 1-4 = tabs, Ctrl+Shift+S = capture, Esc = close note"
-            aria-label="Keyboard shortcuts"
-            onClick={() =>
-              toastSuccess(
-                "Shortcuts: 1–4 = switch tabs · Ctrl+Shift+S = quick capture · Esc = close quick note",
-              )
-            }
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
+          <div className="relative">
+            <button
+              type="button"
+              className="quick-action-btn"
+              title="Keyboard shortcuts"
+              aria-label="Keyboard shortcuts"
+              aria-expanded={helpOpen}
+              onClick={() => setHelpOpen((v) => !v)}
             >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-          </button>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </button>
+            {helpOpen && (
+              <div className="help-popover">
+                <p className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-muted mb-ut-1">
+                  Keyboard shortcuts
+                </p>
+                <ul className="text-ut-xs text-ut-text space-y-ut-1">
+                  <li>
+                    <kbd className="help-kbd">1</kbd>–<kbd className="help-kbd">4</kbd> Switch tabs
+                  </li>
+                  <li>
+                    <kbd className="help-kbd">Ctrl+Shift+S</kbd> Quick capture
+                  </li>
+                  <li>
+                    <kbd className="help-kbd">Esc</kbd> Close quick note
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
 
           <div className="ml-auto flex items-center gap-ut-2 min-w-0">
             <span className="text-ut-sm text-ut-slate shrink-0">Reviewing:</span>
