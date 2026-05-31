@@ -364,7 +364,10 @@ function buildNutritionLabelHtml(
     <div class="nutrition-sw-title">Strengths</div>
     <ul class="nutrition-sw-list">${strengthsHtml}</ul>
   </div>`
-      : ""
+      : `<div class="nutrition-sw-col">
+    <div class="nutrition-sw-title">Strengths</div>
+    <div class="nutrition-sw-empty">Not specified</div>
+  </div>`
   }
   ${strengthsHtml && weaknessesHtml ? '<div class="nutrition-sw-divider"></div>' : ""}
   ${
@@ -373,7 +376,10 @@ function buildNutritionLabelHtml(
     <div class="nutrition-sw-title">Weaknesses</div>
     <ul class="nutrition-sw-list">${weaknessesHtml}</ul>
   </div>`
-      : ""
+      : `<div class="nutrition-sw-col">
+    <div class="nutrition-sw-title">Weaknesses</div>
+    <div class="nutrition-sw-empty">Not specified</div>
+  </div>`
   }
 </div>`
       : "";

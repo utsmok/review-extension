@@ -165,8 +165,8 @@ describe("buildNutritionLabel", () => {
     );
     expect(html).toContain("Strengths");
     expect(html).toContain("Excellent transparency");
-    expect(html).not.toContain("Weaknesses");
-    expect(html).not.toContain("nutrition-sw-divider");
+    expect(html).toContain("Weaknesses");
+    expect(html).toContain("Not specified");
   });
 
   it("shows only Weaknesses column when no strengths provided", async () => {
@@ -181,8 +181,8 @@ describe("buildNutritionLabel", () => {
     );
     expect(html).toContain("Weaknesses");
     expect(html).toContain("Limited language support");
-    expect(html).not.toContain("Strengths");
-    expect(html).not.toContain("nutrition-sw-divider");
+    expect(html).toContain("Strengths");
+    expect(html).toContain("Not specified");
   });
 
   it("handles empty metadata fields gracefully", async () => {
