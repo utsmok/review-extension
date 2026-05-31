@@ -42,7 +42,7 @@ vi.mock("tldraw", () => {
     DefaultSizeStyle: {},
     createShapeId: () => "fake-shape-id",
     track: (fn: unknown) => fn,
-    useValue: () => "draw",
+    useValue: (_key: string, fn: () => unknown) => fn(),
   };
 });
 

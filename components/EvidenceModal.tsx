@@ -57,6 +57,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
   const [editor, setEditor] = useState<Editor | null>(null);
   const [imageShapeId, setImageShapeId] = useState<TLShapeId | null>(null);
   const [notes, setNotes] = useState(capture.notes);
+  const [hintVisible, setHintVisible] = useState(true);
 
   const screenshotUrl = useScreenshotUrl(capture.id);
   const imageSrc = screenshotUrl ?? capture.annotatedScreenshotBase64 ?? capture.screenshotBase64;
@@ -83,6 +84,11 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
       }
     };
   }, [editor]);
+  /* ── Auto-hide pan/zoom hint ── */
+  useEffect(() => {
+    const timer = setTimeout(() => setHintVisible(false), 4000);
+    return () => clearTimeout(timer);
+  }, []);
 
   /* ── tldraw mount: load image as locked background ── */
   const onMount = (ed: Editor) => {
@@ -258,6 +264,12 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
               }}
             />
           </Suspense>
+          {/* Edge-fade overlay: subtle shadow when image extends beyond viewport */}
+          <div className="tldraw-edge-fade" aria-hidden="true" />
+          {/* Pan/zoom hint */}
+          <div className={`tldraw-hint${hintVisible ? "" : " hidden"}`} aria-hidden="true">
+            Scroll to pan · Ctrl+Scroll to zoom
+          </div>
         </div>
 
         {/* Rubric tagging */}
@@ -343,13 +355,9 @@ interface ToolbarProps {
   onSave: () => void;
 }
 
-const Toolbar = track(function Toolbar({
-  editor,
-  imageShapeId: _imageShapeId,
-  onClear,
-  onSave,
-}: ToolbarProps) {
+const Toolbar = track(function Toolbar({ editor, imageShapeId, onClear, onSave }: ToolbarProps) {
   const currentToolId = useValue("currentToolId", () => editor.getCurrentToolId(), [editor]);
+  const zoomLevel = useValue("zoomLevel", () => editor.getCamera().z, [editor]);
   const [activeColor, setActiveColor] = useState<string>("black");
   const [isHighlighter, setIsHighlighter] = useState(false);
 
@@ -357,7 +365,6 @@ const Toolbar = track(function Toolbar({
     editor.setOpacityForNextShapes(on ? 0.4 : 1);
     editor.setStyleForNextShapes(DefaultSizeStyle, on ? "xl" : "m");
     if (on) {
-      // Default to yellow if no highlighter color is set yet
       const hlColor =
         activeColor === "black" || activeColor === "red" || activeColor === "blue"
           ? "yellow"
@@ -388,11 +395,22 @@ const Toolbar = track(function Toolbar({
     editor.setStyleForNextShapes(DefaultColorStyle, color as never);
   };
 
+  const handleZoomToFit = () => {
+    if (!imageShapeId) return;
+    const shape = editor.getShape(imageShapeId);
+    if (!shape) return;
+    const { w, h } = shape.props as { w: number; h: number };
+    editor.zoomToBounds({ x: 0, y: 0, w, h }, { inset: 16 });
+  };
+
+  const zoomPct = `${Math.round(zoomLevel * 100)}%`;
+
   return (
     <div className="drawing-toolbar" role="toolbar" aria-label="Annotation tools">
-      {/* Tools */}
+      {/* Drawing tools */}
       <button
         type="button"
+        title="Arrow — draw arrows (A)"
         aria-label="Arrow tool"
         aria-pressed={currentToolId === "arrow"}
         className={currentToolId === "arrow" ? "is-active" : ""}
@@ -402,6 +420,7 @@ const Toolbar = track(function Toolbar({
       </button>
       <button
         type="button"
+        title="Highlighter — semi-transparent wide strokes (H)"
         aria-label="Highlighter"
         aria-pressed={currentToolId === "draw" && isHighlighter}
         className={currentToolId === "draw" && isHighlighter ? "is-active" : ""}
@@ -414,6 +433,7 @@ const Toolbar = track(function Toolbar({
       </button>
       <button
         type="button"
+        title="Pen — freehand drawing (P)"
         aria-label="Pen"
         aria-pressed={currentToolId === "draw" && !isHighlighter}
         className={currentToolId === "draw" && !isHighlighter ? "is-active" : ""}
@@ -428,6 +448,7 @@ const Toolbar = track(function Toolbar({
       </button>
       <button
         type="button"
+        title="Eraser — remove annotations (E)"
         aria-label="Eraser"
         aria-pressed={currentToolId === "eraser"}
         className={currentToolId === "eraser" ? "is-active" : ""}
@@ -465,7 +486,41 @@ const Toolbar = track(function Toolbar({
 
       <span className="toolbar-separator" />
 
-      <button type="button" aria-label="Clear annotations" onClick={onClear}>
+      {/* Zoom controls */}
+      <button
+        type="button"
+        title="Zoom out (Ctrl −)"
+        aria-label="Zoom out"
+        onClick={() => editor.zoomOut()}
+      >
+        −
+      </button>
+      <button
+        type="button"
+        title="Fit image to view"
+        aria-label={`Zoom: ${zoomPct}. Click to fit image.`}
+        className="zoom-display"
+        onClick={handleZoomToFit}
+      >
+        {zoomPct}
+      </button>
+      <button
+        type="button"
+        title="Zoom in (Ctrl +)"
+        aria-label="Zoom in"
+        onClick={() => editor.zoomIn()}
+      >
+        +
+      </button>
+
+      <span className="toolbar-separator" />
+
+      <button
+        type="button"
+        title="Clear all annotations"
+        aria-label="Clear annotations"
+        onClick={onClear}
+      >
         Clear
       </button>
 
@@ -473,6 +528,7 @@ const Toolbar = track(function Toolbar({
 
       <button
         type="button"
+        title="Save and close"
         className="btn-save px-ut-3 py-ut-1 text-ut-xs font-heading font-bold uppercase tracking-ut-label cursor-pointer"
         onClick={onSave}
       >
