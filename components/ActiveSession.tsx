@@ -57,6 +57,7 @@ export default function ActiveSession() {
   const [quickNoteText, setQuickNoteText] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const { capturing, run } = useCaptureAction();
+  const helpRef = useRef<HTMLDivElement>(null);
   const noteRef = useRef<HTMLTextAreaElement>(null);
   useKeyboardShortcuts({
     "1": () => setActiveTab("Evaluation"),
@@ -79,6 +80,16 @@ export default function ActiveSession() {
   useEffect(() => {
     if (quickNoteOpen) noteRef.current?.focus();
   }, [quickNoteOpen]);
+  useEffect(() => {
+    if (!helpOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (helpRef.current && !helpRef.current.contains(e.target as Node)) {
+        setHelpOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [helpOpen]);
 
   // Compute tab completion states
   const metadataComplete = useMemo(
@@ -259,7 +270,7 @@ export default function ActiveSession() {
               </svg>
             </button>
           </div>
-          <div className="relative">
+          <div className="relative" ref={helpRef}>
             <button
               type="button"
               className="quick-action-btn"

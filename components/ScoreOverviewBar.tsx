@@ -91,7 +91,7 @@ function RollingNumber({ value }: { value: number }) {
 }
 
 // ---------------------------------------------------------------------------
-// Badge button — constellation floating handled via CSS nth-child
+// Badge button — mouse-reactive wave via CSS custom property
 // ---------------------------------------------------------------------------
 
 function BadgeButton({

@@ -257,7 +257,9 @@ export default function Captures() {
                           aria-label="Capture details"
                           className="border-t border-ut-border bg-ut-offwhite p-ut-3"
                           onKeyDown={(e) => {
-                            if (e.key === "Escape") setExpanded(null);
+                            if (e.key === "Escape" && !(e.target instanceof HTMLTextAreaElement) && !(e.target instanceof HTMLInputElement)) {
+                              setExpanded(null);
+                            }
                           }}
                         >
                           <div className="flex items-center justify-between mb-ut-2">
@@ -496,7 +498,9 @@ export default function Captures() {
                         aria-label="Capture details"
                         className="border-t border-ut-border bg-ut-offwhite p-ut-3"
                         onKeyDown={(e) => {
-                          if (e.key === "Escape") setExpanded(null);
+                          if (e.key === "Escape" && !(e.target instanceof HTMLTextAreaElement) && !(e.target instanceof HTMLInputElement)) {
+                            setExpanded(null);
+                          }
                         }}
                       >
                         <div className="flex items-center justify-between mb-ut-2">

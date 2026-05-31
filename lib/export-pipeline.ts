@@ -1,6 +1,6 @@
 import { loadAllScreenshots } from "./screenshot-store";
-import { minifyCss, minifyHtml } from "./minify";
-import { buildHtmlReport, buildNutritionLabel, REPORT_CSS } from "./html-report";
+import { minifyHtml } from "./minify";
+import { buildHtmlReport, buildNutritionLabel } from "./html-report";
 import {
   getCategoryLabel,
   getQGQuestionCode,
@@ -50,7 +50,6 @@ export interface ExportArtifacts {
   imageFiles: Map<string, string>;
   /** filename → plain-text content (capture HTML files). */
   captureHtmlFiles: Map<string, string>;
-  css: string;
   /** Sanitized tool name — used for ZIP entry filenames. */
   reportFilename: string;
   labelFilename: string;
@@ -59,7 +58,6 @@ export interface ExportArtifacts {
 // Cached dynamic imports
 let cachedPapa: typeof import("papaparse") | null = null;
 let cachedPngToJpeg: typeof import("./image-convert").pngToJpeg | null = null;
-let cachedMinifiedCss: string | null = null;
 
 /** Short ID: first 8 hex chars of capture UUID, unique within a session. */
 export const shortId = (id: string) => id.replace(/-/g, "").substring(0, 8);
@@ -124,11 +122,6 @@ export async function prepareExportArtifacts(
 
   // Captures pass through with original base64 data URLs (inline in HTML)
   const capturesForReport = capturesWithScreenshots;
-
-  // ── CSS (minified once) ───────────────────────────────────────────────
-  if (!cachedMinifiedCss) {
-    cachedMinifiedCss = minifyCss(REPORT_CSS);
-  }
 
   // ── CSV generation ────────────────────────────────────────────────────
 
@@ -347,7 +340,6 @@ export async function prepareExportArtifacts(
     nutritionLabel: minifyHtml(labelHtml),
     imageFiles,
     captureHtmlFiles,
-    css: cachedMinifiedCss,
     reportFilename: `Evaluation_Report_${safeName}.html`,
     labelFilename: `TRUST_Label_${safeName}.html`,
   };

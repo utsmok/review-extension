@@ -385,12 +385,24 @@ function ActionBar({ editor, imageShapeId, onClear, onSave }: ActionBarProps) {
 
   const handleZoomIn = () => {
     const { x, y, z } = editor.getCamera();
-    editor.setCamera({ x, y, z: z + ZOOM_STEP }, { animation: { duration: 150 } });
+    const newZ = Math.min(5, z + ZOOM_STEP);
+    const vp = editor.getViewportPageBounds();
+    const cx = vp.center.x;
+    const cy = vp.center.y;
+    const newX = cx - ((cx - x) / z) * newZ;
+    const newY = cy - ((cy - y) / z) * newZ;
+    editor.setCamera({ x: newX, y: newY, z: newZ }, { animation: { duration: 150 } });
   };
 
   const handleZoomOut = () => {
     const { x, y, z } = editor.getCamera();
-    editor.setCamera({ x, y, z: Math.max(0.1, z - ZOOM_STEP) }, { animation: { duration: 150 } });
+    const newZ = Math.max(0.1, z - ZOOM_STEP);
+    const vp = editor.getViewportPageBounds();
+    const cx = vp.center.x;
+    const cy = vp.center.y;
+    const newX = cx - ((cx - x) / z) * newZ;
+    const newY = cy - ((cy - y) / z) * newZ;
+    editor.setCamera({ x: newX, y: newY, z: newZ }, { animation: { duration: 150 } });
   };
 
   const handleZoomToFit = () => {
