@@ -273,56 +273,66 @@ export default function FinalizationScreen() {
       {/* Per-principle score dashboard */}
       {rubric && (
         <ul className="finalization-principle-grid list-none p-0 m-0" aria-label="Principle scores">
-          {principleScores.length > 0 && principleScores.map((p) => {
-            const pct = p.avg !== null ? (p.avg / 3) * 100 : 0;
-            return (
-              <li
-                key={p.id}
-                className="finalization-principle-card text-center p-ut-2 rounded-ut-sm"
-                aria-label={`${p.code}: ${p.avg !== null ? p.avg.toFixed(1) : "not scored"} out of 3.0`}
-                style={{
-                  background: `color-mix(in srgb, ${p.color} 10%, var(--ut-white))`,
-                  borderTop: `3px solid ${p.color}`,
-                }}
-              >
-                <div className="font-mono text-ut-xs font-bold" style={{ color: p.color }}>
-                  {p.code}
-                </div>
-                <div
-                  className="font-bold text-ut-text"
-                  style={{ fontSize: "var(--text-sub, 1.2rem)", lineHeight: 1.1, fontFamily: "var(--ff-heading)" }}
-                >
-                  {p.avg !== null ? p.avg.toFixed(1) : "–"}
-                </div>
-                {/* Mini progress bar */}
-                <div
-                  className="mt-1 mx-auto rounded-full overflow-hidden"
+          {principleScores.length > 0 &&
+            principleScores.map((p) => {
+              const pct = p.avg !== null ? (p.avg / 3) * 100 : 0;
+              return (
+                <li
+                  key={p.id}
+                  className="finalization-principle-card text-center p-ut-2 rounded-ut-sm"
+                  aria-label={`${p.code}: ${p.avg !== null ? p.avg.toFixed(1) : "not scored"} out of 3.0`}
                   style={{
-                    width: "100%",
-                    height: "3px",
-                    background: `color-mix(in srgb, ${p.color} 20%, var(--ut-white))`,
+                    background: `color-mix(in srgb, ${p.color} 10%, var(--ut-white))`,
+                    borderTop: `3px solid ${p.color}`,
                   }}
                 >
+                  <div className="font-mono text-ut-xs font-bold" style={{ color: p.color }}>
+                    {p.code}
+                  </div>
                   <div
+                    className="font-bold text-ut-text"
+                    style={{
+                      fontSize: "var(--text-sub, 1.2rem)",
+                      lineHeight: 1.1,
+                      fontFamily: "var(--ff-heading)",
+                    }}
+                  >
+                    {p.avg !== null ? p.avg.toFixed(1) : "–"}
+                  </div>
+                  {/* Mini progress bar */}
+                  <div
+                    className="mt-1 mx-auto rounded-full overflow-hidden"
                     style={{
                       width: "100%",
-                      height: "100%",
-                      background: p.color,
-                      borderRadius: "9999px",
-                      transformOrigin: "left",
-                      transform: `scaleX(${pct / 100})`,
-                      transition: "transform var(--duration-normal) ease-out",
+                      height: "3px",
+                      background: `color-mix(in srgb, ${p.color} 20%, var(--ut-white))`,
                     }}
-                  />
-                </div>
-              </li>
-            );
-          })}
+                  >
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        background: p.color,
+                        borderRadius: "9999px",
+                        transformOrigin: "left",
+                        transform: `scaleX(${pct / 100})`,
+                        transition: "transform var(--duration-normal) ease-out",
+                      }}
+                    />
+                  </div>
+                </li>
+              );
+            })}
         </ul>
       )}
 
       {/* Grade selector */}
       <GradeSelector grade={grade} onGradeChange={handleGradeChange} />
+      <p className="text-ut-sm text-ut-muted">
+        Select the overall recommendation based on scoring results and your professional judgment.
+        The conclusion should stand on its own — a colleague reading only the report should
+        understand your reasoning.
+      </p>
 
       {/* Conclusion */}
       <label className="flex flex-col gap-1">
@@ -332,7 +342,7 @@ export default function FinalizationScreen() {
         <textarea
           className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text resize-y focus:outline-none focus:ring-2 focus:ring-ut-blue"
           rows={4}
-          placeholder="Overall summary of the review..."
+          placeholder="Summarize the key findings. Reference specific principles or criteria where relevant (e.g., 'Strong transparency but limited accessibility'). Mention the tool's primary strengths and the most significant concerns."
           value={conclusion}
           onChange={(e) => handleConclusionChange(e.target.value)}
         />
@@ -343,7 +353,7 @@ export default function FinalizationScreen() {
         label="Strengths"
         items={strengths}
         onChange={handleStrengthsChange}
-        placeholder="Describe a strength..."
+        placeholder="e.g., Clear source list with coverage dates"
       />
 
       {/* Weaknesses */}
@@ -351,7 +361,7 @@ export default function FinalizationScreen() {
         label="Weaknesses"
         items={weaknesses}
         onChange={handleWeaknessesChange}
-        placeholder="Describe a weakness..."
+        placeholder="e.g., No accessibility statement; keyboard navigation incomplete"
       />
 
       {/* Recommendations */}
@@ -362,7 +372,7 @@ export default function FinalizationScreen() {
         <textarea
           className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text resize-y focus:outline-none focus:ring-2 focus:ring-ut-blue"
           rows={3}
-          placeholder="Suggestions for improvement..."
+          placeholder="Specific, actionable suggestions for the tool vendor or for UT's adoption decision (e.g., 'Request WCAG audit before institutional licensing')."
           value={recommendations}
           onChange={(e) => handleRecommendationsChange(e.target.value)}
         />

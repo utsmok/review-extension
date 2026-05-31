@@ -1,14 +1,33 @@
 import type { FinalizationGrade } from "@/lib/types";
 
-const GRADES: { value: FinalizationGrade; label: string; color: string; tint: string }[] = [
-  { value: "pass", label: "Pass", color: "bg-ut-green", tint: "bg-grade-pass-tint" },
+const GRADES: {
+  value: FinalizationGrade;
+  label: string;
+  description: string;
+  color: string;
+  tint: string;
+}[] = [
+  {
+    value: "pass",
+    label: "Pass",
+    description: "Meets TRUST standards for institutional recommendation",
+    color: "bg-ut-green",
+    tint: "bg-grade-pass-tint",
+  },
   {
     value: "conditional",
     label: "Conditional",
+    description: "Acceptable with documented caveats",
     color: "bg-score-1-strong",
     tint: "bg-grade-conditional-tint",
   },
-  { value: "fail", label: "Fail", color: "bg-ut-red", tint: "bg-grade-fail-tint" },
+  {
+    value: "fail",
+    label: "Fail",
+    description: "Does not meet minimum standards",
+    color: "bg-ut-red",
+    tint: "bg-grade-fail-tint",
+  },
 ];
 
 interface GradeSelectorProps {
@@ -35,6 +54,9 @@ export default function GradeSelector({ grade, onGradeChange }: GradeSelectorPro
             }`}
           >
             {g.label}
+            <span className="block text-[10px] font-normal normal-case tracking-normal opacity-80 mt-0.5 leading-tight">
+              {g.description}
+            </span>
           </button>
         ))}
       </div>

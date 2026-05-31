@@ -147,9 +147,9 @@ describe("Metadata", () => {
     expect(screen.getByText(/search methods/i)).toBeDefined();
     expect(screen.getByText(/discipline/i)).toBeDefined();
     expect(screen.getByText(/review notes/i)).toBeDefined();
-    expect(screen.getByText(/access level/i)).toBeDefined();
+    expect(screen.getByText(/availability/i)).toBeDefined();
     expect(screen.getByText(/terms & conditions/i)).toBeDefined();
-    expect(screen.getByText(/tool logo url/i)).toBeDefined();
+    expect(screen.getByText(/^logo$/i)).toBeDefined();
     expect(screen.getByText(/tool uses ai \/ llm/i)).toBeDefined();
   });
 

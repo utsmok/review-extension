@@ -67,7 +67,7 @@ describe("FinalizationScreen", () => {
 
     const buttons = screen.getAllByRole("button");
     const gradeButtons = buttons.filter((b) =>
-      ["Pass", "Conditional", "Fail"].includes(b.textContent ?? ""),
+      ["Pass", "Conditional", "Fail"].some((label) => b.textContent?.startsWith(label)),
     );
     expect(gradeButtons).toHaveLength(3);
   });
@@ -76,7 +76,7 @@ describe("FinalizationScreen", () => {
     seedActiveSession();
     renderFinalization();
 
-    const passBtn = screen.getAllByRole("button").find((b) => b.textContent === "Pass");
+    const passBtn = screen.getAllByRole("button").find((b) => b.textContent?.startsWith("Pass"));
     expect(passBtn).toBeDefined();
     // biome-ignore lint/style/noNonNullAssertion: guaranteed by expect above
     fireEvent.click(passBtn!);
@@ -89,7 +89,7 @@ describe("FinalizationScreen", () => {
     seedActiveSession();
     renderFinalization();
 
-    const textarea = screen.getByPlaceholderText("Overall summary of the review...");
+    const textarea = screen.getByPlaceholderText("Summarize the key findings. Reference specific principles or criteria where relevant (e.g., 'Strong transparency but limited accessibility'). Mention the tool's primary strengths and the most significant concerns.");
     expect(textarea).toBeDefined();
     expect(textarea.tagName).toBe("TEXTAREA");
   });
@@ -99,7 +99,7 @@ describe("FinalizationScreen", () => {
     renderFinalization();
 
     // Select a grade
-    const passBtn = screen.getAllByRole("button").find((b) => b.textContent === "Pass");
+    const passBtn = screen.getAllByRole("button").find((b) => b.textContent?.startsWith("Pass"));
     // biome-ignore lint/style/noNonNullAssertion: find + expect pattern
     fireEvent.click(passBtn!);
 
@@ -124,7 +124,7 @@ describe("FinalizationScreen", () => {
     renderFinalization();
 
     // Select grade and save
-    const passBtn = screen.getAllByRole("button").find((b) => b.textContent === "Pass");
+    const passBtn = screen.getAllByRole("button").find((b) => b.textContent?.startsWith("Pass"));
     // biome-ignore lint/style/noNonNullAssertion: find + expect pattern
     fireEvent.click(passBtn!);
 
@@ -143,7 +143,7 @@ describe("FinalizationScreen", () => {
     fireEvent.click(clearBtn!);
 
     // Grade buttons should no longer have is-selected
-    const passBtnAfter = screen.getAllByRole("button").find((b) => b.textContent === "Pass");
+    const passBtnAfter = screen.getAllByRole("button").find((b) => b.textContent?.startsWith("Pass"));
     // biome-ignore lint/style/noNonNullAssertion: guaranteed by expect above
     expect(passBtnAfter!.className).not.toContain("is-selected");
 

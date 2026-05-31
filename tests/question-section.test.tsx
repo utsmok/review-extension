@@ -258,7 +258,7 @@ describe("QuestionSection", () => {
     // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const body = details.querySelector(".question-body")!;
 
-    const textarea = within(body as HTMLElement).getByPlaceholderText("Notes / remarks...");
+    const textarea = within(body as HTMLElement).getByPlaceholderText("e.g., Privacy policy dated 2025-03; confirms no third-party sharing");
     fireEvent.change(textarea, { target: { value: "test note" } });
 
     await flush();
@@ -325,7 +325,7 @@ describe("QuestionSection", () => {
     // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const body = details.querySelector(".question-body")!;
 
-    const textarea = within(body as HTMLElement).getByPlaceholderText("Notes / remarks...");
+    const textarea = within(body as HTMLElement).getByPlaceholderText("e.g., Privacy policy dated 2025-03; confirms no third-party sharing");
     fireEvent.change(textarea, { target: { value: "x" } });
 
     await flush();
@@ -469,7 +469,7 @@ describe("QuestionRow memo isolation", () => {
     // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const q1Body = q1Details.querySelector(".question-body")!;
 
-    const q1Textarea = within(q1Body as HTMLElement).getByPlaceholderText("Notes / remarks...");
+    const q1Textarea = within(q1Body as HTMLElement).getByPlaceholderText("e.g., Privacy policy dated 2025-03; confirms no third-party sharing");
     fireEvent.change(q1Textarea, { target: { value: "hello from q1" } });
     await flush();
     await flush();
@@ -481,7 +481,7 @@ describe("QuestionRow memo isolation", () => {
     // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const q2Body = q2Details.querySelector(".question-body")!;
 
-    const q2Textarea = within(q2Body as HTMLElement).getByPlaceholderText("Notes / remarks...");
+    const q2Textarea = within(q2Body as HTMLElement).getByPlaceholderText("e.g., Privacy policy dated 2025-03; confirms no third-party sharing");
     fireEvent.change(q2Textarea, { target: { value: "hello from q2" } });
     await flush();
     await flush();
@@ -521,7 +521,7 @@ describe("QuestionRow memo isolation", () => {
     // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const q1Body = q1Details.querySelector(".question-body")!;
 
-    const q1Textarea = within(q1Body as HTMLElement).getByPlaceholderText("Notes / remarks...");
+    const q1Textarea = within(q1Body as HTMLElement).getByPlaceholderText("e.g., Privacy policy dated 2025-03; confirms no third-party sharing");
     fireEvent.change(q1Textarea, { target: { value: "important notes" } });
     await flush();
     await flush();

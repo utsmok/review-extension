@@ -22,6 +22,17 @@ const DATA_SOURCE_OPTIONS = [
   "Google Scholar",
   "IEEE Xplore",
   "JSTOR",
+  "arXiv",
+  "bioRxiv",
+  "MedRxiv",
+  "ERIC",
+  "PsycINFO",
+  "ProQuest",
+  "Dimensions",
+  "BASE",
+  "CORE",
+  "Cochrane Library",
+  "ACM Digital Library",
 ] as const;
 
 const SEARCH_METHOD_OPTIONS = [
@@ -31,6 +42,9 @@ const SEARCH_METHOD_OPTIONS = [
   "Natural language",
   "Citation chaining",
   "Faceted filtering",
+  "Vector search",
+  "Hybrid search",
+  "Controlled vocabulary / MeSH",
 ] as const;
 
 const DISCIPLINE_OPTIONS = [
@@ -41,15 +55,15 @@ const DISCIPLINE_OPTIONS = [
   "Performing Arts",
   "Visual Arts and Design",
   "Religious Studies",
-  "Biochemistry Genetics and Molecular Biology",
-  "Business Management and Accounting",
+  "Biochemistry, Genetics and Molecular Biology",
+  "Business, Management and Accounting",
   "Chemical Engineering",
   "Chemistry",
   "Computer Science",
   "Decision Sciences",
   "Dentistry",
   "Earth and Planetary Sciences",
-  "Economics Econometrics and Finance",
+  "Economics, Econometrics and Finance",
   "Energy",
   "Engineering",
   "Environmental Science",
@@ -60,7 +74,7 @@ const DISCIPLINE_OPTIONS = [
   "Medicine",
   "Neuroscience",
   "Nursing",
-  "Pharmacology Toxicology and Pharmaceutics",
+  "Pharmacology, Toxicology and Pharmaceutics",
   "Physics and Astronomy",
   "Psychology",
   "Education and Educational Research",
@@ -68,6 +82,10 @@ const DISCIPLINE_OPTIONS = [
   "Political Science and International Relations",
   "Sociology, Anthropology, and Social Work",
   "Veterinary",
+  "Multidisciplinary",
+  "Information Science and Library Science",
+  "Communication and Media Studies",
+  "Geography",
 ] as const;
 const AUTH_METHOD_OPTIONS = [
   "SSO/SAML",
@@ -78,6 +96,7 @@ const AUTH_METHOD_OPTIONS = [
   "Email-only",
   "API Key",
   "None required",
+  "Personal account",
 ] as const;
 
 export default function Metadata() {
@@ -318,7 +337,7 @@ export default function Metadata() {
 
           <div className="flex flex-col gap-1">
             <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-              Tool Logo URL
+              Logo
             </span>
             <div className="flex items-center gap-ut-2">
               <input
@@ -401,7 +420,7 @@ export default function Metadata() {
 
           <label className="flex flex-col gap-1">
             <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-              Access Level
+              Availability
             </span>
             <input
               className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"

@@ -438,7 +438,11 @@ export const QuestionRow = React.memo(function QuestionRow({
         <QuestionNotes
           value={ev?.notes ?? ""}
           onChange={(value) => setEvaluation(rubricId, { notes: value })}
-          placeholder={isQG ? "Notes / remarks..." : "Notes..."}
+          placeholder={
+            isQG
+              ? "e.g., Privacy policy dated 2025-03; confirms no third-party sharing"
+              : "e.g., Sources page lists 12 databases but no coverage dates provided"
+          }
         />
       </div>
     </details>
@@ -533,12 +537,20 @@ export default function QuestionSection({
 
   return (
     <section data-section-type={isQG ? "quality_gate" : "scoring_rubric"}>
-      <h2 className={`font-heading text-ut-heading font-bold uppercase tracking-ut-heading mb-ut-2 ${isQG ? "text-ut-navy" : "text-trust-magenta"}`}>
+      <h2
+        className={`font-heading text-ut-heading font-bold uppercase tracking-ut-heading mb-ut-2 ${isQG ? "text-ut-navy" : "text-trust-magenta"}`}
+      >
         {headerText}
       </h2>
-      {descriptionText && <p className="text-ut-sm text-ut-slate leading-normal mb-ut-5">{descriptionText}</p>}
+      {descriptionText && (
+        <p className="text-ut-sm text-ut-slate leading-normal mb-ut-5">{descriptionText}</p>
+      )}
       {Object.entries(rubricSection).map(([category, questions]) => (
-        <div key={category} className="mb-ut-3" data-accent-key={isQG ? "control" : getAccentKey(category)}>
+        <div
+          key={category}
+          className="mb-ut-3"
+          data-accent-key={isQG ? "control" : getAccentKey(category)}
+        >
           <h3 className="section-kicker">{getCategoryLabel(category)}</h3>
           {Object.entries(questions).map(([qId, questionRaw], qIdx) => {
             const question = questionRaw as PassFailQuestion | ScoringQuestion;
@@ -602,7 +614,13 @@ export default function QuestionSection({
                             ? "text-ut-red"
                             : "text-ut-slate"
                       }`}
-                      style={gateResult === "pass" ? { background: "var(--judgment-pass-tint)" } : gateResult === "fail" ? { background: "var(--judgment-fail-tint)" } : undefined}
+                      style={
+                        gateResult === "pass"
+                          ? { background: "var(--judgment-pass-tint)" }
+                          : gateResult === "fail"
+                            ? { background: "var(--judgment-fail-tint)" }
+                            : undefined
+                      }
                     >
                       {gateResult === "pass" ? "✓" : gateResult === "fail" ? "✗" : "—"}
                     </span>

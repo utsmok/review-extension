@@ -107,7 +107,7 @@ describe("FinalizationScreen autosave", () => {
     });
 
     // Type in conclusion
-    const conclusionTextarea = screen.getByPlaceholderText("Overall summary of the review...");
+    const conclusionTextarea = screen.getByPlaceholderText("Summarize the key findings. Reference specific principles or criteria where relevant (e.g., 'Strong transparency but limited accessibility'). Mention the tool's primary strengths and the most significant concerns.");
     act(() => {
       fireEvent.change(conclusionTextarea, { target: { value: "Great tool" } });
     });
@@ -129,7 +129,7 @@ describe("FinalizationScreen autosave", () => {
     renderFinalization();
 
     // Type in conclusion without setting grade
-    const conclusionTextarea = screen.getByPlaceholderText("Overall summary of the review...");
+    const conclusionTextarea = screen.getByPlaceholderText("Summarize the key findings. Reference specific principles or criteria where relevant (e.g., 'Strong transparency but limited accessibility'). Mention the tool's primary strengths and the most significant concerns.");
     act(() => {
       fireEvent.change(conclusionTextarea, { target: { value: "Some text" } });
     });
@@ -180,7 +180,7 @@ describe("FinalizationScreen autosave", () => {
     loadSessionWithFinalization(existingFinalization);
     renderFinalization();
 
-    const conclusionTextarea = screen.getByPlaceholderText("Overall summary of the review...");
+    const conclusionTextarea = screen.getByPlaceholderText("Summarize the key findings. Reference specific principles or criteria where relevant (e.g., 'Strong transparency but limited accessibility'). Mention the tool's primary strengths and the most significant concerns.");
     act(() => {
       fireEvent.change(conclusionTextarea, { target: { value: "Updated" } });
     });
