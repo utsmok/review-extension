@@ -125,6 +125,10 @@ export type HexColor = `#${string}`;
 export interface RubricData {
   readonly framework_name: string;
   readonly version: string;
-  readonly quality_gate: Readonly<Record<string, Readonly<Record<string, Readonly<PassFailQuestion>>>>>;
-  readonly scoring_rubric: Readonly<Record<string, Readonly<Record<string, Readonly<ScoringQuestion>>>>>;
+  readonly quality_gate: Readonly<
+    Record<string, Readonly<Record<string, Readonly<PassFailQuestion>>>>
+  >;
+  readonly scoring_rubric: Readonly<
+    Record<string, Readonly<Record<string, Readonly<ScoringQuestion>>>>
+  >;
 }

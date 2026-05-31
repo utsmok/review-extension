@@ -46,7 +46,8 @@ function validateSessionData(data: unknown): import("./types").SessionData {
     throw new Error("session.json is missing required fields (metadata)");
   const m = d.metadata as Record<string, unknown>;
   if (typeof m.id !== "string" || !m.id) throw new Error("metadata.id must be a non-empty string");
-  if (typeof m.toolName !== "string" || !m.toolName) throw new Error("metadata.toolName must be a non-empty string");
+  if (typeof m.toolName !== "string" || !m.toolName)
+    throw new Error("metadata.toolName must be a non-empty string");
   if (typeof m.startTime !== "string") throw new Error("metadata.startTime must be a string");
 
   // Validate captures is array of objects with string id
@@ -183,11 +184,7 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
   }
 
   // Persist screenshots to separate store
-  await Promise.all(
-    data.captures
-      .filter((c) => c.screenshotBase64)
-      .map((c) => saveScreenshot(c)),
-  );
+  await Promise.all(data.captures.filter((c) => c.screenshotBase64).map((c) => saveScreenshot(c)));
 
   return data;
 }

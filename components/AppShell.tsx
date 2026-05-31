@@ -112,7 +112,9 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
 
   return (
     <div className="flex flex-col h-full bg-ut-white">
-      <a href="#main-content" className="skip-link">Skip to content</a>
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
       <ToastContainer />
       <header className="border-b border-ut-border px-ut-4 py-ut-2 flex items-center gap-2 bg-ut-white shrink-0">
         {trustImgError ? (
@@ -163,7 +165,9 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
         <SetupBanner onDismiss={dismissBanner} onOpenSettings={onSettingsClick ?? (() => {})} />
       )}
 
-      <main id="main-content" className="flex-1 min-h-0">{children}</main>
+      <main id="main-content" className="flex-1 min-h-0">
+        {children}
+      </main>
 
       <footer className="border-t border-ut-border px-ut-4 py-ut-2 flex items-center gap-2 bg-ut-white shrink-0">
         {lisaImgError ? (

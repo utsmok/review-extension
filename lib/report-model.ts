@@ -1,11 +1,6 @@
 import { PRINCIPLES } from "./principles";
 import { computeReportScores, type ReportScores } from "./report/compute-scores";
-import {
-  distributionBar,
-  getQGQuestionCode,
-  getQuestionCode,
-  reportScoreColor,
-} from "./rubric";
+import { distributionBar, getQGQuestionCode, getQuestionCode, reportScoreColor } from "./rubric";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 // ── Sub-interfaces ─────────────────────────────────────────────────────
@@ -174,8 +169,7 @@ export function buildReportModel(
       } else if (customReasoning) {
         levelDescription = customReasoning;
       } else if (score >= 0) {
-        levelDescription =
-          (levels as unknown as Record<string, string>)[String(score)] ?? "—";
+        levelDescription = (levels as unknown as Record<string, string>)[String(score)] ?? "—";
       } else {
         levelDescription = "—";
       }

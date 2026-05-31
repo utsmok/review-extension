@@ -230,9 +230,7 @@ describe("IdbSessionRepository quota check", () => {
     const result = await repo.save("quota-test-id", data);
     expect(result).toBe(true);
     expect(warnSpy).toHaveBeenCalledTimes(1);
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Storage quota low"),
-    );
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("Storage quota low"));
   });
 
   it("does not warn when there is plenty of space", async () => {

@@ -186,7 +186,10 @@ export function scoreColor(s: number | "na" | "unsure" | undefined): HexColor {
   return SCORE_COLORS[s] ?? "#4c5e74";
 }
 
-export function distributionBar(scores: (number | "na" | "unsure" | "" | undefined)[], colorFn: (s: number | "na" | "unsure" | undefined) => HexColor = scoreColor): string {
+export function distributionBar(
+  scores: (number | "na" | "unsure" | "" | undefined)[],
+  colorFn: (s: number | "na" | "unsure" | undefined) => HexColor = scoreColor,
+): string {
   let numCount = 0;
   const counts = [0, 0, 0, 0];
   for (const s of scores) {
@@ -206,7 +209,6 @@ export function distributionBar(scores: (number | "na" | "unsure" | "" | undefin
   }
   return `<div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px">${segments}</div><div class="dist-labels">${labels.join(" ")}</div>`;
 }
-
 
 export function principleAverage(
   categoryId: string,

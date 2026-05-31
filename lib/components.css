@@ -127,8 +127,6 @@ body {
   background: var(--neutral-50);
 }
 
-
-
 .sidebar-tab:focus-visible {
   outline: 2px solid var(--ut-magenta);
   outline-offset: 2px;
@@ -139,7 +137,6 @@ body {
   border-bottom-color: var(--trust-magenta);
   background: color-mix(in srgb, var(--trust-magenta) 6%, var(--ut-white));
 }
-
 
 /* ── Rubric chip (linked / unlinked) ────────────────────────── */
 
@@ -176,8 +173,12 @@ body {
 }
 
 @keyframes omp-chip-link {
-  0% { transform: scale(0.95); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* ── Section kicker ─────────────────────────────────────────── */
@@ -394,7 +395,7 @@ body {
 }
 
 .score-row.is-selected::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 50%;
@@ -407,9 +408,15 @@ body {
 }
 
 @keyframes omp-score-dot {
-  0% { transform: translateY(-50%) scale(0); }
-  60% { transform: translateY(-50%) scale(1.4); }
-  100% { transform: translateY(-50%) scale(1); }
+  0% {
+    transform: translateY(-50%) scale(0);
+  }
+  60% {
+    transform: translateY(-50%) scale(1.4);
+  }
+  100% {
+    transform: translateY(-50%) scale(1);
+  }
 }
 .score-row.is-selected {
   font-weight: 700;
@@ -1006,7 +1013,6 @@ body {
   min-height: 32px;
   max-height: 80px;
   background: var(--ut-white);
-
 }
 
 .quick-note-overlay textarea:focus {
@@ -1119,7 +1125,6 @@ body {
   padding: 2px 4px;
   font-size: var(--text-xs, 0.75rem);
   background: var(--ut-white);
-
 }
 
 .meta-capture-actions {
@@ -1143,7 +1148,6 @@ body {
   background: var(--ut-offwhite);
 }
 
-
 /* ── Score overview bar ────────────────────────────────────── */
 
 .score-overview-bar {
@@ -1157,11 +1161,12 @@ body {
   -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid transparent;
   border-image: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--ut-navy) 8%, transparent),
-    color-mix(in srgb, var(--ut-navy) 16%, var(--ut-border)),
-    color-mix(in srgb, var(--ut-navy) 8%, transparent)
-  ) 1;
+      to right,
+      color-mix(in srgb, var(--ut-navy) 8%, transparent),
+      color-mix(in srgb, var(--ut-navy) 16%, var(--ut-border)),
+      color-mix(in srgb, var(--ut-navy) 8%, transparent)
+    )
+    1;
   margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-4)) var(--space-3);
   padding: var(--space-2) var(--space-4);
   will-change: transform;
@@ -1219,7 +1224,11 @@ body {
   display: block;
   height: 100%;
   width: 100%;
-  background: linear-gradient(90deg, var(--fill-start, var(--ut-muted)), var(--fill-end, var(--ut-slate)));
+  background: linear-gradient(
+    90deg,
+    var(--fill-start, var(--ut-muted)),
+    var(--fill-end, var(--ut-slate))
+  );
   border-radius: 2px;
   transform-origin: left;
   transition: transform var(--duration-normal) var(--ease-out-quart, ease-out);
@@ -1264,8 +1273,9 @@ body {
   border-radius: var(--radius-sm);
   background: var(--ut-white);
   cursor: pointer;
-  transition: background var(--duration-fast) ease-out,
-              border-color var(--duration-fast) ease-out;
+  transition:
+    background var(--duration-fast) ease-out,
+    border-color var(--duration-fast) ease-out;
   color: var(--ut-text);
   flex-shrink: 1;
   min-width: 0;
@@ -1379,10 +1389,12 @@ body {
 .score-overview-bar__badge[data-score="3"] .score-overview-bar__indicator[data-state="complete"] {
   color: var(--score-3);
 }
-.score-overview-bar__badge[data-score="pass"] .score-overview-bar__indicator[data-state="complete"] {
+.score-overview-bar__badge[data-score="pass"]
+  .score-overview-bar__indicator[data-state="complete"] {
   color: var(--judgment-pass);
 }
-.score-overview-bar__badge[data-score="fail"] .score-overview-bar__indicator[data-state="complete"] {
+.score-overview-bar__badge[data-score="fail"]
+  .score-overview-bar__indicator[data-state="complete"] {
   color: var(--judgment-fail);
 }
 
@@ -1401,7 +1413,8 @@ body {
 
 /* ── Badge constellation: gentle floating with staggered delays ─── */
 @keyframes omp-badge-float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -1413,23 +1426,54 @@ body {
   animation: omp-badge-float 3s ease-in-out infinite;
 }
 
-.score-overview-bar__badge:nth-child(1)  { animation-delay: 0ms; }
-.score-overview-bar__badge:nth-child(2)  { animation-delay: 200ms; }
-.score-overview-bar__badge:nth-child(3)  { animation-delay: 400ms; }
-.score-overview-bar__badge:nth-child(4)  { animation-delay: 600ms; }
-.score-overview-bar__badge:nth-child(5)  { animation-delay: 150ms; }
-.score-overview-bar__badge:nth-child(6)  { animation-delay: 350ms; }
-.score-overview-bar__badge:nth-child(7)  { animation-delay: 550ms; }
-.score-overview-bar__badge:nth-child(8)  { animation-delay: 100ms; }
-.score-overview-bar__badge:nth-child(9)  { animation-delay: 300ms; }
-.score-overview-bar__badge:nth-child(10) { animation-delay: 500ms; }
-.score-overview-bar__badge:nth-child(11) { animation-delay: 250ms; }
-.score-overview-bar__badge:nth-child(12) { animation-delay: 450ms; }
-.score-overview-bar__badge:nth-child(13) { animation-delay: 50ms; }
-.score-overview-bar__badge:nth-child(14) { animation-delay: 380ms; }
-.score-overview-bar__badge:nth-child(15) { animation-delay: 180ms; }
-.score-overview-bar__badge:nth-child(n+16) { animation-delay: 280ms; }
-
+.score-overview-bar__badge:nth-child(1) {
+  animation-delay: 0ms;
+}
+.score-overview-bar__badge:nth-child(2) {
+  animation-delay: 200ms;
+}
+.score-overview-bar__badge:nth-child(3) {
+  animation-delay: 400ms;
+}
+.score-overview-bar__badge:nth-child(4) {
+  animation-delay: 600ms;
+}
+.score-overview-bar__badge:nth-child(5) {
+  animation-delay: 150ms;
+}
+.score-overview-bar__badge:nth-child(6) {
+  animation-delay: 350ms;
+}
+.score-overview-bar__badge:nth-child(7) {
+  animation-delay: 550ms;
+}
+.score-overview-bar__badge:nth-child(8) {
+  animation-delay: 100ms;
+}
+.score-overview-bar__badge:nth-child(9) {
+  animation-delay: 300ms;
+}
+.score-overview-bar__badge:nth-child(10) {
+  animation-delay: 500ms;
+}
+.score-overview-bar__badge:nth-child(11) {
+  animation-delay: 250ms;
+}
+.score-overview-bar__badge:nth-child(12) {
+  animation-delay: 450ms;
+}
+.score-overview-bar__badge:nth-child(13) {
+  animation-delay: 50ms;
+}
+.score-overview-bar__badge:nth-child(14) {
+  animation-delay: 380ms;
+}
+.score-overview-bar__badge:nth-child(15) {
+  animation-delay: 180ms;
+}
+.score-overview-bar__badge:nth-child(n + 16) {
+  animation-delay: 280ms;
+}
 
 /* Divider line between QG and scoring groups */
 .score-overview-bar__divider-line {
@@ -1513,8 +1557,13 @@ body {
 }
 
 @keyframes omp-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 /* ── Capture grid card fade-in ──────────────────────────── */
@@ -1534,10 +1583,11 @@ body {
 }
 /* ── Pill toggle micro-interaction ─────────────────────────── */
 .pill-toggle {
-  transition: transform var(--duration-fast) ease-out,
-              background-color var(--duration-fast) ease-out,
-              border-color var(--duration-fast) ease-out,
-              color var(--duration-fast) ease-out;
+  transition:
+    transform var(--duration-fast) ease-out,
+    background-color var(--duration-fast) ease-out,
+    border-color var(--duration-fast) ease-out,
+    color var(--duration-fast) ease-out;
 }
 
 .pill-toggle:active {
@@ -1545,8 +1595,9 @@ body {
 }
 /* ── Finalize grade button transition ────────────────────── */
 .grade-btn {
-  transition: transform var(--duration-fast) ease-out,
-              background-color var(--duration-fast) ease-out;
+  transition:
+    transform var(--duration-fast) ease-out,
+    background-color var(--duration-fast) ease-out;
 }
 
 .grade-btn:active {
@@ -1563,19 +1614,26 @@ body {
   font-weight: 900;
 }
 
-
 /* ── Draft saved fade-out ──────────────────────────────── */
 .draft-saved-toast {
   animation: omp-fade-out 2s ease-out 1s both;
 }
 
 @keyframes omp-fade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 @keyframes omp-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ── Toast slide-in ────────────────────────────────────── */
@@ -1613,8 +1671,9 @@ body {
 
 .progress-circle circle,
 .progress-circle path {
-  transition: fill var(--duration-normal) ease-out,
-              stroke var(--duration-normal) ease-out;
+  transition:
+    fill var(--duration-normal) ease-out,
+    stroke var(--duration-normal) ease-out;
 }
 
 /* Note: .progress-circle--complete animation is defined in the OVERDRIVE section below */
@@ -1718,8 +1777,9 @@ body {
 
 .capture-card-enter,
 .capture-card-stagger {
-  transition: transform var(--duration-fast) ease-out,
-              box-shadow var(--duration-fast) ease-out;
+  transition:
+    transform var(--duration-fast) ease-out,
+    box-shadow var(--duration-fast) ease-out;
 }
 
 .capture-card-enter:hover,
@@ -1745,18 +1805,42 @@ body {
   animation: omp-stagger-fade-in var(--duration-normal) ease-out both;
 }
 
-.capture-card-stagger:nth-child(1)  { animation-delay: 0ms; }
-.capture-card-stagger:nth-child(2)  { animation-delay: 40ms; }
-.capture-card-stagger:nth-child(3)  { animation-delay: 80ms; }
-.capture-card-stagger:nth-child(4)  { animation-delay: 120ms; }
-.capture-card-stagger:nth-child(5)  { animation-delay: 160ms; }
-.capture-card-stagger:nth-child(6)  { animation-delay: 200ms; }
-.capture-card-stagger:nth-child(7)  { animation-delay: 240ms; }
-.capture-card-stagger:nth-child(8)  { animation-delay: 280ms; }
-.capture-card-stagger:nth-child(9)  { animation-delay: 320ms; }
-.capture-card-stagger:nth-child(10) { animation-delay: 360ms; }
-.capture-card-stagger:nth-child(11) { animation-delay: 400ms; }
-.capture-card-stagger:nth-child(12) { animation-delay: 440ms; }
+.capture-card-stagger:nth-child(1) {
+  animation-delay: 0ms;
+}
+.capture-card-stagger:nth-child(2) {
+  animation-delay: 40ms;
+}
+.capture-card-stagger:nth-child(3) {
+  animation-delay: 80ms;
+}
+.capture-card-stagger:nth-child(4) {
+  animation-delay: 120ms;
+}
+.capture-card-stagger:nth-child(5) {
+  animation-delay: 160ms;
+}
+.capture-card-stagger:nth-child(6) {
+  animation-delay: 200ms;
+}
+.capture-card-stagger:nth-child(7) {
+  animation-delay: 240ms;
+}
+.capture-card-stagger:nth-child(8) {
+  animation-delay: 280ms;
+}
+.capture-card-stagger:nth-child(9) {
+  animation-delay: 320ms;
+}
+.capture-card-stagger:nth-child(10) {
+  animation-delay: 360ms;
+}
+.capture-card-stagger:nth-child(11) {
+  animation-delay: 400ms;
+}
+.capture-card-stagger:nth-child(12) {
+  animation-delay: 440ms;
+}
 
 /* ── Evidence modal open/close ─────────────────────────────── */
 
@@ -1769,13 +1853,21 @@ body {
 }
 
 @keyframes omp-backdrop-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes omp-backdrop-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 .modal-panel--evidence {
@@ -2064,10 +2156,18 @@ body {
   line-height: 1.4;
   animation: omp-fade-in var(--duration-micro) var(--ease-out-quart) both;
 }
-.onboard-step:nth-child(1) { animation-delay: 80ms; }
-.onboard-step:nth-child(2) { animation-delay: 160ms; }
-.onboard-step:nth-child(3) { animation-delay: 240ms; }
-.onboard-step:nth-child(4) { animation-delay: 320ms; }
+.onboard-step:nth-child(1) {
+  animation-delay: 80ms;
+}
+.onboard-step:nth-child(2) {
+  animation-delay: 160ms;
+}
+.onboard-step:nth-child(3) {
+  animation-delay: 240ms;
+}
+.onboard-step:nth-child(4) {
+  animation-delay: 320ms;
+}
 
 .onboard-step__num {
   display: inline-flex;
@@ -2205,7 +2305,9 @@ body {
   letter-spacing: var(--ls-uppercase);
   background: transparent;
   cursor: pointer;
-  transition: background var(--duration-fast), color var(--duration-fast);
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast);
 }
 
 .tab-empty-state__action:hover {
@@ -2237,8 +2339,9 @@ body {
 /* ── Finalization: Principle dashboard cards ─────────────────────── */
 .finalization-principle-card {
   overflow-wrap: break-word;
-  transition: transform var(--duration-fast) ease-out,
-              box-shadow var(--duration-fast) ease-out;
+  transition:
+    transform var(--duration-fast) ease-out,
+    box-shadow var(--duration-fast) ease-out;
 }
 
 .finalization-principle-grid {
@@ -2331,8 +2434,9 @@ body {
 
 .progress-circle__arc {
   will-change: stroke-dashoffset;
-  transition: stroke-dashoffset var(--duration-accent) var(--ease-out-quart),
-              stroke var(--duration-action) ease-out;
+  transition:
+    stroke-dashoffset var(--duration-accent) var(--ease-out-quart),
+    stroke var(--duration-action) ease-out;
 }
 
 .progress-circle--complete .progress-circle__arc {
@@ -2493,7 +2597,8 @@ body {
     opacity: 0.8;
   }
   100% {
-    transform: translate(-50%, -50%) rotate(var(--confetti-angle, 0deg)) translateY(-24px) scale(0.3);
+    transform: translate(-50%, -50%) rotate(var(--confetti-angle, 0deg)) translateY(-24px)
+      scale(0.3);
     opacity: 0;
   }
 }
@@ -2501,7 +2606,9 @@ body {
 /* ── 5. Progress circle pulse on completion ───────────────────────── */
 
 .progress-circle--complete {
-  animation: omp-pulse-scale var(--duration-normal) ease-out, omp-ring-complete var(--duration-accent) ease-out both;
+  animation:
+    omp-pulse-scale var(--duration-normal) ease-out,
+    omp-ring-complete var(--duration-accent) ease-out both;
 }
 
 /* ── 6. Glass border glow on hover (subtle premium feel) ─────────── */

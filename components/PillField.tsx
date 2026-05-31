@@ -41,9 +41,7 @@ export default function PillField({
       // Single-select: toggle off if already selected
       onChange(selected.includes(opt) ? [] : [opt]);
     } else {
-      const next = selected.includes(opt)
-        ? selected.filter((v) => v !== opt)
-        : [...selected, opt];
+      const next = selected.includes(opt) ? selected.filter((v) => v !== opt) : [...selected, opt];
       onChange(next);
     }
   };
@@ -73,9 +71,7 @@ export default function PillField({
       <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
         {label}
       </legend>
-      <div
-        className={`flex flex-wrap gap-ut-1 mb-ut-1${maxHeight ? ` ${maxHeight}` : ""}`}
-      >
+      <div className={`flex flex-wrap gap-ut-1 mb-ut-1${maxHeight ? ` ${maxHeight}` : ""}`}>
         {options.map((opt) => (
           <button
             key={opt}
@@ -100,7 +96,9 @@ export default function PillField({
         ))}
       </div>
       {error && (
-        <p role="alert" className="text-ut-xs text-state-warning">{error}</p>
+        <p role="alert" className="text-ut-xs text-state-warning">
+          {error}
+        </p>
       )}
       {allowCustom && placeholder && (
         <div className="flex gap-ut-1">

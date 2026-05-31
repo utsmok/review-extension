@@ -407,7 +407,9 @@ describe("importSessionFromZip", () => {
       },
     });
 
-    await expect(importSessionFromZip(blob)).rejects.toThrow("metadata.id must be a non-empty string");
+    await expect(importSessionFromZip(blob)).rejects.toThrow(
+      "metadata.id must be a non-empty string",
+    );
   });
 
   it("rejects session with empty metadata.toolName", async () => {
@@ -419,7 +421,9 @@ describe("importSessionFromZip", () => {
       },
     });
 
-    await expect(importSessionFromZip(blob)).rejects.toThrow("metadata.toolName must be a non-empty string");
+    await expect(importSessionFromZip(blob)).rejects.toThrow(
+      "metadata.toolName must be a non-empty string",
+    );
   });
 
   it("rejects session with non-number schemaVersion", async () => {

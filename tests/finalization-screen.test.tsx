@@ -89,7 +89,9 @@ describe("FinalizationScreen", () => {
     seedActiveSession();
     renderFinalization();
 
-    const textarea = screen.getByPlaceholderText("Summarize the key findings. Reference specific principles or criteria where relevant (e.g., 'Strong transparency but limited accessibility'). Mention the tool's primary strengths and the most significant concerns.");
+    const textarea = screen.getByPlaceholderText(
+      "Summarize the key findings. Reference specific principles or criteria where relevant (e.g., 'Strong transparency but limited accessibility'). Mention the tool's primary strengths and the most significant concerns.",
+    );
     expect(textarea).toBeDefined();
     expect(textarea.tagName).toBe("TEXTAREA");
   });
@@ -143,7 +145,9 @@ describe("FinalizationScreen", () => {
     fireEvent.click(clearBtn!);
 
     // Grade buttons should no longer have is-selected
-    const passBtnAfter = screen.getAllByRole("button").find((b) => b.textContent?.startsWith("Pass"));
+    const passBtnAfter = screen
+      .getAllByRole("button")
+      .find((b) => b.textContent?.startsWith("Pass"));
     // biome-ignore lint/style/noNonNullAssertion: guaranteed by expect above
     expect(passBtnAfter!.className).not.toContain("is-selected");
 

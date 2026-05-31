@@ -71,7 +71,11 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
       onClose();
     } catch (err) {
       console.error("Failed to create session:", err);
-      toastError(err instanceof Error ? err.message : "Could not create the review. Check that both fields are filled and try again.");
+      toastError(
+        err instanceof Error
+          ? err.message
+          : "Could not create the review. Check that both fields are filled and try again.",
+      );
       setSubmitting(false);
     }
   };
@@ -131,16 +135,17 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
             />
           </label>
 
-          <label className="flex items-center gap-ut-2 label-tooltip" data-hint="Controls whether AI-specific rubric questions (e.g. training data, model transparency) appear in your review. Uncheck for non-AI tools.">
+          <label
+            className="flex items-center gap-ut-2 label-tooltip"
+            data-hint="Controls whether AI-specific rubric questions (e.g. training data, model transparency) appear in your review. Uncheck for non-AI tools."
+          >
             <input
               type="checkbox"
               checked={usesAi}
               onChange={(e) => setUsesAi(e.target.checked)}
               className="w-4 h-4 rounded-ut-sm border-ut-border text-ut-blue focus:ring-ut-blue"
             />
-            <span
-              className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy"
-            >
+            <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
               Tool uses AI / LLM
             </span>
           </label>

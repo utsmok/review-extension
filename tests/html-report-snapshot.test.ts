@@ -15,9 +15,7 @@ function allQualityGatePassEvaluations() {
   const evaluations = [];
   for (const [catKey, catQuestions] of Object.entries(RUBRIC.quality_gate)) {
     for (const qKey of Object.keys(catQuestions)) {
-      evaluations.push(
-        makeEvaluation({ rubricId: `${catKey}.${qKey}`, score: "pass" }),
-      );
+      evaluations.push(makeEvaluation({ rubricId: `${catKey}.${qKey}`, score: "pass" }));
     }
   }
   return evaluations;
@@ -28,13 +26,9 @@ function allQualityGatePassEvaluations() {
  */
 function allScoringMaxEvaluations() {
   const evaluations = [];
-  for (const [catKey, catQuestions] of Object.entries(
-    RUBRIC.scoring_rubric,
-  )) {
+  for (const [catKey, catQuestions] of Object.entries(RUBRIC.scoring_rubric)) {
     for (const qKey of Object.keys(catQuestions)) {
-      evaluations.push(
-        makeEvaluation({ rubricId: `${catKey}.${qKey}`, score: 3 }),
-      );
+      evaluations.push(makeEvaluation({ rubricId: `${catKey}.${qKey}`, score: 3 }));
     }
   }
   return evaluations;
@@ -43,33 +37,16 @@ function allScoringMaxEvaluations() {
 describe("HTML report snapshot", () => {
   it("matches snapshot for fully-scored session", async () => {
     const metadata = makeMetadata({ toolName: "SnapshotTestTool" });
-    const captures = [
-      makeCapture({ pageTitle: "Page 1" }),
-      makeCapture({ pageTitle: "Page 2" }),
-    ];
+    const captures = [makeCapture({ pageTitle: "Page 1" }), makeCapture({ pageTitle: "Page 2" })];
 
-    const evaluations = [
-      ...allQualityGatePassEvaluations(),
-      ...allScoringMaxEvaluations(),
-    ];
+    const evaluations = [...allQualityGatePassEvaluations(), ...allScoringMaxEvaluations()];
 
     const finalization = makeFinalization({ grade: "pass" });
 
-    const html = await buildHtmlReport(
-      metadata,
-      captures,
-      evaluations,
-      RUBRIC,
-      finalization,
-    );
+    const html = await buildHtmlReport(metadata, captures, evaluations, RUBRIC, finalization);
     expect(html).toMatchSnapshot();
 
-    const label = await buildNutritionLabel(
-      metadata,
-      evaluations,
-      RUBRIC,
-      finalization,
-    );
+    const label = await buildNutritionLabel(metadata, evaluations, RUBRIC, finalization);
     expect(label).toMatchSnapshot();
   });
 
@@ -82,13 +59,7 @@ describe("HTML report snapshot", () => {
       makeEvaluation({ rubricId: "TR.data_source_clarity", score: 2 }),
     ];
 
-    const html = await buildHtmlReport(
-      metadata,
-      captures,
-      evaluations,
-      RUBRIC,
-      null,
-    );
+    const html = await buildHtmlReport(metadata, captures, evaluations, RUBRIC, null);
     expect(html).toMatchSnapshot();
   });
 });

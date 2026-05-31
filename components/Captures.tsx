@@ -114,7 +114,8 @@ export default function Captures() {
           </div>
           <p className="tab-empty-state__title">No captures yet</p>
           <p className="tab-empty-state__desc">
-            Screenshot the current page to collect visual evidence for your review. You can annotate captures and tag them to rubric items.
+            Screenshot the current page to collect visual evidence for your review. You can annotate
+            captures and tag them to rubric items.
           </p>
           <button
             type="button"

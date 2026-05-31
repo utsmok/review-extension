@@ -52,7 +52,8 @@ export default function Evaluation() {
           </div>
           <p className="tab-empty-state__title">Begin your evaluation</p>
           <p className="tab-empty-state__desc">
-            Expand a Quality Gate or Scoring Rubric question below to start scoring. Use the score overview bar to track your progress.
+            Expand a Quality Gate or Scoring Rubric question below to start scoring. Use the score
+            overview bar to track your progress.
           </p>
         </div>
       )}

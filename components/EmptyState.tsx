@@ -20,7 +20,9 @@ export default function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <div className={`empty-state flex flex-col items-center justify-center py-ut-8 text-center${className ? ` ${className}` : ""}`}>
+    <div
+      className={`empty-state flex flex-col items-center justify-center py-ut-8 text-center${className ? ` ${className}` : ""}`}
+    >
       {icon && <div className="mb-ut-2">{icon}</div>}
       <p
         className={`text-ut-sm text-ut-muted font-bold mb-ut-1${titleClassName ? ` ${titleClassName}` : ""}`}

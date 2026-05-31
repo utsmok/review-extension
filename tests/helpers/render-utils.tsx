@@ -14,16 +14,11 @@ export function AllProviders({
   usesAi?: boolean;
 }) {
   return (
-    <RubricContext.Provider value={{ rubric: RUBRIC, usesAi }}>
-      {children}
-    </RubricContext.Provider>
+    <RubricContext.Provider value={{ rubric: RUBRIC, usesAi }}>{children}</RubricContext.Provider>
   );
 }
 
-export function renderWithProviders(
-  ui: React.ReactElement,
-  options?: { usesAi?: boolean },
-) {
+export function renderWithProviders(ui: React.ReactElement, options?: { usesAi?: boolean }) {
   const { usesAi } = options ?? {};
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <AllProviders usesAi={usesAi}>{children}</AllProviders>
