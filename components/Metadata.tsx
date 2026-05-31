@@ -318,211 +318,208 @@ export default function Metadata() {
       )}
 
       {/* Secondary fields — progressive disclosure */}
-      <details className="question-foldout">
-        <summary className="question-foldout-summary">Additional details</summary>
-        <div className="question-foldout-content flex flex-col gap-ut-3">
-          <label className="flex flex-col gap-1">
-            <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-              Review Notes
-            </span>
-            <textarea
-              className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text resize-y focus:outline-none focus:ring-2 focus:ring-ut-blue"
-              rows={3}
-              maxLength={MAX_TEXT_LENGTH}
-              placeholder="e.g. Primarily used for literature review in biomedical research..."
-              value={session.notes ?? ""}
-              onChange={(e) => updateMetadata({ notes: e.target.value })}
-            />
-          </label>
+      <div className="flex flex-col gap-ut-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+            Review Notes
+          </span>
+          <textarea
+            className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text resize-y focus:outline-none focus:ring-2 focus:ring-ut-blue"
+            rows={3}
+            maxLength={MAX_TEXT_LENGTH}
+            placeholder="e.g. Primarily used for literature review in biomedical research..."
+            value={session.notes ?? ""}
+            onChange={(e) => updateMetadata({ notes: e.target.value })}
+          />
+        </label>
 
-          <div className="flex flex-col gap-1">
-            <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-              Logo
-            </span>
-            <div className="flex items-center gap-ut-2">
-              <input
-                type="url"
-                className="meta-input meta-url-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue flex-1 min-w-0 overflow-hidden text-ellipsis"
-                maxLength={MAX_URL_LENGTH}
-                placeholder="e.g. https://example.com/logo.png"
-                value={session.toolLogoUrl ?? ""}
-                onChange={(e) => {
-                  updateMetadata({ toolLogoUrl: e.target.value });
-                  setLogoError(false);
-                }}
-              />
-              {session?.toolLogoUrl && !logoError && (
-                <img
-                  src={session.toolLogoUrl}
-                  alt="Logo"
-                  className="meta-logo-img"
-                  onError={() => setLogoError(true)}
-                />
-              )}
-              {session?.toolLogoUrl && logoError && (
-                <span
-                  className="meta-logo-img text-ut-xs text-state-warning flex items-center justify-center"
-                  title="Image failed to load"
-                >
-                  ⚠
-                </span>
-              )}
-            </div>
-            {(() => {
-              const linkedCapture = captures.find((c) => c.metadataField === "toolLogoUrl");
-              return (
-                <div className="meta-capture-panel">
-                  {linkedCapture ? (
-                    <div className="meta-capture-item">
-                      <a
-                        href={linkedCapture.sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
-                        title={linkedCapture.sourceUrl}
-                      >
-                        {linkedCapture.sourceUrl}
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => removeCapture(linkedCapture.id)}
-                        className="btn-icon-remove"
-                        aria-label="Remove logo capture"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-ut-xs text-ut-muted">No logo captured yet.</p>
-                  )}
-                  <div className="meta-capture-actions">
-                    <button type="button" disabled={logoCapturing} onClick={handleCaptureLogo}>
-                      Capture Page
-                    </button>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-
-          <label className="flex flex-col gap-1">
-            <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-              Pricing
-            </span>
-            <input
-              className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
-              maxLength={MAX_TEXT_LENGTH}
-              placeholder="e.g. Freemium, Subscription"
-              value={session.pricing ?? ""}
-              onChange={(e) => updateMetadata({ pricing: e.target.value })}
-            />
-          </label>
-
-          <label className="flex flex-col gap-1">
-            <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-              Availability
-            </span>
-            <input
-              className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
-              maxLength={MAX_TEXT_LENGTH}
-              placeholder="e.g. Institutional license required"
-              value={session.availability ?? ""}
-              onChange={(e) => updateMetadata({ availability: e.target.value })}
-            />
-          </label>
-
-          <div className="flex flex-col gap-1">
-            <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-              Terms &amp; Conditions
-            </span>
+        <div className="flex flex-col gap-1">
+          <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+            Logo
+          </span>
+          <div className="flex items-center gap-ut-2">
             <input
               type="url"
-              className="meta-input meta-url-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
+              className="meta-input meta-url-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue flex-1 min-w-0 overflow-hidden text-ellipsis"
               maxLength={MAX_URL_LENGTH}
-              placeholder="e.g. https://example.com/terms"
-              value={session.termsConditionsUrl ?? ""}
-              onChange={(e) => updateMetadata({ termsConditionsUrl: e.target.value })}
+              placeholder="e.g. https://example.com/logo.png"
+              value={session.toolLogoUrl ?? ""}
+              onChange={(e) => {
+                updateMetadata({ toolLogoUrl: e.target.value });
+                setLogoError(false);
+              }}
             />
-            {(() => {
-              const tcCaptures = captures.filter((c) => c.metadataField === "termsConditionsUrl");
-              return (
-                <div className="meta-capture-panel">
-                  {tcCaptures.length > 0 && (
-                    <div className="meta-capture-linked">
-                      {tcCaptures.map((c) => (
-                        <div key={c.id} className="meta-capture-item">
-                          <a
-                            href={c.sourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
-                            title={c.sourceUrl}
-                          >
-                            {c.pageTitle || c.sourceUrl}
-                          </a>
-                          <input
-                            className="capture-notes-input"
-                            placeholder="Describe this evidence..."
-                            value={c.notes}
-                            onChange={(e) => updateCapture(c.id, { notes: e.target.value })}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeCapture(c.id)}
-                            className="btn-icon-remove"
-                            aria-label="Remove evidence"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div className="meta-capture-actions">
-                    <button type="button" disabled={tcCapturing} onClick={handleCaptureTc}>
-                      Capture Page
+            {session?.toolLogoUrl && !logoError && (
+              <img
+                src={session.toolLogoUrl}
+                alt="Logo"
+                className="meta-logo-img"
+                onError={() => setLogoError(true)}
+              />
+            )}
+            {session?.toolLogoUrl && logoError && (
+              <span
+                className="meta-logo-img text-ut-xs text-state-warning flex items-center justify-center"
+                title="Image failed to load"
+              >
+                ⚠
+              </span>
+            )}
+          </div>
+          {(() => {
+            const linkedCapture = captures.find((c) => c.metadataField === "toolLogoUrl");
+            return (
+              <div className="meta-capture-panel">
+                {linkedCapture ? (
+                  <div className="meta-capture-item">
+                    <a
+                      href={linkedCapture.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
+                      title={linkedCapture.sourceUrl}
+                    >
+                      {linkedCapture.sourceUrl}
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => removeCapture(linkedCapture.id)}
+                      className="btn-icon-remove"
+                      aria-label="Remove logo capture"
+                    >
+                      ✕
                     </button>
                   </div>
+                ) : (
+                  <p className="text-ut-xs text-ut-muted">No logo captured yet.</p>
+                )}
+                <div className="meta-capture-actions">
+                  <button type="button" disabled={logoCapturing} onClick={handleCaptureLogo}>
+                    Capture Page
+                  </button>
                 </div>
-              );
-            })()}
-          </div>
-
-          <PillField
-            label="Data Sources"
-            options={DATA_SOURCE_OPTIONS}
-            selected={session.dataSources ?? []}
-            onChange={(next) => updateMetadata({ dataSources: next })}
-            placeholder="Add custom source..."
-          />
-
-          <PillField
-            label="Search Methods"
-            options={SEARCH_METHOD_OPTIONS}
-            selected={session.searchMethods ?? []}
-            onChange={(next) => updateMetadata({ searchMethods: next })}
-            placeholder="Add custom method..."
-          />
-
-          <PillField
-            label="Discipline"
-            options={DISCIPLINE_OPTIONS}
-            selected={Array.isArray(session.discipline) ? session.discipline : []}
-            onChange={(next) => updateMetadata({ discipline: next })}
-            placeholder="Add custom discipline..."
-            maxHeight="max-h-48 overflow-y-auto"
-          />
-
-          <PillField
-            label="Authentication Method"
-            options={AUTH_METHOD_OPTIONS}
-            selected={session.authenticationMethod ? [session.authenticationMethod] : []}
-            onChange={(next) => updateMetadata({ authenticationMethod: next[0] ?? undefined })}
-            allowCustom={false}
-            single
-          />
+              </div>
+            );
+          })()}
         </div>
-      </details>
+
+        <label className="flex flex-col gap-1">
+          <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+            Pricing
+          </span>
+          <input
+            className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
+            maxLength={MAX_TEXT_LENGTH}
+            placeholder="e.g. Freemium, Subscription"
+            value={session.pricing ?? ""}
+            onChange={(e) => updateMetadata({ pricing: e.target.value })}
+          />
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+            Availability
+          </span>
+          <input
+            className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
+            maxLength={MAX_TEXT_LENGTH}
+            placeholder="e.g. Institutional license required"
+            value={session.availability ?? ""}
+            onChange={(e) => updateMetadata({ availability: e.target.value })}
+          />
+        </label>
+
+        <div className="flex flex-col gap-1">
+          <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+            Terms &amp; Conditions
+          </span>
+          <input
+            type="url"
+            className="meta-input meta-url-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
+            maxLength={MAX_URL_LENGTH}
+            placeholder="e.g. https://example.com/terms"
+            value={session.termsConditionsUrl ?? ""}
+            onChange={(e) => updateMetadata({ termsConditionsUrl: e.target.value })}
+          />
+          {(() => {
+            const tcCaptures = captures.filter((c) => c.metadataField === "termsConditionsUrl");
+            return (
+              <div className="meta-capture-panel">
+                {tcCaptures.length > 0 && (
+                  <div className="meta-capture-linked">
+                    {tcCaptures.map((c) => (
+                      <div key={c.id} className="meta-capture-item">
+                        <a
+                          href={c.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
+                          title={c.sourceUrl}
+                        >
+                          {c.pageTitle || c.sourceUrl}
+                        </a>
+                        <input
+                          className="capture-notes-input"
+                          placeholder="Describe this evidence..."
+                          value={c.notes}
+                          onChange={(e) => updateCapture(c.id, { notes: e.target.value })}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeCapture(c.id)}
+                          className="btn-icon-remove"
+                          aria-label="Remove evidence"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="meta-capture-actions">
+                  <button type="button" disabled={tcCapturing} onClick={handleCaptureTc}>
+                    Capture Page
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        <PillField
+          label="Data Sources"
+          options={DATA_SOURCE_OPTIONS}
+          selected={session.dataSources ?? []}
+          onChange={(next) => updateMetadata({ dataSources: next })}
+          placeholder="Add custom source..."
+        />
+
+        <PillField
+          label="Search Methods"
+          options={SEARCH_METHOD_OPTIONS}
+          selected={session.searchMethods ?? []}
+          onChange={(next) => updateMetadata({ searchMethods: next })}
+          placeholder="Add custom method..."
+        />
+
+        <PillField
+          label="Discipline"
+          options={DISCIPLINE_OPTIONS}
+          selected={Array.isArray(session.discipline) ? session.discipline : []}
+          onChange={(next) => updateMetadata({ discipline: next })}
+          placeholder="Add custom discipline..."
+          maxHeight="max-h-48 overflow-y-auto"
+        />
+
+        <PillField
+          label="Authentication Method"
+          options={AUTH_METHOD_OPTIONS}
+          selected={session.authenticationMethod ? [session.authenticationMethod] : []}
+          onChange={(next) => updateMetadata({ authenticationMethod: next[0] ?? undefined })}
+          allowCustom={false}
+          single
+        />
+      </div>
 
       {/* Review summary */}
       <div className="border-t-2 border-ut-border pt-ut-3 mt-1">

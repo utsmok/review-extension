@@ -407,6 +407,7 @@ export default function Captures() {
               {reversed.map((capture) => {
                 return (
                   <div key={capture.id} className="captures-list-row">
+                    <CaptureImg capture={capture} className="captures-list-thumb" />
                     <div className="captures-list-content">
                       <div className="captures-list-url">{capture.sourceUrl}</div>
                       {capture.pageTitle && (

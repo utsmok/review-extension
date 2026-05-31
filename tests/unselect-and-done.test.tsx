@@ -254,7 +254,7 @@ describe("manual done override", () => {
       </AllProviders>,
     );
 
-    const doneButtons = screen.getAllByText("Done");
+    const doneButtons = screen.getAllByText(/mark done|done/i);
     expect(doneButtons.length).toBeGreaterThan(0);
   });
 
@@ -269,7 +269,7 @@ describe("manual done override", () => {
     );
 
     const details = getQuestionDetailsByRubricId("accessibility.compliance");
-    const doneButton = within(details).getByText("Done");
+    const doneButton = within(details).getByText(/mark done/i);
     fireEvent.click(doneButton);
     await flush();
 

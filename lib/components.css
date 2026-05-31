@@ -738,15 +738,22 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 9999;
+  padding: var(--space-3);
 }
 
 .modal-panel {
   background: var(--ut-white);
   border: 1px solid var(--ut-border);
-  max-width: 640px;
+  border-radius: 8px;
+  max-width: 100%;
   width: 95vw;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.25),
+    0 8px 20px rgba(0, 0, 0, 0.15);
   padding: var(--space-4);
 }
 
@@ -802,6 +809,8 @@ body {
 /* ── Drawing canvas toolbar ────────────────────────────────── */
 
 .drawing-toolbar {
+  position: relative;
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -921,7 +930,7 @@ body {
   position: relative;
   width: 100%;
   flex: 1 1 0;
-  min-height: 200px;
+  min-height: 300px;
   overflow: hidden;
   border-top: 1px solid var(--ut-border);
   border-bottom: 1px solid var(--ut-border);
@@ -930,6 +939,15 @@ body {
 .tldraw-evidence-container .tl-container {
   position: absolute;
   inset: 0;
+}
+
+.tldraw-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--ut-muted);
+  font-size: var(--text-sm);
 }
 
 /* ── Quick action buttons in header ──────────────────────── */
@@ -1886,8 +1904,8 @@ body {
 }
 
 .modal-panel--evidence {
-  max-width: 95vw;
-  width: 95vw;
+  width: 100%;
+  max-width: 680px;
   max-height: 95vh;
   height: 90vh;
   display: flex;
@@ -2667,4 +2685,124 @@ body {
   .score-overview-bar__badge {
     animation: none;
   }
+}
+
+/* ── Captures tab ────────────────────────────────────────────── */
+
+/* Grid view — thumbnail cards */
+.evidence-thumb-wrap {
+  position: relative;
+  display: block;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+
+.evidence-thumb-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 4px;
+  opacity: 0;
+  transition: opacity var(--duration-fast);
+  background: transparent;
+}
+
+.evidence-thumb-wrap:hover .evidence-thumb-overlay,
+.evidence-thumb-wrap:focus-within .evidence-thumb-overlay {
+  opacity: 1;
+}
+
+.evidence-thumb-overlay .btn-view,
+.evidence-thumb-overlay .btn-remove {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.evidence-thumb-overlay .btn-view:hover,
+.evidence-thumb-overlay .btn-remove:hover {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.capture-card-stagger {
+  animation: fadeSlideIn var(--duration-normal) ease-out both;
+}
+
+@keyframes fadeSlideOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.capture-card-removing {
+  animation: fadeSlideOut var(--duration-fast) ease-out forwards;
+}
+
+/* List view — rows */
+.captures-list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--ut-border);
+}
+
+.captures-list-row:hover {
+  background: var(--neutral-50);
+}
+
+.captures-list-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.captures-list-url {
+  font-size: var(--text-xs);
+  color: var(--ut-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.captures-list-meta {
+  font-size: var(--text-xs);
+  color: var(--ut-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.captures-list-thumb {
+  width: 40px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--ut-border);
+  flex-shrink: 0;
 }

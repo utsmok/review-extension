@@ -287,12 +287,6 @@ export const QuestionRow = React.memo(function QuestionRow({
             N/A &mdash; tool does not use AI
           </span>
         )}
-        {!isAutoNa && (
-          <DoneToggle
-            isDone={!!ev?.manualDone}
-            onToggle={() => setEvaluation(rubricId, { manualDone: !ev?.manualDone || undefined })}
-          />
-        )}
       </summary>
       <div className="question-body">
         {/* QG: requirement text. Scoring: nothing extra. */}
@@ -384,7 +378,7 @@ export const QuestionRow = React.memo(function QuestionRow({
           onViewEvidence={onViewEvidence}
         />
 
-        <div className="flex items-center gap-ut-1 mt-ut-1">
+        <div className="flex items-center gap-ut-2 mt-ut-2">
           <button
             type="button"
             className="text-ut-xs text-ut-blue hover:text-ut-darkblue font-mono uppercase tracking-ut-label"
@@ -394,6 +388,10 @@ export const QuestionRow = React.memo(function QuestionRow({
             {capturingFor === rubricId ? "Capturing..." : "+ Capture Evidence"}
           </button>
 
+          <span className="text-ut-border" aria-hidden="true">
+            |
+          </span>
+
           <button
             type="button"
             className="text-ut-xs text-ut-blue hover:text-ut-darkblue font-mono uppercase tracking-ut-label"
@@ -401,6 +399,13 @@ export const QuestionRow = React.memo(function QuestionRow({
           >
             {linkPopoverFor === rubricId ? "Close" : "Link existing"}
           </button>
+
+          {!isAutoNa && (
+            <DoneToggle
+              isDone={!!ev?.manualDone}
+              onToggle={() => setEvaluation(rubricId, { manualDone: !ev?.manualDone || undefined })}
+            />
+          )}
         </div>
         {linkPopoverFor === rubricId && (
           <div className="border border-ut-border bg-ut-white rounded-ut-sm mt-ut-1 max-h-40 overflow-y-auto animate-[omp-fade-in_200ms_ease-out]">
@@ -435,15 +440,20 @@ export const QuestionRow = React.memo(function QuestionRow({
           </div>
         )}
 
-        <QuestionNotes
-          value={ev?.notes ?? ""}
-          onChange={(value) => setEvaluation(rubricId, { notes: value })}
-          placeholder={
-            isQG
-              ? "e.g., Privacy policy dated 2025-03; confirms no third-party sharing"
-              : "e.g., Sources page lists 12 databases but no coverage dates provided"
-          }
-        />
+        <div className="mt-ut-2">
+          <span className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-muted mb-ut-1 block">
+            Remarks
+          </span>
+          <QuestionNotes
+            value={ev?.notes ?? ""}
+            onChange={(value) => setEvaluation(rubricId, { notes: value })}
+            placeholder={
+              isQG
+                ? "e.g., Privacy policy dated 2025-03; confirms no third-party sharing"
+                : "e.g., Sources page lists 12 databases but no coverage dates provided"
+            }
+          />
+        </div>
       </div>
     </details>
   );

@@ -207,9 +207,9 @@ describe("Captures", () => {
 
     // In list view, the source URL is rendered in a div
     expect(screen.getByText("https://example.com/list")).toBeDefined();
-
-    // Grid images should no longer be shown
-    expect(screen.queryByAltText("Screenshot of List Item")).toBeNull();
+    // Grid card images gone — only small list thumbnail remains
+    const thumbImg = screen.getByAltText("Screenshot of List Item");
+    expect((thumbImg as HTMLImageElement).className).toContain("captures-list-thumb");
   });
 
   it("list view has annotate and delete actions", () => {
