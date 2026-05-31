@@ -1,0 +1,80 @@
+[
+  {
+    "qKey": "TR.methodology_disclosure",
+    "lv": "1",
+    "original": "The marketing copy says 'Powered by cutting-edge AI' and 'Uses machine learning to deliver relevant results' but does not specify what kind of AI, what models are used, or how results are ranked.",
+    "proposed": "The 'Features' webpage states: 'Powered by AI' and 'Uses machine learning to deliver relevant results.' Despite these claims, the documentation completely lacks specific technical details, omitting any mention of the exact models, algorithms, or data sources used to rank the output."
+  },
+  {
+    "qKey": "RE.accuracy_and_hallucination",
+    "lv": "2",
+    "original": "Across ten test queries, all cited papers exist and are correctly attributed. One query oversimplifies a nuanced debate by presenting a contested finding as settled consensus, but no fabricated claims or fake citations appear.",
+    "proposed": "In a response about dietary fats, the tool generates a \"References\" list containing 4 real, verifiable papers with correct DOI links. However, the output includes the quote: \"Saturated fat has no effect on heart disease,\" presenting a highly contested hypothesis as absolute medical consensus without any qualifying language."
+  },
+  {
+    "qKey": "RE.accuracy_and_hallucination",
+    "lv": "3",
+    "original": "Every claim across all test queries is verifiable against the original sources. Citations resolve to real papers with correct authors, years, and findings. The tool accurately represents the state of the literature, including areas of ongoing debate.",
+    "proposed": "When prompted about CRISPR efficacy, the tool outputs verifiable claims with accurate citations, such as correctly quoting the 2021 Doudna paper. The UI's inline citation popover resolves to real papers, faithfully representing findings and clearly noting ongoing debates regarding off-target effects."
+  },
+  {
+    "qKey": "RE.variance_consistency",
+    "lv": "0",
+    "original": "Asking 'What is the evidence for intermittent fasting and weight loss?' three times produces three different conclusions: one says 'strong evidence,' another says 'mixed evidence,' and a third says 'limited evidence.' The cited papers differ entirely across runs.",
+    "proposed": "When the user clicks the 'Generate' button three times for the same query, the output box displays contradictory conclusions: \"strong evidence,\" \"mixed evidence,\" and \"limited evidence.\" Each run cites entirely different papers, such as \"Smith 2023\" in run one versus \"Jones 2024\" in run two."
+  },
+  {
+    "qKey": "RE.variance_consistency",
+    "lv": "3",
+    "original": "Running the identical query five times produces the same substantive answer: same five key papers cited, same conclusion, same effect sizes reported. Only trivial phrasing differences exist between runs.",
+    "proposed": "Running the query \"Does metformin reduce mortality?\" five times yields identical substantive outputs. All five runs cite the exact same five papers (e.g., the 2021 Cochrane Review), report \"a 22% relative risk reduction,\" and display the same conclusion in the summary panel."
+  },
+  {
+    "qKey": "US.workflow_integration",
+    "lv": "1",
+    "original": "Results can be selected and copied as plain text, but there is no structured export. The user must manually re-enter citation details into their reference manager.",
+    "proposed": "Using the browser's standard text selection tool, users can copy a displayed article title like \"AI in 2024\". However, without a dedicated structured export button, the user must manually re-enter this text and author details into their Zotero reference manager."
+  },
+  {
+    "qKey": "US.cognitive_guardrails",
+    "lv": "1",
+    "original": "A small banner at the top of every response says 'AI-generated content may contain errors. Always verify with original sources.' However, no source links are provided within the response itself, and there is no way to see what the tool based its answer on.",
+    "proposed": "A gray disclaimer banner below the prompt box displays the text: \"AI outputs may be inaccurate.\" Although the tool generates a 300-word summary of the \"2023 Market Report,\" no in-text citations or hyperlinks are provided, leaving the user unable to verify the specific statistics."
+  },
+  {
+    "qKey": "US.cognitive_guardrails",
+    "lv": "2",
+    "original": "Each claim in the generated response has a numbered reference that expands to show the original passage from the source paper, with highlighted text showing exactly what the tool used as the basis for its summary. The user can read both the original and the synthesis side by side.",
+    "proposed": "When the AI states \"sleep improves memory,\" inline citation [3] expands into a side-by-side panel. The panel displays the PDF of the 2022 Walker study and highlights the exact sentence, \"consolidation of declarative memory,\" showing the specific extracted text alongside the generated synthesis."
+  },
+  {
+    "qKey": "SE.algorithmic_fairness",
+    "lv": "0",
+    "original": "Searching for 'agricultural adaptation strategies' returns exclusively US and European sources despite the topic being extensively studied in Sub-Saharan Africa and South Asia. The tool's documentation makes no mention of source diversity, geographic balance, or bias mitigation.",
+    "proposed": "Searching for \"agricultural adaptation strategies\" returns exactly 50 results exclusively from the US and EU. The 20-page \"Technical FAQ.pdf\" omits the phrase \"source diversity,\" and the UI's uneditable \"Top Results\" panel exhibits zero sources from Sub-Saharan Africa or South Asia."
+  },
+  {
+    "qKey": "SE.algorithmic_fairness",
+    "lv": "2",
+    "original": "Searching for 'traditional medicine research' surfaces results from journals published in India, China, Brazil, and Nigeria alongside European and North American sources. The tool's documentation describes a re-ranking step that promotes geographic diversity, though no quantitative metrics are published.",
+    "proposed": "A test search for \"traditional medicine\" surfaces the \"African Journal of Traditional Medicine\" alongside Western journals. The technical docs state: \"a re-ranking step promotes geographic diversity.\" However, this page lacks quantitative metrics showing the actual geographic distribution of indexed sources."
+  },
+  {
+    "qKey": "SE.algorithmic_fairness",
+    "lv": "3",
+    "original": "The tool publishes a quarterly 'Source Diversity Report' showing the geographic distribution of indexed sources and search results. A built-in 'Perspectives' filter lets users see results from underrepresented regions, and the documentation details the debiasing techniques applied to the ranking algorithm.",
+    "proposed": "The tool's \"Global Voices\" filter lets users limit results to the Global South. Testing the query \"history of mathematics\" shifts results from 90% US/UK sources to include Iran and India. The published 'Algorithmic Debiasing' documentation details the counterfactual data balancing used in the ranking algorithm."
+  },
+  {
+    "qKey": "SE.data_handling",
+    "lv": "0",
+    "original": "The privacy policy says 'We take data protection seriously and employ industry-standard security measures' but does not mention retention periods, encryption methods, breach notification, data residency, or any mechanism for users to access or delete their data.",
+    "proposed": "The 'Privacy Policy' webpage features a single section titled 'Our Commitment', quoting verbatim: 'We take data protection seriously.' It completely lacks retention periods, encryption methods, breach protocols, or any mechanism for users to access or delete their data."
+  },
+  {
+    "qKey": "TC.source_attribution_depth",
+    "lv": "1",
+    "original": "Citation links resolve to the publisher's journal homepage (e.g., nature.com) but not to the specific article. The user must search within the journal site to find the referenced paper.",
+    "proposed": "Clicking the superscript \"[1]\" citation link redirects to nature.com instead of the specific paper. To find the text \"quantum entanglement,\" the user must independently search the journal's homepage. The system fails to resolve the DOI for the source document."
+  }
+]

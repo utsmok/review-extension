@@ -15,5 +15,5 @@
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".wxt/wxt.d.ts"],
-  "exclude": [".output", "node_modules"]
+  "exclude": [".output", "node_modules", "tools"]
 }

@@ -1,0 +1,32 @@
+[
+  {
+    "key": "TC.bibliometric_credibility",
+    "field": "2",
+    "original": "Categorizes sources by type (e.g., preprint vs. peer-reviewed).",
+    "proposed": "Displays basic publication type labels distinguishing preprints from peer-reviewed articles, but omits retraction warnings or detailed citation metrics."
+  },
+  {
+    "key": "TC.bibliometric_credibility",
+    "field": "background",
+    "original": "Not all academic sources are equal: papers may be retracted, published in predatory journals, or exist only as non-peer-reviewed preprints. A tool that treats all sources identically — without any quality indicators — makes it harder for researchers to assess the reliability of the evidence behind a claim. This question evaluates whether the tool provides contextual quality metadata such as retraction status, peer-review labels, citation counts, and publication type. Look for quality badges, labels, or metadata near each cited source. Note: this question evaluates item-level metadata enrichment — whether the tool warns the user about the status of individual papers during search (e.g., retraction notices, publication type labels). It is distinct from TR1 (Data source clarity), which evaluates macro-level scope transparency about what the tool's index contains.",
+    "proposed": "Not all academic sources are equal: papers may be retracted, published in predatory journals, or exist only as non-peer-reviewed preprints. A tool that treats all sources identically — without any quality indicators — makes it harder for researchers to assess the reliability of the evidence behind a claim. This question evaluates whether the tool provides contextual quality metadata such as retraction status, peer-review labels, citation counts, and publication type. Look for quality badges, labels, or metadata near each cited source. Note: this question evaluates item-level metadata enrichment — whether the tool warns the user about the status of individual papers during search (e.g., retraction notices, publication type labels). It is distinct from TR1 (Data source clarity), which evaluates macro-level scope transparency about what the tool's index contains. Mark this question as N/A if the tool does not retrieve or cite individual academic sources (such as papers or preprints), or if it functions exclusively as a generalized search engine without the capacity to extract and display specific publication metadata."
+  },
+  {
+    "key": "RE.variance_consistency",
+    "field": "2",
+    "original": "Core claims are stable across runs — same conclusions and key sources — but phrasing, supplementary citations, or minor details may differ slightly.",
+    "proposed": "The main conclusions and primary sources match across repeated runs, but sentence structure and secondary citations may vary."
+  },
+  {
+    "key": "RE.variance_consistency",
+    "field": "background",
+    "original": "A reliable research tool should produce substantively equivalent answers when given the same query multiple times. High variance — where the same question yields different conclusions, sources, or recommendations on successive runs — undermines trust and makes the tool unsuitable for systematic work. This question evaluates reproducibility by asking the reviewer to submit identical queries and compare the substance of the responses. Small surface-level differences in phrasing are acceptable; substantive differences in claims or conclusions are not.\n\nFor deterministic, index-based databases, identical queries should yield identical results. Score 3 if result lists are perfectly stable. Score lower if results fluctuate between repeated runs without a documented update to the underlying index database, which may indicate unstable scraping, caching issues, or unpredictable API routing.",
+    "proposed": "A reliable research tool should produce substantively equivalent answers when given the same query multiple times. High variance — where the same question yields different conclusions, sources, or recommendations on successive runs — undermines trust and makes the tool unsuitable for systematic work. This question evaluates reproducibility by asking the reviewer to submit identical queries and compare the substance of the responses. Small surface-level differences in phrasing are acceptable; substantive differences in claims or conclusions are not.\n\nFor deterministic, index-based databases, identical queries should yield identical results. Score 3 if result lists are perfectly stable. Score lower if results fluctuate between repeated runs without a documented update to the underlying index database, which may indicate unstable scraping, caching issues, or unpredictable API routing. Mark this question as N/A if the tool does not accept user queries, requires entirely distinct inputs for each session, or is explicitly designed as a single-use, non-generative utility where repeated iterations are functionally impossible."
+  },
+  {
+    "key": "US.cognitive_guardrails",
+    "field": "background",
+    "original": "AI search tools that present outputs as authoritative facts — without caveats, source visibility, or verification prompts — risk encouraging passive acceptance. This is particularly concerning in academic settings where critical evaluation of sources is a core skill. The best tools actively support the user's judgment by surfacing original source material, flagging uncertainty, providing confidence indicators, or offering built-in comparison tools. This question only applies to AI-powered tools.",
+    "proposed": "AI search tools that present outputs as authoritative facts — without caveats, source visibility, or verification prompts — risk encouraging passive acceptance. This is particularly concerning in academic settings where critical evaluation of sources is a core skill. The best tools actively support the user's judgment by surfacing original source material, flagging uncertainty, providing confidence indicators, or offering built-in comparison tools. This question only applies to AI-powered tools. Select N/A if the tool operates as a traditional, non-generative search engine that merely directs users to external webpages without generating synthesized summaries."
+  }
+]

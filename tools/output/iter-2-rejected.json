@@ -1,0 +1,8 @@
+[
+  {
+    "key": "TR.methodology_disclosure",
+    "field": "0",
+    "original": "No explanation of the retrieval method, ranking algorithm, or generation process — the tool provides no technical documentation on how results are produced.",
+    "proposed": "No mention of retrieval methods, ranking algorithms, or generation processes is found in the tool's technical documentation."
+  }
+]

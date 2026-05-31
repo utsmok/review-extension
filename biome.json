@@ -6,7 +6,8 @@
       "!!**/docs/example-export-results",
       "!!.agents",
       "!!.claude",
-      "!!.github/skills"
+      "!!.github/skills",
+      "!!tools"
     ]
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
