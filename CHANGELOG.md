@@ -1,5 +1,103 @@
 # Changelog
 
+## v0.6.0 — 2026-06-01
+
+### New: Score Overview Bar
+
+A new sticky progress bar appears at the top of the Evaluation tab, replacing the old hero/chips layout. It shows animated score badges for every question, a circular progress ring, and a completion celebration when all questions are scored. The bar uses a glass-blur effect and score-colored gradient fills that shift from red to green as your average improves.
+
+### New: Keyboard Shortcuts
+
+Navigate faster without reaching for the mouse:
+
+- **1–4** — switch between tabs (Metadata, Evaluation, Captures, Finalize)
+- **Ctrl+Shift+S** — take a screenshot capture
+- **?** — open the help popover showing all shortcuts
+
+A help button in the top-right corner lists all shortcuts with styled keys.
+
+### New: Onboarding
+
+First-time users see a welcome card on the Session Manager screen with 4 numbered steps explaining how to start a review. Each tab also has an empty state with actionable guidance and shortcut hints.
+
+### New: Evidence Modal Zoom Controls
+
+The annotation modal now has zoom controls (zoom in, zoom out, fit-to-view, percentage display) in the toolbar. A pan/zoom hint at the bottom of the canvas auto-hides after 4 seconds. The modal no longer clips on narrow screens.
+
+### New: Annotation Size Controls
+
+Stroke size buttons (S/M/L/XL) let you pick pen thickness directly in the annotation toolbar. Default pen size is now thicker ("L") for better visibility on captured screenshots.
+
+### Redesigned Finalization Screen
+
+- Hero score block with gradient background and animated score reveal
+- Principle dashboard: each principle gets a tinted card with colored left-border and mini progress bar
+- Grade buttons now show descriptions (Pass, Conditional, Fail) alongside the label
+- Placeholder prompts in every text field give concrete examples instead of generic hints
+- Strengths/weaknesses items use icon buttons (pencil, trash) instead of text links
+
+### Redesigned Captures Tab
+
+- Grid view: hover cards lift with shadow, action buttons appear on hover overlay
+- List view: rows are now expandable to show notes, rubric tagging, and annotate/delete buttons with thumbnail previews
+- Annotate and delete buttons are round colored icons instead of text links
+- Staggered fade-in animation for cards on load
+
+### Improved Evaluation Tab
+
+- Score rows get a colored left-border accent when selected
+- Pass/fail quality gate badges use tinted backgrounds with 3px accent strips
+- Category headers are color-coded (navy for quality gates, magenta for scoring)
+- Mouse-reactive wave animation on the badge constellation
+- Reduced visual clutter: removed redundant dividers, self-evident descriptions, and "(merged)" labels
+- Question rows: "Done" toggle moved to the action row alongside capture/link buttons
+- Notes area now labeled "Remarks" with evidence-prompting placeholder text
+
+### Improved Session Manager
+
+- Progress bars on each session card showing scored/total count
+- Keyboard shortcuts hint bar at the bottom
+- AI toggle has a tooltip explaining rubric question filtering
+- Tab descriptions appear on hover/focus
+
+### Improved Export
+
+- Exported HTML reports are now fully standalone — CSS is inlined, no separate stylesheet needed
+- Responsive HTML reports: layouts adapt from 320px mobile to 1920px desktop screens
+- Nutrition label shows "Not specified" for empty strengths/weaknesses instead of hiding the column
+- Export complete screen shows file sizes and has proper error handling with retry
+- Improved report spacing scale, evidence gallery proportions, and print styles
+
+### Improved Metadata
+
+- "Additional Details" section flattened into the main form — no more collapsed section
+- Expanded Data Sources list: added arXiv, bioRxiv, MedRxiv, ERIC, PsycINFO, and more
+- Expanded Search Methods: added Vector search, Hybrid search, Controlled vocabulary/MeSH
+- Added disciplines: Multidisciplinary, Information Science, Communication and Media Studies, Geography
+- Renamed "Access Level" to "Availability", "Tool Logo URL" to "Logo"
+- Added "Personal account" authentication method
+
+### Improved Rubric Content
+
+- N/A scoring guidance added to all 10 scoring questions (was 2/10)
+- Score descriptions rewritten with concrete behavioral grounding
+- 13 of 20 example items rewritten with specific evidence anchors (UI elements, quoted text, named entities)
+
+### Bug Fixes
+
+- Fix score selection could not be unselected once chosen
+- Fix screenshots not capturing on some pages (host permissions)
+- Fix evidence modal cutting off on narrow screens
+- Fix capture grid thumbnails displaying at wrong aspect ratio
+- Fix help popover not dismissing on outside click
+- Fix Escape key being captured in nested textareas
+
+### Accessibility
+
+- All score labels are keyboard-focusable
+- Radiogroup elements have descriptive aria-labels
+- All animations respect prefers-reduced-motion setting
+- WCAG AA contrast compliance for score colors in reports
 
 ## v0.5.0 — 2026-05-27
 
