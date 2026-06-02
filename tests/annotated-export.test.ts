@@ -42,12 +42,11 @@ describe("annotated screenshot export (§3e)", () => {
     const blob = await exportSession(makeMetadata(), [capture], [], RUBRIC);
     const files = await unzipToFiles(blob);
 
-    // Clean version
-    expect(files.has("cap0001a.jpg")).toBe(true);
+    // Clean version — stored as PNG (lossless) for text readability
+    expect(files.has("cap0001a.png")).toBe(true);
     expect(files.has("cap0001a.html")).toBe(true);
-    // Annotated version (extension from pngToJpeg — may be .png if jpeg conversion fails)
-    const hasAnnotated = files.has("cap0001a_annotated.jpg") || files.has("cap0001a_annotated.png");
-    expect(hasAnnotated).toBe(true);
+    // Annotated version — also PNG
+    expect(files.has("cap0001a_annotated.png")).toBe(true);
   });
 
   it("does not export annotated file when capture has no annotated version", async () => {
@@ -59,8 +58,7 @@ describe("annotated screenshot export (§3e)", () => {
     const blob = await exportSession(makeMetadata(), [capture], [], RUBRIC);
     const files = await unzipToFiles(blob);
 
-    expect(files.has("cap0001a.jpg")).toBe(true);
-    expect(files.has("cap0001a_annotated.jpg")).toBe(false);
+    expect(files.has("cap0001a.png")).toBe(true);
     expect(files.has("cap0001a_annotated.png")).toBe(false);
   });
 

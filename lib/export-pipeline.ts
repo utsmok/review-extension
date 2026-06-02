@@ -93,31 +93,23 @@ export async function prepareExportArtifacts(
   // biome-ignore lint/style/noNonNullAssertion: guaranteed non-null by preceding guard
   const pngToJpeg = cachedPngToJpeg!;
 
-  // ── Image conversion (batched) ───────────────────────────────────────
+  // ── Image files (PNG, lossless — preserves text readability) ──────────
   const idMap = new Map(capturesWithScreenshots.map((c) => [c.id, shortId(c.id)]));
   const imageFiles = new Map<string, string>();
   const captureHtmlFiles = new Map<string, string>();
 
-  const BATCH_SIZE = 4;
-  for (let i = 0; i < capturesWithScreenshots.length; i += BATCH_SIZE) {
-    const batch = capturesWithScreenshots.slice(i, i + BATCH_SIZE);
-    await Promise.all(
-      batch.map(async (capture) => {
-        const sid = idMap.get(capture.id);
-        if (!sid) return;
-        const { dataUrl: converted, extension } = await pngToJpeg(capture.screenshotBase64, 0.8);
-        const base64Data = converted.split(",")[1] ?? "";
-        imageFiles.set(`${sid}.${extension}`, base64Data);
-        captureHtmlFiles.set(`${sid}.html`, minifyHtml(capture.htmlContent));
-        if (capture.annotatedScreenshotBase64) {
-          const { dataUrl: annConverted, extension: annExt } = await pngToJpeg(
-            capture.annotatedScreenshotBase64,
-            0.8,
-          );
-          imageFiles.set(`${sid}_annotated.${annExt}`, annConverted.split(",")[1] ?? "");
-        }
-      }),
-    );
+  for (const capture of capturesWithScreenshots) {
+    const sid = idMap.get(capture.id);
+    if (!sid) continue;
+    const base64Data = capture.screenshotBase64.split(",")[1] ?? "";
+    const ext = capture.screenshotBase64.startsWith("data:image/png") ? "png" : "jpg";
+    imageFiles.set(`${sid}.${ext}`, base64Data);
+    captureHtmlFiles.set(`${sid}.html`, minifyHtml(capture.htmlContent));
+    if (capture.annotatedScreenshotBase64) {
+      const annBase64 = capture.annotatedScreenshotBase64.split(",")[1] ?? "";
+      const annExt = capture.annotatedScreenshotBase64.startsWith("data:image/png") ? "png" : "jpg";
+      imageFiles.set(`${sid}_annotated.${annExt}`, annBase64);
+    }
   }
 
   // Captures pass through with original base64 data URLs (inline in HTML)

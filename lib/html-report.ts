@@ -61,28 +61,11 @@ function formatDate(isoString: string): string {
   return `${isoString.slice(0, 10)} ${isoString.slice(11, 16)}`;
 }
 
-/** Resize and compress a base64 data-URL image. Returns original if resize fails. */
-async function compressScreenshot(dataUrl: string, maxWidth = 800, quality = 0.8): Promise<string> {
-  try {
-    if (!dataUrl.startsWith("data:image/")) return dataUrl;
-    const img = new Image();
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error("Image load failed"));
-      img.src = dataUrl;
-    });
-    if (img.width <= maxWidth) return dataUrl;
-    const scale = maxWidth / img.width;
-    const canvas = document.createElement("canvas");
-    canvas.width = maxWidth;
-    canvas.height = Math.round(img.height * scale);
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return dataUrl;
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/jpeg", quality);
-  } catch {
-    return dataUrl;
-  }
+/** Prepare a screenshot for inline embedding in the HTML report.
+ * Returns the original data-URL unchanged — lossless PNG preserves text
+ * readability and fine detail in evidence captures. */
+async function compressScreenshot(dataUrl: string): Promise<string> {
+  return dataUrl;
 }
 
 const EMPTY_CIRCLE = '<span class="circle empty">&#9675;</span>';
