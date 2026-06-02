@@ -39,10 +39,14 @@ coverage/
 # Agent/tooling artifacts
 .agents/
 .claude/
+CLAUDE.md
 .superpowers/
 skills-lock.json
 .audit/
+.roborev.toml
 
+# Installed skills (not project source)
+.github/skills/
 
 # Generated autoresearch outputs
-tools/output/*.json
+tools/output/
