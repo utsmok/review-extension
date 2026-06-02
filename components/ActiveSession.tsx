@@ -74,7 +74,9 @@ export default function ActiveSession() {
     },
     Escape: () => {
       if (quickNoteOpen) setQuickNoteOpen(false);
+      else if (helpOpen) setHelpOpen(false);
     },
+    "Shift+?": () => setHelpOpen((v) => !v),
   });
 
   useEffect(() => {
@@ -274,6 +276,7 @@ export default function ActiveSession() {
             <button
               type="button"
               className="quick-action-btn"
+              data-tip="Shortcuts — View keyboard shortcuts"
               title="Keyboard shortcuts"
               aria-label="Keyboard shortcuts"
               aria-expanded={helpOpen}
@@ -309,6 +312,9 @@ export default function ActiveSession() {
                   </li>
                   <li>
                     <kbd className="help-kbd">Esc</kbd> Close quick note
+                  </li>
+                  <li>
+                    <kbd className="help-kbd">?</kbd> Toggle this panel
                   </li>
                 </ul>
               </div>
