@@ -1,57 +1,83 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { type BrowserContext, chromium } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
+import { chromium, expect, test as base } from "@playwright/test";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-const EXTENSION_PATH = path.resolve(__dirname, "../.output/chrome-mv3");
-
-/**
- * Launch Chromium with the TRUST Review Extension loaded.
- *
- * Uses `launchPersistentContext` so the extension is active immediately.
- * Returns the context plus a `close` helper for teardown.
- */
-export async function launchExtension(): Promise<{
-  context: BrowserContext;
-  close: () => Promise<void>;
-}> {
-  const context = await chromium.launchPersistentContext("", {
-    headless: false,
-    args: [
-      `--disable-extensions-except=${EXTENSION_PATH}`,
-      `--load-extension=${EXTENSION_PATH}`,
-      "--no-sandbox",
-    ],
-  });
-
-  return {
-    context,
-    close: async () => {
-      await context.close();
-    },
-  };
-}
+export const EXTENSION_PATH = path.resolve(__dirname, "../.output/chrome-mv3");
 
 /**
- * Resolve the extension ID from a running context by inspecting its
- * service workers. Returns `undefined` if no service worker is found.
+ * Resolve the extension ID from a running browser context's service worker.
  */
 export function getExtensionId(context: BrowserContext): string | undefined {
   const sw = context.serviceWorkers()[0];
   if (!sw) return undefined;
-  // URL is chrome-extension://<ID>/background.js
-  const url = sw.url();
-  const match = url.match(/^chrome-extension:\/\/([a-z]{32})\//);
+  const match = sw.url().match(/^chrome-extension:\/\/([a-z]{32})\//);
   return match?.[1];
 }
 
 /**
- * Build the sidePanel URL for the loaded extension.
- * Falls back to a placeholder if the extension ID cannot be resolved.
+ * Custom test fixture that loads the extension, opens the side panel, and
+ * provides `sidePanel` (Page), `context` (BrowserContext), and `extensionId`.
  */
-export function sidePanelUrl(context: BrowserContext): string {
-  const id = getExtensionId(context);
-  return `chrome-extension://${id}/sidepanel.html`;
+type ExtensionFixtures = {
+  context: BrowserContext;
+  extensionId: string;
+  sidePanel: Page;
+};
+
+export const test = base.extend<ExtensionFixtures>({
+  // biome-ignore lint/correctness/noEmptyPattern: Playwright extend requires empty fixture destructuring
+  context: async ({}, use) => {
+    const ctx = await chromium.launchPersistentContext("", {
+      headless: false,
+      args: [
+        `--disable-extensions-except=${EXTENSION_PATH}`,
+        `--load-extension=${EXTENSION_PATH}`,
+        "--no-sandbox",
+      ],
+    });
+    if (!ctx.serviceWorkers()[0]) {
+      await ctx.waitForEvent("serviceworker", { timeout: 5000 });
+    }
+    await use(ctx);
+    await ctx.close();
+  },
+  extensionId: async ({ context }, use) => {
+    await use(getExtensionId(context) ?? "");
+  },
+  sidePanel: async ({ context, extensionId }, use) => {
+    const page = await context.newPage();
+    await page.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+    await page.waitForLoadState("domcontentloaded");
+    await use(page);
+  },
+});
+
+export { expect };
+
+/**
+ * Create a new review session via the modal dialog.
+ * Targets inputs scoped to the `[role="dialog"]` to avoid
+ * picking up hidden file inputs elsewhere in the DOM.
+ */
+export async function createSession(page: Page, toolName = "Test Tool"): Promise<void> {
+  await page.click("text=Start New Review");
+
+  // Wait for the modal dialog to appear
+  const dialog = page.locator('[role="dialog"]');
+  await expect(dialog).toBeVisible({ timeout: 5000 });
+
+  // Fill tool name (input inside the dialog)
+  await dialog.locator('input[type="text"], input:not([type])').first().fill(toolName);
+
+  // Fill URL
+  await dialog.locator('input[type="url"]').fill("https://example.com");
+
+  // Submit
+  await dialog.locator('button[type="submit"]').click();
+
+  // Should land on the active session view — verify the Evaluation tab is visible
+  await expect(page.getByRole("tab", { name: /Evaluation/ })).toBeVisible({ timeout: 10000 });
 }
