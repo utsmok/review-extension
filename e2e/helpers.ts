@@ -45,7 +45,9 @@ export const test = base.extend<ExtensionFixtures>({
     await ctx.close();
   },
   extensionId: async ({ context }, use) => {
-    await use(getExtensionId(context) ?? "");
+    const id = getExtensionId(context);
+    if (!id) throw new Error("Extension service worker not found — cannot resolve extension ID");
+    await use(id);
   },
   sidePanel: async ({ context, extensionId }, use) => {
     const page = await context.newPage();

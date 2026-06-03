@@ -12,10 +12,11 @@ test.describe("Finalization tab", () => {
       timeout: 3000,
     });
 
-    // Grade buttons should be visible
-    await expect(sidePanel.locator("text=Pass").first()).toBeVisible({ timeout: 5000 });
-    await expect(sidePanel.locator("text=Conditional").first()).toBeVisible();
-    await expect(sidePanel.locator("text=Fail").first()).toBeVisible();
+    // Grade buttons — scope to the active tabpanel to avoid matching Evaluation's "Pass" labels
+    const tabpanel = sidePanel.getByRole("tabpanel", { name: /Finalize/ });
+    await expect(tabpanel.locator("text=Pass").first()).toBeVisible({ timeout: 5000 });
+    await expect(tabpanel.locator("text=Conditional").first()).toBeVisible();
+    await expect(tabpanel.locator("text=Fail").first()).toBeVisible();
   });
 
   test("can select a grade and fill conclusion", async ({ sidePanel }) => {
@@ -23,22 +24,23 @@ test.describe("Finalization tab", () => {
 
     await sidePanel.keyboard.press("3");
 
-    // Click "Pass" grade button
-    await sidePanel.locator("text=Pass").first().click();
+    // Click "Pass" grade button — scope to Finalize tabpanel
+    const tabpanel = sidePanel.getByRole("tabpanel", { name: /Finalize/ });
+    await tabpanel.locator("text=Pass").first().click();
 
     // Fill conclusion textarea
-    const conclusionArea = sidePanel.locator("textarea").first();
+    const conclusionArea = tabpanel.locator("textarea").first();
     await expect(conclusionArea).toBeVisible({ timeout: 3000 });
     await conclusionArea.fill("This tool meets all TRUST criteria.");
 
     // Save finalization
-    const saveBtn = sidePanel
+    const saveBtn = tabpanel
       .locator('button:has-text("Save"), button:has-text("Save Finalization")')
       .first();
     if (await saveBtn.isVisible()) {
       await saveBtn.click();
       // Should show saved indicator
-      await expect(sidePanel.locator("text=Saved").first()).toBeVisible({ timeout: 5000 });
+      await expect(tabpanel.locator("text=Saved").first()).toBeVisible({ timeout: 5000 });
     }
   });
 });
@@ -55,15 +57,13 @@ test.describe("Export", () => {
     });
   });
 
-  test("clicking export triggers download or export screen", async ({ sidePanel }) => {
+  test("clicking export triggers download", async ({ sidePanel }) => {
     await createSession(sidePanel);
 
     await sidePanel.keyboard.press("2");
 
     // Start listening for download before clicking
-    const downloadPromise = sidePanel
-      .waitForEvent("download", { timeout: 15000 })
-      .catch(() => null);
+    const downloadPromise = sidePanel.waitForEvent("download", { timeout: 15000 });
 
     await sidePanel.locator('button:has-text("End Review")').first().click();
 
@@ -74,11 +74,6 @@ test.describe("Export", () => {
     }
 
     const download = await downloadPromise;
-    if (download) {
-      expect(download.suggestedFilename()).toMatch(/\.zip$/);
-    } else {
-      // Should show export complete screen
-      await expect(sidePanel.locator("text=Export").first()).toBeVisible({ timeout: 10000 });
-    }
+    expect(download.suggestedFilename()).toMatch(/\.zip$/);
   });
 });

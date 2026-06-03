@@ -13,8 +13,8 @@ test.describe("Evaluation tab", () => {
     await createSession(sidePanel);
 
     // Expand the first quality gate question
-    const firstQG = sidePanel.locator("details").first();
-    await firstQG.click();
+    const firstQG = sidePanel.locator("details.question-details").first();
+    await firstQG.locator("> summary").click();
 
     // Click "Pass" label
     const passLabel = sidePanel.locator('label:has-text("Pass")').first();
@@ -25,16 +25,18 @@ test.describe("Evaluation tab", () => {
   test("can expand and score a rubric question", async ({ sidePanel }) => {
     await createSession(sidePanel);
 
-    // Quality gates are first 4 <details>, scoring questions start at index 4.
-    // Collapsed <details> are in DOM but not "visible" to Playwright — use force click.
-    const scoringQuestion = sidePanel.locator("details").nth(4);
-    await scoringQuestion.click({ force: true });
+    // There are 6 quality gates (PS1, PS2, IP1, AC1, SE2, TC1), scoring questions start at index 6.
+    const allQuestions = sidePanel.locator("details.question-details");
+    await expect(allQuestions.first()).toBeVisible({ timeout: 5000 });
 
-    // Look for score option — the app uses data-score attributes
-    const score3 = sidePanel.locator('[data-score="3"]').first();
-    if (await score3.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await score3.click({ force: true });
-    }
+    // Click the first scoring question (TR1 — Data source clarity)
+    const scoringQuestion = allQuestions.nth(6);
+    await scoringQuestion.locator("> summary").click();
+
+    // Score options should now be visible (score-row with data-score)
+    const score3 = scoringQuestion.locator('.score-row[data-score="3"]').first();
+    await expect(score3).toBeVisible({ timeout: 3000 });
+    await score3.click();
   });
 
   test("keyboard shortcuts switch between tabs", async ({ sidePanel }) => {
