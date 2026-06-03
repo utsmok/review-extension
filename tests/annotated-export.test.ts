@@ -111,7 +111,7 @@ describe("HTML report uses annotated images (§3e)", () => {
 
     expect(html).toContain("Annotated Page");
     expect(html).toContain("evidence-item");
-    // compressScreenshot catches errors in node (no canvas), falls back to original data URL
+    // Screenshots are now stored as lossless PNG; the annotated version is used directly
     expect(html).toContain(TINY_PNG_ANNOTATED);
   });
 

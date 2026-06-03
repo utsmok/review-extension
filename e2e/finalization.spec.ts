@@ -37,6 +37,7 @@ test.describe("Finalization tab", () => {
     const saveBtn = tabpanel
       .locator('button:has-text("Save"), button:has-text("Save Finalization")')
       .first();
+    // Save button only appears after a grade is selected — may not exist if grade selection failed
     if (await saveBtn.isVisible()) {
       await saveBtn.click();
       // Should show saved indicator

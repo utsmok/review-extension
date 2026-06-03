@@ -277,7 +277,7 @@ export default function ActiveSession() {
               type="button"
               className="quick-action-btn"
               data-tip="Shortcuts — View keyboard shortcuts"
-              title="Keyboard shortcuts"
+              title="Shortcuts — View keyboard shortcuts"
               aria-label="Keyboard shortcuts"
               aria-expanded={helpOpen}
               onClick={() => setHelpOpen((v) => !v)}
