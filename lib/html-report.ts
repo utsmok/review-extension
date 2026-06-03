@@ -61,13 +61,6 @@ function formatDate(isoString: string): string {
   return `${isoString.slice(0, 10)} ${isoString.slice(11, 16)}`;
 }
 
-/** Prepare a screenshot for inline embedding in the HTML report.
- * Returns the original data-URL unchanged — lossless PNG preserves text
- * readability and fine detail in evidence captures. */
-async function compressScreenshot(dataUrl: string): Promise<string> {
-  return dataUrl;
-}
-
 const EMPTY_CIRCLE = '<span class="circle empty">&#9675;</span>';
 const FILLED_CIRCLE = '<span class="circle filled">&#9679;</span>';
 const ALL_EMPTY_CIRCLES = `<span class="circles">${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}</span><span class="circle-label">0/4</span>`;
@@ -523,13 +516,9 @@ export async function buildHtmlReport(
   if (!_logos) _logos = await import("./logos");
   const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = _logos;
 
-  // Compress screenshots in parallel — prefer annotated version when available
-  const compressedScreenshots = new Map<string, string>();
-  await Promise.all(
-    captures.map(async (c) => {
-      const src = c.annotatedScreenshotBase64 ?? c.screenshotBase64;
-      compressedScreenshots.set(c.id, await compressScreenshot(src));
-    }),
+  // Screenshots — prefer annotated version when available (lossless PNG, no compression)
+  const screenshots = new Map<string, string>(
+    captures.map((c) => [c.id, c.annotatedScreenshotBase64 ?? c.screenshotBase64]),
   );
 
   // Build the report model (pure data transformation)
@@ -539,10 +528,9 @@ export async function buildHtmlReport(
     evaluations,
     rubric,
     finalization,
-    compressedScreenshots,
+    screenshots,
   );
 
-  // Build section parts from model slices
   const gateRows = renderGateRows(model.qualityGateRows);
   const categorySections = renderCategorySections(model.principleScores, model.captures);
   const finalizationSection = buildFinalizationSection(

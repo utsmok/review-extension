@@ -36,14 +36,6 @@ export async function pngToJpeg(
   return { dataUrl, extension: "png" };
 }
 
-/**
- * Prepare a screenshot data-URL for IDB storage.
- * Returns the original data-URL unchanged — screenshots are kept at native
- * resolution in lossless PNG to preserve text readability and fine detail.
- */
-export async function compressCaptureScreenshot(dataUrl: string): Promise<string> {
-  return dataUrl;
-}
 /** Extract raw base64 payload from a data-URL. */
 function extractBase64(dataUrl: string): string {
   const comma = dataUrl.indexOf(",");

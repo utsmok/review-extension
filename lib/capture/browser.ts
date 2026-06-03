@@ -1,4 +1,3 @@
-import { compressCaptureScreenshot } from "../image-convert";
 import type { Capture } from "../types";
 import { archivePageHtml } from "./sanitize";
 import { extractLogoFromPage } from "./extract";
@@ -35,8 +34,6 @@ export async function captureActiveTab(): Promise<Capture> {
     format: "png",
   });
 
-  const compressedScreenshot = await compressCaptureScreenshot(screenshotUri);
-
   const [result] = await browser.scripting.executeScript({
     target: { tabId: tab.id },
     func: archivePageHtml,
@@ -50,7 +47,7 @@ export async function captureActiveTab(): Promise<Capture> {
     timestamp: new Date().toISOString(),
     sourceUrl: tab.url,
     pageTitle: scriptResult?.title ?? "",
-    screenshotBase64: compressedScreenshot,
+    screenshotBase64: screenshotUri,
     htmlContent,
     notes: "",
   };
