@@ -1,10 +1,9 @@
 interface DoneToggleProps {
   isDone: boolean;
   onToggle: () => void;
-  compact?: boolean;
 }
 
-export function DoneToggle({ isDone, onToggle, compact }: DoneToggleProps) {
+export function DoneToggle({ isDone, onToggle }: DoneToggleProps) {
   return (
     <button
       type="button"
@@ -20,7 +19,7 @@ export function DoneToggle({ isDone, onToggle, compact }: DoneToggleProps) {
         onToggle();
       }}
     >
-      {isDone ? "✓ Done" : compact ? "Done" : "Mark done"}
+      {isDone ? "✓ Done" : "Mark done"}
     </button>
   );
 }
