@@ -90,17 +90,6 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [animateClose]);
-  /* ── Cleanup tldraw side-effect handlers on unmount ── */
-  useEffect(() => {
-    return () => {
-      if (editor) {
-        const fns = (editor as Editor & { _cleanupFns?: (() => void)[] })._cleanupFns;
-        fns?.forEach((fn) => {
-          fn();
-        });
-      }
-    };
-  }, [editor]);
   /* ── Auto-hide pan/zoom hint ── */
   useEffect(() => {
     const timer = setTimeout(() => setHintVisible(false), 4000);
@@ -115,8 +104,12 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
   useEffect(() => {
     if (!editor || !imageSrc) return;
 
+    let cancelled = false;
+    let cleanupFns: (() => void)[] = [];
+
     const img = new Image();
     img.onload = () => {
+      if (cancelled) return;
       const w = img.naturalWidth;
       const h = img.naturalHeight;
 
@@ -166,25 +159,26 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         if (next.id !== shapeId || next.isLocked) return next;
         return { ...prev, isLocked: true };
       });
+      cleanupFns = [rmCreate, rmChange, rmLock];
 
       // Set default tool to arrow
       editor.setCurrentTool("arrow");
       editor.clearHistory();
 
       setImageShapeId(shapeId);
-
-      // Cleanup stored on editor for later use
-      (editor as Editor & { _cleanupFns?: (() => void)[] })._cleanupFns = [
-        rmCreate,
-        rmChange,
-        rmLock,
-      ];
     };
     img.onerror = () => {
+      if (cancelled) return;
       // Image failed to load — canvas stays blank, user can still annotate
       editor.clearHistory();
     };
     img.src = imageSrc;
+
+    return () => {
+      cancelled = true;
+      for (const fn of cleanupFns) fn();
+      cleanupFns = [];
+    };
   }, [editor, imageSrc]);
 
   /* ── Camera constraints ── */

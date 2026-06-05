@@ -23,13 +23,7 @@ const PRINCIPLE_NAMES: Record<string, string> = Object.fromEntries(
 import reportCss from "./report.css?raw";
 export const REPORT_CSS = reportCss;
 
-/** Coerce a metadata field to a string array. Older exports may store arrays as strings. */
-function ensureArray(val: string | string[] | undefined): string[] {
-  if (val == null) return [];
-  if (Array.isArray(val)) return val;
-  if (typeof val === "string") return val ? [val] : [];
-  return [];
-}
+import { ensureArray } from "./metadata-utils";
 
 // ── Utilities ──────────────────────────────────────────────────────────
 

@@ -15,14 +15,7 @@ import type {
   RubricData,
   SessionMetadata,
 } from "./types";
-
-/** Coerce a metadata field to a string array. Older exports may store arrays as strings. */
-function ensureArray(val: string | string[] | undefined): string[] {
-  if (val == null) return [];
-  if (Array.isArray(val)) return val;
-  if (typeof val === "string") return val ? [val] : [];
-  return [];
-}
+import { ensureArray } from "./metadata-utils";
 
 // biome-ignore lint/complexity/useRegexLiterals: must use RegExp constructor to avoid noControlCharactersInRegex
 const INVALID_FILENAME_CHARS = new RegExp('[<>:"/\\\\|?*\u0000-\u001F]', "g");

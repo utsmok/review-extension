@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureForMetadataField } from "@/lib/capture";
 import { useRubric, useTabNavigation } from "@/lib/contexts";
+import { ensureArray } from "@/lib/metadata-utils";
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
 import ExportCompleteScreen from "./ExportCompleteScreen";
@@ -489,13 +490,7 @@ export default function Metadata() {
         <PillField
           label="Data Sources"
           options={DATA_SOURCE_OPTIONS}
-          selected={
-            Array.isArray(session.dataSources)
-              ? session.dataSources
-              : session.dataSources
-                ? [session.dataSources]
-                : []
-          }
+          selected={ensureArray(session.dataSources)}
           onChange={(next) => updateMetadata({ dataSources: next })}
           placeholder="Add custom source..."
         />
@@ -503,19 +498,13 @@ export default function Metadata() {
         <PillField
           label="Search Methods"
           options={SEARCH_METHOD_OPTIONS}
-          selected={
-            Array.isArray(session.searchMethods)
-              ? session.searchMethods
-              : session.searchMethods
-                ? [session.searchMethods]
-                : []
-          }
+          selected={ensureArray(session.searchMethods)}
           onChange={(next) => updateMetadata({ searchMethods: next })}
           placeholder="Add custom method..."
         />
 
         <DisciplineField
-          selected={Array.isArray(session.discipline) ? session.discipline : []}
+          selected={ensureArray(session.discipline)}
           onChange={(next) => updateMetadata({ discipline: next })}
         />
 
@@ -703,9 +692,10 @@ function DisciplineField({
     }
   };
 
-  // Check if user has selected anything beyond the default
+  // Auto-expand if user has selected non-default options; stay expanded once manually opened
   const hasNonDefault = selected.some((s) => s !== DISCIPLINE_DEFAULT);
-  const shouldAutoExpand = expanded || hasNonDefault;
+  if (hasNonDefault && !expanded) setExpanded(true);
+  const isOpen = expanded;
 
   return (
     <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
@@ -725,12 +715,12 @@ function DisciplineField({
           type="button"
           className="text-ut-xs text-ut-muted hover:text-trust-magenta underline underline-offset-2 transition-colors px-ut-1"
           onClick={() => setExpanded((v) => !v)}
-          aria-expanded={shouldAutoExpand}
+          aria-expanded={isOpen}
         >
-          {shouldAutoExpand ? "fewer options ↑" : "more options ↓"}
+          {isOpen ? "fewer options ↑" : "more options ↓"}
         </button>
       </div>
-      {shouldAutoExpand && (
+      {isOpen && (
         <>
           <div className="flex flex-wrap gap-ut-1 mb-ut-1 max-h-48 overflow-y-auto">
             {DISCIPLINE_OTHERS.map((opt) => (
