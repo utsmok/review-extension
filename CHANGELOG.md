@@ -1,5 +1,56 @@
 # Changelog
 
+
+## v0.7.0 — 2026-06-05
+
+### New: Finalize & Export Buttons in Top Bar
+
+Two new action buttons appear in the review header next to the quick-access tools:
+
+- **Finalize** — navigates to the Finalize tab. The button is desaturated by default; when all evaluation questions are scored it turns green and pulses gently to draw attention. Once the review is finalized, the pulse stops but the green color remains.
+- **Export** — downloads the review as a .zip file regardless of finalization state. Works even with empty fields. Uses the same magenta accent as the rest of the brand.
+
+Both buttons show an icon and a text label, separated from the quick tools by a thin divider.
+
+### New: Discipline Accordion
+
+The Discipline field in Metadata now shows only "Multidisciplinary" by default (the most common choice for information tools), with a "more options ↓" toggle that expands to reveal all 39 discipline options plus the custom input field. If a previously imported session already has non-default disciplines selected, the accordion auto-expands to show them. Once expanded, it stays expanded until the user collapses it.
+
+### Fixed: Nutrition Label Score Circles
+
+The score circles on the TRUST Label (nutrition label) now correctly show scores out of 3 instead of out of 4. The rubric uses a 0–3 scale (4 levels), so a perfect score now shows ●●● 3/3 instead of ●●●● 4/4. This also fixes incorrect overall scores when a principle has only one question (e.g., AI-only tools where TR has a single rubric question).
+
+### Fixed: Question Count Overflow on Import
+
+Importing a review from an older version of the framework (which had more questions) could show "15/14 questions answered" in reports and on the session list. The answered count is now capped at the total for the current rubric, so the display never exceeds 100%.
+
+### Fixed: Metadata Type Safety for Older Imports
+
+Older exported sessions sometimes stored array fields (discipline, dataSources, searchMethods) as plain strings instead of arrays, causing crashes like `(t.discipline ?? []).join is not a function`. A shared `ensureArray()` utility now handles all three cases gracefully across the metadata form, CSV export, and HTML report — a string value is treated as a single-element array.
+
+### Fixed: Tool Logo in Exported Reports
+
+The tool logo in exported HTML reports now uses an inlined data URL instead of linking to the original remote image. This means the logo appears correctly when the report is viewed offline. The favicon is also inlined. If the remote fetch fails, the original URL is kept as fallback.
+
+### Fixed: Blank Canvas on Imported Evidence
+
+Opening the annotation editor on evidence from an imported .zip (especially from older framework versions) could show a blank tldraw canvas with the capture info visible below. The image loading is now decoupled from tldraw's mount lifecycle — it waits for both the editor and the screenshot data to be available before rendering the background image. This fixes the race condition where the editor mounted before the IDB screenshot store had loaded.
+
+### Fixed: Modal Viewport Positioning
+
+The evidence annotation modal now explicitly uses `top/left/right/bottom: 0` with `overflow-y: auto`, ensuring it covers the full viewport and stays centered even in extension sidepanel contexts where `inset: 0` shorthand may behave unexpectedly.
+
+### Fixed: Annotation Stroke Size
+
+The default pen size in the annotation editor is now correctly set to "L" (large). Previously, a hardcoded "m" was overriding the configured default, making annotations too thin on captured screenshots.
+
+### Under the Hood
+
+- Full Playwright E2E test suite added (13 tests covering session lifecycle, evaluation, captures, finalization, and extension behavior)
+- Dead code removed: unused screenshot compression pass-throughs, unused `compact` prop on DoneToggle
+- Tooltip titles aligned with ARIA labels for consistency
+- README rewritten with logo, feature overview, usage guide, and development setup instructions
+
 ## v0.6.0 — 2026-06-01
 
 ### New: Score Overview Bar
