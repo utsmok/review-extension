@@ -16,6 +16,14 @@ import type {
   SessionMetadata,
 } from "./types";
 
+/** Coerce a metadata field to a string array. Older exports may store arrays as strings. */
+function ensureArray(val: string | string[] | undefined): string[] {
+  if (val == null) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string") return val ? [val] : [];
+  return [];
+}
+
 // biome-ignore lint/complexity/useRegexLiterals: must use RegExp constructor to avoid noControlCharactersInRegex
 const INVALID_FILENAME_CHARS = new RegExp('[<>:"/\\\\|?*\u0000-\u001F]', "g");
 /**
@@ -208,9 +216,9 @@ export async function prepareExportArtifacts(
         Availability: metadata.availability ?? "",
         Terms_Conditions_URL: metadata.termsConditionsUrl ?? "",
         Authentication_Method: metadata.authenticationMethod ?? "",
-        Data_Sources: (metadata.dataSources ?? []).join("; "),
-        Search_Methods: (metadata.searchMethods ?? []).join("; "),
-        Discipline: (metadata.discipline ?? []).join("; "),
+        Data_Sources: ensureArray(metadata.dataSources).join("; "),
+        Search_Methods: ensureArray(metadata.searchMethods).join("; "),
+        Discipline: ensureArray(metadata.discipline).join("; "),
         Tool_Description: metadata.description ?? "",
         Tool_Logo_URL: metadata.toolLogoUrl ?? "",
         Favicon_URL: metadata.faviconUrl ?? "",
@@ -310,15 +318,36 @@ export async function prepareExportArtifacts(
     const base64 = jpegUrl.split(",")[1] ?? "";
     imageFiles.set(name, base64);
   }
+  // ── Inline remote images (tool logo, favicon) for standalone reports ──
+  const reportMetadata = { ...metadata };
+  for (const field of ["toolLogoUrl", "faviconUrl"] as const) {
+    const url = reportMetadata[field];
+    if (url && !url.startsWith("data:")) {
+      try {
+        const resp = await fetch(url, { mode: "cors" });
+        if (resp.ok) {
+          const blob = await resp.blob();
+          const b64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+          reportMetadata[field] = b64;
+        }
+      } catch {
+        // Silently skip — report will use the original URL as fallback
+      }
+    }
+  }
   // ── HTML reports (fully standalone — all images inline) ─────────────
   const htmlReport = await buildHtmlReport(
-    metadata,
+    reportMetadata,
     capturesForReport,
     evaluations,
     rubric,
     finalization,
   );
-  const labelHtml = await buildNutritionLabel(metadata, evaluations, rubric, finalization);
+  const labelHtml = await buildNutritionLabel(reportMetadata, evaluations, rubric, finalization);
 
   const safeName = sanitizeFilename(metadata.toolName);
 

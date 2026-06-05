@@ -735,13 +735,17 @@ body {
 
 .modal-backdrop {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: var(--ut-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-8) var(--space-3) var(--space-3);
   z-index: 9999;
+  overflow-y: auto;
 }
 
 .modal-panel {
@@ -2820,4 +2824,70 @@ body {
   font-family: var(--ff-mono);
   font-size: var(--text-xs);
   line-height: 1.6;
+}
+
+/* ── Top bar action buttons (Finalize / Export) ─────────────── */
+.top-action-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ut-slate);
+}
+.top-action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.6);
+}
+.top-action-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.top-action-btn:focus-visible {
+  outline: 2px solid var(--ut-blue);
+  outline-offset: 2px;
+}
+
+/* Finalize button — low saturation default, higher when ready */
+.top-action-btn--finalize {
+  color: hsl(220 10% 55%);
+  border-color: hsl(220 10% 85%);
+}
+.top-action-btn--finalize.ready {
+  color: hsl(142 50% 35%);
+  border-color: hsl(142 40% 65%);
+  background: hsl(142 40% 92%);
+  animation: finalize-pulse 2s ease-in-out infinite;
+}
+.top-action-btn--finalize.done {
+  color: hsl(142 50% 35%);
+  border-color: hsl(142 40% 65%);
+  background: hsl(142 40% 92%);
+  animation: none;
+}
+.top-action-btn--finalize:hover:not(:disabled) {
+  border-color: hsl(142 40% 55%);
+  background: hsl(142 30% 88%);
+}
+
+/* Export button */
+.top-action-btn--export {
+  color: var(--trust-magenta);
+  border-color: var(--trust-magenta-border);
+}
+.top-action-btn--export:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: var(--trust-magenta);
+}
+
+@keyframes finalize-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(142 40% 50% / 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px hsl(142 40% 50% / 0.25);
+  }
 }

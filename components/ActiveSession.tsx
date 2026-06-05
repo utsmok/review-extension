@@ -49,13 +49,21 @@ function TabCheck() {
 
 export default function ActiveSession() {
   const { activeTab, setActiveTab, handleKeyDown } = useRovingTabIndex(tabs, "Evaluation");
-  const { session, closeSession, evaluations, finalization, addCapture, updateMetadata } =
-    useActiveSession();
+  const {
+    session,
+    closeSession,
+    evaluations,
+    finalization,
+    addCapture,
+    updateMetadata,
+    exportAndClose,
+  } = useActiveSession();
   const { rubric } = useRubric();
 
   const [quickNoteOpen, setQuickNoteOpen] = useState(false);
   const [quickNoteText, setQuickNoteText] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const { capturing, run } = useCaptureAction();
   const helpRef = useRef<HTMLDivElement>(null);
   const noteRef = useRef<HTMLTextAreaElement>(null);
@@ -105,7 +113,13 @@ export default function ActiveSession() {
   }, [evaluations, rubric, session?.usesAi]);
 
   const finalizeComplete = useMemo(() => !!finalization, [finalization]);
+  const readyToFinalize = evaluationComplete && !finalization?.finalizedAt;
 
+  const handleTopExport = async () => {
+    setExporting(true);
+    await exportAndClose(rubric);
+    setExporting(false);
+  };
   const handleSaveQuickNote = () => {
     const text = quickNoteText.trim();
     if (text) {
@@ -270,6 +284,61 @@ export default function ActiveSession() {
                 <circle cx="8.5" cy="8.5" r="1.5" />
                 <polyline points="21 15 16 10 5 21" />
               </svg>
+            </button>
+          </div>
+          {/* Action buttons — Finalize & Export */}
+          <div className="flex items-center gap-ut-1 ml-ut-1 pl-ut-2 border-l border-trust-magenta-border">
+            <button
+              type="button"
+              className={`top-action-btn top-action-btn--finalize ${readyToFinalize ? "ready" : ""} ${finalizeComplete ? "done" : ""}`}
+              title="Finalize — Write conclusion and grade this review"
+              aria-label={finalizeComplete ? "Review finalized" : "Finalize review"}
+              onClick={() => setActiveTab("Finalize")}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+              <span className="text-ut-2xs font-heading font-bold uppercase tracking-ut-label ml-0.5">
+                Finalize
+              </span>
+            </button>
+            <button
+              type="button"
+              className="top-action-btn top-action-btn--export"
+              title="Export — Download review as .zip"
+              aria-label="Export review"
+              disabled={exporting}
+              onClick={handleTopExport}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span className="text-ut-2xs font-heading font-bold uppercase tracking-ut-label ml-0.5">
+                {exporting ? "..." : "Export"}
+              </span>
             </button>
           </div>
           <div className="relative" ref={helpRef}>

@@ -92,7 +92,11 @@ export function computeReportScores(
 
   const totalQGQuestions = visibleGates.length;
   const totalQuestions = totalScoringQuestions + totalQGQuestions;
-  const answeredQuestions = answeredScoringQuestions + answeredQGQuestions;
+  // Cap answered count — imported reviews from older rubrics may have more answers than current questions
+  const answeredQuestions = Math.min(
+    answeredScoringQuestions + answeredQGQuestions,
+    totalQuestions,
+  );
   const isComplete = totalQuestions > 0 && answeredQuestions >= totalQuestions;
 
   const ratio = totalMax > 0 ? totalActual / totalMax : 0;

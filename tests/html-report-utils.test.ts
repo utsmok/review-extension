@@ -122,13 +122,13 @@ describe("formatDate() — date formatting", () => {
 // ── 4. scoreCircles() via buildNutritionLabel output ─────────────────
 
 describe("scoreCircles() — circle rendering", () => {
-  it("all scores = 3 → 4 filled circles per principle", async () => {
+  it("all scores = 3 → 3 filled circles per principle", async () => {
     const html = await label({}, allScored(3));
-    // avg for each principle = 3.0 → filled = 4
+    // avg for each principle = 3.0 → filled = 3
     const matches = html.match(/class="circle filled"/g);
     expect(matches).not.toBeNull();
-    // 5 principles × 4 filled + 1 overall × 4 filled = 24 filled circles
-    expect(matches?.length).toBe(24);
+    // 5 principles × 3 filled + 1 overall × 3 filled = 18 filled circles
+    expect(matches?.length).toBe(18);
   });
 
   it("all scores = 0 → 0 filled circles per principle", async () => {
@@ -138,14 +138,14 @@ describe("scoreCircles() — circle rendering", () => {
     expect(matches).toBeNull();
   });
 
-  it("no scoring evaluations → 4 empty circles per principle (null avg)", async () => {
+  it("no scoring evaluations → 3 empty circles per principle (null avg)", async () => {
     const html = await label({}, []);
     // No evaluations → null avg → all empty circles
     const filled = html.match(/class="circle filled"/g);
     const empty = html.match(/class="circle empty"/g);
     expect(filled).toBeNull();
-    // 5 principles × 4 empty + 1 overall × 4 empty = 24 empty circles
-    expect(empty?.length).toBe(24);
+    // 5 principles × 3 empty + 1 overall × 3 empty = 18 empty circles
+    expect(empty?.length).toBe(18);
   });
 
   it("mixed scores averaging exactly 1.5 → 2 filled circles", async () => {

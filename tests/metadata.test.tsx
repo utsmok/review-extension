@@ -456,6 +456,9 @@ describe("Metadata", () => {
     seedActiveSession();
     renderMetadata();
 
+    // Expand the accordion to see all options
+    fireEvent.click(screen.getByText(/more options/i));
+
     // These should appear as buttons (pill selectors)
     const csBtn = screen.getByText("Computer Science").closest("button") as HTMLElement;
     expect(csBtn).toBeDefined();
@@ -463,10 +466,12 @@ describe("Metadata", () => {
     const medBtn = screen.getByText("Medicine").closest("button") as HTMLElement;
     expect(medBtn).toBeDefined();
   });
-
   it("toggles predefined discipline pill", () => {
     seedActiveSession();
     renderMetadata();
+
+    // Expand the accordion to see all options
+    fireEvent.click(screen.getByText(/more options/i));
 
     const csBtn = screen.getByText("Computer Science").closest("button") as HTMLElement;
     fireEvent.click(csBtn);
@@ -483,6 +488,9 @@ describe("Metadata", () => {
   it("adds a custom discipline and removes it on deselect", () => {
     seedActiveSession();
     renderMetadata();
+
+    // Expand the accordion to see the custom input
+    fireEvent.click(screen.getByText(/more options/i));
 
     const input = screen.getByPlaceholderText(/add custom discipline/i);
     fireEvent.change(input, { target: { value: "My Field" } });

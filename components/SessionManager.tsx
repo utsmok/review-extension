@@ -261,12 +261,14 @@ function SessionCard({
         if (cancelled || !data) return;
         const rubric = RUBRIC_DATA;
         const usesAi = s.usesAi ?? true;
-        const total = getVisibleRubricQuestionIds(rubric, usesAi).length;
+        const visibleIds = new Set(getVisibleRubricQuestionIds(rubric, usesAi));
+        const total = visibleIds.size;
         const scored = data.evaluations.filter(
-          (e) => e.score !== "" && e.score !== undefined,
+          (e) => visibleIds.has(e.rubricId) && e.score !== "" && e.score !== undefined,
         ).length;
-        const pct = total > 0 ? Math.round((scored / total) * 100) : 0;
-        setProgress({ pct, scored, total });
+        const cappedScored = Math.min(scored, total);
+        const pct = total > 0 ? Math.min(100, Math.round((cappedScored / total) * 100)) : 0;
+        setProgress({ pct, scored: cappedScored, total });
       })
       .catch(() => {
         // Silent — progress bar simply won't show

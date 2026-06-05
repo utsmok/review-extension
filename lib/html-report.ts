@@ -23,6 +23,14 @@ const PRINCIPLE_NAMES: Record<string, string> = Object.fromEntries(
 import reportCss from "./report.css?raw";
 export const REPORT_CSS = reportCss;
 
+/** Coerce a metadata field to a string array. Older exports may store arrays as strings. */
+function ensureArray(val: string | string[] | undefined): string[] {
+  if (val == null) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string") return val ? [val] : [];
+  return [];
+}
+
 // ── Utilities ──────────────────────────────────────────────────────────
 
 /** HTML-escape a string for safe embedding in templates. */
@@ -63,13 +71,13 @@ function formatDate(isoString: string): string {
 
 const EMPTY_CIRCLE = '<span class="circle empty">&#9675;</span>';
 const FILLED_CIRCLE = '<span class="circle filled">&#9679;</span>';
-const ALL_EMPTY_CIRCLES = `<span class="circles">${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}</span><span class="circle-label">0/4</span>`;
+const ALL_EMPTY_CIRCLES = `<span class="circles">${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}</span><span class="circle-label">0/3</span>`;
 const EXAMPLE_LEVELS = ["0", "1", "2", "3"] as const;
 
 function scoreCircles(avg: number | null): string {
   if (avg === null) return ALL_EMPTY_CIRCLES;
-  const filled = avg < 0.5 ? 0 : avg < 1.5 ? 1 : avg < 2.5 ? 2 : avg >= 3 ? 4 : 3;
-  return `<span class="circles">${FILLED_CIRCLE.repeat(filled)}${EMPTY_CIRCLE.repeat(4 - filled)}</span><span class="circle-label">${filled}/4</span>`;
+  const filled = Math.min(3, avg < 0.5 ? 0 : avg < 1.5 ? 1 : avg < 2.5 ? 2 : 3);
+  return `<span class="circles">${FILLED_CIRCLE.repeat(filled)}${EMPTY_CIRCLE.repeat(3 - filled)}</span><span class="circle-label">${filled}/3</span>`;
 }
 
 // ── Section builders (render from ReportModel slices) ──────────────────
@@ -570,9 +578,24 @@ ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, model.sco
   </div>
   <dl class="report-meta">
     ${metadata.description ? `<dt class="report-meta-label">Description</dt><dd class="report-meta-value report-meta-value--italic">${esc(metadata.description)}</dd>` : ""}
-    ${metadata.dataSources?.length ? `<dt class="report-meta-label">Data sources</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.dataSources.join(", "))}</dd>` : ""}
-    ${metadata.searchMethods?.length ? `<dt class="report-meta-label">Search methods</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.searchMethods.join(", "))}</dd>` : ""}
-    ${metadata.discipline?.length ? `<dt class="report-meta-label">Discipline</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.discipline.join(", "))}</dd>` : ""}
+    ${(() => {
+      const a = ensureArray(metadata.dataSources);
+      return a.length
+        ? `<dt class="report-meta-label">Data sources</dt><dd class="report-meta-value report-meta-value--muted">${esc(a.join(", "))}</dd>`
+        : "";
+    })()}
+    ${(() => {
+      const a = ensureArray(metadata.searchMethods);
+      return a.length
+        ? `<dt class="report-meta-label">Search methods</dt><dd class="report-meta-value report-meta-value--muted">${esc(a.join(", "))}</dd>`
+        : "";
+    })()}
+    ${(() => {
+      const a = ensureArray(metadata.discipline);
+      return a.length
+        ? `<dt class="report-meta-label">Discipline</dt><dd class="report-meta-value report-meta-value--muted">${esc(a.join(", "))}</dd>`
+        : "";
+    })()}
     ${metadata.company ? `<dt class="report-meta-label">Publisher</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.company)}</dd>` : ""}
     ${metadata.pricing ? `<dt class="report-meta-label">Pricing</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.pricing)}</dd>` : ""}
     ${metadata.availability ? `<dt class="report-meta-label">Availability</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.availability)}</dd>` : ""}

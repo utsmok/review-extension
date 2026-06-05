@@ -107,9 +107,13 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     return () => clearTimeout(timer);
   }, []);
 
-  /* ── tldraw mount: load image as locked background ── */
+  /* ── tldraw mount: store editor reference ── */
   const onMount = (ed: Editor) => {
     setEditor(ed);
+  };
+  /* ── Load image as locked background once editor + imageSrc are ready ── */
+  useEffect(() => {
+    if (!editor || !imageSrc) return;
 
     const img = new Image();
     img.onload = () => {
@@ -117,7 +121,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
       const h = img.naturalHeight;
 
       const assetId = AssetRecordType.createId();
-      ed.createAssets([
+      editor.createAssets([
         {
           id: assetId,
           typeName: "asset",
@@ -135,7 +139,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
       ]);
 
       const shapeId = createShapeId();
-      ed.createShape({
+      editor.createShape({
         id: shapeId,
         type: "image",
         x: 0,
@@ -146,34 +150,42 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
 
       // Keep image at bottom z-order
       const ensureBottom = () => {
-        const shape = ed.getShape(shapeId);
+        const shape = editor.getShape(shapeId);
         if (!shape) return;
-        const pageId = ed.getCurrentPageId();
-        if (shape.parentId !== pageId) ed.moveShapesToPage([shape], pageId);
-        const siblings = ed.getSortedChildIdsForParent(pageId);
-        const bottom = ed.getShape(siblings[0]);
-        if (bottom && bottom.id !== shapeId) ed.sendToBack([shape]);
+        const pageId = editor.getCurrentPageId();
+        if (shape.parentId !== pageId) editor.moveShapesToPage([shape], pageId);
+        const siblings = editor.getSortedChildIdsForParent(pageId);
+        const bottom = editor.getShape(siblings[0]);
+        if (bottom && bottom.id !== shapeId) editor.sendToBack([shape]);
       };
 
       ensureBottom();
-      const rmCreate = ed.sideEffects.registerAfterCreateHandler("shape", ensureBottom);
-      const rmChange = ed.sideEffects.registerAfterChangeHandler("shape", ensureBottom);
-      const rmLock = ed.sideEffects.registerBeforeChangeHandler("shape", (prev, next) => {
+      const rmCreate = editor.sideEffects.registerAfterCreateHandler("shape", ensureBottom);
+      const rmChange = editor.sideEffects.registerAfterChangeHandler("shape", ensureBottom);
+      const rmLock = editor.sideEffects.registerBeforeChangeHandler("shape", (prev, next) => {
         if (next.id !== shapeId || next.isLocked) return next;
         return { ...prev, isLocked: true };
       });
 
       // Set default tool to arrow
-      ed.setCurrentTool("arrow");
-      ed.clearHistory();
+      editor.setCurrentTool("arrow");
+      editor.clearHistory();
 
       setImageShapeId(shapeId);
 
       // Cleanup stored on editor for later use
-      (ed as Editor & { _cleanupFns?: (() => void)[] })._cleanupFns = [rmCreate, rmChange, rmLock];
+      (editor as Editor & { _cleanupFns?: (() => void)[] })._cleanupFns = [
+        rmCreate,
+        rmChange,
+        rmLock,
+      ];
+    };
+    img.onerror = () => {
+      // Image failed to load — canvas stays blank, user can still annotate
+      editor.clearHistory();
     };
     img.src = imageSrc;
-  };
+  }, [editor, imageSrc]);
 
   /* ── Camera constraints ── */
   useEffect(() => {
