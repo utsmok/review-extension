@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureForMetadataField } from "@/lib/capture";
 import { useRubric, useTabNavigation } from "@/lib/contexts";
@@ -692,9 +692,11 @@ function DisciplineField({
     }
   };
 
-  // Auto-expand if user has selected non-default options; stay expanded once manually opened
+  // Auto-expand if user has selected non-default options
   const hasNonDefault = selected.some((s) => s !== DISCIPLINE_DEFAULT);
-  if (hasNonDefault && !expanded) setExpanded(true);
+  useEffect(() => {
+    if (hasNonDefault && !expanded) setExpanded(true);
+  }, [hasNonDefault, expanded]);
   const isOpen = expanded;
 
   return (

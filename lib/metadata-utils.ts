@@ -6,6 +6,6 @@
 export function ensureArray(val: string | string[] | undefined): string[] {
   if (val == null) return [];
   if (Array.isArray(val)) return val;
-  if (typeof val === "string") return val ? [val] : [];
-  return [];
+  // At this point val is a string (the only remaining type)
+  return val ? [val] : [];
 }
