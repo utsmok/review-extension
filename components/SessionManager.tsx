@@ -342,7 +342,8 @@ function SessionCard({
           className="text-ut-muted hover:text-ut-navy transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
           onClick={(e) => {
             e.stopPropagation();
-            window.open(s.toolUrl, "_blank");
+            const url = s.toolUrl?.trim() ?? "";
+            if (/^https?:\/\//i.test(url)) window.open(url, "_blank");
           }}
         >
           <svg

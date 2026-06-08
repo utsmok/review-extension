@@ -167,9 +167,9 @@ export default function Metadata() {
   const handleCaptureLogo = async () => {
     setLogoCapturing(true);
     try {
-      const { capture, logoUrl } = await captureForMetadataField("toolLogoUrl");
+      const { capture, logoUrl, logoDataUrl } = await captureForMetadataField("toolLogoUrl");
       addCapture(capture);
-      updateMetadata({ toolLogoUrl: logoUrl ?? "" });
+      updateMetadata({ toolLogoUrl: logoDataUrl || logoUrl || "" });
     } catch (err) {
       toastError(err instanceof Error ? err.message : "Capture failed");
     } finally {

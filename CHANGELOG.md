@@ -1,6 +1,33 @@
 # Changelog
 
 
+## v0.7.1 — 2026-06-08
+
+### Security: Manifest Hardening for Chrome Web Store
+
+Several changes to reduce the extension's permission surface and make its security posture structurally verifiable by Chrome Web Store reviewers:
+
+- **Dropped `tabs` permission.** Host permissions (`<all_urls>`) already provide access to tab URL, title, and favicon. One fewer permission in the manifest.
+- **Added strict Content Security Policy.** `connect-src 'self'` blocks all outbound network requests from extension pages. The extension literally cannot phone home.
+- **Moved image fetches into content scripts.** Logo extraction (`fetch(logoUrl)`) and report image inlining now run inside `executeScript` (page context) instead of the extension context. No extension-level network access needed.
+- **Explicit `world: "ISOLATED"` on all content scripts.** Injected functions run in Chrome's isolated JavaScript world — they can read DOM but cannot access or be affected by page JavaScript.
+- **Security documentation in manifest config.** Inline comments in `wxt.config.ts` document the threat model: no outbound network, isolated content scripts, zero eval, hardcoded read-only DOM queries.
+
+### Security: Additional Fixes
+
+- **URL scheme validation on `window.open`.** The "Open tool in new tab" button in the session list now validates that the URL starts with `http://` or `https://`, preventing `javascript:` scheme injection from manually entered URLs.
+
+### Full Security Audit Summary
+
+- Zero `innerHTML`, `dangerouslySetInnerHTML`, `eval()`, `new Function()`, or `document.write()` in production code
+- HTML report escapes all user data via `esc()` and validates URLs via `isSafeUrl()`
+- CSV export uses PapaParse's built-in escaping
+- ZIP import validates size limits, entry count, path traversal, and schema
+- Archive sanitizer strips scripts, iframes, event handlers, and dangerous URLs
+- No `postMessage` communication with web pages
+- 2 dev-dependency CVEs (`tmp`, `uuid`) are in the WXT tooling chain only — no production exposure
+
+
 ## v0.7.0 — 2026-06-05
 
 ### New: Finalize & Export Buttons in Top Bar

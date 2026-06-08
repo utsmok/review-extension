@@ -262,9 +262,8 @@ export default function ActiveSession() {
                 run(async () => {
                   const result = await captureForMetadataField("toolLogoUrl");
                   addCapture(result.capture);
-                  // Store the direct image link (SVG/PNG) as evidence
                   updateMetadata({
-                    toolLogoUrl: result.logoUrl ?? "",
+                    toolLogoUrl: result.logoDataUrl || result.logoUrl || "",
                   });
                 });
               }}

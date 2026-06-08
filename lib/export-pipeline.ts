@@ -311,27 +311,8 @@ export async function prepareExportArtifacts(
     const base64 = jpegUrl.split(",")[1] ?? "";
     imageFiles.set(name, base64);
   }
-  // ── Inline remote images (tool logo, favicon) for standalone reports ──
+  // ── Inline remote images — already converted to data URLs at capture time ──
   const reportMetadata = { ...metadata };
-  for (const field of ["toolLogoUrl", "faviconUrl"] as const) {
-    const url = reportMetadata[field];
-    if (url && !url.startsWith("data:")) {
-      try {
-        const resp = await fetch(url, { mode: "cors" });
-        if (resp.ok) {
-          const blob = await resp.blob();
-          const b64 = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.readAsDataURL(blob);
-          });
-          reportMetadata[field] = b64;
-        }
-      } catch {
-        // Silently skip — report will use the original URL as fallback
-      }
-    }
-  }
   // ── HTML reports (fully standalone — all images inline) ─────────────
   const htmlReport = await buildHtmlReport(
     reportMetadata,

@@ -37,6 +37,7 @@ export async function captureActiveTab(): Promise<Capture> {
   const [result] = await browser.scripting.executeScript({
     target: { tabId: tab.id },
     func: archivePageHtml,
+    world: "ISOLATED",
   });
 
   const scriptResult = result?.result as { html: string; title: string } | undefined;
