@@ -1,32 +1,10 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from "vitest";
-
-// Zustand persist captures window.localStorage at import time.
-// WxtVitest's jsdom provides a broken localStorage — stub it BEFORE store imports.
-const _lsStore = vi.hoisted(() => {
-  const store: Record<string, string> = {};
-  const shim = {
-    getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => {
-      store[key] = value;
-    },
-    removeItem: (key: string) => {
-      delete store[key];
-    },
-    clear: () => {
-      for (const k of Object.keys(store)) delete store[k];
-    },
-    get length() {
-      return Object.keys(store).length;
-    },
-    key: (i: number) => Object.keys(store)[i] ?? null,
-  };
-  globalThis.localStorage = shim as Storage;
-  return store;
-});
+// localStorage shim provided by setupFiles — see tests/helpers/local-storage.ts
 
 import { renderHook } from "@testing-library/react";
-import { RubricContext, useRubric, useTabNavigation, TabNavigationContext } from "@/lib/contexts";
+
+import { describe, expect, it } from "vitest";
+import { RubricContext, TabNavigationContext, useRubric, useTabNavigation } from "@/lib/contexts";
 import { RUBRIC } from "@/tests/fixtures";
 
 describe("useRubric", () => {

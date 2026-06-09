@@ -263,8 +263,8 @@ describe("useActiveSession", () => {
       );
       expect(downloadBlob).toHaveBeenCalledWith(blob, "TRUST_Review_Test_Tool.zip");
 
-      expect(useRegistryStore.getState().activeSessionId).toBeNull();
-      expect(useSessionStore.getState().session).toBeNull();
+      expect(useRegistryStore.getState().activeSessionId).toBe("sess-export");
+      expect(useSessionStore.getState().session).not.toBeNull();
     });
 
     it("calls toastError when no session is active", async () => {

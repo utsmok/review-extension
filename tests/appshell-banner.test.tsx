@@ -1,30 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-
-// Zustand persist captures `window.localStorage` at import time.
-// WxtVitest's jsdom provides a broken localStorage — stub it BEFORE store imports.
-const _lsStore: Record<string, string> = vi.hoisted(() => {
-  const store: Record<string, string> = {};
-  const shim = {
-    getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => {
-      store[key] = String(value);
-    },
-    removeItem: (key: string) => {
-      delete store[key];
-    },
-    clear: () => {
-      for (const k of Object.keys(store)) delete store[k];
-    },
-    get length() {
-      return Object.keys(store).length;
-    },
-    key: (index: number) => Object.keys(store)[index] ?? null,
-  };
-  globalThis.localStorage = shim as Storage;
-  return store;
-});
+// localStorage shim provided by setupFiles — see tests/helpers/local-storage.ts
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -37,7 +14,6 @@ afterEach(() => {
   useRegistryStore.getState().updateSettings({
     reviewerName: "",
     reviewerEmail: "",
-    setupBannerDismissed: false,
   });
 });
 
@@ -56,46 +32,48 @@ function renderAppShell(overrides?: {
 
 describe("Setup Banner", () => {
   it("shows the banner when reviewerName is empty", () => {
-    useRegistryStore.getState().updateSettings({ reviewerName: "", setupBannerDismissed: false });
+    useRegistryStore.getState().updateSettings({ reviewerName: "" });
     renderAppShell();
     expect(screen.getByTestId("setup-banner")).toBeDefined();
     expect(screen.getByText("Set up your reviewer name to get started.")).toBeDefined();
   });
 
   it("hides the banner when reviewerName is set", () => {
-    useRegistryStore
-      .getState()
-      .updateSettings({ reviewerName: "Alice", setupBannerDismissed: false });
+    useRegistryStore.getState().updateSettings({ reviewerName: "Alice" });
     renderAppShell();
     expect(screen.queryByTestId("setup-banner")).toBeNull();
   });
 
-  it("hides the banner after dismissal", () => {
-    useRegistryStore.getState().updateSettings({ reviewerName: "", setupBannerDismissed: false });
-    renderAppShell();
-    const dismissBtn = screen.getByLabelText("Dismiss");
-    fireEvent.click(dismissBtn);
+
+  it("hides the banner when reviewerName is set after initial render", () => {
+    useRegistryStore.getState().updateSettings({ reviewerName: "" });
+    const { rerender } = renderAppShell();
+    expect(screen.getByTestId("setup-banner")).toBeDefined();
+
+    useRegistryStore.getState().updateSettings({ reviewerName: "Alice" });
+    rerender(
+      <AppShell onSettingsClick={vi.fn()} showSettingsButton={true}>
+        <div data-testid="child">Content</div>
+      </AppShell>,
+    );
     expect(screen.queryByTestId("setup-banner")).toBeNull();
   });
 
-  it("stays hidden after dismissal even when reviewerName is still empty", () => {
-    useRegistryStore.getState().updateSettings({ reviewerName: "", setupBannerDismissed: false });
+  it("stays visible when reviewerName is empty", () => {
+    useRegistryStore.getState().updateSettings({ reviewerName: "" });
     renderAppShell();
-    fireEvent.click(screen.getByLabelText("Dismiss"));
-    // Verify the store flag is set
-    expect(useRegistryStore.getState().settings.setupBannerDismissed).toBe(true);
+    expect(screen.getByTestId("setup-banner")).toBeDefined();
   });
-
   it("calls onSettingsClick when Open Settings link is clicked", () => {
     const onSettingsClick = vi.fn();
-    useRegistryStore.getState().updateSettings({ reviewerName: "", setupBannerDismissed: false });
+    useRegistryStore.getState().updateSettings({ reviewerName: "" });
     renderAppShell({ onSettingsClick });
     fireEvent.click(screen.getByText("Open Settings"));
     expect(onSettingsClick).toHaveBeenCalledTimes(1);
   });
 
-  it("does not show banner when setupBannerDismissed is true", () => {
-    useRegistryStore.getState().updateSettings({ reviewerName: "", setupBannerDismissed: true });
+  it("does not show banner when reviewerName is already set", () => {
+    useRegistryStore.getState().updateSettings({ reviewerName: "Bob" });
     renderAppShell();
     expect(screen.queryByTestId("setup-banner")).toBeNull();
   });

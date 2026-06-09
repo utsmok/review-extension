@@ -114,18 +114,21 @@ describe("importSessionFromZipFile", () => {
     expect(useRegistryStore.getState().activeSessionId).toBe(data.metadata.id);
   });
 
-  it("rejects importing a duplicate session with correct message", async () => {
+  it("resolves with new ID when importing a duplicate session and shows warning", async () => {
     const { blob, data } = makeZipBlob();
 
     // First import succeeds
-    await importSessionFromZipFile(blob);
+    const originalId = await importSessionFromZipFile(blob);
 
     // Re-mock to return same data for second import
     vi.mocked(importSessionFromZip).mockResolvedValue(data);
 
-    await expect(importSessionFromZipFile(blob)).rejects.toThrow(
-      `A review of "${data.metadata.toolName}" already exists. Delete it first if you want to re-import.`,
-    );
+    const newId = await importSessionFromZipFile(blob);
+
+    // Should resolve with a different ID
+    expect(newId).not.toBe(originalId);
+    expect(typeof newId).toBe("string");
+    expect(newId.length).toBeGreaterThan(0);
   });
 
   it("propagates error when importSessionFromZip rejects", async () => {
@@ -173,23 +176,25 @@ describe("importSessionFromZipFile", () => {
     expect(importSessionFromZip).toHaveBeenCalledWith(blob);
   });
 
-  it("does not save to repository if session already exists", async () => {
+  it("saves duplicate with new ID, preserving original", async () => {
     const { blob, data } = makeZipBlob();
 
-    await importSessionFromZipFile(blob);
+    const originalId = await importSessionFromZipFile(blob);
 
     // Re-mock same data
     vi.mocked(importSessionFromZip).mockResolvedValue(data);
 
-    // Pre-populate registry with the same ID (simulating existing session)
-    try {
-      await importSessionFromZipFile(blob);
-    } catch {
-      // Expected to throw
-    }
+    const newId = await importSessionFromZipFile(blob);
 
-    // Repository should only have one entry
-    const loaded = await getRepository().load(data.metadata.id);
-    expect(loaded?.captures).toHaveLength(1); // original data, not duplicated
+    // New ID should differ from original
+    expect(newId).not.toBe(originalId);
+
+    // Original data still at original ID
+    const original = await getRepository().load(originalId);
+    expect(original?.captures).toHaveLength(1);
+
+    // Duplicate saved at new ID
+    const duplicate = await getRepository().load(newId);
+    expect(duplicate).not.toBeNull();
   });
 });

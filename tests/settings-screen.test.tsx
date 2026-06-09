@@ -1,30 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-
-// Zustand persist captures `window.localStorage` at import time.
-// WxtVitest's jsdom provides a broken localStorage — stub it BEFORE store imports.
-const _lsStore: Record<string, string> = vi.hoisted(() => {
-  const store: Record<string, string> = {};
-  const shim = {
-    getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => {
-      store[key] = String(value);
-    },
-    removeItem: (key: string) => {
-      delete store[key];
-    },
-    clear: () => {
-      for (const k of Object.keys(store)) delete store[k];
-    },
-    get length() {
-      return Object.keys(store).length;
-    },
-    key: (index: number) => Object.keys(store)[index] ?? null,
-  };
-  globalThis.localStorage = shim as Storage;
-  return store;
-});
+// localStorage shim provided by setupFiles — see tests/helpers/local-storage.ts
 
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";

@@ -29,6 +29,7 @@ describe("session lifecycle", () => {
       session: null,
       captures: [],
       evaluations: [],
+      recentlyDeleted: [],
     });
   });
 
@@ -164,6 +165,7 @@ describe("capture management", () => {
       session: null,
       captures: [],
       evaluations: [],
+      recentlyDeleted: [],
     });
   });
 
@@ -218,6 +220,7 @@ describe("evaluation management", () => {
       session: null,
       captures: [],
       evaluations: [],
+      recentlyDeleted: [],
     });
   });
 
@@ -277,6 +280,7 @@ describe("capture ↔ rubric linking (single-direction)", () => {
       session: null,
       captures: [],
       evaluations: [],
+      recentlyDeleted: [],
     });
   });
 
@@ -354,6 +358,7 @@ describe("status management", () => {
       session: null,
       captures: [],
       evaluations: [],
+      recentlyDeleted: [],
     });
   });
 

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import QuestionSection, { QuestionRow } from "@/components/QuestionSection";
@@ -135,9 +135,9 @@ function openDetails(details: HTMLDetailsElement) {
   details.open = true;
 }
 
-/** Wait for a microtask + macrotask flush so React and Zustand settle. */
+/** Wait for React and Zustand state to settle after an interaction. */
 async function flush() {
-  await new Promise<void>((r) => setTimeout(r, 0));
+  await waitFor(() => {});
 }
 
 // ---------------------------------------------------------------------------
