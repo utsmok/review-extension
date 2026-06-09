@@ -116,6 +116,8 @@ export default function Metadata() {
     exportAndClose,
     deleteSession,
     closeSession,
+    quickNotes,
+    removeQuickNote,
   } = useActiveSession();
   const [exporting, setExporting] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
@@ -181,6 +183,7 @@ export default function Metadata() {
     try {
       const { capture } = await captureForMetadataField("termsConditionsUrl");
       addCapture(capture);
+      updateMetadata({ termsConditionsUrl: capture.sourceUrl });
     } catch (err) {
       toastError(err instanceof Error ? err.message : "Capture failed");
     } finally {
@@ -596,6 +599,51 @@ export default function Metadata() {
         </button>
       </div>
 
+      {/* Quick Notes */}
+      {quickNotes.length > 0 && (
+        <div>
+          <h3 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-ut-slate text-ut-xs mb-ut-2">
+            Quick Notes
+          </h3>
+          <ul className="space-y-ut-1">
+            {quickNotes.map((note) => (
+              <li
+                key={note.id}
+                className="flex items-start gap-ut-2 text-ut-sm bg-white rounded-ut-sm px-ut-3 py-ut-2 border border-ut-border"
+              >
+                <span className="text-ut-muted text-ut-xs shrink-0 mt-0.5">
+                  {new Date(note.timestamp).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+                <span className="flex-1 break-words">{note.text}</span>
+                <button
+                  type="button"
+                  className="text-ut-muted hover:text-ut-red transition-colors shrink-0"
+                  aria-label="Remove note"
+                  onClick={() => removeQuickNote(note.id)}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M18 6L6 18" />
+                    <path d="M6 6l12 12" />
+                  </svg>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {showExportConfirm && (
         <ConfirmDialog
           message="Some required fields are missing. Export anyway?"

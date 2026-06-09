@@ -1,10 +1,10 @@
 import { RUBRIC_DATA } from "@/data/rubrics";
 import { exportSession, importSessionFromZip } from "@/lib/export";
+import { deleteScreenshotsForCaptures, saveScreenshot } from "@/lib/screenshot-store";
 import { getRepository } from "@/lib/session-repository";
 import type { SessionData, SessionMetadata } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
-import { deleteScreenshotsForCaptures, saveScreenshot } from "@/lib/screenshot-store";
 import { toastError, toastWarning } from "@/stores/toast";
 
 // --- Auto-save singleton state ---
@@ -143,7 +143,7 @@ async function saveCurrentScreenshots(): Promise<void> {
 
 /** Snapshot current session store state as SessionData, stripping heavy screenshot data. */
 function snapshot(): SessionData | null {
-  const { session, captures, evaluations, finalization } = useSessionStore.getState();
+  const { session, captures, evaluations, finalization, quickNotes } = useSessionStore.getState();
   if (!session) return null;
   // Strip heavy screenshot data from captures before saving to session IDB.
   // Screenshots live in the separate screenshot IDB store.
@@ -152,7 +152,7 @@ function snapshot(): SessionData | null {
     screenshotBase64: "",
     annotatedScreenshotBase64: undefined,
   }));
-  return { metadata: session, captures: strippedCaptures, evaluations, finalization };
+  return { metadata: session, captures: strippedCaptures, evaluations, finalization, quickNotes };
 }
 
 /** Load a session from IDB into the session store. Returns true if data was found. */
@@ -253,14 +253,14 @@ export async function exportSessionById(id: string): Promise<Blob> {
 /** Import a session from an exported ZIP file. Saves to IDB and registers. */
 export async function importSessionFromZipFile(zipBlob: Blob): Promise<string> {
   const data = await importSessionFromZip(zipBlob);
-  const id = data.metadata.id;
+  let id = data.metadata.id;
 
-  // Check if session already exists
+  // Check if session already exists — if so, assign a new ID
   const existing = useRegistryStore.getState().sessionIndex[id];
   if (existing) {
-    throw new Error(
-      `A review of "${existing.toolName}" already exists. Delete it first if you want to re-import.`,
-    );
+    id = crypto.randomUUID();
+    data.metadata = { ...data.metadata, id };
+    toastWarning(`A review of "${existing.toolName}" already exists. Imported as a copy.`);
   }
 
   // Persist imported screenshots to the separate screenshot IDB store

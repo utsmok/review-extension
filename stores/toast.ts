@@ -2,15 +2,21 @@ import { create } from "zustand";
 
 export type ToastType = "error" | "success" | "warning";
 
+interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 interface Toast {
   id: number;
   type: ToastType;
   message: string;
+  action?: ToastAction;
 }
 
 interface ToastStore {
   toasts: Toast[];
-  addToast: (type: ToastType, message: string) => void;
+  addToast: (type: ToastType, message: string, action?: ToastAction) => void;
   removeToast: (id: number) => void;
 }
 
@@ -32,9 +38,9 @@ function clearAllTimers() {
 
 export const useToastStore = create<ToastStore>((set) => ({
   toasts: [],
-  addToast: (type, message) => {
+  addToast: (type, message, action) => {
     const id = nextId++;
-    set((s) => ({ toasts: [...s.toasts, { id, type, message }] }));
+    set((s) => ({ toasts: [...s.toasts, { id, type, message, action }] }));
     const timer = setTimeout(() => {
       pendingTimers.delete(id);
       set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
@@ -52,14 +58,14 @@ export function clearAllToastTimers() {
   clearAllTimers();
 }
 
-export function toastError(message: string) {
-  useToastStore.getState().addToast("error", message);
+export function toastError(message: string, action?: { label: string; onClick: () => void }) {
+  useToastStore.getState().addToast("error", message, action);
 }
 
-export function toastSuccess(message: string) {
-  useToastStore.getState().addToast("success", message);
+export function toastSuccess(message: string, action?: { label: string; onClick: () => void }) {
+  useToastStore.getState().addToast("success", message, action);
 }
 
-export function toastWarning(message: string) {
-  useToastStore.getState().addToast("warning", message);
+export function toastWarning(message: string, action?: { label: string; onClick: () => void }) {
+  useToastStore.getState().addToast("warning", message, action);
 }

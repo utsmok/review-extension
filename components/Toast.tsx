@@ -48,6 +48,18 @@ export default function ToastContainer() {
             <span className="text-ut-xs text-ut-text flex-1 font-body leading-snug">
               {t.message}
             </span>
+            {t.action && (
+              <button
+                type="button"
+                className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-blue hover:underline shrink-0"
+                onClick={() => {
+                  t.action?.onClick();
+                  removeToast(t.id);
+                }}
+              >
+                {t.action.label}
+              </button>
+            )}
             <button
               type="button"
               className="text-ut-slate hover:text-ut-text shrink-0 leading-none text-ut-sm"

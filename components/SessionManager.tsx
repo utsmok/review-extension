@@ -3,9 +3,9 @@ import { RUBRIC_DATA } from "@/data/rubrics";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { downloadBlob, sanitizeFilename } from "@/lib/export";
 import { getVisibleRubricQuestionIds } from "@/lib/rubric";
-import type { SessionMetadata } from "@/lib/types";
 import { exportSessionById, importSessionFromZipFile } from "@/lib/session-lifecycle";
 import { getRepository } from "@/lib/session-repository";
+import type { SessionMetadata } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { toastError, toastSuccess } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
@@ -36,6 +36,8 @@ export default function SessionManager() {
   const [showModal, setShowModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const sessionIndex = useRegistryStore((s) => s.sessionIndex);
+  const markSessionDone = useRegistryStore((s) => s.markSessionDone);
+  const updateSessionMetadata = useRegistryStore((s) => s.updateSessionMetadata);
   const { switchToSession, deleteSession } = useActiveSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
@@ -92,6 +94,16 @@ export default function SessionManager() {
       setImporting(false);
       // Reset input so the same file can be re-selected
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleToggleDone = (id: string) => {
+    const meta = sessionIndex[id];
+    if (!meta) return;
+    if (meta.status === "done") {
+      updateSessionMetadata(id, { status: "in-progress" });
+    } else {
+      markSessionDone(id);
     }
   };
 
@@ -199,6 +211,7 @@ export default function SessionManager() {
                 onSwitch={() => switchToSession(s.id)}
                 onExport={() => handleExport(s.id)}
                 onDelete={() => handleDelete(s.id)}
+                onToggleDone={() => handleToggleDone(s.id)}
               />
             ))}
           </div>
@@ -242,11 +255,13 @@ function SessionCard({
   onSwitch,
   onExport,
   onDelete,
+  onToggleDone,
 }: {
   session: SessionMetadata;
   onSwitch: () => void;
   onExport: () => void;
   onDelete: () => void;
+  onToggleDone: () => void;
 }) {
   const [progress, setProgress] = useState<{ pct: number; scored: number; total: number } | null>(
     null,
@@ -387,6 +402,32 @@ function SessionCard({
             <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" />
             <path d="M8 2v8" />
             <path d="M5 7l3 3 3-3" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          title={isComplete ? "Reopen review" : "Mark as done"}
+          className={`transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100 ${isComplete ? "text-ut-green hover:text-ut-navy" : "text-ut-muted hover:text-ut-green"}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleDone();
+          }}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <title>{isComplete ? "Reopen review" : "Mark as done"}</title>
+            <path d="M14 2v4h-4" />
+            <path d="M2 14v-4h4" />
+            <path d="M14 6A6 6 0 0 0 2 14" />
           </svg>
         </button>
         <button

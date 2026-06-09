@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useCaptureAction } from "@/hooks/useCaptureAction";
+import { useRovingTabIndex } from "@/hooks/useFocus";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { captureActiveTab, captureForMetadataField } from "@/lib/capture";
 import { TabNavigationContext, useRubric } from "@/lib/contexts";
-import { useRovingTabIndex } from "@/hooks/useFocus";
 import { computeCompletion } from "@/lib/rubric";
 import Captures from "./Captures";
 import Evaluation from "./Evaluation";
+import ExportCompleteScreen from "./ExportCompleteScreen";
 import FinalizationScreen from "./FinalizationScreen";
 import Metadata from "./Metadata";
 
@@ -52,10 +53,12 @@ export default function ActiveSession() {
   const {
     session,
     closeSession,
+    captures,
     evaluations,
     finalization,
     addCapture,
     updateMetadata,
+    addQuickNote,
     exportAndClose,
   } = useActiveSession();
   const { rubric } = useRubric();
@@ -64,6 +67,10 @@ export default function ActiveSession() {
   const [quickNoteText, setQuickNoteText] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [exportComplete, setExportComplete] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [exportFilename, setExportFilename] = useState("");
+  const [exportFileSize, setExportFileSize] = useState<number | null>(null);
   const { capturing, run } = useCaptureAction();
   const helpRef = useRef<HTMLDivElement>(null);
   const noteRef = useRef<HTMLTextAreaElement>(null);
@@ -84,7 +91,8 @@ export default function ActiveSession() {
       if (quickNoteOpen) setQuickNoteOpen(false);
       else if (helpOpen) setHelpOpen(false);
     },
-    "Shift+?": () => setHelpOpen((v) => !v),
+    "?": () => setHelpOpen((v) => !v),
+    "Shift+/": () => setHelpOpen((v) => !v),
   });
 
   useEffect(() => {
@@ -112,21 +120,49 @@ export default function ActiveSession() {
     return computeCompletion(evaluations, rubric, session?.usesAi ?? true) === 100;
   }, [evaluations, rubric, session?.usesAi]);
 
-  const finalizeComplete = useMemo(() => !!finalization, [finalization]);
+  const finalizeComplete = useMemo(
+    () => !!(finalization?.finalizedAt && finalization?.grade && finalization?.conclusion?.trim()),
+    [finalization],
+  );
   const readyToFinalize = evaluationComplete && !finalization?.finalizedAt;
 
   const handleTopExport = async () => {
     setExporting(true);
-    await exportAndClose(rubric);
+    setExportError(null);
+    const result = await exportAndClose(rubric);
     setExporting(false);
+    if (result) {
+      setExportFilename(`TRUST_Review_${session?.toolName ?? "review"}.zip`);
+      setExportFileSize(result.blobSize);
+      setExportComplete(true);
+    } else {
+      setExportError("Export failed. Please try again.");
+      setExportComplete(true);
+    }
+  };
+
+  const handleRetryExport = async () => {
+    setExporting(true);
+    const result = await exportAndClose(rubric);
+    setExporting(false);
+    if (result) {
+      setExportFilename(`TRUST_Review_${session?.toolName ?? "review"}.zip`);
+      setExportFileSize(result.blobSize);
+      setExportError(null);
+    }
+  };
+
+  const handleExportDone = () => {
+    setExportComplete(false);
   };
   const handleSaveQuickNote = () => {
     const text = quickNoteText.trim();
     if (text) {
-      const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      const existing = session?.notes ?? "";
-      const updated = existing ? `${existing}\n[${timestamp}] ${text}` : `[${timestamp}] ${text}`;
-      updateMetadata({ notes: updated });
+      addQuickNote({
+        id: crypto.randomUUID(),
+        text,
+        timestamp: new Date().toISOString(),
+      });
     }
     setQuickNoteText("");
     setQuickNoteOpen(false);
@@ -139,7 +175,16 @@ export default function ActiveSession() {
           <button
             type="button"
             className="shrink-0 p-1 rounded-ut-sm text-ut-slate hover:text-trust-magenta hover:bg-white/60 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue"
-            onClick={closeSession}
+            onClick={() => {
+              if (quickNoteOpen && quickNoteText.trim()) {
+                addQuickNote({
+                  id: crypto.randomUUID(),
+                  text: quickNoteText.trim(),
+                  timestamp: new Date().toISOString(),
+                });
+              }
+              closeSession();
+            }}
             title="Close review and return to start"
             aria-label="Close review"
           >
@@ -189,7 +234,7 @@ export default function ActiveSession() {
             {/* Quick Capture */}
             <button
               type="button"
-              className="quick-action-btn"
+              className={`quick-action-btn${capturing ? " is-capturing" : ""}`}
               data-tip="Quick Capture — Screenshot current page"
               title="Quick Capture — Screenshot current page"
               aria-label="Quick capture"
@@ -382,7 +427,8 @@ export default function ActiveSession() {
                     <kbd className="help-kbd">Esc</kbd> Close quick note
                   </li>
                   <li>
-                    <kbd className="help-kbd">?</kbd> Toggle this panel
+                    <kbd className="help-kbd">Shift + /</kbd>{" "}
+                    <span className="text-ut-muted">(?)</span> Toggle this panel
                   </li>
                 </ul>
               </div>
@@ -447,6 +493,30 @@ export default function ActiveSession() {
             );
           })}
         </div>
+        <div
+          role="status"
+          className="px-ut-4 py-ut-1 border-b border-ut-border bg-ut-offwhite flex items-center gap-ut-2 text-ut-2xs text-ut-muted"
+          aria-label="Review progress"
+        >
+          <span className={metadataComplete ? "text-ut-green font-bold" : ""}>
+            Metadata {metadataComplete ? "✓" : "○"}
+          </span>
+          <span className="text-ut-border">·</span>
+          <span className={evaluationComplete ? "text-ut-green font-bold" : ""}>
+            Evaluation{" "}
+            {evaluationComplete
+              ? "✓"
+              : rubric
+                ? `${computeCompletion(evaluations, rubric, session?.usesAi ?? true)}%`
+                : "○"}
+          </span>
+          <span className="text-ut-border">·</span>
+          <span className={finalizeComplete ? "text-ut-green font-bold" : ""}>
+            Finalize {finalizeComplete ? "✓" : "○"}
+          </span>
+          <span className="text-ut-border">·</span>
+          <span>Captures {captures.length}</span>
+        </div>
 
         <div
           role="tabpanel"
@@ -455,72 +525,90 @@ export default function ActiveSession() {
           className="flex-1 min-h-0 overflow-y-auto bg-ut-offwhite tab-panel-content"
           aria-live="polite"
         >
-          {quickNoteOpen && (
-            <div className="quick-note-overlay">
-              <textarea
-                ref={noteRef}
-                rows={2}
-                placeholder="Add a note..."
-                maxLength={2000}
-                aria-label="Quick note"
-                value={quickNoteText}
-                onChange={(e) => setQuickNoteText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    setQuickNoteOpen(false);
-                    return;
-                  }
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSaveQuickNote();
-                  }
-                }}
-              />
-              <button
-                type="button"
-                className="note-action-btn note-save"
-                onClick={handleSaveQuickNote}
-                aria-label="Save note"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                className="note-action-btn note-cancel"
-                onClick={() => {
-                  setQuickNoteOpen(false);
-                  setQuickNoteText("");
-                }}
-                aria-label="Cancel note"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-          <div key={activeTab} className="tab-panel-enter">
-            {activeTab !== "Metadata" &&
-              session &&
-              !session.description?.trim() &&
-              (!session.dataSources || session.dataSources.length === 0) &&
-              !finalization?.finalizedAt && (
-                <div className="bg-score-1/10 border-b border-score-1/30 px-ut-4 py-ut-2 flex items-center justify-between">
-                  <span className="text-ut-xs text-score-1 font-heading">
-                    Complete Tool Details on the Metadata tab before finalizing.
-                  </span>
+          {exportComplete ? (
+            <ExportCompleteScreen
+              captures={captures.length}
+              scoredCount={
+                evaluations.filter((e) => e.score !== "" && e.score !== undefined).length
+              }
+              finalization={finalization}
+              filename={exportFilename}
+              error={exportError}
+              fileSize={exportFileSize ?? undefined}
+              loading={exporting}
+              onRetry={handleRetryExport}
+              onDone={handleExportDone}
+            />
+          ) : (
+            <>
+              {quickNoteOpen && (
+                <div className="quick-note-overlay">
+                  <textarea
+                    ref={noteRef}
+                    rows={2}
+                    placeholder="Add a note..."
+                    maxLength={2000}
+                    aria-label="Quick note"
+                    value={quickNoteText}
+                    onChange={(e) => setQuickNoteText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        setQuickNoteOpen(false);
+                        return;
+                      }
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSaveQuickNote();
+                      }
+                    }}
+                  />
                   <button
                     type="button"
-                    className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta hover:text-trust-magenta-strong"
-                    onClick={() => setActiveTab("Metadata")}
+                    className="note-action-btn note-save"
+                    onClick={handleSaveQuickNote}
+                    aria-label="Save note"
                   >
-                    Go to Metadata →
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    className="note-action-btn note-cancel"
+                    onClick={() => {
+                      setQuickNoteOpen(false);
+                      setQuickNoteText("");
+                    }}
+                    aria-label="Cancel note"
+                  >
+                    ✕
                   </button>
                 </div>
               )}
-            {activeTab === "Captures" && <Captures />}
-            {activeTab === "Evaluation" && <Evaluation />}
-            {activeTab === "Metadata" && <Metadata />}
-            {activeTab === "Finalize" && <FinalizationScreen />}
-          </div>
+              <div key={activeTab} className="tab-panel-enter">
+                {activeTab !== "Metadata" &&
+                  session &&
+                  !session.description?.trim() &&
+                  (!session.dataSources || session.dataSources.length === 0) &&
+                  !finalization?.finalizedAt && (
+                    <div className="bg-score-1/10 border-b border-score-1/30 px-ut-4 py-ut-2 flex items-center justify-between">
+                      <span className="text-ut-xs text-score-1 font-heading">
+                        Complete Tool Details on the Metadata tab before finalizing.
+                      </span>
+                      <button
+                        type="button"
+                        className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta hover:text-trust-magenta-strong"
+                        onClick={() => setActiveTab("Metadata")}
+                      >
+                        Go to Metadata →
+                      </button>
+                    </div>
+                  )}
+                {activeTab === "Captures" && <Captures />}
+                {activeTab === "Evaluation" && <Evaluation />}
+                {activeTab === "Metadata" && <Metadata />}
+                {activeTab === "Finalize" && <FinalizationScreen />}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </TabNavigationContext.Provider>

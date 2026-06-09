@@ -7,5 +7,6 @@ export function useSessionData() {
   const captures = useSessionStore((s) => s.captures);
   const evaluations = useSessionStore((s) => s.evaluations);
   const finalization = useSessionStore((s) => s.finalization);
-  return { status, session, captures, evaluations, finalization };
+  const quickNotes = useSessionStore((s) => s.quickNotes);
+  return { status, session, captures, evaluations, finalization, quickNotes };
 }

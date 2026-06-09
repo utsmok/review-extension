@@ -3,18 +3,18 @@ import {
   AssetRecordType,
   createShapeId,
   type Editor,
-  type TLShapeId,
-  useValue,
   type TLComponents,
+  type TLShapeId,
   type TLUiOverrides,
+  useValue,
 } from "tldraw";
 
 const Tldraw = lazy(() => import("tldraw").then((m) => ({ default: m.Tldraw })));
 
-import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { useRubric } from "@/lib/contexts";
 import { useAutoFocus, useFocusTrap } from "@/hooks/useFocus";
+import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
+import { useRubric } from "@/lib/contexts";
 import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import type { Capture } from "@/lib/types";
 import RubricChipGroup from "./RubricChipGroup";
@@ -275,7 +275,13 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
 
         {/* tldraw canvas with built-in UI */}
         <div className="tldraw-evidence-container">
-          <Suspense fallback={<div className="tldraw-loading">Loading annotation editor…</div>}>
+          <Suspense
+            fallback={
+              <div className="tldraw-loading">
+                <span className="tldraw-spinner" aria-hidden="true" /> Loading annotation editor…
+              </div>
+            }
+          >
             <Tldraw onMount={onMount} components={TL_UI_COMPONENTS} overrides={TL_UI_OVERRIDES} />
           </Suspense>
           {/* Edge-fade overlay: subtle shadow when image extends beyond viewport */}

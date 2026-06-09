@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ExportActions from "@/components/finalization/ExportActions";
+import GradeSelector from "@/components/finalization/GradeSelector";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useRubric, useTabNavigation } from "@/lib/contexts";
 import { PRINCIPLES } from "@/lib/principles";
 import { principleAverage } from "@/lib/rubric";
 import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
 import { useSessionStore } from "@/stores/session";
-import ExportActions from "@/components/finalization/ExportActions";
-import GradeSelector from "@/components/finalization/GradeSelector";
 
 export default function FinalizationScreen() {
   const { finalization, setFinalization, evaluations } = useActiveSession();

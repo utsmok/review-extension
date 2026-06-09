@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useRegistryStore } from "@/stores/registry";
 import ToastContainer from "./Toast";
 
@@ -10,13 +10,7 @@ interface AppShellProps {
 
 type SaveStatus = "idle" | "saved" | "failed";
 
-function SetupBanner({
-  onDismiss,
-  onOpenSettings,
-}: {
-  onDismiss: () => void;
-  onOpenSettings: () => void;
-}) {
+function SetupBanner({ onOpenSettings }: { onOpenSettings: () => void }) {
   return (
     <div
       data-testid="setup-banner"
@@ -48,27 +42,6 @@ function SetupBanner({
           Open Settings
         </button>
       </p>
-      <button
-        type="button"
-        onClick={onDismiss}
-        className="text-ut-muted hover:text-ut-navy transition-colors p-0.5"
-        aria-label="Dismiss"
-      >
-        <svg
-          aria-hidden="true"
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M18 6L6 18" />
-          <path d="M6 6l12 12" />
-        </svg>
-      </button>
     </div>
   );
 }
@@ -80,14 +53,8 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const reviewerName = useRegistryStore((s) => s.settings.reviewerName);
-  const bannerDismissed = useRegistryStore((s) => s.settings.setupBannerDismissed ?? false);
-  const updateSettings = useRegistryStore((s) => s.updateSettings);
 
-  const showSetupBanner = reviewerName === "" && !bannerDismissed;
-
-  const dismissBanner = useCallback(() => {
-    updateSettings({ setupBannerDismissed: true });
-  }, [updateSettings]);
+  const showSetupBanner = reviewerName === "";
 
   useEffect(() => {
     function onSuccess(_e: Event) {
@@ -161,9 +128,7 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
         )}
       </header>
 
-      {showSetupBanner && (
-        <SetupBanner onDismiss={dismissBanner} onOpenSettings={onSettingsClick ?? (() => {})} />
-      )}
+      {showSetupBanner && <SetupBanner onOpenSettings={onSettingsClick ?? (() => {})} />}
 
       <main id="main-content" className="flex-1 min-h-0">
         {children}

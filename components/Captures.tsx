@@ -1,5 +1,5 @@
-import type { Capture } from "@/lib/types";
 import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
+import type { Capture } from "@/lib/types";
 
 function CaptureImg({ capture, className }: { capture: Capture; className?: string }) {
   const screenshotUrl = useScreenshotUrl(capture.id);
@@ -257,7 +257,11 @@ export default function Captures() {
                           aria-label="Capture details"
                           className="border-t border-ut-border bg-ut-offwhite p-ut-3"
                           onKeyDown={(e) => {
-                            if (e.key === "Escape" && !(e.target instanceof HTMLTextAreaElement) && !(e.target instanceof HTMLInputElement)) {
+                            if (
+                              e.key === "Escape" &&
+                              !(e.target instanceof HTMLTextAreaElement) &&
+                              !(e.target instanceof HTMLInputElement)
+                            ) {
                               setExpanded(null);
                             }
                           }}
@@ -498,7 +502,11 @@ export default function Captures() {
                         aria-label="Capture details"
                         className="border-t border-ut-border bg-ut-offwhite p-ut-3"
                         onKeyDown={(e) => {
-                          if (e.key === "Escape" && !(e.target instanceof HTMLTextAreaElement) && !(e.target instanceof HTMLInputElement)) {
+                          if (
+                            e.key === "Escape" &&
+                            !(e.target instanceof HTMLTextAreaElement) &&
+                            !(e.target instanceof HTMLInputElement)
+                          ) {
                             setExpanded(null);
                           }
                         }}
