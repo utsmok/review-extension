@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRubric, useTabNavigation } from "@/components/contexts";
 import ExportActions from "@/components/finalization/ExportActions";
 import GradeSelector from "@/components/finalization/GradeSelector";
 import { useActiveSession } from "@/hooks/useActiveSession";
-import { useRubric, useTabNavigation } from "@/lib/contexts";
 import { PRINCIPLES } from "@/lib/principles";
 import { principleAverage } from "@/lib/rubric";
 import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
@@ -179,7 +179,7 @@ export default function FinalizationScreen() {
   }, [overallAvg]);
 
   return (
-    <div className="flex flex-col gap-ut-3 p-ut-4" style={{ containerType: "inline-size" }}>
+    <div className="finalization-screen flex flex-col gap-ut-3 p-ut-4">
       <p className="text-ut-xs font-heading font-bold uppercase tracking-ut-kicker text-ut-slate">
         Review Summary
       </p>
@@ -193,23 +193,16 @@ export default function FinalizationScreen() {
       )}
 
       {isFormallyFinalized && (
-        <div
-          className="finalized-banner rounded-ut-sm px-ut-4 py-ut-3 flex items-center gap-ut-3"
-          style={{
-            background: `linear-gradient(135deg, var(--trust-magenta-tint) 0%, color-mix(in srgb, var(--trust-magenta) 12%, var(--ut-white)) 100%)`,
-            borderTop: "6px solid var(--trust-magenta)",
-            boxShadow: "inset 0 1px 0 0 color-mix(in srgb, var(--trust-magenta) 20%, transparent)",
-          }}
-        >
+        <div className="finalized-banner finalized-banner--active rounded-ut-sm px-ut-4 py-ut-3 flex items-center gap-ut-3">
           <div className="flex flex-col flex-1 min-w-0">
             <div className="flex items-center gap-ut-2">
               <svg
+                className="finalized-banner__icon"
                 width="18"
                 height="18"
                 viewBox="0 0 18 18"
                 fill="none"
                 aria-hidden="true"
-                style={{ color: "var(--trust-magenta)" }}
               >
                 <path
                   d="M9 1l2.1 4.3 4.9.7-3.5 3.4.8 4.6L9 11.8 4.7 14l.8-4.6L2 6l4.9-.7L9 1z"
@@ -262,7 +255,7 @@ export default function FinalizationScreen() {
               {overallAvg.toFixed(1)}
             </div>
           ) : (
-            <div className="finalization-score-number" style={{ color: "var(--ut-slate)" }}>
+            <div className="finalization-score-number finalization-score-number--empty">
               &ndash;
             </div>
           )}
@@ -289,34 +282,21 @@ export default function FinalizationScreen() {
                   <div className="font-mono text-ut-xs font-bold" style={{ color: p.color }}>
                     {p.code}
                   </div>
-                  <div
-                    className="font-bold text-ut-text"
-                    style={{
-                      fontSize: "var(--text-sub, 1.2rem)",
-                      lineHeight: 1.1,
-                      fontFamily: "var(--ff-heading)",
-                    }}
-                  >
+                  <div className="finalization-principle-score">
                     {p.avg !== null ? p.avg.toFixed(1) : "–"}
                   </div>
                   {/* Mini progress bar */}
                   <div
-                    className="mt-1 mx-auto rounded-full overflow-hidden"
+                    className="finalization-progress-track"
                     style={{
-                      width: "100%",
-                      height: "3px",
                       background: `color-mix(in srgb, ${p.color} 20%, var(--ut-white))`,
                     }}
                   >
                     <div
+                      className="finalization-progress-fill"
                       style={{
-                        width: "100%",
-                        height: "100%",
                         background: p.color,
-                        borderRadius: "9999px",
-                        transformOrigin: "left",
                         transform: `scaleX(${pct / 100})`,
-                        transition: "transform var(--duration-normal) ease-out",
                       }}
                     />
                   </div>

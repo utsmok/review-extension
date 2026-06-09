@@ -19,7 +19,7 @@
   --ut-offwhite: #f3f4f6;
   --ut-border: #bfc6cf;
   --ut-text: #172033;
-  --ut-muted: #4f5e73;
+  --ut-muted: #4f5e73; /* DESIGN.md says #576578; intentionally darker for WCAG AAA contrast (~7:1 on white) */
   --ut-slate: #4c5e74; /* WCAG AAA: ~6.5:1 against white. Was #5f7088 (5.05:1). R=76,G=94,B=116 */
 
   --ut-panel-bg: #f3f4f6;
@@ -118,6 +118,7 @@
   --state-error-tint: color-mix(in srgb, var(--state-error) 10%, var(--ut-white));
 
   /* Type scale */
+  --text-3xs: 0.5rem;
   --text-2xs: 0.625rem;
   --text-badge: 0.6875rem;
   --text-xs: 0.75rem;
@@ -196,6 +197,18 @@
   --grade-pass-tint: color-mix(in srgb, var(--ut-green) 10%, var(--ut-white));
   --grade-conditional-tint: color-mix(in srgb, var(--score-1) 10%, var(--ut-white));
   --grade-fail-tint: color-mix(in srgb, var(--ut-red) 10%, var(--ut-white));
+
+  /* Finalize button states */
+  --finalize-idle-color: var(--ut-slate);
+  --finalize-idle-border: var(--ut-border);
+  --finalize-ready-color: var(--ut-green);
+  --finalize-ready-border: color-mix(in srgb, var(--ut-green) 40%, var(--ut-border));
+  --finalize-ready-bg: color-mix(in srgb, var(--ut-green) 8%, var(--ut-white));
+  --finalize-hover-border: color-mix(in srgb, var(--ut-green) 55%, var(--ut-border));
+  --finalize-hover-bg: color-mix(in srgb, var(--ut-green) 12%, var(--ut-white));
+
+  /* Hover surface (replaces magic rgba white overlays) */
+  --hover-surface: color-mix(in srgb, var(--ut-white) 60%, transparent);
 }
 
 /* Reduced motion — accessibility */

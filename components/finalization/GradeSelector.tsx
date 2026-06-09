@@ -58,7 +58,7 @@ export default function GradeSelector({ grade, onGradeChange }: GradeSelectorPro
             >
               {g.label}
             </span>
-            <span className="block text-ut-xs font-normal normal-case tracking-normal opacity-80 mt-0.5 leading-relaxed">
+            <span className="grade-btn__desc block text-ut-xs font-normal normal-case tracking-normal mt-0.5 leading-relaxed">
               {g.description}
             </span>
           </button>
