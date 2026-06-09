@@ -1,6 +1,6 @@
 import { bench, describe } from "vitest";
-import { minifyCss } from "@/lib/minify";
 import { REPORT_CSS } from "@/lib/html-report";
+import { minifyCss } from "@/lib/minify";
 import { distributionBar, principleAverage, qualityGateResults, scoreColor } from "@/lib/rubric";
 import type { Evaluation, EvaluationScore } from "@/lib/types";
 import { makeEvaluation, RUBRIC } from "@/tests/fixtures";
