@@ -947,10 +947,11 @@ table th {
   border-collapse: collapse;
   table-layout: fixed;
 }
-.nutrition-principles-table td {
+.nutrition-principles-table th {
   padding: 6px 4px;
   vertical-align: middle;
   text-align: center;
+  font-weight: normal;
 }
 .nutrition-principle-code {
   font-family: var(--ff-heading);
@@ -1097,7 +1098,7 @@ table th {
   .nutrition-principles-table {
     table-layout: auto;
   }
-  .nutrition-principles-table td {
+  .nutrition-principles-table th {
     padding: 6px 3px;
   }
 
@@ -1289,7 +1290,7 @@ table th {
   .nutrition-principles-table {
     table-layout: auto;
   }
-  .nutrition-principles-table td {
+  .nutrition-principles-table th {
     padding: 4px 2px;
     font-size: 0.85rem;
   }
@@ -1451,7 +1452,7 @@ table th {
   .nutrition-label {
     page-break-inside: avoid;
   }
-  .nutrition-principles-table td,
+  .nutrition-principles-table th,
   .nutrition-verdict-stamp,
   .nutrition-score-number,
   .nutrition-gate-item .fail,
@@ -1492,7 +1493,7 @@ table th {
     page-break-inside: avoid;
   }
   .evidence-item img {
-    max-width: 200px;
+    max-width: 300px;
   }
   .unlinked-item img {
     max-width: 220px;

@@ -148,17 +148,17 @@ describe("scoreCircles() — circle rendering", () => {
     expect(empty?.length).toBe(18);
   });
 
-  it("mixed scores averaging exactly 1.5 → 2 filled circles", async () => {
+  it("mixed scores averaging exactly 1.5 → 1 filled circle (Math.floor)", async () => {
     // For each scoring question, assign 1 or 2 alternating to get avg = 1.5
     const evals = SCORING_IDS.map((id, i) =>
       makeEvaluation({ rubricId: id, score: i % 2 === 0 ? 1 : 2 }),
     );
     const html = await label({}, evals);
-    // Each principle has 2 questions, one scored 1 and one scored 2 → avg = 1.5 → filled = 2
+    // Each principle has 2 questions, one scored 1 and one scored 2 → avg = 1.5 → filled = Math.floor(1.5) = 1
     const filled = html.match(/class="circle filled"/g);
     expect(filled).not.toBeNull();
-    // 5 principles × 2 + 1 overall × 2 (overall avg = 1.5/3 * 3 = 1.5 → filled = 2) = 12
-    expect(filled?.length).toBe(12);
+    // 5 principles × 1 + 1 overall × 1 (overall avg = 1.5 → Math.floor = 1) = 6
+    expect(filled?.length).toBe(6);
   });
 });
 

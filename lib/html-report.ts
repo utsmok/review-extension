@@ -36,7 +36,7 @@ const ESC_MAP: Record<string, string> = {
   "'": "&#39;",
 };
 const ESC_NEEDS_ESCAPE_RE = /[&<>'"]/;
-function esc(s: string): string {
+export function esc(s: string): string {
   if (!s || !ESC_NEEDS_ESCAPE_RE.test(s)) return s;
   return s.replace(/[&<>'"]/g, (c) => ESC_MAP[c]);
 }
@@ -47,17 +47,21 @@ function isSafeUrl(url: string): boolean {
   return SAFE_URL_RE.test(url.trim());
 }
 
-/** Render a URL as a link if valid, otherwise as plain text */
-function safeLink(url: string, attrs: string = ""): string {
+/** Render a URL as a link if valid, otherwise as plain text.
+ *  @param className Optional CSS class for the anchor element. */
+function safeLink(url: string, className: string = ""): string {
   const escaped = esc(url);
   if (isSafeUrl(url)) {
-    return `<a href="${escaped}" rel="noopener noreferrer" target="_blank" ${attrs}>${escaped}</a>`;
+    const cls = className ? ` class="${esc(className)}"` : "";
+    return `<a href="${escaped}" rel="noopener noreferrer" target="_blank"${cls}>${escaped}</a>`;
   }
   return `<span class="url-plain">${escaped}</span>`;
 }
 
 /** Format date consistently as YYYY-MM-DD HH:mm */
 function formatDate(isoString: string): string {
+  // Guard: ISO 8601 datetime strings are at least 16 chars ("YYYY-MM-DDTHH:mm").
+  // Shorter strings cannot contain a valid date+time, so return em-dash intentionally.
   if (!isoString || isoString.length < 16) return "—";
   // ISO 8601: "YYYY-MM-DDTHH:mm:..." — slice directly, no Date construction
   return `${isoString.slice(0, 10)} ${isoString.slice(11, 16)}`;
@@ -70,7 +74,7 @@ const EXAMPLE_LEVELS = ["0", "1", "2", "3"] as const;
 
 function scoreCircles(avg: number | null): string {
   if (avg === null) return ALL_EMPTY_CIRCLES;
-  const filled = Math.min(3, avg < 0.5 ? 0 : avg < 1.5 ? 1 : avg < 2.5 ? 2 : 3);
+  const filled = Math.min(3, Math.floor(avg));
   return `<span class="circles">${FILLED_CIRCLE.repeat(filled)}${EMPTY_CIRCLE.repeat(3 - filled)}</span><span class="circle-label">${filled}/3</span>`;
 }
 
@@ -428,7 +432,7 @@ function buildNutritionLabelHtml(
             const reportColor = REPORT_COLORS[p.id] ?? p.color;
             const avg = principleAverage(p.id, evaluations, rubric, evalMap);
             return (
-              '<td style="color:' +
+              '<th scope="col" style="color:' +
               reportColor +
               '"><div class="nutrition-principle-code">' +
               p.code +
@@ -440,14 +444,14 @@ function buildNutritionLabelHtml(
               (avg !== null
                 ? `<div class="nutrition-principle-fraction">${avg.toFixed(1)}</div>`
                 : "") +
-              "</td>"
+              "</th>"
             );
           })
           .join("")}
-        <td class="nutrition-overall-cell" style="color:var(--magenta)">
+        <th scope="col" class="nutrition-overall-cell" style="color:var(--magenta)">
           <div class="nutrition-overall-label">Overall</div>
           <div>${scoreCircles(scores.totalMax > 0 ? (scores.totalActual / scores.totalMax) * 3 : null)}</div>
-        </td>
+        </th>
       </tr>
     </table>
     <div class="nutrition-circle-legend">● = threshold met &nbsp; ○ = below threshold</div>
@@ -570,7 +574,7 @@ ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, model.sco
   </div>
   <h1>Detailed Report</h1>
   <div class="report-meta-value report-meta-value--muted">
-    ${esc(metadata.toolName)} &middot; ${safeLink(metadata.toolUrl, 'class="report-meta-url"')} &middot; Evaluated ${formatDate(metadata.startTime)}
+    ${esc(metadata.toolName)} &middot; ${safeLink(metadata.toolUrl, "report-meta-url")} &middot; Evaluated ${formatDate(metadata.startTime)}
   </div>
   <dl class="report-meta">
     ${metadata.description ? `<dt class="report-meta-label">Description</dt><dd class="report-meta-value report-meta-value--italic">${esc(metadata.description)}</dd>` : ""}

@@ -304,9 +304,11 @@ describe("exportSession", () => {
     const blob = await exportSession(makeMetadata(), [], [], RUBRIC);
     const files = await unzipToFiles(blob);
 
-    // No capture-derived images should exist — only logos (1.jpg, 2.jpg, 3.jpg)
+    // No capture-derived images should exist — only logos (semantic names)
     const captureImages = [...files.keys()].filter(
-      (k) => (k.endsWith(".jpg") || k.endsWith(".png")) && !["1.jpg", "2.jpg", "3.jpg"].includes(k),
+      (k) =>
+        (k.endsWith(".jpg") || k.endsWith(".png")) &&
+        !["trust-logo.jpg", "lisa-eis-logo.jpg", "ut-logo.jpg"].includes(k),
     );
     expect(captureImages).toHaveLength(0);
 
