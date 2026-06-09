@@ -73,6 +73,7 @@ export async function prepareExportArtifacts(
   evaluations: Evaluation[],
   rubric: RubricData,
   finalization: ReviewFinalization | null,
+  quickNotes?: import("./types").SessionData["quickNotes"],
 ): Promise<ExportArtifacts> {
   // Load screenshots from separate IDB store
   const screenshotMap = await loadAllScreenshots(captures.map((c) => c.id));
@@ -298,6 +299,7 @@ export async function prepareExportArtifacts(
     captures: lightweightCaptures as import("./types").Capture[],
     evaluations,
     finalization,
+    ...(quickNotes?.length ? { quickNotes } : {}),
   };
 
   // ── Logo files (extracted as JPEG) ────────────────────────────────────

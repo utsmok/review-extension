@@ -129,26 +129,35 @@ export default function ActiveSession() {
   const handleTopExport = async () => {
     setExporting(true);
     setExportError(null);
-    const result = await exportAndClose(rubric);
-    setExporting(false);
-    if (result) {
-      setExportFilename(`TRUST_Review_${session?.toolName ?? "review"}.zip`);
-      setExportFileSize(result.blobSize);
-      setExportComplete(true);
-    } else {
+    try {
+      const result = await exportAndClose(rubric);
+      if (result) {
+        setExportFilename(`TRUST_Review_${session?.toolName ?? "review"}.zip`);
+        setExportFileSize(result.blobSize);
+        setExportComplete(true);
+      } else {
+        setExportError("Export failed. Please try again.");
+      }
+    } catch {
       setExportError("Export failed. Please try again.");
-      setExportComplete(true);
+    } finally {
+      setExporting(false);
     }
   };
 
   const handleRetryExport = async () => {
     setExporting(true);
-    const result = await exportAndClose(rubric);
-    setExporting(false);
-    if (result) {
-      setExportFilename(`TRUST_Review_${session?.toolName ?? "review"}.zip`);
-      setExportFileSize(result.blobSize);
-      setExportError(null);
+    try {
+      const result = await exportAndClose(rubric);
+      if (result) {
+        setExportFilename(`TRUST_Review_${session?.toolName ?? "review"}.zip`);
+        setExportFileSize(result.blobSize);
+        setExportError(null);
+      }
+    } catch {
+      setExportError("Export failed. Please try again.");
+    } finally {
+      setExporting(false);
     }
   };
 

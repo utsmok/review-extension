@@ -260,6 +260,7 @@ describe("useActiveSession", () => {
         expect.any(Array),
         RUBRIC,
         null,
+        expect.any(Array),
       );
       expect(downloadBlob).toHaveBeenCalledWith(blob, "TRUST_Review_Test_Tool.zip");
 

@@ -199,11 +199,13 @@ export const useSessionStore = create<SessionState>()((set, get) => ({
       deleteTimer = null;
       const current = get();
       if (current.recentlyDeleted.length > 0) {
-        const item = current.recentlyDeleted[0];
-        deleteScreenshot(item.capture.id).catch((err) => {
-          console.error("Failed to delete screenshot from IndexedDB:", err);
-        });
-        set({ recentlyDeleted: current.recentlyDeleted.slice(1) });
+        // Permanently delete ALL pending screenshots at once
+        for (const item of current.recentlyDeleted) {
+          deleteScreenshot(item.capture.id).catch((err) => {
+            console.error("Failed to delete screenshot from IndexedDB:", err);
+          });
+        }
+        set({ recentlyDeleted: [] });
       }
     }, 5000);
   },

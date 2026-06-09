@@ -246,6 +246,7 @@ export async function exportSessionById(id: string): Promise<Blob> {
     data.evaluations,
     RUBRIC_DATA,
     data.finalization,
+    data.quickNotes,
   );
   return blob;
 }

@@ -26,6 +26,26 @@ const newVersion = execSync(`npm version ${bump} --no-git-tag-version`, { encodi
   .replace("v", "");
 console.log(`New version: ${newVersion}`);
 
+// Guard: working tree must be clean
+const status = execSync("git status --porcelain", { encoding: "utf-8" }).trim();
+if (status) {
+  console.error("ERROR: Working tree is dirty. Commit or stash before releasing.");
+  // Revert version bump
+  pkg.version = current;
+  writeFileSync("package.json", `${JSON.stringify(pkg, null, 2)}\n`);
+  process.exit(1);
+}
+
+// Guard: must be on main branch
+const branch = execSync("git rev-parse --abbrev-ref HEAD", { encoding: "utf-8" }).trim();
+if (branch !== "main") {
+  console.error(`ERROR: Expected main branch, got ${branch}. Switch to main first.`);
+  // Revert version bump
+  pkg.version = current;
+  writeFileSync("package.json", `${JSON.stringify(pkg, null, 2)}\n`);
+  process.exit(1);
+}
+
 // Verify CHANGELOG has entry
 const changelog = readFileSync("CHANGELOG.md", "utf-8");
 const heading = `## v${newVersion}`;

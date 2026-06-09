@@ -24,6 +24,7 @@ export async function exportSession(
   evaluations: Evaluation[],
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
+  quickNotes?: import("./types").SessionData["quickNotes"],
 ): Promise<Blob> {
   const artifacts = await prepareExportArtifacts(
     metadata,
@@ -31,6 +32,7 @@ export async function exportSession(
     evaluations,
     rubric,
     finalization,
+    quickNotes,
   );
   return assembleZip(artifacts);
 }
