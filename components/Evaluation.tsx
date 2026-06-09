@@ -1,11 +1,11 @@
 import { useState } from "react";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { useRubric } from "@/components/contexts";
 import EvidenceModal from "@/components/EvidenceModal";
-import QuestionSection from "@/components/QuestionSection";
+import { QuestionSection } from "@/components/QuestionSection";
 import ScoreOverviewBar from "@/components/ScoreOverviewBar";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useCaptureQueue } from "@/hooks/useCaptureQueue";
-import { useRubric } from "@/lib/contexts";
 import type { Capture } from "@/lib/types";
 
 export default function Evaluation() {

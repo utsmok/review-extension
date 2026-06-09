@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import { useRubric, useTabNavigation } from "@/components/contexts";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureForMetadataField } from "@/lib/capture";
-import { useRubric, useTabNavigation } from "@/lib/contexts";
 import { ensureArray } from "@/lib/metadata-utils";
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";

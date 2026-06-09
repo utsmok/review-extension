@@ -203,6 +203,7 @@ export const useSessionStore = create<SessionState>()((set, get) => ({
         for (const item of current.recentlyDeleted) {
           deleteScreenshot(item.capture.id).catch((err) => {
             console.error("Failed to delete screenshot from IndexedDB:", err);
+            toastError("Failed to delete a screenshot from storage. It may need manual cleanup.");
           });
         }
         set({ recentlyDeleted: [] });

@@ -55,22 +55,40 @@ function validateSessionData(data: unknown): import("./types").SessionData {
     throw new Error("metadata.toolName must be a non-empty string");
   if (typeof m.startTime !== "string") throw new Error("metadata.startTime must be a string");
 
-  // Validate captures is array of objects with string id
+  // Validate captures is array of objects with string id + timestamp
   if (!Array.isArray(d.captures))
     throw new Error("session.json is missing required fields (captures)");
   for (const c of d.captures) {
     if (!c || typeof c !== "object") throw new Error("each capture must be an object");
     const cap = c as Record<string, unknown>;
-    if (typeof cap.id !== "string") throw new Error("capture.id must be a string");
+    if (typeof cap.id !== "string" || !cap.id)
+      throw new Error("capture.id must be a non-empty string");
+    if (typeof cap.timestamp !== "string") throw new Error("capture.timestamp must be a string");
   }
 
-  // Validate evaluations is array of objects with string rubricId
+  // Validate evaluations is array of objects with string rubricId + valid score
   if (!Array.isArray(d.evaluations))
     throw new Error("session.json is missing required fields (evaluations)");
+  const validScores = new Set(["pass", "fail", "na", "unsure", "", 0, 1, 2, 3]);
   for (const e of d.evaluations) {
     if (!e || typeof e !== "object") throw new Error("each evaluation must be an object");
     const ev = e as Record<string, unknown>;
-    if (typeof ev.rubricId !== "string") throw new Error("evaluation.rubricId must be a string");
+    if (typeof ev.rubricId !== "string" || !ev.rubricId)
+      throw new Error("evaluation.rubricId must be a non-empty string");
+    if (ev.score !== undefined && !validScores.has(ev.score as string | number))
+      throw new Error(`evaluation.score has invalid value: ${JSON.stringify(ev.score)}`);
+  }
+
+  // Validate finalization if present
+  if (d.finalization != null) {
+    if (typeof d.finalization !== "object") throw new Error("finalization must be an object");
+    const f = d.finalization as Record<string, unknown>;
+    if (typeof f.grade !== "string" || !f.grade)
+      throw new Error("finalization.grade must be a non-empty string");
+    if (typeof f.conclusion !== "string")
+      throw new Error("finalization.conclusion must be a string");
+    if (typeof f.finalizedAt !== "string")
+      throw new Error("finalization.finalizedAt must be a string");
   }
 
   // Validate schemaVersion if present
@@ -101,8 +119,16 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
   }
 
   // Path traversal protection — reject entries that could escape the archive
+  // Check both raw and URL-decoded names to catch %2e%2e%2f etc.
   for (const name of entryNames) {
-    if (name.startsWith("/") || name.includes("..") || name.includes("\\")) {
+    const decoded = decodeURIComponent(name);
+    if (
+      name.startsWith("/") ||
+      decoded.startsWith("/") ||
+      name.includes("..") ||
+      decoded.includes("..") ||
+      name.includes("\\")
+    ) {
       throw new Error(
         `ZIP entry "${name}" has invalid path. Archive may be corrupted or malicious.`,
       );

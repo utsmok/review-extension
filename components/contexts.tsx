@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { RubricData } from "./types";
+import type { RubricData } from "@/lib/types";
 
 /** Provides the active rubric data and whether the tool uses AI. */
 export const RubricContext = createContext<{

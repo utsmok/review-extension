@@ -13,7 +13,7 @@ interface State {
  * Global error boundary for the sidepanel. Catches render errors and shows
  * a reload button instead of a blank white panel.
  */
-export default class ErrorBoundary extends Component<Props, State> {
+export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -21,6 +21,22 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
+  }
+
+  componentDidMount(): void {
+    this.unhandledRejectionHandler = (event: PromiseRejectionEvent) => {
+      event.preventDefault();
+      const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
+      this.setState({ hasError: true, error });
+      console.error("TRUST Review Extension — unhandled promise rejection:", event.reason);
+    };
+    window.addEventListener("unhandledrejection", this.unhandledRejectionHandler);
+  }
+
+  componentWillUnmount(): void {
+    if (this.unhandledRejectionHandler) {
+      window.removeEventListener("unhandledrejection", this.unhandledRejectionHandler);
+    }
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
@@ -35,6 +51,8 @@ export default class ErrorBoundary extends Component<Props, State> {
       window.location.reload();
     }
   };
+
+  private unhandledRejectionHandler: ((event: PromiseRejectionEvent) => void) | null = null;
 
   render(): ReactNode {
     if (this.state.hasError) {

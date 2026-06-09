@@ -15,9 +15,9 @@ function CaptureImg({ capture, className }: { capture: Capture; className?: stri
 }
 
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useRubric } from "@/components/contexts";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureActiveTab } from "@/lib/capture";
-import { useRubric } from "@/lib/contexts";
 import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";

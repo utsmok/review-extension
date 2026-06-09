@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { RubricContext } from "@/components/contexts";
 import { RUBRIC_DATA } from "@/data/rubrics";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useSidepanelZoom } from "@/hooks/useSidepanelZoom";
-import { RubricContext } from "@/lib/contexts";
-import ActiveSession from "./ActiveSession";
+import { ActiveSession } from "./ActiveSession";
 import AppShell from "./AppShell";
 import SessionManager from "./SessionManager";
 import SettingsScreen from "./SettingsScreen";

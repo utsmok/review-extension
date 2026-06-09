@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo, useState } from "react";
+import { useRubric } from "@/components/contexts";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
 import { captureActiveTab } from "@/lib/capture";
-import { useRubric } from "@/lib/contexts";
 import {
   getAccentKey,
   getCategoryLabel,
@@ -468,7 +468,7 @@ interface QuestionSectionProps {
   onViewEvidence: (capture: Capture) => void;
 }
 
-export default function QuestionSection({
+export function QuestionSection({
   section,
   capturingFor,
   setCapturingFor,
