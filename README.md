@@ -5,7 +5,7 @@
   <br />
   Capture evidence, score against the TRUST framework, export a complete review package — all inside a browser side panel.
   <br /><br />
-  <img src="https://img.shields.io/badge/version-0.6.0-8e036c" alt="version" />
+  <img src="https://img.shields.io/github/v/tag/utsmok/review-extension?label=version&color=8e036c" alt="version" />
   <img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="license" />
   <a href="https://github.com/utsmok/review-extension/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/utsmok/review-extension/ci.yml?branch=main&label=CI" alt="CI" /></a>
   <a href="https://codspeed.io/utsmok/review-extension"><img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed" /></a>
@@ -16,12 +16,25 @@
 
 TRUST Review is a Chrome/Firefox extension for conducting structured evaluations of information tools (search engines, databases, AI-powered assistants) using the [TRUST Framework](https://www.utwente.nl/library/). It runs entirely in the browser — no server, no accounts, no data leaves your machine.
 
+## What it looks like
+
+<!-- Screenshots need to be captured from the running extension and saved to docs/assets/ -->
+
+| Side panel — evaluation rubric | Capture & annotation |
+|:---:|:---:|
+| ![TRUST side panel — evaluation view](docs/assets/sidepanel-evaluation.png) | ![Evidence capture with tldraw annotation](docs/assets/capture-annotation.png) |
+
+| Session manager | HTML export report |
+|:---:|:---:|
+| ![Session manager with progress indicators](docs/assets/session-manager.png) | ![Generated HTML evaluation report](docs/assets/html-report.png) |
+
+_Screenshots coming soon — the images above show the four main views of the extension._
+
 ## What it does
 
-- **Capture evidence** — screenshot the active tab, archive the page HTML, annotate captures with a built-in drawing tool (tldraw). All screenshots are stored as lossless PNG at native resolution to keep text and fine detail sharp.
+- **Capture evidence** — screenshot the active tab, archive the page HTML, annotate captures with a built-in drawing tool (tldraw). All screenshots are stored as lossless PNG at native resolution.
 - **Score against the rubric** — four quality gates (pass/fail) plus a 0–3 scoring rubric across the five TRUST principles: Transparent, Reliable, User-centric, Secure, Traceable.
 - **Export a complete review package** — generates a ZIP with an HTML evaluation report, a standalone nutrition-label summary, CSV data files, and an `evidence/` folder containing all screenshots and archived pages.
-
 ## Install
 
 ### From release (recommended)
@@ -98,14 +111,7 @@ All evidence screenshots are stored as lossless PNG at their original resolution
 
 The session manager lists all reviews with progress indicators. You can switch between reviews, resume incomplete ones, or delete finished sessions. Each review is independently saved to IndexedDB with auto-save (debounced, flushes on panel hide).
 
-## Tips
-
-- **Capture as you go** — take screenshots while you explore the tool rather than back-tracking later. Use `Ctrl+Shift+S` from any tab.
-- **Tag evidence to rubric items** — from the Captures tab, expand a capture and use "Tag to rubric items" to link it directly to specific questions. Tagged evidence appears inline on the Evaluation tab.
-- **Use the "Done" toggle** — mark questions as reviewed to track your progress across sessions.
-- **Annotate instead of describe** — draw on screenshots to highlight specific UI elements rather than writing long notes.
-- **Check the AI toggle** — unchecking "Tool uses AI" automatically hides AI-only rubric questions and recalculates completion.
-- **Import sessions** — use the "Import" button on the session manager to load a previously exported ZIP.
+_Tips: Capture screenshots as you explore (`Ctrl+Shift+S` from any tab). Tag captures to rubric items from the Captures tab — tagged evidence appears inline on the Evaluation tab. Toggle "Tool uses AI" off to hide AI-only questions. Import previous sessions from the session manager._
 
 ## Development
 
@@ -114,16 +120,15 @@ The session manager lists all reviews with progress indicators. You can switch b
 - [Node.js](https://nodejs.org/) 22+
 - [pnpm](https://pnpm.io/) 10+
 
-### Setup
+### Quick start
 
 ```bash
 pnpm install
 pnpm dev          # dev build with HMR → .output/chrome-mv3-dev
 pnpm build        # production build → .output/chrome-mv3
-pnpm zip          # packaged zip for distribution
 ```
 
-Load the dev build from `.output/chrome-mv3-dev` in `chrome://extensions`.
+Load the dev build from `.output/chrome-mv3-dev` in `chrome://extensions` (enable Developer mode first).
 
 ### Commands
 
@@ -132,6 +137,8 @@ Load the dev build from `.output/chrome-mv3-dev` in `chrome://extensions`.
 | `pnpm dev` | Dev server (Chrome) with HMR |
 | `pnpm dev:firefox` | Dev server (Firefox) |
 | `pnpm build` | Production build |
+| `pnpm zip` | Packaged zip for distribution |
+| `pnpm zip:firefox` | Firefox-specific zip |
 | `pnpm test` | Run test suite (Vitest + jsdom) |
 | `pnpm test:watch` | Watch mode |
 | `pnpm test:coverage` | Coverage report |
@@ -140,6 +147,31 @@ Load the dev build from `.output/chrome-mv3-dev` in `chrome://extensions`.
 | `pnpm typecheck` | TypeScript type check |
 | `pnpm lint` | Biome lint |
 | `pnpm check` | Biome check (lint + format) |
+
+### Project layout
+
+```
+components/        React UI components (side panel screens)
+lib/               Core logic — capture, export pipeline, report builder, IDB
+stores/            Zustand stores (registry + session state)
+hooks/             Shared React hooks
+data/rubrics/      TRUST rubric JSON
+entrypoints/       WXT entry points (background script, side panel bootstrap)
+e2e/               Playwright end-to-end tests
+```
+
+Key files to know:
+
+| File | What it does |
+|---|---|
+| `components/ActiveSession.tsx` | Main tab container + quick tools |
+| `components/QuestionSection.tsx` | Quality gates + scoring rubric |
+| `components/Metadata.tsx` | Tool metadata + export trigger |
+| `components/FinalizationScreen.tsx` | Grade, conclusion, export |
+| `components/Captures.tsx` | Capture grid, notes, evidence linking |
+| `lib/export-pipeline.ts` | ZIP assembly |
+| `lib/html-report.ts` | Standalone HTML report builder |
+| `stores/session.ts` | Active session state (auto-save to IndexedDB) |
 
 ### Tech stack
 
@@ -150,32 +182,12 @@ Load the dev build from `.output/chrome-mv3-dev` in `chrome://extensions`.
 - **JSZip** + **PapaParse** — export pipeline
 - **Biome** — linting and formatting (not ESLint/Prettier)
 
-### Architecture
+### Conventions
 
-```
-entrypoints/
-  background.ts          opens side panel on extension icon click
-  sidepanel/             React bootstrap
-components/
-  SessionManager.tsx     session list, new/done/delete
-  ActiveSession.tsx      tab container + quick tools
-  Evaluation.tsx         quality gates + scoring rubric
-  Metadata.tsx           tool metadata + export trigger
-  FinalizationScreen.tsx grade, conclusion, export
-  Captures.tsx           capture grid/list, notes, linking
-  EvidenceModal.tsx      full-size viewer + tldraw annotation
-stores/
-  registry.ts            session index + settings (localStorage)
-  session.ts             active session data (in-memory, auto-save to IDB)
-lib/
-  capture/               screenshot + HTML archiver
-  export-pipeline.ts     ZIP assembly
-  html-report.ts         standalone HTML report builder
-  image-convert.ts       image format utilities
-  session-repository.ts  IndexedDB persistence
-data/rubrics/
-  trust-full.json        TRUST rubric (quality gates + scoring)
-```
+- **Linting**: Biome — run `pnpm lint` to check, `pnpm check` to lint + format
+- **Commit style**: [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, etc.)
+- **Tests**: `pnpm test` (Vitest + jsdom). End-to-end: `pnpm test:e2e` (Playwright)
+- **Type safety**: `pnpm typecheck` before submitting changes
 
 ### License
 

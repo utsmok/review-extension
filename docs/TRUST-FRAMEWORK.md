@@ -1,5 +1,9 @@
 # TRUST Framework — Complete Reference
 
+> **Last reviewed:** 2026-06-09
+> **Changelog:**
+> - 2026-06-09 — Aligned to `data/rubrics/trust-full.json` v1.1: fixed QG3 (now IP Preservation), SE1 title (now Bibliographic equity & diversity), AI-only count (4) and always-applicable count (10). Removed Expert/Standard/Lite variant columns — the implementation uses a single rubric. Score tables now use canonical rubric descriptions.
+
 ## What Is This?
 
 The TRUST framework is a structured evaluation method for assessing academic search tools — particularly AI-powered ones like Semantic Scholar, Elicit, Consensus, Perplexity, and similar platforms. It was developed at the University of Twente by LISA-EIS (Embedded Information Services) for use by academic librarians and information services staff.
@@ -21,18 +25,9 @@ Academic search tools are increasingly AI-powered and increasingly opaque. Libra
 
 ---
 
-## Two Variants
+## Single Rubric Variant
 
-The framework comes in two variants. Both have the same structure — 4 quality gates + 10 scoring questions across 5 principles. The difference is purely in wording.
-
-### TRUST Framework (Full)
-
-Uses expert/technical language intended for experienced reviewers who are comfortable with terms like RAG, CoT, WCAG 2.1, GDPR, and hallucination. Each question has two levels of detail: **expert** (technical description) and **standard** (plain-language version of the same criteria). The reviewer can toggle between these per question.
-
-### TRUST Lite
-
-Uses plain, accessible language throughout — framed as direct questions ("Does the tool show where each piece of information comes from?"). Intended for quick reviews or first-time reviewers. Each question also has a "basic" variant that provides even simpler guidance, sometimes with specific instructions ("Try using the tool with just a keyboard...").
-
+The current implementation uses a single rubric (`data/rubrics/trust-full.json`) with no variant fields. Earlier designs explored Expert/Standard/Lite wording levels, but these were abandoned before implementation. All questions use one canonical set of score descriptions.
 ---
 
 ## AI vs Non-AI Tools
@@ -41,20 +36,20 @@ Not every question applies to every tool. Some questions are marked **AI-only** 
 
 The reviewer records whether the tool uses AI as a metadata field. This single flag controls which questions are active.
 
-**AI-only questions (5):**
+**AI-only questions (4):**
 - Training Policy (quality gate)
-- Citation Mechanism (quality gate)
 - Methodology Disclosure (TR2)
 - Accuracy and Hallucination (RE1)
 - Critical Thinking Prompts (US2)
 
-**Always-applicable questions (9 — regardless of AI):**
+**Always-applicable questions (10 — regardless of AI):**
 - Data Privacy (quality gate)
+- IP Preservation (quality gate)
 - Accessibility (quality gate)
 - Data Source Clarity (TR1)
 - Output Consistency (RE2)
 - Workflow Integration (US1)
-- Algorithmic Fairness (SE1)
+- Bibliographic equity & diversity (SE1)
 - Data Handling Practices (SE2)
 - Source Attribution Depth (TC1)
 - Source Quality Indicators (TC2)
@@ -73,10 +68,9 @@ Each gate is scored **Pass**, **Fail**, **N/A**, or **Unsure**.
 |-------|-------|
 | Category | Privacy & Security |
 | AI-only | No |
-| **Expert** | Tool must have a publicly accessible privacy policy that clearly states what user data is collected, how it is processed, and how long it is retained. The policy must reference GDPR, the right to erasure, or an equivalent data protection framework. |
-| **Standard** | Can you find a privacy policy that explains what data the tool collects, what it does with your data, and whether it follows GDPR or similar protections? Provide a screenshot or link as evidence. |
-| **Lite** | Does the tool have a clear, publicly available privacy policy? |
-| **Lite Basic** | Can you find a privacy policy on the tool's website? Does it say what data is collected, how it's used, and whether it follows GDPR? Provide a screenshot or link. |
+| Requirement | Vendor must explicitly state that user search queries, history, and uploaded content are not sold, shared with third-party advertisers, or used for commercial profiling. User data must not be retained beyond the stated service period without explicit consent. |
+| **Pass example** | The tool's privacy policy states: 'User search queries, browsing history, and uploaded documents are never shared with third-party advertisers, sold to data brokers, or used for commercial profiling. Data is retained only for the duration needed to provide the service and is deleted within 30 days of account closure.' |
+| **Fail example** | The terms of service state that 'user interaction data may be shared with select partners for improved service delivery' or there is no mention of third-party data sharing practices at all. |
 
 **Why it matters:** Academic tools often handle researcher queries about sensitive or unpublished work. Without a clear privacy policy that addresses collection, processing, retention, and alignment with a recognized data protection framework (GDPR or equivalent), there is no baseline guarantee that this data is protected. The operationalization here is practical: reviewers check for the *presence* of these statements in the policy, not their legal sufficiency. The goal is to verify that the vendor has thought through and documented their data practices, not to conduct a legal audit.
 
@@ -86,25 +80,23 @@ Each gate is scored **Pass**, **Fail**, **N/A**, or **Unsure**.
 |-------|-------|
 | Category | Privacy & Security |
 | AI-only | **Yes** — N/A if the tool does not use AI |
-| **Expert** | Vendor must explicitly state that user queries/inputs/uploads are NOT used to train future models. |
-| **Standard** | Does the tool promise (in writing) that your questions and files won't be used to improve their AI? |
-| **Lite** | Does the tool explicitly state that user inputs are NOT used to train AI models? |
-| **Lite Basic** | Does the tool say in writing that it won't use your questions or files to train its AI? Look in the privacy policy or terms of service. |
+| Requirement | Vendor must explicitly state that user queries/inputs/uploads are NOT used to train future AI models. |
+| **Pass example** | The tool's documentation includes a section titled 'Data and AI Training' that states: 'User queries, uploaded documents, and search interactions are never used to train, fine-tune, or improve our AI models.' |
+| **Fail example** | The terms of service state that 'interactions with the service may be used to improve our products and services' with no option to opt out, or there is no mention of training data practices at all. |
 
 **Why it matters:** Researchers may input unpublished hypotheses, proprietary datasets, or confidential peer-review content. If the vendor uses these inputs for training, it creates a direct risk of intellectual property leakage. The requirement must be explicit — vague promises of "privacy" do not satisfy this gate.
 
-### QG3: Citation Mechanism
+### QG3: Intellectual Property Preservation
 
 | Field | Value |
 |-------|-------|
-| Category | Traceability |
-| AI-only | **Yes** |
-| **Expert** | Tool must provide inline citations as its standard output format for AI-generated claims. Occasional uncited claims are acceptable but must be the exception, not the rule. Cited claims must link to real, accessible sources. |
-| **Standard** | Does the tool show where its information comes from? Look for clickable references that actually work. It's okay if a few claims lack citations, but most should have them. |
-| **Lite** | Does the tool show clickable references for the information it provides? Most claims should have citations, and the links should work. |
-| **Lite Basic** | When the tool gives you an answer, does it show links to where that information came from? It's okay if a few claims don't have links, but most should. |
+| Category | Intellectual Property |
+| AI-only | No |
+| Requirement | The vendor's Terms of Service must explicitly state that the user retains full copyright and intellectual property rights over all uploaded documents, prompts, and generated outputs. The vendor must not claim any license to distribute, publish, or commercially exploit user uploads. |
+| **Pass example** | The Terms of Service include a section titled 'Your Content — Ownership' that states: 'You retain all rights, title, and interest in and to your content. We do not claim any ownership or license to distribute, publish, or commercially exploit your uploaded documents, prompts, or outputs.' No contradictory language appears elsewhere in the agreement. |
+| **Fail example** | The Terms of Service state: 'By uploading content, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, modify, and distribute your content for the purpose of improving our services.' Alternatively, the Terms make no mention of user intellectual property rights at all. |
 
-**Why it matters:** AI tools can generate plausible-sounding but fabricated references. Without inline citations that link to real sources, there is no way to verify accuracy. This is the single most important AI-specific quality gate — a tool that cannot show its sources fails the basic requirement for academic use. The v2 wording relaxes the original requirement that *every* claim be cited (which was unrealistically strict for LLM outputs) while maintaining that citations must be the *standard* output format. Occasional uncited claims are tolerated; systematic absence of citations is not.
+**Why it matters:** Academic researchers routinely upload unpublished manuscripts, grant proposals, proprietary datasets, and pre-publication findings into search or synthesis tools. Some tools state in their Terms of Service that they acquire a perpetual, royalty-free license to use uploaded content for any purpose — including model improvement, redistribution, or commercial exploitation. This creates a direct risk of intellectual property loss, which can compromise patent applications, embargoed research, and institutional data ownership policies. Review the Terms of Service, paying particular attention to sections on 'User Content', 'License Grant', or 'Intellectual Property'. N/A may apply for tools that do not accept any user-uploaded content.
 
 ### QG4: Accessibility
 
@@ -112,10 +104,9 @@ Each gate is scored **Pass**, **Fail**, **N/A**, or **Unsure**.
 |-------|-------|
 | Category | Accessibility |
 | AI-only | No |
-| **Expert** | Tool must support keyboard navigation to all major features, allow text resizing to at least 200% without content loss, and provide alt text for images. An accessibility statement or conformance claim (e.g., WCAG 2.1 AA) is strong supporting evidence. |
-| **Standard** | Can you use the tool with just a keyboard? Can you make the text bigger without breaking the layout? Do images have descriptions? Mark pass if you can confirm at least keyboard navigation works and the tool provides an accessibility statement. |
-| **Lite** | Can the tool be used by people with disabilities (screen readers, keyboard-only, text sizing)? |
-| **Lite Basic** | Try using the tool with just a keyboard — can you reach all the main features? Can you zoom in without the page breaking? Mark pass if keyboard navigation works and there's an accessibility statement. |
+| Requirement | Tool must support keyboard navigation to all major features, allow text resizing to at least 200% without content loss, and provide alt text for images. An accessibility statement or conformance claim (e.g., WCAG 2.1 AA) is strong supporting evidence. |
+| **Pass example** | You can navigate to all search features, settings, and export options using only the Tab and Enter keys. Zooming the browser to 200% preserves the layout with no overlapping text or hidden controls. The tool's footer links to an accessibility statement declaring WCAG 2.1 AA conformance. |
+| **Fail example** | Critical features such as the search filters or export button cannot be reached via keyboard — they only respond to mouse clicks. Zooming to 200% causes the navigation menu to overflow and become partially hidden. |
 
 **Why it matters:** Universities have legal and ethical obligations to ensure recommended tools are accessible. The v2 wording shifts from asking reviewers to assess technical WCAG conformance (which requires specialized expertise and tools) to listing three observable behaviors: keyboard navigation, text resizing, and alt text. An accessibility statement or WCAG conformance claim is accepted as supporting evidence but is not itself the test. A tool that fails these observable behaviors cannot be recommended for institutional use regardless of its other qualities.
 
@@ -149,12 +140,12 @@ After passing quality gates, each of the 10 rubric questions is scored on a 0–
 | AI-only | No |
 | Question | Are the tool's data sources clearly documented? |
 
-| Score | Expert | Standard | Lite |
-|-------|--------|----------|------|
-| 0 | Sources are opaque — no information about what the tool indexes. | No information about where the tool gets its data. | No information about sources. |
-| 1 | General source types mentioned (e.g., 'scientific articles', 'patents') but no specific databases named. | The tool mentions what kind of sources it uses (e.g., 'scientific articles') but gives no specifics. | The tool mentions what kind of sources it uses but gives no specifics. |
-| 2 | Key databases, publishers, or indices are identified by name. | The tool names the specific databases or publishers it searches. | The tool names the specific databases or publishers it searches. |
-| 3 | Complete list of indexed sources with coverage dates and update frequency. | The tool provides a complete list of all its sources, including how recently they were updated. | The tool provides a complete list of all its sources, including when they were last updated. |
+| Score | Description |
+|-------|-------------|
+| 0 | No information about which databases, publishers, or indices the tool searches — no sources page exists and documentation does not mention coverage scope. |
+| 1 | General source types mentioned (e.g., 'scientific articles', 'patents') but no specific databases named. |
+| 2 | Key databases and publishers identified by name (e.g., PubMed, IEEE Xplore) but coverage dates, update frequency, or regional sources may be unspecified. |
+| 3 | Complete list of indexed sources with coverage dates and update frequency. |
 
 **Why it matters:** A tool that claims to search "millions of academic papers" but won't say which publishers, journals, or repositories it indexes is effectively asking you to trust it blindly. Researchers need to know coverage gaps — if a tool doesn't index preprint servers or non-English publications, that shapes what results you get.
 
@@ -167,12 +158,12 @@ After passing quality gates, each of the 10 rubric questions is scored on a 0–
 | AI-only | **Yes** |
 | Question | Does the tool explain how it processes queries and generates results? |
 
-| Score | Expert | Standard | Lite |
-|-------|--------|----------|------|
-| 0 | Black box — no explanation of how the tool works. | No explanation of how the tool works. | No explanation of how the tool works. |
-| 1 | Vague claims of using 'AI' without specifying what kind. | The tool just says it uses 'AI' without explaining what that means. | The tool just says it uses 'AI' without details. |
-| 2 | Names the underlying model or technology (e.g., 'GPT-4', 'BERT-based search') and describes the retrieval approach at a high level. | The tool names the specific AI technology it uses (e.g., a language model) and explains how it finds information. | The tool names the specific AI technology it uses and explains how it finds information. |
-| 3 | Documents the full pipeline: retrieval method, ranking/filtering, generation model, and any post-processing steps. | The tool fully documents its process step by step: how it retrieves information, which AI model it uses, and how it generates answers. | The tool gives a complete step-by-step explanation of how it processes your question and generates an answer. |
+| Score | Description |
+|-------|-------------|
+| 0 | No explanation of the retrieval method, ranking algorithm, or generation process — the tool provides no technical documentation on how results are produced. |
+| 1 | States the tool uses 'AI' or 'machine learning' generically without naming the model type, describing retrieval, or explaining ranking. |
+| 2 | The tool explicitly names a specific model (e.g., 'GPT-4') and states the retrieval approach using a general summary. |
+| 3 | The tool explicitly names the retrieval method, ranking or filtering steps, generation model, and any post-processing. |
 
 **Why it matters:** "Powered by AI" is meaningless. The reviewer needs to know: Is it using a retrieval-augmented generation (RAG) pipeline? What language model? Does it use chain-of-thought (CoT) reasoning? Can the user see the retrieval step separately from the generation step? These details determine whether the tool's outputs can be meaningfully evaluated and trusted.
 
@@ -191,12 +182,12 @@ After passing quality gates, each of the 10 rubric questions is scored on a 0–
 | AI-only | **Yes** |
 | Question | Does the tool produce factually correct outputs, or does it fabricate information? |
 
-| Score | Expert | Standard | Lite |
-|-------|--------|----------|------|
-| 0 | Multiple fabricated claims or citations per session — the tool routinely generates information that cannot be verified in the source literature. | The tool often makes up facts, citations, or statistics that don't match the real literature. | The tool frequently makes up incorrect facts or fake citations. |
-| 1 | Occasional errors — the tool is mostly correct but sometimes gets details wrong (misattributed findings, incorrect citation details, or minor factual errors). | The tool is mostly correct but sometimes gets details wrong — wrong author, wrong year, or slightly off conclusions. | The tool is mostly correct but sometimes gets things wrong. |
-| 2 | High accuracy with only minor nuances missed — claims are verifiable and citations point to real papers, though synthesis may oversimplify complex findings. | The tool is accurate most of the time, with only small mistakes that don't change the overall meaning. | The tool is accurate with only small mistakes. |
-| 3 | Consistently accurate across all tested queries — no fabricated claims, no fake citations, and synthesis accurately reflects the source material. | The tool consistently provides correct, verified information — everything checks out against the original sources. | The tool consistently provides correct, verified information — everything checks out. |
+| Score | Description |
+|-------|-------------|
+| 0 | Fabricated claims or citations appear routinely — the tool generates papers, authors, or conclusions that cannot be found in any database across multiple test queries. |
+| 1 | Mostly accurate but with recurring detail errors — misattributed findings, incorrect author names or years in citations, or factual inaccuracies that a domain expert would catch. |
+| 2 | All cited papers are real and correctly attributed, but synthesis may oversimplify nuanced debates or present contested findings without noting the controversy. |
+| 3 | All claims are verifiable against original sources across every test query — no fabricated citations, no misattributions, and synthesis accurately represents areas of consensus and ongoing debate. |
 
 **Why it matters:** "Hallucination" in the AI context means the tool generates information that sounds plausible but is factually wrong — fake citations, fabricated statistics, misattributed findings. This is the most dangerous failure mode for academic tools because users may not have the domain expertise to catch it. The reviewer should test the tool with queries where they know the correct answer.
 
@@ -211,12 +202,12 @@ After passing quality gates, each of the 10 rubric questions is scored on a 0–
 | AI-only | No |
 | Question | Does the tool produce semantically consistent results when given the same or similar queries? |
 
-| Score | Expert | Standard | Lite |
-|-------|--------|----------|------|
-| 0 | Core claims change between runs — asking the same question twice produces substantively different conclusions. | Asking the same question twice gives completely different answers with different conclusions. | Asking the same question twice gives completely different conclusions. |
-| 1 | Moderate variation — the same query sometimes yields noticeably different results, requiring re-prompting to get a reliable answer. | Answers vary noticeably — you often need to ask again to get a good result. | Answers vary noticeably between tries — you need to ask a few times to get a good result. |
-| 2 | Consistent core claims with minor surface variation — the substance is the same but phrasing or source selection may differ slightly. | The main answers are consistent, though the wording or specific sources may differ slightly. | The main answers are consistent, though the wording may differ slightly. |
-| 3 | Highly reproducible — the tool produces substantively equivalent answers (same claims, same sources) across repeated runs. | The tool gives reliable, repeatable answers — same substance every time you ask the same question. | The tool gives the same substantive answer every time you ask the same question. |
+| Score | Description |
+|-------|-------------|
+| 0 | Running the identical query three times produces conflicting claims, mutually exclusive recommendations, and completely different source citations on each individual attempt. |
+| 1 | Running the identical query multiple times yields varied source selections and emphasis; the user must execute three or more runs to obtain matching claims. |
+| 2 | Across repeated identical queries, the tool cites the same top sources and reaches matching conclusions, while secondary citations and specific sentence phrasing shift between individual generated runs. |
+| 3 | Repeated runs of the same query return identical claims, identical key sources, and identical conclusions, with only minor phrasing changes observed. |
 
 **Why it matters:** If a tool gives meaningfully different answers to the same query, it undermines the entire point of a structured evaluation. The reviewer cannot score accuracy if the results are random. Inconsistency also erodes user trust — a researcher who gets different results each time will stop relying on the tool. This question was renamed from "Variance Consistency" to "Output Consistency" in v2 because the focus is on semantic consistency (same claims, same sources) rather than textual consistency. Minor surface-level variation in wording is acceptable; changing the core claims or conclusions is not.
 
@@ -235,12 +226,12 @@ After passing quality gates, each of the 10 rubric questions is scored on a 0–
 | AI-only | No |
 | Question | Can the tool's outputs be exported, saved, or integrated into existing research workflows? |
 
-| Score | Expert | Standard | Lite |
-|-------|--------|----------|------|
-| 0 | Siloed, no export. | No way to save or export your results. | No way to save or export your results. |
-| 1 | Manual copy-paste only. | You can only copy and paste results manually. | You can only copy and paste results manually. |
-| 2 | Supports basic RIS/BibTeX exports. | You can export references in standard formats (like BibTeX or RIS). | You can download references in standard formats (BibTeX, RIS). |
-| 3 | Seamless integration (e.g., direct Zotero/EndNote push, API hooks). | The tool connects directly to reference managers (like Zotero) or other research tools. | The tool connects directly to reference managers like Zotero. |
+| Score | Description |
+|-------|-------------|
+| 0 | No export, download, or integration options — results are trapped in the tool with no mechanism to transfer citations or data to reference managers or other software. |
+| 1 | Results can be manually copied as plain text, but no structured export format (BibTeX, RIS, CSV) or direct integration with reference managers is available. |
+| 2 | Supports structured export in at least one standard format (BibTeX, RIS, or CSV) that imports cleanly into reference managers, but lacks direct integrations, API access, or browser extension support. |
+| 3 | Offers direct push to reference managers (Zotero, EndNote, Mendeley), a documented API for programmatic access, or a browser extension that captures results with full metadata. |
 
 **Why it matters:** A search tool that cannot export results forces researchers into manual transcription — error-prone and time-consuming. Integration with reference managers (Zotero, EndNote, Mendeley) is the gold standard because it eliminates the friction between finding and citing.
 
@@ -253,12 +244,12 @@ After passing quality gates, each of the 10 rubric questions is scored on a 0–
 | AI-only | **Yes** |
 | Question | Does the tool actively encourage critical thinking, or does it present AI outputs as final answers? |
 
-| Score | Expert | Standard | Lite |
-|-------|--------|----------|------|
-| 0 | Presents AI outputs as authoritative facts with no caveats, no source visibility, and no prompting toward verification. | The tool presents answers as final facts with no warnings or source links. | The tool presents answers as final facts with no warnings or source links. |
-| 1 | Includes a generic disclaimer (e.g., 'AI may make mistakes', 'always verify sources') but does not actively surface source material. | There's a generic warning to 'verify the sources' but nothing else. | There's a generic 'check your sources' disclaimer but nothing else. |
-| 2 | Surfaces source material alongside generated text — the user can see original excerpts and compare them to the tool's summary. | The tool shows original source text alongside its answers so you can compare them. | The tool shows original source text alongside its answers so you can compare. |
-| 3 | Actively prompts the user to verify, compare, or evaluate — e.g., confidence indicators, explicit verification prompts, source comparison tools, or built-in fact-checking aids. | The tool actively helps you think critically — prompting you to compare sources, check for bias, or verify claims with built-in tools. | The tool has built-in features that help you compare sources and check for accuracy. |
+| Score | Description |
+|-------|-------------|
+| 0 | AI outputs are presented as authoritative facts with no source links, no uncertainty flags, no AI-generated label, and no prompt for the user to verify claims against original literature. |
+| 1 | A generic disclaimer appears (e.g., 'AI may make mistakes') but no source material is surfaced within responses — the user has no way to see what the tool based its answer on. |
+| 2 | Source excerpts are displayed alongside generated text — the user can click to read the original passage and compare it to the tool's summary or synthesis. |
+| 3 | The tool actively prompts verification: confidence scores per claim, flags for contested findings, side-by-side source comparison views, or built-in fact-checking aids that guide the user to evaluate rather than passively accept. |
 
 **Why it matters:** "Automation bias" is the tendency to trust machine-generated outputs more than warranted. AI search tools that present answers with high confidence and no caveats exploit this bias. Good tools counteract it by: surfacing uncertainty, prompting comparison across sources, showing confidence levels, and making the original sources immediately accessible.
 
@@ -270,19 +261,19 @@ After passing quality gates, each of the 10 rubric questions is scored on a 0–
 
 **What this principle measures:** Is the tool fair and transparent about its data practices? "Sound" in the TRUST context encompasses algorithmic fairness (does the tool systematically favor or disadvantage certain perspectives, regions, or types of research?) and data handling transparency (how does the tool protect and manage user data beyond the binary privacy gate?).
 
-#### SE1: Algorithmic Fairness
+#### SE1: Bibliographic equity & diversity
 
 | Field | Value |
 |-------|-------|
 | AI-only | No |
 | Question | Does the tool address bias in its source selection and ranking? |
 
-| Score | Expert | Standard | Lite |
-|-------|--------|----------|------|
-| 0 | No evidence that the tool considers fairness — results appear systematically skewed (e.g., exclusively English-language, Western-published sources) without acknowledgment. | Results appear systematically biased and the tool doesn't acknowledge it. | Nothing suggests the tool tries to be fair or balanced — results seem one-sided. |
-| 1 | The tool acknowledges potential bias but provides no concrete evidence of mitigation efforts or diverse source coverage. | The tool mentions that bias might exist but doesn't show evidence of doing anything about it. | The tool acknowledges bias could be an issue but doesn't do much about it. |
-| 2 | The tool demonstrates diverse source coverage in results (e.g., surfaces non-English or non-Western research for relevant queries) OR documents active bias mitigation measures. | The tool either shows diverse results in practice or documents how it tries to be fair. | You can see diverse results in the tool, or it documents how it works to be fair. |
-| 3 | The tool both demonstrates diverse results AND publishes transparency reports on source coverage, geographic scope, and fairness metrics. | The tool both shows diverse results and publishes reports about its fairness efforts and source coverage. | The tool both shows diverse results and publishes reports about how it tries to be fair. |
+| Score | Description |
+|-------|-------------|
+| 0 | Results consistently return exclusively English-language, Western-published sources without presenting demographic metrics, mitigation plans, or public documentation addressing this demographic or geographic imbalance. |
+| 1 | The vendor's website states a commitment to diversity but omits source distribution data, lacks documented mitigation methods, and test queries return over 80% single-demographic sources. |
+| 2 | Test queries yield at least ten percent non-English sources or non-Western research, OR documentation specifies exact methods used to reduce demographic or geographic bias in retrieval. |
+| 3 | The tool surfaces multilingual, non-Western research in test queries and publishes downloadable reports detailing exact source distribution, geographic scope, and quantitative fairness metrics. |
 
 **Why it matters:** Academic search tools trained on English-language, Western-published, high-impact-factor literature may systematically underrepresent research from the Global South, non-English publications, and smaller or newer journals. This creates a feedback loop that further marginalizes underrepresented research.
 
@@ -297,12 +288,12 @@ After passing quality gates, each of the 10 rubric questions is scored on a 0–
 | AI-only | No |
 | Question | How transparent is the tool about data retention, security, and user rights beyond the basic privacy policy? |
 
-| Score | Expert | Standard | Lite |
-|-------|--------|----------|------|
-| 0 | No transparency about data retention, encryption, or breach notification — privacy policy is vague or missing on these topics. | No clear information about how long your data is kept or how it's protected. | It's unclear what happens to your data after you use the tool. |
-| 1 | Privacy policy exists but provides only generic statements about data protection without specifics on retention or security. | The privacy policy exists but is vague about data retention and security. | The tool says your data is 'protected' but doesn't explain how. |
-| 2 | Clearly states data retention periods and encryption practices (e.g., 'data stored for 30 days', 'encrypted at rest'). | The tool clearly states how long it keeps your data and that it uses encryption. | The tool tells you how long it stores your data and that it's encrypted. |
-| 3 | Comprehensive data handling documentation: retention periods, encryption standards, breach notification policy, data residency, and user data export/deletion options. | The tool provides full details: how long data is kept, how it's encrypted, what happens if there's a data breach, and how you can delete your data. | The tool explains everything: storage time, encryption, what happens if there's a security breach, and how to delete your data. |
+| Score | Description |
+|-------|-------------|
+| 0 | Privacy policy is vague or missing on data retention, encryption, and breach notification — no specifics on how long data is kept, how it is protected, or what happens after a breach. |
+| 1 | A privacy policy exists with generic statements about data protection (e.g., 'we use industry-standard security') but no specifics on retention periods, encryption standards, or user data export/deletion mechanisms. |
+| 2 | Clearly states concrete retention periods and encryption practices (e.g., 'queries retained for 30 days', 'AES-256 at rest, TLS 1.3 in transit') so reviewers can verify compliance with institutional data governance policies. |
+| 3 | Comprehensive data handling documentation covering: per-data-type retention periods, encryption standards, breach notification timelines (e.g., 72-hour GDPR), data residency, and self-service export/deletion tools for users. |
 
 **Why it matters:** Data security is addressed as a binary pass/fail in the Data Privacy quality gate (QG1), which checks for the existence of a GDPR-aligned privacy policy. This scored question evaluates the *depth* of data handling transparency — going beyond presence of a policy to assess how thoroughly the vendor documents retention periods, encryption, breach procedures, and user rights. A tool may pass QG1 by having any privacy policy, but SE2 distinguishes between a minimal policy and a comprehensive one.
 
@@ -321,12 +312,12 @@ After passing quality gates, each of the 10 rubric questions is scored on a 0–
 | AI-only | No |
 | Question | How deep do the source links go — to the journal, the article, or the specific passage? |
 
-| Score | Expert | Standard | Lite |
-|-------|--------|----------|------|
-| 0 | Broken or missing links. | Sources are missing or links don't work. | Sources are missing or links are broken. |
-| 1 | Links to journal landing pages only. | Links only go to the journal homepage, not to the specific article. | Links go to a journal homepage, not the specific article. |
-| 2 | Deep links to paper abstracts. | Links take you to the specific article's abstract page. | Links go to the specific article's abstract. |
-| 3 | Deep links to specific paragraphs or segments (RAG-level). | Links take you directly to the exact part of the source that supports the claim. | Links go to the exact part of the source that supports the claim. |
+| Score | Description |
+|-------|-------------|
+| 0 | Citation links are broken, resolve to 404 pages, or do not exist — there is no navigable path from a claim in the tool's output to the original source material. |
+| 1 | Citation links resolve to the publisher's journal homepage or domain (e.g., nature.com) but not to the specific article — the user must manually locate the referenced paper within the journal site. |
+| 2 | Each citation links directly to the article's abstract or DOI landing page (e.g., doi.org/10.1038/s41586-023-12345), enabling immediate access to metadata and full text where available. |
+| 3 | Citations link to the exact passage, page, or highlighted paragraph in the source document that supports the claim — the user can verify the claim in one click without searching within the paper. |
 
 **Why it matters:** The depth of linking determines how efficiently a reviewer can verify claims. A link to a journal homepage (level 1) requires the reviewer to search within the journal to find the specific article — if it even exists. A deep link to the specific passage (level 3) allows immediate verification.
 
@@ -339,12 +330,12 @@ After passing quality gates, each of the 10 rubric questions is scored on a 0–
 | AI-only | No |
 | Question | Does the tool provide quality indicators for its sources? |
 
-| Score | Expert | Standard | Lite |
-|-------|--------|----------|------|
-| 0 | Includes retracted or predatory sources without any warning or flag. | The tool includes sources that have been retracted or come from unreliable publishers. | The tool includes retracted papers or sources from unreliable publishers without warning. |
-| 1 | No filtering or labeling of source quality — all sources appear equivalent. | The tool doesn't distinguish between high-quality and low-quality sources. | The tool doesn't tell you if sources are good quality or not. |
-| 2 | Categorizes sources by type (e.g., preprint vs. peer-reviewed). | The tool labels whether sources are preprints or peer-reviewed. | The tool labels sources as peer-reviewed or preprint. |
-| 3 | Provides contextual quality indicators: retraction status, citation count, publication type, and whether the source is open access. | The tool provides detailed source context: retraction status, citation counts, and publication type. | The tool shows detailed info for each source: whether it was retracted, how many times it was cited, and what type of publication it is. |
+| Score | Description |
+|-------|-------------|
+| 0 | Retracted papers or predatory-journal articles appear in search results without any warning label, retraction flag, or quality indicator — the user cannot distinguish them from legitimate sources. |
+| 1 | No quality labels or metadata distinguish source types — peer-reviewed articles, preprints, conference papers, and blog posts all appear with identical formatting and no retraction warnings. |
+| 2 | Displays basic publication type labels distinguishing preprints from peer-reviewed articles, but omits retraction warnings or detailed citation metrics. |
+| 3 | Provides contextual quality indicators: retraction status, citation count, publication type, and whether the source is open access. |
 
 **Why it matters:** Citing a retracted paper as if it were valid, or treating a predatory journal as equivalent to a peer-reviewed one, undermines the entire purpose of an academic search tool. The minimum acceptable standard is distinguishing preprints from peer-reviewed publications (level 2). The gold standard is surfacing retraction status, citation counts, publication type, and open access status so the researcher can make an informed judgment.
 
@@ -506,7 +497,7 @@ The HTML report is self-contained — it embeds all evidence screenshots and can
 
 ## Complete Walkthrough: Conducting a TRUST Review
 
-1. **Set up** — Record your name and email. Choose TRUST Full or TRUST Lite. Start a new session with the tool name and URL.
+1. **Set up** — Record your name and email. Start a new session with the tool name and URL.
 
 2. **Record metadata** — Enter company, pricing, availability, terms URL. Check/uncheck "uses AI." Add any initial notes.
 
@@ -530,7 +521,7 @@ The HTML report is self-contained — it embeds all evidence screenshots and can
 
 - **Evidence-first approach.** Requiring screenshots for every score creates an auditable trail. This is the framework's most valuable feature — it prevents "I gave it a 3 because it felt right" scoring.
 - **AI-aware gating.** The AI-only flag is a pragmatic design. It makes the framework applicable to both AI and traditional tools without requiring a separate rubric.
-- **Dual wording.** Expert + standard modes within the full variant is clever — a single reviewer can switch based on comfort level without changing the underlying criteria.
+- **Single canonical rubric.** Having one authoritative set of score descriptions ensures consistency across reviewers and eliminates ambiguity about which variant applies.
 - **Manual finalization override.** Allowing the reviewer to override the automatic verdict acknowledges that scoring systems have blind spots.
 - **Per-principle minimum.** Requiring no principle to average below 1.0 prevents a tool from hiding catastrophic weakness in one dimension behind strong performance elsewhere.
 
@@ -544,7 +535,7 @@ The HTML report is self-contained — it embeds all evidence screenshots and can
 - **Scoring granularity.** The 0–3 scale is coarse. Many tools will cluster around 1–2, making it hard to distinguish between them. A 0–5 scale or sub-scores (e.g., separating "claims to do X" from "demonstrably does X") could help.
 - **No inter-rater reliability mechanism.** The framework is designed for a single reviewer. There is no built-in mechanism for two reviewers to independently score the same tool and compare/resolve differences.
 - **No cost/licensing rubric question.** Pricing and availability are metadata fields but not scored. For institutional recommendations, cost is often a deciding factor. A scoring question about licensing transparency or value-for-money could be valuable.
-- **Citation mechanism as a gate, not a score.** The quality gate checks whether citations exist, but does not score their quality. A tool could pass the gate with technically present but unhelpful citations. The scoring rubric partially addresses this (TC1), but the gate could be more nuanced.
+- **IP Preservation gate is binary.** The quality gate checks whether the vendor's terms preserve user IP rights, but does not score the nuance of what happens with uploaded content. A tool could pass the gate with minimal IP language while still having data practices that concern researchers.
 
 ### Changes in v2
 
@@ -552,7 +543,7 @@ The following changes were made in the v2 revision of the TRUST rubric:
 
 - **SE principle renamed: "Secure" -> "Sound".** The S in TRUST still stands for the same letter, but "Sound" better captures the principle's scope — algorithmic fairness and data handling practices. "Secure" led reviewers to expect data security questions, which live in the quality gates instead.
 - **QG1 Data Privacy updated.** Removed SURF/institutional reference; now focuses on GDPR-aligned policy content (collection, processing, retention). Reviewers check for presence of required statements, not legal sufficiency.
-- **QG3 Citation Mechanism relaxed.** Changed from requiring citations for "every" claim to requiring citations as the "standard" format with occasional gaps allowed. More realistic for LLM outputs.
+- **QG3 replaced: Citation Mechanism → IP Preservation.** The original QG3 (Citation Mechanism) required inline citations as the standard output format. This was replaced by IP Preservation, which checks whether the vendor's Terms of Service preserve user copyright and IP rights over uploaded content. Citation concerns are now addressed by the scoring rubric (TC1, TC2).
 - **QG4 renamed to Accessibility.** Shifted from assessing WCAG conformance (technical audit) to three observable behaviors: keyboard navigation, text resizing, and alt text.
 - **TR1 level 3 updated.** Changed from "API documentation" to "coverage dates and update frequency" — librarian-relevant freshness data rather than developer documentation.
 - **TR2 levels smoothed.** Reduced the cliff between levels 1 and 2; level 2 now requires naming the model and describing retrieval at a high level; level 3 covers the full pipeline.
@@ -569,7 +560,7 @@ The following changes were made in the v2 revision of the TRUST rubric:
 
 ### Lessons Learned
 
-- **The Lite variant is likely more useful in practice.** Most reviewers are not AI specialists. The expert wording assumes familiarity with RAG, CoT, hallucination testing, and similar terms that many academic librarians will need to look up. The Lite variant gets to the same place with less jargon.
+- **Plain-language rubric descriptions work best.** Most reviewers are not AI specialists. The rubric's canonical descriptions avoid excessive jargon (RAG, CoT, hallucination testing) that many academic librarians would need to look up, while still capturing the necessary technical nuance at each score level.
 - **Evidence capture is the bottleneck.** Taking, annotating, and tagging screenshots is the most time-consuming part of the review. Any tooling that speeds up this step would significantly improve adoption.
 - **The 60% threshold balances rigor and realism.** Raised from 50% in v2, this threshold sets a meaningful minimum while remaining achievable for tools that are genuinely useful despite imperfections.
 - **The framework would benefit from benchmarking.** Scoring a well-known tool (e.g., Google Scholar, Semantic Scholar) as a reference point would help calibrate reviewer expectations. A score of "2" means something different if you have seen how a top-performing tool scores.

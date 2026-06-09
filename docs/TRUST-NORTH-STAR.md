@@ -1,5 +1,9 @@
 # TRUST Review Tool — North Star
 
+> **Last reviewed:** 2026-06-09
+> **Changelog:**
+> - 2026-06-09 — Reviewed against v0.7.1. Document is accurate and consistent with the implementation. Layer 1 QG list correctly names "IP preservation" (matching rubric JSON). Export artifacts (`TRUST_Label_[Tool].html`, `Evaluation_Report_[Tool].html`, CSVs) all confirmed present in `lib/export-pipeline.ts`. Section 1 uses "Sound" (correct per v2 rename). Section 10 correctly notes variant system was abandoned. Component references (`components/Metadata.tsx`, `components/ActiveSession.tsx`, `components/FinalizationScreen.tsx`, `components/Captures.tsx`) verified. No factual divergences found. One observation: `PRODUCT.md` still says "Secure" for the S in TRUST (should be "Sound" per v2) — that file is outside this document's scope.
+
 > This document defines the goal, scope, user, outputs, and quality standards for the TRUST review tool and its content. It is the authoritative reference for anyone improving rubric text, UI copy, field labels, evaluation guidance, or export output.
 
 ---
