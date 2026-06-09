@@ -3,7 +3,8 @@ export async function archivePageHtml(): Promise<{ html: string; title: string }
   const doc = document;
   const base = doc.baseURI;
 
-  // Clone the entire document
+  // Clone the entire document (full clone is required: archivePageHtml must produce
+  // a self-contained HTML document including head/styles/body for offline viewing)
   const clone = doc.cloneNode(true) as Document;
 
   // 1. Inline all linked stylesheets
@@ -77,7 +78,7 @@ export async function archivePageHtml(): Promise<{ html: string; title: string }
   });
 
   // 3d. Sanitize javascript:/vbscript:/data:text/html URLs
-  const dangerousUrlAttrs = ["href", "src", "action", "formaction", "xlink:href"];
+  const dangerousUrlAttrs = ["href", "src", "srcset", "action", "formaction", "xlink:href"];
   clone.querySelectorAll("*").forEach((el) => {
     for (const attr of dangerousUrlAttrs) {
       const val = el.getAttribute(attr);
@@ -97,6 +98,16 @@ export async function archivePageHtml(): Promise<{ html: string; title: string }
   // 3e. Remove meta http-equiv refresh (can redirect to JS URLs)
   clone.querySelectorAll('meta[http-equiv="refresh" i]').forEach((el) => {
     el.remove();
+  });
+
+  // 3f. Strip external url() references in inline styles (prevent network requests)
+  clone.querySelectorAll("style").forEach((styleEl) => {
+    if (styleEl.textContent) {
+      styleEl.textContent = styleEl.textContent.replace(
+        /url\(\s*['"]?(?!data:)[^)]*\)\s*/gi,
+        "/* stripped external URL */",
+      );
+    }
   });
 
   // 4. Make relative URLs absolute so resources still load
@@ -122,6 +133,7 @@ export async function archivePageHtml(): Promise<{ html: string; title: string }
   makeAbsolute("href", "link[href]");
   makeAbsolute("data", "object[data]");
   makeAbsolute("poster", "video[poster]");
+  makeAbsolute("srcset", "img[srcset], source[srcset]");
 
   // 4. Resolve url() in inline styles to absolute
   clone.querySelectorAll("[style]").forEach((el) => {
