@@ -121,7 +121,12 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<import("./typ
   // Path traversal protection — reject entries that could escape the archive
   // Check both raw and URL-decoded names to catch %2e%2e%2f etc.
   for (const name of entryNames) {
-    const decoded = decodeURIComponent(name);
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(name);
+    } catch {
+      decoded = name;
+    }
     if (
       name.startsWith("/") ||
       decoded.startsWith("/") ||

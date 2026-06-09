@@ -25,10 +25,18 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidMount(): void {
     this.unhandledRejectionHandler = (event: PromiseRejectionEvent) => {
-      event.preventDefault();
-      const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
-      this.setState({ hasError: true, error });
-      console.error("TRUST Review Extension — unhandled promise rejection:", event.reason);
+      // Log but don't preventDefault — preserve console error for debugging.
+      // Only surface non-network async errors in the error boundary UI.
+      const reason = event.reason;
+      const isNetworkLike =
+        reason?.name === "NetworkError" ||
+        reason?.message?.includes("IDB") ||
+        reason?.message?.includes("IndexedDB");
+      if (!isNetworkLike) {
+        const error = reason instanceof Error ? reason : new Error(String(reason));
+        this.setState({ hasError: true, error });
+      }
+      console.error("TRUST Review Extension — unhandled promise rejection:", reason);
     };
     window.addEventListener("unhandledrejection", this.unhandledRejectionHandler);
   }
