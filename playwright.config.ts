@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: "./e2e",
   testMatch: "*.spec.ts",
   timeout: 30000,
-  retries: 0,
+  retries: 2,
   use: {
     headless: false, // Extensions require headed mode
   },
@@ -12,8 +12,14 @@ export default defineConfig({
     {
       name: "chrome-extension",
       use: {
-        // Set via fixture; required placeholder for PW
         browserName: "chromium",
+      },
+    },
+    {
+      name: "firefox-smoke",
+      testMatch: "firefox-smoke.spec.ts",
+      use: {
+        browserName: "firefox",
       },
     },
   ],

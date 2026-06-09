@@ -37,12 +37,10 @@ test.describe("Finalization tab", () => {
     const saveBtn = tabpanel
       .locator('button:has-text("Save"), button:has-text("Save Finalization")')
       .first();
-    // Save button only appears after a grade is selected — may not exist if grade selection failed
-    if (await saveBtn.isVisible()) {
-      await saveBtn.click();
-      // Should show saved indicator
-      await expect(tabpanel.locator("text=Saved").first()).toBeVisible({ timeout: 5000 });
-    }
+    await expect(saveBtn).toBeVisible({ timeout: 5000 });
+    await saveBtn.click();
+    // Should show saved indicator
+    await expect(tabpanel.locator("text=Saved").first()).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -68,11 +66,10 @@ test.describe("Export", () => {
 
     await sidePanel.locator('button:has-text("End Review")').first().click();
 
-    // Handle optional confirmation dialog
+    // Handle confirmation dialog
     const confirmExport = sidePanel.locator('button:has-text("Export anyway")').first();
-    if (await confirmExport.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await confirmExport.click();
-    }
+    await expect(confirmExport).toBeVisible({ timeout: 5000 });
+    await confirmExport.click();
 
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toMatch(/\.zip$/);
