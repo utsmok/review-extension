@@ -26,6 +26,7 @@ export function minifyHtml(html: string): string {
  *  Keeps vars needed by HTML inline styles (--magenta, --muted, --text, --ff-heading)
  *  in a compact :root block; resolves all others inline. */
 const CSS_KEEP_VARS = new Set(["--magenta", "--muted", "--text", "--ff-heading"]);
+
 export function minifyCss(css: string): string {
   let result = css.replace(CSS_COMMENTS, "");
 

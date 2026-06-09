@@ -1,10 +1,11 @@
 import type { Capture } from "../types";
-import { archivePageHtml } from "./sanitize";
 import { extractLogoFromPage } from "./extract";
+import { archivePageHtml } from "./sanitize";
 
 const ALLOWED_SCHEMES = ["http:", "https:", "file:"];
 const MAX_CAPTURE_SIZE = 25 * 1024 * 1024; // 25 MB total per capture
 
+/** Capture the active tab: screenshot + archived HTML + page metadata. Throws on inaccessible pages. */
 export async function captureActiveTab(): Promise<Capture> {
   const [tab] = await browser.tabs.query({
     active: true,
@@ -63,6 +64,7 @@ export async function captureActiveTab(): Promise<Capture> {
   return capture;
 }
 
+/** Fetch page metadata (title, URL, favicon) without a full screenshot. */
 export async function captureCurrentPageInfo(): Promise<{
   url: string;
   title: string;

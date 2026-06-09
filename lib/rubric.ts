@@ -1,5 +1,8 @@
+// ── Rubric query helpers ─────────────────────────────────────────────────
+
 import type { Evaluation, HexColor, RubricData } from "./types";
 
+/** Collect all rubric question IDs (quality gate + scoring) as "category.questionKey" strings. */
 export function getRubricQuestionIds(rubric: RubricData): string[] {
   const ids: string[] = [];
   for (const [category, questions] of Object.entries(rubric.quality_gate)) {
@@ -15,6 +18,7 @@ export function getRubricQuestionIds(rubric: RubricData): string[] {
   return ids;
 }
 
+/** Like getRubricQuestionIds, but filters out ai_only questions when usesAi is false. */
 export function getVisibleRubricQuestionIds(rubric: RubricData, usesAi: boolean): string[] {
   const ids: string[] = [];
   for (const [category, questions] of Object.entries(rubric.quality_gate)) {
@@ -34,6 +38,7 @@ export function getVisibleRubricQuestionIds(rubric: RubricData, usesAi: boolean)
   return ids;
 }
 
+/** Build a short display code like "TR1", "PS2" from category key + 0-based index. */
 export function getQuestionCode(categoryKey: string, questionIndex: number): string {
   return `${categoryKey}${questionIndex + 1}`;
 }
@@ -45,10 +50,12 @@ const QG_CATEGORY_CODES: Record<string, string> = {
   accessibility: "AC",
 };
 
+/** Map quality gate category keys to short display codes (e.g. "transparency" → "TR"). */
 export function getQGCategoryCode(categoryKey: string): string {
   return QG_CATEGORY_CODES[categoryKey] ?? categoryKey.toUpperCase().slice(0, 2);
 }
 
+/** Build a quality-gate question code like "TR1" using the category code mapping. */
 export function getQGQuestionCode(categoryKey: string, questionIndex: number): string {
   return `${getQGCategoryCode(categoryKey)}${questionIndex + 1}`;
 }
@@ -61,6 +68,7 @@ const ACCENT_KEYS: Record<string, string> = {
   TC: "tc",
 };
 
+/** Resolve the accent color key for a category, defaulting to "control". */
 export function getAccentKey(categoryId: string): string {
   return ACCENT_KEYS[categoryId] ?? "control";
 }
@@ -76,10 +84,12 @@ const CATEGORY_LABELS: Record<string, string> = {
   TC: "TC — Traceable",
 };
 
+/** Human-readable label for a category ID (e.g. "transparency" → "Transparency"). */
 export function getCategoryLabel(categoryId: string): string {
   return CATEGORY_LABELS[categoryId] ?? categoryId;
 }
 
+/** Percentage (0–100) of visible questions that have been scored. */
 export function computeCompletion(
   evaluations: Evaluation[],
   rubric: RubricData,
@@ -93,6 +103,7 @@ export function computeCompletion(
   return visibleIds.size > 0 ? Math.round((scored / visibleIds.size) * 100) : 0;
 }
 
+/** Return rubric IDs whose evaluations explicitly link to the given capture. */
 export function getLinkedRubricIdsForCapture(
   captureId: string,
   evaluations: Evaluation[],
@@ -111,6 +122,7 @@ function buildEvalMap(evaluations: Evaluation[]): EvalMap {
   return new Map(evaluations.map((e) => [e.rubricId, e]));
 }
 
+/** Evaluate all quality-gate questions and return pass/fail/na/unsure/null results. */
 export function qualityGateResults(
   evaluations: Evaluation[],
   rubric: RubricData,
@@ -141,6 +153,7 @@ export function qualityGateResults(
   return results;
 }
 
+/** Raw score values for every question in a scoring category, in rubric order. */
 export function getCategoryScores(
   categoryId: string,
   evaluations: Evaluation[],
@@ -159,6 +172,7 @@ export function getCategoryScores(
   return scores;
 }
 
+// ── Score colors and rendering ───────────────────────────────────────────
 const SCORE_COLORS: Record<number, HexColor> = {
   0: "#c60c30",
   1: "#c2410c",
@@ -180,12 +194,14 @@ export function reportScoreColor(s: number | "na" | "unsure" | undefined): HexCo
   if (s === "unsure") return "#5a6e82";
   return REPORT_SCORE_COLORS[s] ?? "#4c5e74";
 }
+/** Score color for the main UI (slightly lighter greens than the report variant). */
 export function scoreColor(s: number | "na" | "unsure" | undefined): HexColor {
   if (s === "na" || s === undefined) return "#4c5e74";
   if (s === "unsure") return "#5a6e82";
   return SCORE_COLORS[s] ?? "#4c5e74";
 }
 
+/** Build an inline HTML distribution bar showing score counts by color. */
 export function distributionBar(
   scores: (number | "na" | "unsure" | "" | undefined)[],
   colorFn: (s: number | "na" | "unsure" | undefined) => HexColor = scoreColor,
@@ -210,6 +226,7 @@ export function distributionBar(
   return `<div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px">${segments}</div><div class="dist-labels">${labels.join(" ")}</div>`;
 }
 
+/** Mean numeric score for a principle category, or null if no numeric scores. */
 export function principleAverage(
   categoryId: string,
   evaluations: Evaluation[],
@@ -231,6 +248,7 @@ export function principleAverage(
   return count > 0 ? sum / count : null;
 }
 
+/** Count "unsure" answers in a scoring category (respects ai_only visibility). */
 export function countUnsure(
   categoryId: string,
   evaluations: Evaluation[],

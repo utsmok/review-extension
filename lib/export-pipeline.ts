@@ -1,12 +1,13 @@
-import { loadAllScreenshots } from "./screenshot-store";
-import { minifyHtml } from "./minify";
 import { buildHtmlReport, buildNutritionLabel } from "./html-report";
+import { ensureArray } from "./metadata-utils";
+import { minifyHtml } from "./minify";
 import {
   getCategoryLabel,
   getQGQuestionCode,
   getQuestionCode,
   getRubricQuestionIds,
 } from "./rubric";
+import { loadAllScreenshots } from "./screenshot-store";
 import type {
   Capture,
   Evaluation,
@@ -15,7 +16,6 @@ import type {
   RubricData,
   SessionMetadata,
 } from "./types";
-import { ensureArray } from "./metadata-utils";
 
 // biome-ignore lint/complexity/useRegexLiterals: must use RegExp constructor to avoid noControlCharactersInRegex
 const INVALID_FILENAME_CHARS = new RegExp('[<>:"/\\\\|?*\u0000-\u001F]', "g");

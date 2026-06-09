@@ -40,6 +40,7 @@ export interface ReportScores {
   verdictColor: string;
 }
 
+/** Compute all scoring and verdict data needed for the HTML report and nutrition label. */
 export function computeReportScores(
   evaluations: Evaluation[],
   rubric: RubricData,

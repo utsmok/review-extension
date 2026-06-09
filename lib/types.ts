@@ -1,4 +1,6 @@
-export type SessionStatus = "started" | "done";
+/** Lifecycle state of a review session. */
+export type SessionStatus = "started" | "in-progress" | "done";
+/** Overall status of the session store (empty = no session, loading = hydrating, active = ready). */
 export type StoreStatus = "empty" | "loading" | "active";
 
 export interface Settings {
@@ -37,6 +39,7 @@ export interface SessionMetadata {
   finalizedAt?: string;
 }
 
+/** Full session data as stored in IndexedDB and exported ZIP (session.json). */
 export interface SessionData {
   metadata: SessionMetadata;
   captures: Capture[];
@@ -44,6 +47,7 @@ export interface SessionData {
   questionModes?: Record<string, "expert" | "standard">;
   finalization: ReviewFinalization | null;
   schemaVersion?: number;
+  quickNotes?: Array<{ id: string; text: string; timestamp: string }>;
 }
 
 export interface Capture {
@@ -59,8 +63,11 @@ export interface Capture {
   metadataField?: string;
 }
 
+/** Quality gate (pass/fail) score values. */
 export type QualityGateScore = "pass" | "fail" | "na" | "unsure" | "";
+/** Scoring rubric (0–3) score values. */
 export type ScoringScore = 0 | 1 | 2 | 3 | "na" | "unsure" | "";
+/** Union of all possible score values across quality gate and scoring questions. */
 export type EvaluationScore = QualityGateScore | ScoringScore;
 
 export interface Evaluation {
@@ -75,6 +82,7 @@ export interface Evaluation {
   manualDone?: boolean;
 }
 
+/** Final verdict grade assigned during review finalization. */
 export type FinalizationGrade = "pass" | "conditional" | "fail";
 
 export interface ReviewFinalization {
@@ -86,7 +94,9 @@ export interface ReviewFinalization {
   finalizedAt: string;
 }
 
+/** Alias for quality gate scores (semantic clarity at call sites). */
 export type PassFailScore = QualityGateScore;
+/** Alias for scoring rubric scores (semantic clarity at call sites). */
 export type RubricScore = ScoringScore;
 
 export interface PassFailQuestion {
@@ -117,9 +127,13 @@ export interface ScoringQuestion {
   };
   readonly ai_only?: boolean;
   readonly related_gate?: string;
+  /** Whether this scoring question extends/subsumes a quality gate topic.
+   * When true, the question deepens evaluation of a gate's domain
+   * (e.g., SE2 extends QG1 data privacy, TC1 extends citation attribution). */
   readonly merged_gate?: boolean;
 }
 
+/** CSS hex color string (e.g. "#ff0000"). */
 export type HexColor = `#${string}`;
 
 export interface RubricData {

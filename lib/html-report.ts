@@ -1,7 +1,7 @@
 import { PRINCIPLES } from "./principles";
 import type { ReportScores } from "./report/compute-scores";
-import { buildReportModel } from "./report-model";
 import type { CaptureInfo, PrincipleScoreRow, QualityGateRow } from "./report-model";
+import { buildReportModel } from "./report-model";
 import { principleAverage, qualityGateResults } from "./rubric";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
@@ -468,6 +468,7 @@ function buildNutritionLabelHtml(
 </div>`;
 }
 
+/** Build the standalone TRUST "nutrition label" HTML — a compact summary card. */
 export async function buildNutritionLabel(
   metadata: SessionMetadata,
   evaluations: Evaluation[],
@@ -507,6 +508,7 @@ ${labelHtml}
 </html>`;
 }
 
+/** Build the full standalone HTML evaluation report with all sections, scores, and embedded screenshots. */
 export async function buildHtmlReport(
   metadata: SessionMetadata,
   captures: Capture[],

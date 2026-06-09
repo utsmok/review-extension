@@ -23,6 +23,7 @@ migrations.set(2, (data: SessionData): SessionData => {
   return data;
 });
 
+/** Run all pending schema migrations from the stored version to the current version. */
 export function runMigrations(data: SessionData): SessionData {
   const startVersion = data.schemaVersion ?? 1;
   let current = data;

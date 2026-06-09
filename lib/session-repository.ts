@@ -1,8 +1,9 @@
 import type { SessionData } from "@/lib/types";
-import { CURRENT_SCHEMA_VERSION as SCHEMA_VERSION, runMigrations } from "./migrations";
+import { runMigrations, CURRENT_SCHEMA_VERSION as SCHEMA_VERSION } from "./migrations";
 
 // --- Interface ---
 
+/** Abstraction over session persistence (IDB or in-memory for tests). */
 export interface SessionRepository {
   save(id: string, data: SessionData): Promise<boolean>;
   load(id: string): Promise<SessionData | null>;
@@ -14,6 +15,7 @@ export interface SessionRepository {
 
 const DB_NAME = "trust-review-sessions";
 const STORE_NAME = "sessions";
+
 export { CURRENT_SCHEMA_VERSION as SCHEMA_VERSION } from "./migrations";
 
 // --- IdbSessionRepository ---
@@ -80,8 +82,9 @@ export class IdbSessionRepository implements SessionRepository {
           const headroom = quota - usage;
           if (estimatedSize > headroom * 0.8) {
             console.warn(
-              `Storage quota low: ${Math.round(usage / 1e6)}MB / ${Math.round(quota / 1e6)}MB, ` +
-                `estimated ~${Math.round(estimatedSize / 1e6)}MB. Save may fail.`,
+              `Storage quota low: ${Math.round(usage / 1e6)}MB / ${Math.round(quota / 1e6)}MB used. ` +
+                `Session (~${Math.round(estimatedSize / 1e6)}MB) may fail to save. ` +
+                `Delete old reviews to free space.`,
             );
           }
         }
@@ -156,11 +159,11 @@ export class InMemorySessionRepository implements SessionRepository {
 // --- Module-level DI ---
 
 let currentRepository: SessionRepository = new IdbSessionRepository();
-
+/** Get the currently configured repository instance. */
 export function getRepository(): SessionRepository {
   return currentRepository;
 }
-
+/** Replace the repository instance (used by tests to inject InMemorySessionRepository). */
 export function setRepository(repo: SessionRepository): void {
   currentRepository = repo;
 }

@@ -1,3 +1,4 @@
+/** Clone the current page DOM, inline CSS, strip scripts/dangerous elements, resolve URLs, and return a self-contained HTML archive. */
 export async function archivePageHtml(): Promise<{ html: string; title: string }> {
   const doc = document;
   const base = doc.baseURI;

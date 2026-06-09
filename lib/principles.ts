@@ -1,3 +1,4 @@
+/** TRUST framework principles with their display codes, accent colors, and full names. Order matters — drives tab/column ordering. */
 export const PRINCIPLES = [
   { id: "TR", code: "TR", color: "#2563eb", reportColor: "#2563eb", fullName: "Transparency" },
   { id: "RE", code: "RE", color: "#16a34a", reportColor: "#127035", fullName: "Reliability" },

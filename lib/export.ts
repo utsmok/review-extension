@@ -1,9 +1,10 @@
-import { prepareExportArtifacts, assembleZip, sanitizeFilename, shortId } from "./export-pipeline";
-import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
+import { assembleZip, prepareExportArtifacts, sanitizeFilename, shortId } from "./export-pipeline";
 import { saveScreenshot } from "./screenshot-store";
+import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 export { sanitizeFilename };
 
+/** Trigger a browser download for a Blob by creating and clicking a temporary anchor element. */
 export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -16,6 +17,7 @@ export function downloadBlob(blob: Blob, filename: string): void {
 // Cached dynamic import (used by importSessionFromZip)
 let cachedJSZip: typeof import("jszip") | null = null;
 
+/** Build and return a ZIP blob containing all export artifacts for a session. */
 export async function exportSession(
   metadata: SessionMetadata,
   captures: Capture[],
@@ -37,6 +39,7 @@ export async function exportSession(
 const MAX_INPUT_SIZE = 200 * 1024 * 1024; // 200 MB compressed
 const MAX_ZIP_ENTRIES = 500;
 const MAX_TOTAL_BYTES = 500 * 1024 * 1024; // 500 MB uncompressed
+/** Validate and cast raw parsed JSON into SessionData, throwing descriptive errors on failure. */
 function validateSessionData(data: unknown): import("./types").SessionData {
   if (!data || typeof data !== "object") throw new Error("session.json is not a valid object");
   const d = data as Record<string, unknown>;
@@ -75,6 +78,7 @@ function validateSessionData(data: unknown): import("./types").SessionData {
   return data as import("./types").SessionData;
 }
 
+/** Import a session from a TRUST Review ZIP archive, reassembling screenshots and HTML. */
 export async function importSessionFromZip(zipBlob: Blob): Promise<import("./types").SessionData> {
   if (zipBlob.size > MAX_INPUT_SIZE) {
     throw new Error(
