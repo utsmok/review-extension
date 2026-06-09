@@ -1,57 +1,17 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  AssetRecordType,
-  createShapeId,
-  type Editor,
-  type TLComponents,
-  type TLShapeId,
-  type TLUiOverrides,
-  useValue,
-} from "tldraw";
-
-const Tldraw = lazy(() => import("tldraw").then((m) => ({ default: m.Tldraw })));
-
+import { lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRubric } from "@/components/contexts";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useAutoFocus, useFocusTrap } from "@/hooks/useFocus";
 import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
-import { useRubric } from "@/lib/contexts";
 import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import type { Capture } from "@/lib/types";
 import RubricChipGroup from "./RubricChipGroup";
+import type { Editor, TLShapeId } from "./TldrawAnnotation";
+import TldrawCanvas from "./TldrawCanvas";
 
-/* ── tldraw UI configuration ─────────────────────────────────────── */
-const TL_UI_COMPONENTS: TLComponents = {
-  MainMenu: null,
-  Minimap: null,
-  ContextMenu: null,
-  ActionsMenu: null,
-  QuickActions: null,
-  SharePanel: null,
-  CursorChatBubble: null,
-  TopPanel: null,
-  MenuPanel: null,
-  DebugPanel: null,
-  DebugMenu: null,
-  HelperButtons: null,
-  NavigationPanel: null,
-  PageMenu: null,
-  FollowingIndicator: null,
-  RichTextToolbar: null,
-  ImageToolbar: null,
-  VideoToolbar: null,
-};
-
-const TL_UI_OVERRIDES: TLUiOverrides = {
-  tools(_editor, tools) {
-    // Remove tools we don't need in the annotation context
-    delete tools.text;
-    delete tools.note;
-    delete tools.frame;
-    delete tools.embed;
-    delete tools.asset;
-    return tools;
-  },
-};
+const LazyActionBar = lazy(() =>
+  import("./TldrawAnnotation").then((m) => ({ default: m.ActionBar })),
+);
 
 /* ── Props ──────────────────────────────────────────────────────── */
 
@@ -108,12 +68,19 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     let cleanupFns: (() => void)[] = [];
 
     const img = new Image();
-    img.onload = () => {
+    img.onload = async () => {
       if (cancelled) return;
       const w = img.naturalWidth;
       const h = img.naturalHeight;
 
-      const assetId = AssetRecordType.createId();
+      // Dynamic import — tldraw is already loaded at this point (editor exists),
+      // but this avoids a static dependency that defeats code splitting.
+      const { AssetRecordType: ART, createShapeId: makeShapeId } = await import(
+        "./TldrawAnnotation"
+      );
+      if (cancelled) return;
+
+      const assetId = ART.createId();
       editor.createAssets([
         {
           id: assetId,
@@ -131,7 +98,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         },
       ]);
 
-      const shapeId = createShapeId();
+      const shapeId = makeShapeId();
       editor.createShape({
         id: shapeId,
         type: "image",
@@ -265,7 +232,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
       >
         {/* Action bar — Save / Clear / Zoom */}
         {editor && (
-          <ActionBar
+          <LazyActionBar
             editor={editor}
             imageShapeId={imageShapeId}
             onClear={handleClear}
@@ -275,15 +242,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
 
         {/* tldraw canvas with built-in UI */}
         <div className="tldraw-evidence-container">
-          <Suspense
-            fallback={
-              <div className="tldraw-loading">
-                <span className="tldraw-spinner" aria-hidden="true" /> Loading annotation editor…
-              </div>
-            }
-          >
-            <Tldraw onMount={onMount} components={TL_UI_COMPONENTS} overrides={TL_UI_OVERRIDES} />
-          </Suspense>
+          <TldrawCanvas onMount={onMount} />
           {/* Edge-fade overlay: subtle shadow when image extends beyond viewport */}
           <div className="tldraw-edge-fade" aria-hidden="true" />
           {/* Pan/zoom hint */}
@@ -378,107 +337,5 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         </div>
       </div>
     </button>
-  );
-}
-
-/* ── Action bar (Save / Clear / Zoom) ─────────────────────────────── */
-
-interface ActionBarProps {
-  editor: Editor;
-  imageShapeId: TLShapeId | null;
-  onClear: () => void;
-  onSave: () => void;
-}
-
-const ZOOM_STEP = 0.1;
-
-function ActionBar({ editor, imageShapeId, onClear, onSave }: ActionBarProps) {
-  const zoomLevel = useValue("zoomLevel", () => editor.getCamera().z, [editor]);
-
-  const handleZoomIn = () => {
-    const { x, y, z } = editor.getCamera();
-    const newZ = Math.min(5, z + ZOOM_STEP);
-    const vp = editor.getViewportPageBounds();
-    const cx = vp.center.x;
-    const cy = vp.center.y;
-    const newX = cx - ((cx - x) / z) * newZ;
-    const newY = cy - ((cy - y) / z) * newZ;
-    editor.setCamera({ x: newX, y: newY, z: newZ }, { animation: { duration: 150 } });
-  };
-
-  const handleZoomOut = () => {
-    const { x, y, z } = editor.getCamera();
-    const newZ = Math.max(0.1, z - ZOOM_STEP);
-    const vp = editor.getViewportPageBounds();
-    const cx = vp.center.x;
-    const cy = vp.center.y;
-    const newX = cx - ((cx - x) / z) * newZ;
-    const newY = cy - ((cy - y) / z) * newZ;
-    editor.setCamera({ x: newX, y: newY, z: newZ }, { animation: { duration: 150 } });
-  };
-
-  const handleZoomToFit = () => {
-    if (!imageShapeId) return;
-    const shape = editor.getShape(imageShapeId);
-    if (!shape) return;
-    const { w, h } = shape.props as { w: number; h: number };
-    editor.zoomToBounds({ x: 0, y: 0, w, h }, { inset: 16 });
-  };
-
-  const zoomPct = `${Math.round(zoomLevel * 100)}%`;
-
-  return (
-    <div className="annotation-actions" role="toolbar" aria-label="Annotation actions">
-      <button
-        type="button"
-        title="Zoom out"
-        aria-label="Zoom out"
-        className="annotation-actions__btn"
-        onClick={handleZoomOut}
-      >
-        −
-      </button>
-      <button
-        type="button"
-        title="Fit image to view"
-        aria-label={`Zoom: ${zoomPct}. Click to fit.`}
-        className="annotation-actions__zoom"
-        onClick={handleZoomToFit}
-      >
-        {zoomPct}
-      </button>
-      <button
-        type="button"
-        title="Zoom in"
-        aria-label="Zoom in"
-        className="annotation-actions__btn"
-        onClick={handleZoomIn}
-      >
-        +
-      </button>
-
-      <span className="annotation-actions__sep" />
-
-      <button
-        type="button"
-        title="Clear all annotations"
-        aria-label="Clear annotations"
-        className="annotation-actions__btn"
-        onClick={onClear}
-      >
-        Clear
-      </button>
-
-      <div className="flex-1" />
-
-      <button
-        type="button"
-        title="Save and close"
-        className="annotation-actions__save"
-        onClick={onSave}
-      >
-        Save
-      </button>
-    </div>
   );
 }
