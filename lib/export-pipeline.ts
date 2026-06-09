@@ -14,6 +14,7 @@ import type {
   EvaluationScore,
   ReviewFinalization,
   RubricData,
+  SessionData,
   SessionMetadata,
 } from "./types";
 
@@ -73,7 +74,7 @@ export async function prepareExportArtifacts(
   evaluations: Evaluation[],
   rubric: RubricData,
   finalization: ReviewFinalization | null,
-  quickNotes?: import("./types").SessionData["quickNotes"],
+  quickNotes?: SessionData["quickNotes"],
 ): Promise<ExportArtifacts> {
   // Load screenshots from separate IDB store
   const screenshotMap = await loadAllScreenshots(captures.map((c) => c.id));
@@ -132,64 +133,49 @@ export async function prepareExportArtifacts(
     return String(score);
   }
 
-  /** Look up question title from rubric by dot-separated ID. */
-  function questionTitle(rubricId: string): string {
-    const [cat, qKey] = rubricId.split(".");
+  /** Pre-computed question metadata — avoids repeated string splitting. */
+  interface QuestionMeta {
+    title: string;
+    type: string;
+    aiOnly: boolean;
+    code: string;
+  }
+
+  const questionMetaMap = new Map<string, QuestionMeta>();
+  for (const rubricId of getRubricQuestionIds(rubric)) {
+    const dotIdx = rubricId.indexOf(".");
+    const cat = dotIdx >= 0 ? rubricId.slice(0, dotIdx) : rubricId;
+    const qKey = dotIdx >= 0 ? rubricId.slice(dotIdx + 1) : "";
+
     const qgSection = rubric.quality_gate[cat as keyof typeof rubric.quality_gate];
     if (qgSection) {
       const q = qgSection[qKey as keyof typeof qgSection];
-      if (q) return q.title;
-    }
-    const srSection = rubric.scoring_rubric[cat as keyof typeof rubric.scoring_rubric];
-    if (srSection) {
-      const q = srSection[qKey as keyof typeof srSection];
-      if (q) return q.title;
-    }
-    return "";
-  }
-
-  /** Determine question type from rubric. */
-  function questionType(rubricId: string): string {
-    const [cat, _qKey] = rubricId.split(".");
-    const qgSection = rubric.quality_gate[cat as keyof typeof rubric.quality_gate];
-    if (qgSection) return "quality_gate";
-    return "scoring";
-  }
-
-  /** Whether a question is AI-only. */
-  function questionAiOnly(rubricId: string): boolean {
-    const [cat, qKey] = rubricId.split(".");
-    const qgSection = rubric.quality_gate[cat as keyof typeof rubric.quality_gate];
-    if (qgSection) {
-      const q = qgSection[qKey as keyof typeof qgSection];
-      return (q as { ai_only?: boolean })?.ai_only ?? false;
-    }
-    const srSection = rubric.scoring_rubric[cat as keyof typeof rubric.scoring_rubric];
-    if (srSection) {
-      const q = srSection[qKey as keyof typeof srSection];
-      return (q as { ai_only?: boolean })?.ai_only ?? false;
-    }
-    return false;
-  }
-
-  /** Build a short display code (e.g. TR1, PS2) from a rubric ID. */
-  function questionCode(rubricId: string): string {
-    const [cat, qKey] = rubricId.split(".");
-    // Quality gate categories use getQGQuestionCode
-    const qgSection = rubric.quality_gate[cat as keyof typeof rubric.quality_gate];
-    if (qgSection) {
       const keys = Object.keys(qgSection);
       const idx = keys.indexOf(qKey);
-      return getQGQuestionCode(cat, idx >= 0 ? idx : 0);
+      questionMetaMap.set(rubricId, {
+        title: q?.title ?? "",
+        type: "quality_gate",
+        aiOnly: (q as { ai_only?: boolean })?.ai_only ?? false,
+        code: getQGQuestionCode(cat, idx >= 0 ? idx : 0),
+      });
+      continue;
     }
-    // Scoring categories use getQuestionCode
+
     const srSection = rubric.scoring_rubric[cat as keyof typeof rubric.scoring_rubric];
     if (srSection) {
+      const q = srSection[qKey as keyof typeof srSection];
       const keys = Object.keys(srSection);
       const idx = keys.indexOf(qKey);
-      return getQuestionCode(cat, idx >= 0 ? idx : 0);
+      questionMetaMap.set(rubricId, {
+        title: q?.title ?? "",
+        type: "scoring",
+        aiOnly: (q as { ai_only?: boolean })?.ai_only ?? false,
+        code: getQuestionCode(cat, idx >= 0 ? idx : 0),
+      });
+      continue;
     }
-    return rubricId;
+
+    questionMetaMap.set(rubricId, { title: "", type: "", aiOnly: false, code: rubricId });
   }
 
   // Build evaluation lookup
@@ -227,15 +213,17 @@ export async function prepareExportArtifacts(
     BOM +
     Papa.unparse(
       allQuestionIds.map((rubricId) => {
-        const [category] = rubricId.split(".");
+        const meta = questionMetaMap.get(rubricId);
+        const dotIdx = rubricId.indexOf(".");
+        const category = dotIdx >= 0 ? rubricId.slice(0, dotIdx) : rubricId;
         const ev = evalMap.get(rubricId);
         return {
-          Code: questionCode(rubricId),
+          Code: meta?.code ?? rubricId,
           Category: getCategoryLabel(category),
           Question_ID: rubricId,
-          Title: questionTitle(rubricId),
-          Type: questionType(rubricId),
-          AI_Only: String(questionAiOnly(rubricId)),
+          Title: meta?.title ?? "",
+          Type: meta?.type ?? "",
+          AI_Only: String(meta?.aiOnly ?? false),
           Score: ev ? scoreLabel(ev.score) : "—",
           Manual_Done: ev?.manualDone ? "Yes" : "",
           Notes: ev?.notes ?? "",
@@ -294,20 +282,23 @@ export async function prepareExportArtifacts(
     return entry;
   });
 
-  const sessionData: import("./types").SessionData = {
+  const sessionData: SessionData = {
     metadata,
-    captures: lightweightCaptures as import("./types").Capture[],
+    captures: lightweightCaptures as Capture[],
     evaluations,
     finalization,
     ...(quickNotes?.length ? { quickNotes } : {}),
   };
 
   // ── Logo files (extracted as JPEG) ────────────────────────────────────
+  // Dynamic import is correct here: logos are only needed during export,
+  // so they should not be loaded at module parse time. The await ensures
+  // the data is available when needed without blocking app startup.
   const { TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO } = await import("./logos");
   for (const [name, dataUrl] of [
-    ["1.jpg", TRUST_LOGO],
-    ["2.jpg", LISA_EIS_LOGO],
-    ["3.jpg", UT_LOGO],
+    ["trust-logo.jpg", TRUST_LOGO],
+    ["lisa-eis-logo.jpg", LISA_EIS_LOGO],
+    ["ut-logo.jpg", UT_LOGO],
   ] as const) {
     const { dataUrl: jpegUrl } = await pngToJpeg(dataUrl, 0.95, 400);
     const base64 = jpegUrl.split(",")[1] ?? "";
@@ -378,6 +369,6 @@ export async function assembleZip(artifacts: ExportArtifacts): Promise<Blob> {
   return zip.generateAsync({
     type: "blob",
     compression: "DEFLATE",
-    compressionOptions: { level: 9 },
+    compressionOptions: { level: 6 },
   });
 }

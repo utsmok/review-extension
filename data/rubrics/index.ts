@@ -12,4 +12,30 @@ function deepFreeze<T>(obj: T): T {
   return obj;
 }
 
-export const RUBRIC_DATA: RubricData = deepFreeze(trustFull) as unknown as RubricData;
+/**
+ * Validate that raw rubric JSON has the expected structural shape
+ * before casting to RubricData. Catches malformed JSON at startup
+ * rather than producing mysterious runtime errors deep in the app.
+ */
+function validateRubricShape(data: unknown): asserts data is RubricData {
+  if (!data || typeof data !== "object") {
+    throw new Error("Rubric data is not an object");
+  }
+  const d = data as Record<string, unknown>;
+
+  if (typeof d.framework_name !== "string") {
+    throw new Error("Rubric data missing string 'framework_name'");
+  }
+  if (typeof d.version !== "string") {
+    throw new Error("Rubric data missing string 'version'");
+  }
+  if (!d.quality_gate || typeof d.quality_gate !== "object") {
+    throw new Error("Rubric data missing object 'quality_gate'");
+  }
+  if (!d.scoring_rubric || typeof d.scoring_rubric !== "object") {
+    throw new Error("Rubric data missing object 'scoring_rubric'");
+  }
+}
+
+validateRubricShape(trustFull);
+export const RUBRIC_DATA: RubricData = deepFreeze(trustFull) as RubricData;
