@@ -1,24 +1,24 @@
 // TRUST Conference Site — Tab Navigation
-(function () {
+(() => {
   const tabs = document.querySelectorAll(".tab-nav a");
   const panels = document.querySelectorAll(".tab-panel");
 
   function showTab(id) {
     // Update nav links
-    tabs.forEach(function (a) {
+    tabs.forEach((a) => {
       a.classList.toggle("active", a.dataset.tab === id);
     });
     // Update panels
-    panels.forEach(function (panel) {
+    panels.forEach((panel) => {
       panel.classList.toggle("active", panel.id === id);
     });
     // Update URL hash without scroll jump
-    history.replaceState(null, "", "#" + id);
+    history.replaceState(null, "", `#${id}`);
   }
 
   // Click handlers
-  tabs.forEach(function (a) {
-    a.addEventListener("click", function (e) {
+  tabs.forEach((a) => {
+    a.addEventListener("click", (e) => {
       e.preventDefault();
       showTab(a.dataset.tab);
     });

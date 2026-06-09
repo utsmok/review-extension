@@ -4,7 +4,7 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ScoreOverviewBar from "@/components/ScoreOverviewBar";
 import type { Capture, Evaluation, EvaluationScore } from "@/lib/types";
-import { RUBRIC, makeCapture, makeEvaluation } from "@/tests/fixtures";
+import { makeCapture, makeEvaluation, RUBRIC } from "@/tests/fixtures";
 
 // ---------------------------------------------------------------------------
 // localStorage stub — Zustand persist captures window.localStorage at import

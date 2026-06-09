@@ -1,5 +1,5 @@
-import { ScoreOption } from "../ScoreOption";
 import type { Evaluation, PassFailScore } from "@/lib/types";
+import { ScoreOption } from "../ScoreOption";
 
 interface QualityGateSectionProps {
   rubricId: string;

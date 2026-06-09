@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeReportScores } from "@/lib/report/compute-scores";
-import { makeEvaluation, makeFinalization, RUBRIC } from "@/tests/fixtures";
 import type { Evaluation, QualityGateScore, ReviewFinalization, ScoringScore } from "@/lib/types";
+import { makeEvaluation, makeFinalization, RUBRIC } from "@/tests/fixtures";
 
 describe("computeReportScores — property invariants", () => {
   const scoringScores: ScoringScore[] = [0, 1, 2, 3, "na", "unsure", ""];

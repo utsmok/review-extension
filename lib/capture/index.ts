@@ -1,3 +1,3 @@
-export { archivePageHtml } from "./sanitize";
+export { captureActiveTab, captureCurrentPageInfo, captureForMetadataField } from "./browser";
 export { extractLogoFromPage } from "./extract";
-export { captureActiveTab, captureForMetadataField, captureCurrentPageInfo } from "./browser";
+export { archivePageHtml } from "./sanitize";

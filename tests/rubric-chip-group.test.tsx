@@ -26,7 +26,7 @@ vi.hoisted(() => {
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import RubricChipGroup from "@/components/RubricChipGroup";
-import type { ScoringQuestion, PassFailQuestion } from "@/lib/types";
+import type { PassFailQuestion, ScoringQuestion } from "@/lib/types";
 
 afterEach(cleanup);
 

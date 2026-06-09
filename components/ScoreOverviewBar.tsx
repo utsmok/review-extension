@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { getProgressState, type ProgressState } from "@/lib/evaluation-state";
 import {
   getAccentKey,
   getQGCategoryCode,
@@ -6,7 +7,6 @@ import {
   getQuestionCode,
   getVisibleRubricQuestionIds,
 } from "@/lib/rubric";
-import { getProgressState, type ProgressState } from "@/lib/evaluation-state";
 import type { Capture, Evaluation, RubricData } from "@/lib/types";
 
 // ---------------------------------------------------------------------------

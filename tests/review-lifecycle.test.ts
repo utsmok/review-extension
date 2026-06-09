@@ -1,8 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { RUBRIC, makeMetadata, makeCapture, makeEvaluation, makeFinalization } from "./fixtures";
-import { computeReportScores } from "@/lib/report/compute-scores";
+import { describe, expect, it } from "vitest";
 import { exportSession, importSessionFromZip } from "@/lib/export";
+import { computeReportScores } from "@/lib/report/compute-scores";
 import type { Capture, Evaluation, ReviewFinalization, SessionMetadata } from "@/lib/types";
+import { makeCapture, makeEvaluation, makeFinalization, makeMetadata, RUBRIC } from "./fixtures";
 
 // Helper: unzip to file map
 async function unzipToFiles(blob: Blob): Promise<Map<string, string | Uint8Array>> {

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
 import { captureActiveTab } from "@/lib/capture";
 import { useRubric } from "@/lib/contexts";
 import {
@@ -20,10 +20,10 @@ import type {
 import { toastError } from "@/stores/toast";
 import EvidenceThumbnails from "./EvidenceThumbnails";
 import { getProgressState, ProgressCircle } from "./ProgressCircle";
-import { ScoreOption } from "./ScoreOption";
 import { DoneToggle } from "./question-section/DoneToggle";
 import { QualityGateSection } from "./question-section/QualityGateSection";
 import { QuestionNotes } from "./question-section/QuestionNotes";
+import { ScoreOption } from "./ScoreOption";
 
 const NO_CAPTURES: Capture[] = [];
 

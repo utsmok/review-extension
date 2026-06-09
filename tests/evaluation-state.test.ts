@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getProgressState } from "@/lib/evaluation-state";
 import type { ProgressState } from "@/lib/evaluation-state";
+import { getProgressState } from "@/lib/evaluation-state";
 
 describe("getProgressState", () => {
   it('returns "empty" when nothing is filled', () => {

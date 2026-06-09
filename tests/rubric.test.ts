@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import trustFull from "@/data/rubrics/trust-full.json";
-import type { Evaluation, RubricData } from "@/lib/types";
 import {
   computeCompletion,
   countUnsure,
@@ -15,6 +14,7 @@ import {
   qualityGateResults,
   scoreColor,
 } from "@/lib/rubric";
+import type { Evaluation, RubricData } from "@/lib/types";
 
 const TRUST_RUBRIC = trustFull as unknown as RubricData;
 
