@@ -1,6 +1,45 @@
 # Changelog
 
 
+
+## v0.8.0 — 2026-06-09
+
+### Performance: 4× Faster Initial Load
+
+The tldraw annotation library (1.6 MB) is now lazy-loaded only when you open the evidence annotation editor. The initial sidepanel load dropped from 2.07 MB to 438 KB — the extension opens and becomes interactive roughly four times faster.
+
+### Fixed: Score Circles Use Strict Rounding
+
+Score circles on the TRUST Label now use `Math.floor` for consistent display. Previously, a principle averaging 1.5 could round up to show 2 filled circles, which overstated the score. Now it always rounds down: 1.5 → 1 filled circle. This aligns the visual display with the printed numeric average below each principle.
+
+### Fixed: Accessibility in Exported Reports
+
+- Nutrition label principle table now uses proper `<th>` header cells instead of `<td>`, so screen readers can announce column headers correctly.
+- Print stylesheet caps embedded images at 300 px height to prevent oversized prints.
+
+### Security: Hardened Export Pipeline
+
+- Archive sanitizer now strips CSS `url()` references and sanitizes `srcset` attributes in imported HTML captures.
+- ZIP path-traversal check now also URL-decodes entry names to catch encoded `..` sequences.
+- Malformed percent-encoding in ZIP entry names no longer crashes the import.
+- `safeLink()` in HTML reports now sanitizes the `attrs` parameter, preventing potential attribute injection.
+
+### Improved: Design System Consistency
+
+- Focus rings now use the brand blue token (`--ut-blue`) instead of magenta, improving visibility on dark backgrounds.
+- Touch targets on buttons raised to 28 px minimum for better mobile/tablet usability.
+- Five decorative box-shadows removed for a cleaner, flatter aesthetic.
+- Modal border-radius aligned with the design token (`--radius-md`).
+- Finalization screen inline styles replaced with CSS classes for consistency.
+- CSS transitions narrowed from `all` to specific properties, eliminating unintended animation of layout properties.
+
+### Under the Hood
+
+- Export pipeline pre-computes a question lookup map for faster report generation.
+- ZIP compression tuned from level 9 to 6 (smaller files, faster exports).
+- Logo ZIP entries renamed from `1.jpg/2.jpg/3.jpg` to semantic names (`trust-logo.jpg`, etc.).
+- Rubric validation at startup ensures the bundled rubric JSON is structurally correct.
+
 ## v0.7.1 — 2026-06-08
 
 ### Security: Manifest Hardening for Chrome Web Store
