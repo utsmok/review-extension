@@ -2,8 +2,8 @@
 
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import QuestionSection from "@/components/QuestionSection";
-import { RubricContext } from "@/lib/contexts";
+import { RubricContext } from "@/components/contexts";
+import { QuestionSection } from "@/components/QuestionSection";
 import type { Evaluation } from "@/lib/types";
 import { useSessionStore } from "@/stores/session";
 import { makeEvaluation, RUBRIC } from "@/tests/fixtures";

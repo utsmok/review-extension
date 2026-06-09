@@ -3,7 +3,7 @@
 import { cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import QuestionSection, { QuestionRow } from "@/components/QuestionSection";
+import { QuestionRow, QuestionSection } from "@/components/QuestionSection";
 import type { Evaluation } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";

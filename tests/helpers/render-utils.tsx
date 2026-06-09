@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import { useRef } from "react";
-import { RubricContext } from "@/lib/contexts";
+import { RubricContext } from "@/components/contexts";
 import type { Capture, Evaluation, ReviewFinalization } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";

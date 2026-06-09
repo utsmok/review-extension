@@ -46,7 +46,7 @@ vi.mock("@/hooks/useCaptureQueue", () => ({
   useCaptureQueue: () => ({ enqueue: mockEnqueue, isCapturing: false }),
 }));
 
-vi.mock("@/lib/contexts", () => ({
+vi.mock("@/components/contexts", () => ({
   useRubric: () => ({ rubric: RUBRIC, usesAi: true }),
   RubricContext: {
     Provider: ({ children }: { children: React.ReactNode }) => children,

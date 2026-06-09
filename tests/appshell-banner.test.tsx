@@ -44,7 +44,6 @@ describe("Setup Banner", () => {
     expect(screen.queryByTestId("setup-banner")).toBeNull();
   });
 
-
   it("hides the banner when reviewerName is set after initial render", () => {
     useRegistryStore.getState().updateSettings({ reviewerName: "" });
     const { rerender } = renderAppShell();

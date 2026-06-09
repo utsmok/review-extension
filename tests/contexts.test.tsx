@@ -4,7 +4,12 @@
 import { renderHook } from "@testing-library/react";
 
 import { describe, expect, it } from "vitest";
-import { RubricContext, TabNavigationContext, useRubric, useTabNavigation } from "@/lib/contexts";
+import {
+  RubricContext,
+  TabNavigationContext,
+  useRubric,
+  useTabNavigation,
+} from "@/components/contexts";
 import { RUBRIC } from "@/tests/fixtures";
 
 describe("useRubric", () => {

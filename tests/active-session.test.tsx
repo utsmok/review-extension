@@ -69,7 +69,7 @@ vi.mock("@/lib/session-repository", () => ({
   getRepository: () => ({ save: vi.fn(), load: vi.fn(), remove: vi.fn() }),
 }));
 
-import ActiveSession from "@/components/ActiveSession";
+import { ActiveSession } from "@/components/ActiveSession";
 
 // ---------------------------------------------------------------------------
 // Helpers

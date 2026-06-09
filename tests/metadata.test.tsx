@@ -26,7 +26,7 @@ const _lsStore: Record<string, string> = vi.hoisted(() => {
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { RubricContext, TabNavigationContext } from "@/lib/contexts";
+import { RubricContext, TabNavigationContext } from "@/components/contexts";
 import type { Evaluation } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";

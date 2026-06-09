@@ -28,11 +28,11 @@ vi.mock("@/lib/screenshot-store", () => ({
 }));
 vi.mock("@/hooks/useKeyboardShortcuts", () => ({ useKeyboardShortcuts: vi.fn() }));
 
-import ActiveSession from "@/components/ActiveSession";
+import { ActiveSession } from "@/components/ActiveSession";
 import AppShell from "@/components/AppShell";
 import FinalizationScreen from "@/components/FinalizationScreen";
 import GradeSelector from "@/components/finalization/GradeSelector";
-import QuestionSection from "@/components/QuestionSection";
+import { QuestionSection } from "@/components/QuestionSection";
 import SessionManager from "@/components/SessionManager";
 
 const qsProps = {
