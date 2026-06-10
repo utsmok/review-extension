@@ -296,26 +296,29 @@ body {
 }
 
 /* ===== Video ===== */
-.video-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-lg);
-}
-.video-card {
-  background: #fff;
+.video-wrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  background: #000;
   border-radius: var(--radius-md);
   overflow: hidden;
 }
-.video-card video {
-  display: block;
+.video-wrapper video,
+.video-wrapper .placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  height: 100%;
+  object-fit: cover;
 }
-.video-caption {
-  padding: var(--space-sm) var(--space-md);
-  font-size: 0.8rem;
-  color: var(--ut-muted);
-  text-align: center;
+.video-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.2rem;
 }
 
 /* ===== Comparison Table ===== */
@@ -460,8 +463,5 @@ body {
   }
   .principles-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-  .video-grid {
-    grid-template-columns: 1fr;
   }
 }
