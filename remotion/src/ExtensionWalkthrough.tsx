@@ -4,43 +4,34 @@ import Metadata from "@/components/Metadata";
 import FinalizationScreen from "@/components/FinalizationScreen";
 import { StoreProvider } from "./StoreProvider";
 import { RUBRIC_DATA } from "@/data/rubrics";
-import { computeCompletion } from "@/lib/rubric";
+import { computeCompletion, getVisibleRubricQuestionIds } from "@/lib/rubric";
 import type { Evaluation as EvalType, ReviewFinalization } from "@/lib/types";
 import "@/entrypoints/sidepanel/style.css";
 
-const TABS = [
-  "Evaluation",
-  "Evaluation",
-  "Evaluation",
-  "Evaluation",
-  "Metadata",
-  "Finalize",
-] as const;
-const SCENE_DURATION = 80; // frames per scene (~2.7s @ 30fps)
+// ── Scene boundaries (frames @ 30fps, total 480 = 16s) ──────────────────
+const SCENES = {
+  emptyEval: [0, 100], // 0–3.3s: empty evaluation
+  scoring: [100, 250], // 3.3–8.3s: scoring in progress (0→10 questions)
+  allScored: [250, 320], // 8.3–10.7s: all 10 scored
+  metadata: [320, 380], // 10.7–12.7s: metadata tab
+  finalize: [380, 480], // 12.7–16s: finalization tab
+} as const;
 
-/**
- * Generate evaluation state for a given scene index.
- * Scene 0: empty, scene 1: 3 questions, scene 2: 7 questions, scene 3: all 10
- */
-function getEvaluationsForScene(scene: number): EvalType[] {
-  const allIds = Object.keys(RUBRIC_DATA.scoring_rubric);
-  const counts = [0, 4, 7, 10];
-  const count = counts[Math.min(scene, counts.length - 1)];
-  return allIds.slice(0, count).map((id, i) => ({
+const ALL_QUESTION_IDS = getVisibleRubricQuestionIds(RUBRIC_DATA, true);
+
+// ── Helpers ─────────────────────────────────────────────────────────────
+
+/** Build evaluation entries for `count` scored questions. */
+function makeEvals(count: number): EvalType[] {
+  return ALL_QUESTION_IDS.slice(0, count).map((id, i) => ({
     rubricId: id,
-    score: (i % 3) + 1,
+    score: ((i % 3) + 1) as 1 | 2 | 3,
     notes: "",
     explicitEvidenceIds: [],
   }));
 }
 
-function getFinalizationForScene(
-  scene: number,
-  evaluations: EvalType[],
-): ReviewFinalization | null {
-  if (scene < 5) return null;
-  const completion = computeCompletion(evaluations, RUBRIC_DATA, true);
-  if (completion < 100) return null;
+function makeFinalization(): ReviewFinalization {
   return {
     finalizedAt: new Date().toISOString(),
     grade: "pass",
@@ -48,40 +39,50 @@ function getFinalizationForScene(
       "Consensus demonstrates strong transparency and usability with clear source attribution.",
     strengths: ["Clear source attribution", "Intuitive interface", "Good academic coverage"],
     weaknesses: ["Limited methodology disclosure", "Data provenance transparency"],
+    recommendations: "Improve methodology documentation and add data provenance indicators.",
   };
 }
 
-/** Tab indicator bar at the bottom of the sidebar. */
+// ── Scene logic ─────────────────────────────────────────────────────────
+
+function getSceneState(frame: number) {
+  // Determine active tab
+  let activeTab: string;
+  if (frame < SCENES.metadata[0]) activeTab = "Evaluation";
+  else if (frame < SCENES.finalize[0]) activeTab = "Metadata";
+  else activeTab = "Finalize";
+
+  // Determine evaluation count (smooth interpolation during scoring scene)
+  let evalCount: number;
+  if (frame < SCENES.scoring[0]) {
+    evalCount = 0;
+  } else if (frame < SCENES.allScored[0]) {
+    // Smoothly ramp from 0 to all questions during scoring scene
+    evalCount = Math.round(
+      interpolate(frame, [SCENES.scoring[0], SCENES.allScored[0]], [0, ALL_QUESTION_IDS.length], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      }),
+    );
+  } else {
+    evalCount = ALL_QUESTION_IDS.length;
+  }
+
+  const evaluations = makeEvals(evalCount);
+  const completion = computeCompletion(evaluations, RUBRIC_DATA, true);
+  const finalization = activeTab === "Finalize" ? makeFinalization() : null;
+
+  return { activeTab, evaluations, completion, finalization };
+}
+
+// ── Tab bar (uses real CSS classes from components.css) ─────────────────
+
 function TabBar({ activeTab }: { activeTab: string }) {
   const tabs = ["Evaluation", "Metadata", "Finalize", "Captures"];
   return (
-    <div
-      style={{
-        display: "flex",
-        borderTop: "1px solid var(--ut-border, #e0e0e0)",
-        background: "var(--ut-panel-bg, #fff)",
-        padding: "0 4px",
-      }}
-    >
+    <div className="sidebar-tab-bar">
       {tabs.map((tab) => (
-        <div
-          key={tab}
-          style={{
-            flex: 1,
-            textAlign: "center",
-            padding: "6px 0",
-            fontSize: 10,
-            fontFamily: "var(--ff-heading, system-ui)",
-            fontWeight: tab === activeTab ? 700 : 400,
-            color: tab === activeTab ? "var(--trust-magenta, #a83279)" : "var(--ut-muted, #999)",
-            borderBottom:
-              tab === activeTab
-                ? "2px solid var(--trust-magenta, #a83279)"
-                : "2px solid transparent",
-            letterSpacing: "0.05em",
-            textTransform: "uppercase",
-          }}
-        >
+        <div key={tab} className={`sidebar-tab ${tab === activeTab ? "is-active" : ""}`}>
           {tab}
         </div>
       ))}
@@ -89,40 +90,78 @@ function TabBar({ activeTab }: { activeTab: string }) {
   );
 }
 
-/**
- * ExtensionWalkthrough: Shows the TRUST Review sidepanel in action.
- * Drives through evaluation → metadata → finalization using real components.
- *
- * Timeline (16s @ 30fps = 480 frames):
- *   0-80:     Evaluation empty
- *   80-160:   Questions being scored
- *   160-240:  More questions scored
- *   240-320:  All scored
- *   320-400:  Metadata tab
- *   400-480:  Finalization tab
- */
+// ── Progress indicator ──────────────────────────────────────────────────
+
+function ProgressIndicator({ completion }: { completion: number }) {
+  const metaDone = completion > 0; // show metadata ✓ once evals start
+  const evalPct = completion;
+  const finalizeReady = completion === 100;
+
+  return (
+    <div
+      style={{
+        padding: "4px 16px",
+        borderBottom: "1px solid #bfc6cf",
+        background: "#f3f4f6",
+        display: "flex",
+        gap: 8,
+        fontSize: 11,
+        color: "#4f5e73",
+        flexShrink: 0,
+        fontFamily: "var(--ff-body, system-ui, sans-serif)",
+      }}
+    >
+      <span style={{ color: metaDone ? "#1a7f37" : "#4f5e73" }}>
+        Metadata {metaDone ? "✓" : "○"}
+      </span>
+      <span style={{ color: "#bfc6cf" }}>·</span>
+      <span>Evaluation {evalPct}%</span>
+      <span style={{ color: "#bfc6cf" }}>·</span>
+      <span style={{ color: finalizeReady ? "#1a7f37" : "#4f5e73" }}>
+        Finalize {finalizeReady ? "✓" : "○"}
+      </span>
+      <span style={{ color: "#bfc6cf" }}>·</span>
+      <span>Captures 0</span>
+    </div>
+  );
+}
+
+// ── Main composition ────────────────────────────────────────────────────
+
 export function ExtensionWalkthrough() {
   const frame = useCurrentFrame();
+  const { activeTab, evaluations, completion, finalization } = getSceneState(frame);
 
-  const sceneIndex = Math.min(Math.floor(frame / SCENE_DURATION), TABS.length - 1);
-  const activeTab = TABS[sceneIndex];
-  const evaluations = getEvaluationsForScene(sceneIndex);
-  const finalization = getFinalizationForScene(sceneIndex, evaluations);
-
-  // Fade in the sidebar
-  const fadeIn = interpolate(frame, [0, 30], [0, 1], {
+  // Sidebar fade-in over first 20 frames
+  const sidebarOpacity = interpolate(frame, [0, 20], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
+  // Tab content cross-fade: brief fade-out/in at scene transitions
+  // Transition points: 320 (→Metadata), 380 (→Finalize)
+  let contentOpacity = 1;
+  const transitions = [SCENES.metadata[0], SCENES.finalize[0]];
+  const FADE_FRAMES = 10;
+
+  for (const t of transitions) {
+    const fadeOut = interpolate(frame, [t - FADE_FRAMES, t], [1, 0], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    });
+    const fadeIn = interpolate(frame, [t, t + FADE_FRAMES], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    });
+    if (frame >= t - FADE_FRAMES && frame < t) {
+      contentOpacity = Math.min(contentOpacity, fadeOut);
+    } else if (frame >= t && frame < t + FADE_FRAMES) {
+      contentOpacity = Math.min(contentOpacity, fadeIn);
+    }
+  }
+
   return (
-    <AbsoluteFill
-      style={{
-        backgroundColor: "#eef0f3",
-        fontFamily: "var(--ff-body, system-ui, sans-serif)",
-      }}
-    >
-      {/* Fake browser background */}
+    <AbsoluteFill style={{ backgroundColor: "#e8eaed" }}>
       <div
         style={{
           position: "absolute",
@@ -135,61 +174,97 @@ export function ExtensionWalkthrough() {
         {/* Sidebar mockup */}
         <div
           style={{
-            width: 420,
-            height: 780,
-            background: "var(--ut-white, #fff)",
+            width: 400,
+            height: 680,
+            background: "#fff",
             borderRadius: 8,
-            boxShadow: "-4px 0 24px rgba(0,0,0,0.15), 4px 0 24px rgba(0,0,0,0.15)",
+            boxShadow: "-4px 0 24px rgba(0,0,0,0.12), 4px 0 24px rgba(0,0,0,0.12)",
             overflow: "hidden",
             display: "flex",
             flexDirection: "column",
-            opacity: fadeIn,
+            opacity: sidebarOpacity,
           }}
         >
           <StoreProvider evaluations={evaluations} finalization={finalization}>
-            {/* Header bar */}
+            {/* 1. Top accent bar */}
+            <div style={{ height: 8, background: "#8e036c", flexShrink: 0 }} />
+
+            {/* 2. Header bar */}
             <div
               style={{
-                height: 44,
-                background: "var(--trust-magenta-tint, #fde8f3)",
-                borderBottom: "2px solid var(--trust-magenta-border, #f0c0d8)",
+                height: 40,
+                background: "#fbe8f5",
+                borderBottom: "2px solid #c991ab",
+                padding: "0 16px",
                 display: "flex",
                 alignItems: "center",
-                padding: "0 16px",
-                flexShrink: 0,
                 gap: 8,
+                flexShrink: 0,
               }}
             >
               <span
                 style={{
-                  font: "bold 12px var(--ff-heading, system-ui)",
-                  color: "var(--trust-magenta, #a83279)",
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
+                  fontSize: 14,
+                  color: "#6b7280",
+                  cursor: "default",
+                  lineHeight: 1,
                 }}
               >
-                TRUST Review
+                ✕
               </span>
               <span style={{ flex: 1 }} />
               <span
                 style={{
-                  font: "600 13px var(--ff-heading, system-ui)",
-                  color: "var(--trust-magenta, #a83279)",
+                  fontSize: 12,
+                  color: "#4c5e74",
+                  fontFamily: "var(--ff-body, system-ui, sans-serif)",
+                }}
+              >
+                Reviewing:
+              </span>
+              {/* Tool icon placeholder */}
+              <div
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: "50%",
+                  background: "#d1d5db",
+                  flexShrink: 0,
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#8e036c",
+                  fontFamily: "var(--ff-body, system-ui, sans-serif)",
                 }}
               >
                 Consensus
               </span>
             </div>
 
-            {/* Tab content */}
-            <div style={{ flex: 1, overflow: "hidden" }}>
+            {/* 3. Tab bar (uses real CSS) */}
+            <TabBar activeTab={activeTab} />
+
+            {/* 4. Progress indicator */}
+            <ProgressIndicator completion={completion} />
+
+            {/* 5. Tab content (fade transitions) */}
+            <div
+              style={{
+                flex: 1,
+                minHeight: 0,
+                overflowY: "auto",
+                overflowX: "hidden",
+                background: "#f3f4f6",
+                opacity: contentOpacity,
+              }}
+            >
               {activeTab === "Evaluation" && <Evaluation />}
               {activeTab === "Metadata" && <Metadata />}
               {activeTab === "Finalize" && <FinalizationScreen />}
             </div>
-
-            {/* Tab bar */}
-            <TabBar activeTab={activeTab} />
           </StoreProvider>
         </div>
       </div>

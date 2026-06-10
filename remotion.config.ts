@@ -27,7 +27,6 @@ Config.overrideWebpackConfig((config) => {
         use: use.flatMap((loader) => {
           if (typeof loader === "string" && loader.includes("css-loader")) {
             return [
-              loader,
               {
                 loader: "postcss-loader",
                 options: {
@@ -36,6 +35,7 @@ Config.overrideWebpackConfig((config) => {
                   },
                 },
               },
+              loader,
             ];
           }
           return loader;
@@ -55,6 +55,7 @@ Config.overrideWebpackConfig((config) => {
         "@/lib/session-lifecycle": path.join(MOCKS, "session-lifecycle.ts"),
         "@/lib/auto-save": path.join(MOCKS, "session-lifecycle.ts"),
         "@/lib/export": path.join(MOCKS, "export.ts"),
+        "@/lib/session-repository": path.join(MOCKS, "session-repository.ts"),
         "@": ROOT,
       },
     },
