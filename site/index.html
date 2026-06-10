@@ -121,12 +121,23 @@
       </div>
     </div>
 
-    <!-- Video walkthrough placeholder -->
+    <!-- Videos -->
     <div class="section">
-      <div class="section-title">Video Walkthrough</div>
-      <div class="video-wrapper">
-        <div class="video-placeholder placeholder">
-          <span>📹 Video walkthrough coming soon</span>
+      <div class="section-title">How It Works</div>
+      <div class="video-grid">
+        <div class="video-card">
+          <!-- biome-ignore lint/a11y/useMediaCaption: silent demo video, no audio track -->
+          <video controls preload="metadata" poster="assets/video/explainer-poster.png">
+            <source src="assets/video/trust-explainer.mp4" type="video/mp4">
+          </video>
+          <p class="video-caption">The TRUST nutrition label — explained in 10 seconds</p>
+        </div>
+        <div class="video-card">
+          <!-- biome-ignore lint/a11y/useMediaCaption: silent demo video, no audio track -->
+          <video controls preload="metadata" poster="assets/video/walkthrough-poster.png">
+            <source src="assets/video/walkthrough.mp4" type="video/mp4">
+          </video>
+          <p class="video-caption">Using the extension to evaluate an AI tool</p>
         </div>
       </div>
     </div>
