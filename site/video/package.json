@@ -1,0 +1,21 @@
+{
+  "name": "trust-video",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render:explainer": "remotion render src/index.ts TrustExplainer out/trust-explainer.mp4",
+    "render:walkthrough": "remotion render src/index.ts ExtensionWalkthrough out/walkthrough.mp4",
+    "render": "npm run render:explainer && npm run render:walkthrough"
+  },
+  "dependencies": {
+    "@remotion/bundler": "^4.0.475",
+    "@remotion/cli": "^4.0.475",
+    "@remotion/renderer": "^4.0.475",
+    "react": "^19",
+    "react-dom": "^19",
+    "remotion": "^4.0.475",
+    "zod": "^4.3.6"
+  }
+}
