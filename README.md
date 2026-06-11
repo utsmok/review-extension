@@ -36,9 +36,12 @@ _Screenshots coming soon — the images above show the four main views of the ex
 - **Score against the rubric** — four quality gates (pass/fail) plus a 0–3 scoring rubric across the five TRUST principles: Transparent, Reliable, User-centric, Secure, Traceable.
 - **Export a complete review package** — generates a ZIP with an HTML evaluation report, a standalone nutrition-label summary, CSV data files, and an `evidence/` folder containing all screenshots and archived pages.
 ## Install
+### Chrome & chromium-based browsers
 
-### From release (recommended)
+**From the webstore (recommended)**
+You can find the extension in the [chrome web store](https://chromewebstore.google.com/detail/leclhemhkfmogioabkfcboddalmlncjg?utm_source=item-share-cb). Visit the page, then press `add to chrome`.
 
+**Manual installation**
 1. Download the latest `trust-review-extension-*.zip` from [Releases](https://github.com/utsmok/review-extension/releases)
 2. Unzip it
 3. Open `chrome://extensions`, enable **Developer mode** (top right)
@@ -46,8 +49,7 @@ _Screenshots coming soon — the images above show the four main views of the ex
 5. Click the extension icon in the toolbar to open the side panel
 
 ### Firefox
-
-Replace step 3–4 with: open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on**, and select any file inside the unzipped folder.
+See **Manual installation** above, but replace step 3–4 with: open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on**, and select any file inside the unzipped folder.
 
 ## Usage
 
