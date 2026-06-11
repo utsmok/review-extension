@@ -30,7 +30,7 @@ jobs:
       - run: pnpm test
       - run: pnpm zip
       - run: pnpm zip:firefox
-      - run: pnpm wxt zip --browser firefox --src
+      - run: pnpm wxt zip --browser firefox --sources
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
@@ -39,7 +39,7 @@ jobs:
           files: |
             .output/trust-review-extension-*-chrome.zip
             .output/trust-review-extension-*-firefox.zip
-            .output/trust-review-extension-*-firefox-src.zip
+            .output/trust-review-extension-*-sources.zip
 
       # Store submission — requires GitHub secrets to be configured
       # Uncomment when ready:
