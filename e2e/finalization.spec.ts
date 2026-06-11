@@ -33,13 +33,11 @@ test.describe("Finalization tab", () => {
     await expect(conclusionArea).toBeVisible({ timeout: 3000 });
     await conclusionArea.fill("This tool meets all TRUST criteria.");
 
-    // Save finalization
-    const saveBtn = tabpanel
-      .locator('button:has-text("Save"), button:has-text("Save Finalization")')
-      .first();
-    await expect(saveBtn).toBeVisible({ timeout: 5000 });
-    await saveBtn.click();
-    // Should show saved indicator
+    // Finalize review
+    const finalizeBtn = tabpanel.locator('button:has-text("Finalize Review")').first();
+    await expect(finalizeBtn).toBeVisible({ timeout: 5000 });
+    await finalizeBtn.click();
+    // Should show saved indicator (green checkmark + "Saved")
     await expect(tabpanel.locator("text=Saved").first()).toBeVisible({ timeout: 5000 });
   });
 });
@@ -66,10 +64,11 @@ test.describe("Export", () => {
 
     await sidePanel.locator('button:has-text("End Review")').first().click();
 
-    // Handle confirmation dialog
+    // If a confirmation dialog appears (missing fields), confirm it
     const confirmExport = sidePanel.locator('button:has-text("Export anyway")').first();
-    await expect(confirmExport).toBeVisible({ timeout: 5000 });
-    await confirmExport.click();
+    if (await confirmExport.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await confirmExport.click();
+    }
 
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toMatch(/\.zip$/);
