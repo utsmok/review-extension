@@ -1,12 +1,13 @@
 import { lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRubric } from "@/components/contexts";
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { useAnnotationActions } from "@/hooks/useAnnotationActions";
 import { useAutoFocus, useFocusTrap } from "@/hooks/useFocus";
+import { useTldrawEditor } from "@/hooks/useTldrawEditor";
 import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
 import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import type { Capture } from "@/lib/types";
 import RubricChipGroup from "./RubricChipGroup";
-import type { Editor, TLShapeId } from "./TldrawAnnotation";
 import TldrawCanvas from "./TldrawCanvas";
 
 const LazyActionBar = lazy(() =>
@@ -32,12 +33,21 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     setTimeout(onClose, 200);
   }, [onClose]);
 
-  const [editor, setEditor] = useState<Editor | null>(null);
-  const [imageShapeId, setImageShapeId] = useState<TLShapeId | null>(null);
   const [notes, setNotes] = useState(capture.notes);
   const [hintVisible, setHintVisible] = useState(true);
   const screenshotUrl = useScreenshotUrl(capture.id);
   const imageSrc = screenshotUrl ?? capture.annotatedScreenshotBase64 ?? capture.screenshotBase64;
+
+  /* ── tldraw editor lifecycle ── */
+  const { editor, imageShapeId, onMount } = useTldrawEditor(imageSrc);
+
+  /* ── Annotation save/clear ── */
+  const { handleSave, handleClear } = useAnnotationActions({
+    editor,
+    imageShapeId,
+    captureId: capture.id,
+    updateCapture,
+  });
 
   /* ── Focus / keyboard ── */
   useFocusTrap(panelRef);
@@ -60,157 +70,11 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
     return () => clearTimeout(timer);
   }, []);
 
-  /* ── tldraw mount: store editor reference ── */
-  const onMount = (ed: Editor) => {
-    setEditor(ed);
-  };
-  /* ── Load image as locked background once editor + imageSrc are ready ── */
-  useEffect(() => {
-    if (!editor || !imageSrc) return;
-
-    let cancelled = false;
-    let cleanupFns: (() => void)[] = [];
-
-    const img = new Image();
-    img.onload = async () => {
-      if (cancelled) return;
-      const w = img.naturalWidth;
-      const h = img.naturalHeight;
-
-      // Dynamic import — tldraw is already loaded at this point (editor exists),
-      // but this avoids a static dependency that defeats code splitting.
-      const { AssetRecordType: ART, createShapeId: makeShapeId } = await import(
-        "./TldrawAnnotation"
-      );
-      if (cancelled) return;
-
-      const assetId = ART.createId();
-      editor.createAssets([
-        {
-          id: assetId,
-          typeName: "asset",
-          type: "image",
-          meta: {},
-          props: {
-            w,
-            h,
-            mimeType: "image/png",
-            src: imageSrc,
-            name: "evidence",
-            isAnimated: false,
-          },
-        },
-      ]);
-
-      const shapeId = makeShapeId();
-      editor.createShape({
-        id: shapeId,
-        type: "image",
-        x: 0,
-        y: 0,
-        isLocked: true,
-        props: { w, h, assetId },
-      });
-
-      // Keep image at bottom z-order
-      const ensureBottom = () => {
-        const shape = editor.getShape(shapeId);
-        if (!shape) return;
-        const pageId = editor.getCurrentPageId();
-        if (shape.parentId !== pageId) editor.moveShapesToPage([shape], pageId);
-        const siblings = editor.getSortedChildIdsForParent(pageId);
-        const bottom = editor.getShape(siblings[0]);
-        if (bottom && bottom.id !== shapeId) editor.sendToBack([shape]);
-      };
-
-      ensureBottom();
-      const rmCreate = editor.sideEffects.registerAfterCreateHandler("shape", ensureBottom);
-      const rmChange = editor.sideEffects.registerAfterChangeHandler("shape", ensureBottom);
-      const rmLock = editor.sideEffects.registerBeforeChangeHandler("shape", (prev, next) => {
-        if (next.id !== shapeId || next.isLocked) return next;
-        return { ...prev, isLocked: true };
-      });
-      cleanupFns = [rmCreate, rmChange, rmLock];
-
-      // Set default tool to arrow
-      editor.setCurrentTool("arrow");
-      editor.clearHistory();
-
-      setImageShapeId(shapeId);
-    };
-    img.onerror = () => {
-      if (cancelled) return;
-      // Image failed to load — canvas stays blank, user can still annotate
-      editor.clearHistory();
-    };
-    img.src = imageSrc;
-
-    return () => {
-      cancelled = true;
-      for (const fn of cleanupFns) fn();
-      cleanupFns = [];
-    };
-  }, [editor, imageSrc]);
-
-  /* ── Camera constraints ── */
-  useEffect(() => {
-    if (!editor || !imageShapeId) return;
-    const shape = editor.getShape(imageShapeId);
-    if (!shape) return;
-    const { w, h } = shape.props as { w: number; h: number };
-    editor.setCameraOptions({
-      constraints: {
-        initialZoom: "default",
-        baseZoom: "fit-min-100",
-        bounds: { x: 0, y: 0, w, h },
-        padding: { x: 0, y: 0 },
-        origin: { x: 0.5, y: 0.5 },
-        behavior: "contain",
-      },
-    });
-    editor.setCamera(editor.getCamera(), { reset: true });
-  }, [editor, imageShapeId]);
-
   /* ── Rubric tagging data ── */
   const linkedRubricIds = useMemo(
     () => getLinkedRubricIdsForCapture(capture.id, evaluations),
     [capture.id, evaluations],
   );
-
-  /* ── Save handler ── */
-  const handleSave = async () => {
-    if (!editor || !imageShapeId) {
-      updateCapture(capture.id, { notes });
-      onClose();
-      return;
-    }
-
-    // Export all shapes on the page (includes background image + annotations)
-    const allShapeIds = [...editor.getCurrentPageShapeIds()];
-    try {
-      const { blob } = await editor.toImage(allShapeIds, { format: "png" });
-      const dataUrl = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(blob);
-      });
-      updateCapture(capture.id, {
-        annotatedScreenshotBase64: dataUrl,
-        notes,
-      });
-    } catch {
-      updateCapture(capture.id, { notes });
-    }
-    animateClose();
-  };
-
-  /* ── Clear annotations (remove non-image shapes) ── */
-  const handleClear = () => {
-    if (!editor || !imageShapeId) return;
-    const allIds = [...editor.getCurrentPageShapeIds()];
-    const toDelete = allIds.filter((id) => id !== imageShapeId);
-    if (toDelete.length > 0) editor.deleteShapes(toDelete);
-  };
 
   return (
     <button
@@ -240,7 +104,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
             editor={editor}
             imageShapeId={imageShapeId}
             onClear={handleClear}
-            onSave={handleSave}
+            onSave={() => handleSave(notes, animateClose)}
           />
         )}
 
