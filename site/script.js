@@ -4,8 +4,12 @@
   const panels = document.querySelectorAll(".tab-panel");
 
   function showTab(id) {
-    tabs.forEach((a) => a.classList.toggle("active", a.dataset.tab === id));
-    panels.forEach((panel) => panel.classList.toggle("active", panel.id === id));
+    tabs.forEach((a) => {
+      a.classList.toggle("active", a.dataset.tab === id);
+    });
+    panels.forEach((panel) => {
+      panel.classList.toggle("active", panel.id === id);
+    });
     history.replaceState(null, "", `#${id}`);
   }
 
@@ -76,7 +80,7 @@
         </tr>`;
         })
         .join("");
-    } catch (e) {
+    } catch (_e) {
       tbody.innerHTML =
         '<tr><td colspan="9" style="text-align:center;color:var(--ut-muted)">Could not load tools data.</td></tr>';
     }
@@ -212,7 +216,7 @@
     // Remove handlers
     grid.querySelectorAll(".compare-remove").forEach((btn) => {
       btn.addEventListener("click", () => {
-        compareData.splice(parseInt(btn.dataset.idx), 1);
+        compareData.splice(parseInt(btn.dataset.idx, 10), 1);
         renderCompare();
       });
     });
