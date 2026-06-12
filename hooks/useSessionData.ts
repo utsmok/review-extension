@@ -1,12 +1,16 @@
+import { useShallow } from "zustand/react/shallow";
 import { useSessionStore } from "@/stores/session";
 
-/** Read-only access to active session state. Re-renders on any state change. */
+/** Read-only access to active session state. Only re-renders when selected values actually change. */
 export function useSessionData() {
-  const status = useSessionStore((s) => s.status);
-  const session = useSessionStore((s) => s.session);
-  const captures = useSessionStore((s) => s.captures);
-  const evaluations = useSessionStore((s) => s.evaluations);
-  const finalization = useSessionStore((s) => s.finalization);
-  const quickNotes = useSessionStore((s) => s.quickNotes);
-  return { status, session, captures, evaluations, finalization, quickNotes };
+  return useSessionStore(
+    useShallow((s) => ({
+      status: s.status,
+      session: s.session,
+      captures: s.captures,
+      evaluations: s.evaluations,
+      finalization: s.finalization,
+      quickNotes: s.quickNotes,
+    })),
+  );
 }
