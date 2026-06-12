@@ -40,14 +40,22 @@ export function useActiveSession() {
         finalization: curFinalization,
       } = useSessionStore.getState();
       if (curSession) {
-        getRepository().save(curSession.id, {
-          metadata: curSession,
-          captures: curCaptures,
-          evaluations: curEvaluations,
-          finalization: curFinalization,
-        });
+        getRepository()
+          .save(curSession.id, {
+            metadata: curSession,
+            captures: curCaptures,
+            evaluations: curEvaluations,
+            finalization: curFinalization,
+          })
+          .catch((err) => {
+            console.error("Failed to save session before clearing:", err);
+          })
+          .finally(() => {
+            useSessionStore.getState().clear();
+          });
+      } else {
+        useSessionStore.getState().clear();
       }
-      useSessionStore.getState().clear();
     }
   }, [activeSessionId, data.status]);
 

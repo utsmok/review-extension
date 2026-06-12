@@ -232,15 +232,26 @@ describe("hook Effect 1 simulation: save on activeSessionId clear", () => {
 
     const { session: s, captures: c, evaluations: e } = useSessionStore.getState();
     const session = s as NonNullable<typeof s>;
-    await getRepository().save(session.id, {
-      metadata: session,
-      captures: c,
-      evaluations: e,
-      finalization: null,
-    });
-    useSessionStore.getState().clear();
-    useRegistryStore.getState().setActiveSessionId(null);
 
+    // Simulate the hook effect: save then clear in .finally()
+    // (the clear must only happen after save completes/fails)
+    let clearCalled = false;
+    await getRepository()
+      .save(session.id, {
+        metadata: session,
+        captures: c,
+        evaluations: e,
+        finalization: null,
+      })
+      .catch((err) => {
+        console.error("Failed to save session before clearing:", err);
+      })
+      .finally(() => {
+        useSessionStore.getState().clear();
+        clearCalled = true;
+      });
+
+    expect(clearCalled).toBe(true);
     expect(useSessionStore.getState().session).toBeNull();
     expect(useSessionStore.getState().status).toBe("empty");
 
@@ -248,6 +259,13 @@ describe("hook Effect 1 simulation: save on activeSessionId clear", () => {
     expect(saved).not.toBeNull();
     expect(saved?.evaluations).toHaveLength(1);
     expect(saved?.evaluations[0].score).toBe(1);
+  });
+
+  it("clears immediately when no current session exists", () => {
+    // No session loaded — clear should happen synchronously
+    useSessionStore.getState().clear();
+    expect(useSessionStore.getState().session).toBeNull();
+    expect(useSessionStore.getState().status).toBe("empty");
   });
 });
 

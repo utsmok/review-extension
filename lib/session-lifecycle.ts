@@ -4,7 +4,7 @@ import { deleteScreenshotsForCaptures, saveScreenshot } from "@/lib/screenshot-s
 import { getRepository } from "@/lib/session-repository";
 import type { SessionData, SessionMetadata } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
-import { useSessionStore } from "@/stores/session";
+import { type SessionState, useSessionStore } from "@/stores/session";
 import { toastError, toastWarning } from "@/stores/toast";
 
 // --- Auto-save singleton state ---
@@ -13,6 +13,25 @@ let autoSaveScheduledSessionId: string | null = null;
 let autoSaveUnsub: (() => void) | null = null;
 let autoSaveVisibilityHandler: (() => void) | null = null;
 let lastSaveSignature: string | null = null;
+
+/** Content-aware signature that detects actual data changes, not just array lengths. */
+function computeSignature(state: SessionState): string {
+  const evalDigest = state.evaluations
+    .slice()
+    .sort((a, b) => a.rubricId.localeCompare(b.rubricId))
+    .map(
+      (e) =>
+        `${e.rubricId}:${e.score}:${e.notes}:${(e.explicitEvidenceIds ?? []).sort().join(",")}:${e.customScore?.score ?? ""}:${e.customScore?.reasoning ?? ""}:${e.manualDone ?? ""}`,
+    )
+    .join("|");
+  return [
+    evalDigest,
+    state.captures.length,
+    state.session?.finalizedAt ?? "",
+    (state.quickNotes ?? []).map((n) => `${n.id}:${n.text}`).join("|"),
+    state.finalization?.grade ?? "",
+  ].join("::");
+}
 let lastSaveTime = 0;
 let rateLimitTimer: ReturnType<typeof setTimeout> | undefined;
 async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = false): Promise<void> {
@@ -83,7 +102,7 @@ export function initAutoSave(): void {
     const state = useSessionStore.getState();
     const activeId = useRegistryStore.getState().activeSessionId;
     if (state.status !== "active" || !activeId) return;
-    const signature = `${state.evaluations.length}:${state.captures.length}:${state.session?.finalizedAt ?? ""}`;
+    const signature = computeSignature(state);
     if (signature === lastSaveSignature) return;
     lastSaveSignature = signature;
 

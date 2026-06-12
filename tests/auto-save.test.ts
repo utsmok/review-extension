@@ -279,4 +279,32 @@ describe("auto-save", () => {
 
     document.removeEventListener("trust-save-failed", failedListener);
   });
+  it("detects evaluation score changes via content-aware signature", () => {
+    const evalScore0 = { rubricId: "q1", score: 0 as const, notes: "", explicitEvidenceIds: [] };
+    const evalScore2 = { rubricId: "q1", score: 2 as const, notes: "", explicitEvidenceIds: [] };
+
+    // First save: score 0
+    sessionGetState.mockReturnValue(defaultSessionState({ evaluations: [evalScore0] }));
+    registryGetState.mockReturnValue({ activeSessionId: "sess-1" });
+    mockSave.mockResolvedValue(true);
+
+    initAutoSave();
+    listener();
+    advanceTimer(1000);
+
+    expect(mockSave).toHaveBeenCalledTimes(1);
+
+    // Advance past the 3-second rate-limit window
+    advanceTimer(3000);
+
+    // Reset mock for second call
+    mockSave.mockResolvedValue(true);
+
+    // Second save: same array length but score changed to 2
+    sessionGetState.mockReturnValue(defaultSessionState({ evaluations: [evalScore2] }));
+    listener();
+    advanceTimer(1000);
+
+    expect(mockSave).toHaveBeenCalledTimes(2);
+  });
 });

@@ -22,7 +22,7 @@ export interface QuickNote {
  * the session-repository layer. IDB is accessible to extensions sharing the
  * same origin.
  */
-interface SessionState {
+export interface SessionState {
   status: StoreStatus;
   session: SessionMetadata | null;
   captures: Capture[];
