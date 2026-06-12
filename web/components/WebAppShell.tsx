@@ -104,7 +104,7 @@ export default function WebAppShell({
           TRUST
         </span>
       ) : (
-        <img src="/trust.svg" alt="TRUST" className="h-6" onError={() => setTrustImgError(true)} />
+        <img src="./trust.svg" alt="TRUST" className="h-6" onError={() => setTrustImgError(true)} />
       )}
       <span
         className="text-ut-sm font-display font-bold uppercase tracking-ut-kicker text-trust-magenta"
@@ -145,7 +145,7 @@ export default function WebAppShell({
         <span className="text-ut-xs text-ut-slate">LISA-EIS</span>
       ) : (
         <img
-          src="/lisa-eis.svg"
+          src="./lisa-eis.svg"
           alt="LISA-EIS"
           className="h-5"
           onError={() => setLisaImgError(true)}
