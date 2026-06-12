@@ -45,7 +45,11 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") animateClose();
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        e.preventDefault();
+        animateClose();
+      }
     };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
