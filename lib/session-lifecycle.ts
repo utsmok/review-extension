@@ -1,4 +1,6 @@
 import { RUBRIC_DATA } from "@/data/rubrics";
+import { assembleBatchZip, prepareExportArtifacts } from "@/lib/export-pipeline";
+import type { ExportArtifacts, ReviewerInfo } from "@/lib/export-pipeline";
 import { exportSession, importSessionFromZip } from "@/lib/export";
 import { deleteScreenshotsForCaptures, saveScreenshot } from "@/lib/screenshot-store";
 import { getRepository } from "@/lib/session-repository";
@@ -317,6 +319,41 @@ export async function exportSessionById(id: string): Promise<Blob> {
     { name: reviewerName || undefined, email: reviewerEmail || undefined },
   );
   return blob;
+}
+/** Export all sessions as a single batch ZIP. */
+export async function exportAllSessions(): Promise<Blob> {
+  const { sessionIndex, settings } = useRegistryStore.getState();
+  const repo = getRepository();
+  const rubric = RUBRIC_DATA;
+  const reviewerInfo: ReviewerInfo | undefined = settings.reviewerName
+    ? { name: settings.reviewerName, email: settings.reviewerEmail }
+    : undefined;
+
+  const entries: Array<{ artifacts: ExportArtifacts; toolName: string; grade?: string }> = [];
+
+  for (const [id, meta] of Object.entries(sessionIndex)) {
+    const data = await repo.load(id);
+    if (!data) continue;
+
+    const artifacts = await prepareExportArtifacts(
+      meta,
+      data.captures,
+      data.evaluations,
+      rubric,
+      data.finalization,
+      data.quickNotes,
+      reviewerInfo,
+    );
+
+    entries.push({
+      artifacts,
+      toolName: meta.toolName,
+      grade: data.finalization?.grade,
+    });
+  }
+
+  if (entries.length === 0) throw new Error("No sessions to export");
+  return assembleBatchZip(entries);
 }
 
 /** Import a session from an exported ZIP file. Saves to IDB and registers. */

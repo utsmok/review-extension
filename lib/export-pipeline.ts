@@ -1,4 +1,4 @@
-import { buildHtmlReport, buildNutritionLabel } from "./html-report";
+import JSZip from "jszip";
 import { ensureArray } from "./metadata-utils";
 import { minifyHtml } from "./minify";
 import {
@@ -375,6 +375,53 @@ export async function assembleZip(artifacts: ExportArtifacts): Promise<Blob> {
   // Add HTML reports
   zip.file(artifacts.reportFilename, artifacts.htmlReport);
   zip.file(artifacts.labelFilename, artifacts.nutritionLabel);
+
+  return zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+    compressionOptions: { level: 6 },
+  });
+}
+/**
+ * Batch ZIP assembly: combines multiple sessions into a single ZIP.
+ * Each session gets its own subfolder (sanitized tool name).
+ */
+export async function assembleBatchZip(
+  sessions: Array<{ artifacts: ExportArtifacts; toolName: string; grade?: string }>,
+): Promise<Blob> {
+  const zip = new JSZip();
+
+  for (const { artifacts, toolName } of sessions) {
+    const folder = zip.folder(sanitizeFilename(toolName));
+    if (!folder) continue;
+
+    for (const [filename, base64] of artifacts.imageFiles) {
+      folder.file(filename, base64, { base64: true });
+    }
+    for (const [filename, content] of artifacts.captureHtmlFiles) {
+      folder.file(filename, content);
+    }
+    folder.file("session_metadata.csv", artifacts.metadataCsv);
+    folder.file("rubric_scores.csv", artifacts.scoresCsv);
+    folder.file("capture_log.csv", artifacts.captureLogCsv);
+    if (artifacts.conclusionsCsv) {
+      folder.file("review_conclusions.csv", artifacts.conclusionsCsv);
+    }
+    folder.file("session.json", artifacts.sessionJson);
+    folder.file(artifacts.reportFilename, artifacts.htmlReport);
+    folder.file(artifacts.labelFilename, artifacts.nutritionLabel);
+  }
+
+  // Root manifest
+  zip.file("manifest.json", JSON.stringify({
+    version: 1,
+    exportDate: new Date().toISOString(),
+    sessionCount: sessions.length,
+    sessions: sessions.map(({ toolName, grade }) => ({
+      toolName,
+      grade: grade ?? "not finalized",
+    })),
+  }, null, 2));
 
   return zip.generateAsync({
     type: "blob",

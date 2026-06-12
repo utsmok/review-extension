@@ -3,7 +3,7 @@ import { RUBRIC_DATA } from "@/data/rubrics";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { downloadBlob, sanitizeFilename } from "@/lib/export";
 import { getVisibleRubricQuestionIds } from "@/lib/rubric";
-import { exportSessionById, importSessionFromZipFile } from "@/lib/session-lifecycle";
+import { exportAllSessions, exportSessionById, importSessionFromZipFile } from "@/lib/session-lifecycle";
 import { getRepository } from "@/lib/session-repository";
 import type { SessionMetadata } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
@@ -41,6 +41,7 @@ export default function SessionManager() {
   const { switchToSession, deleteSession } = useActiveSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
+  const [exportingAll, setExportingAll] = useState(false);
 
   const sessions = useMemo(
     () =>
@@ -71,6 +72,24 @@ export default function SessionManager() {
           ? err.message
           : "Could not export this review. Try again or check the console for details.",
       );
+    }
+  };
+  const handleExportAll = async () => {
+    setExportingAll(true);
+    try {
+      const blob = await exportAllSessions();
+      const date = new Date().toISOString().slice(0, 10);
+      downloadBlob(blob, `TRUST_Reviews_${date}.zip`);
+      toastSuccess(`Exported ${sessions.length} reviews`);
+    } catch (err) {
+      console.error("Batch export failed:", err);
+      toastError(
+        err instanceof Error
+          ? err.message
+          : "Could not export reviews. Try again.",
+      );
+    } finally {
+      setExportingAll(false);
     }
   };
 
@@ -145,6 +164,16 @@ export default function SessionManager() {
         >
           {importing ? "Importing\u2026" : "Import Review"}
         </button>
+        {sessions.length > 1 && (
+          <button
+            type="button"
+            className="border border-ut-border text-ut-navy rounded-ut-sm px-ut-4 py-ut-2 text-ut-xs font-heading font-bold uppercase tracking-ut-uppercase hover:bg-ut-grey transition-all w-full mt-ut-2 disabled:opacity-50"
+            onClick={handleExportAll}
+            disabled={exportingAll}
+          >
+            {exportingAll ? "Exporting\u2026" : "Export All Reviews"}
+          </button>
+        )}
       </div>
 
       {/* Session list or welcome */}
