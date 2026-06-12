@@ -38,11 +38,6 @@ vi.mock("@/lib/capture", () => ({
   captureActiveTab: vi.fn(),
 }));
 
-vi.mock("@/lib/auto-save", () => ({
-  initAutoSave: vi.fn(),
-  teardownAutoSave: vi.fn(),
-}));
-
 vi.mock("@/lib/session-lifecycle", () => ({
   saveCurrentSession: vi.fn(),
   loadSessionById: vi.fn(),

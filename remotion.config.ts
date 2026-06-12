@@ -53,7 +53,6 @@ Config.overrideWebpackConfig((config) => {
         ...existingAlias,
         "@/lib/capture": path.join(MOCKS, "capture.ts"),
         "@/lib/session-lifecycle": path.join(MOCKS, "session-lifecycle.ts"),
-        "@/lib/auto-save": path.join(MOCKS, "session-lifecycle.ts"),
         "@/lib/export": path.join(MOCKS, "export.ts"),
         "@/lib/session-repository": path.join(MOCKS, "session-repository.ts"),
         "@": ROOT,

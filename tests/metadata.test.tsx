@@ -61,11 +61,6 @@ vi.mock("@/lib/export", () => ({
   sanitizeFilename: (s: string) => s,
 }));
 
-vi.mock("@/lib/auto-save", () => ({
-  initAutoSave: vi.fn(),
-  teardownAutoSave: vi.fn(),
-}));
-
 vi.mock("@/lib/session-lifecycle", () => ({
   saveCurrentSession: vi.fn(),
   loadSessionById: vi.fn(),
@@ -73,7 +68,9 @@ vi.mock("@/lib/session-lifecycle", () => ({
   switchToSession: vi.fn(),
   createSession: vi.fn(),
   deleteSession: vi.fn(),
-}));
+  initAutoSave: vi.fn(),
+  teardownAutoSave: vi.fn(),
+}))
 
 vi.mock("@/lib/session-repository", () => ({
   getRepository: () => ({ save: vi.fn(), load: vi.fn(), remove: vi.fn() }),

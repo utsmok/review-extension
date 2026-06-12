@@ -31,12 +31,6 @@ import { useSessionStore } from "@/stores/session";
 import { makeMetadata } from "@/tests/fixtures";
 import { AllProviders } from "@/tests/helpers/render-utils";
 
-// Mock auto-save to avoid side effects
-vi.mock("@/lib/auto-save", () => ({
-  initAutoSave: vi.fn(),
-  teardownAutoSave: vi.fn(),
-}));
-
 // Mock session-lifecycle to avoid IndexedDB access
 vi.mock("@/lib/session-lifecycle", () => ({
   saveCurrentSession: vi.fn(),
@@ -47,7 +41,9 @@ vi.mock("@/lib/session-lifecycle", () => ({
   deleteSession: vi.fn(),
   exportSessionById: vi.fn(),
   importSessionFromZipFile: vi.fn(),
-}));
+  initAutoSave: vi.fn(),
+  teardownAutoSave: vi.fn(),
+}))
 
 // Mock session-repository to avoid IndexedDB
 vi.mock("@/lib/session-repository", () => ({

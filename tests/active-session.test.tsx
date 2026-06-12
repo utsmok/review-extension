@@ -48,12 +48,6 @@ vi.mock("@/components/FinalizationScreen", () => ({
   default: () => <div data-testid="finalize" />,
 }));
 
-// Mock auto-save to avoid side effects
-vi.mock("@/lib/auto-save", () => ({
-  initAutoSave: vi.fn(),
-  teardownAutoSave: vi.fn(),
-}));
-
 // Mock session-lifecycle to avoid IndexedDB access
 vi.mock("@/lib/session-lifecycle", () => ({
   saveCurrentSession: vi.fn(),
@@ -62,7 +56,9 @@ vi.mock("@/lib/session-lifecycle", () => ({
   switchToSession: vi.fn(),
   createSession: vi.fn(),
   deleteSession: vi.fn(),
-}));
+  initAutoSave: vi.fn(),
+  teardownAutoSave: vi.fn(),
+}))
 
 // Mock session-repository to avoid IndexedDB
 vi.mock("@/lib/session-repository", () => ({

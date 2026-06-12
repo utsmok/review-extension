@@ -4,7 +4,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { AllProviders, seedActiveSession } from "@/tests/helpers/render-utils";
 
 vi.mock("@/lib/session-repository", () => ({ getRepository: vi.fn() }));
-vi.mock("@/lib/auto-save", () => ({ initAutoSave: vi.fn(), teardownAutoSave: vi.fn() }));
 vi.mock("@/lib/capture", () => ({ captureActiveTab: vi.fn(), captureForMetadataField: vi.fn() }));
 vi.mock("@/lib/session-lifecycle", () => ({
   saveCurrentSession: vi.fn(),
@@ -15,7 +14,9 @@ vi.mock("@/lib/session-lifecycle", () => ({
   deleteSession: vi.fn(),
   markDoneAndClose: vi.fn(),
   loadSessionById: vi.fn(),
-}));
+  initAutoSave: vi.fn(),
+  teardownAutoSave: vi.fn(),
+}))
 vi.mock("@/lib/export", () => ({
   downloadBlob: vi.fn(),
   exportSession: vi.fn(() => new Blob()),

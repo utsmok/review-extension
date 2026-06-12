@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { initAutoSave, teardownAutoSave } from "@/lib/auto-save";
 import * as lifecycle from "@/lib/session-lifecycle";
 import { getRepository } from "@/lib/session-repository";
 import { useRegistryStore } from "@/stores/registry";
@@ -62,8 +61,8 @@ export function useActiveSession() {
   // Effect 2+3: Init auto-save singleton (debounced auto-save + visibility flush)
   // This replaces the per-consumer subscriptions that caused N-way amplification.
   useEffect(() => {
-    initAutoSave();
-    return () => teardownAutoSave();
+    lifecycle.initAutoSave();
+    return () => lifecycle.teardownAutoSave();
   }, []);
 
   // --- Composite actions ---

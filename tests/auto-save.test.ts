@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { initAutoSave, teardownAutoSave } from "@/lib/auto-save";
+import { initAutoSave, teardownAutoSave } from "@/lib/session-lifecycle";
 
 // --- Mocks ---
 
