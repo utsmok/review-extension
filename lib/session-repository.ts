@@ -1,4 +1,5 @@
 import type { SessionData } from "@/lib/types";
+import { idbRequest, openIDBStore } from "./idb-helpers";
 import { runMigrations, CURRENT_SCHEMA_VERSION as SCHEMA_VERSION } from "./migrations";
 
 // --- Interface ---
@@ -21,46 +22,11 @@ export { CURRENT_SCHEMA_VERSION as SCHEMA_VERSION } from "./migrations";
 // --- IdbSessionRepository ---
 
 export class IdbSessionRepository implements SessionRepository {
-  private dbPromise: Promise<IDBDatabase> | null = null;
-
-  private openDB(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, SCHEMA_VERSION);
-      request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME);
-        }
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-      request.onblocked = () =>
-        reject(new Error("Database upgrade blocked — close other tabs and retry"));
-    });
-  }
-
-  private getDB(): Promise<IDBDatabase> {
-    if (!this.dbPromise) {
-      this.dbPromise = this.openDB();
-      this.dbPromise
-        .then((db) => {
-          db.onclose = () => {
-            this.dbPromise = null;
-          };
-          db.onerror = () => {
-            this.dbPromise = null;
-          };
-          db.onversionchange = () => {
-            db.close();
-            this.dbPromise = null;
-          };
-        })
-        .catch(() => {
-          this.dbPromise = null;
-        });
+  private getDB = openIDBStore(DB_NAME, STORE_NAME, SCHEMA_VERSION, (db) => {
+    if (!db.objectStoreNames.contains(STORE_NAME)) {
+      db.createObjectStore(STORE_NAME);
     }
-    return this.dbPromise;
-  }
+  });
 
   async isAvailable(): Promise<boolean> {
     try {
@@ -91,13 +57,13 @@ export class IdbSessionRepository implements SessionRepository {
       }
       const db = await this.getDB();
       const clone = { ...data, schemaVersion: SCHEMA_VERSION };
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, "readwrite");
-        tx.objectStore(STORE_NAME).put(clone, id);
-        tx.oncomplete = () => resolve(true);
-        tx.onerror = () => reject(tx.error);
-        tx.onabort = () => reject(new Error("Transaction aborted"));
-      });
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      tx.objectStore(STORE_NAME).put(clone, id);
+      const { promise, resolve, reject } = Promise.withResolvers<boolean>();
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(new Error("Transaction aborted"));
+      return promise;
     } catch {
       return false;
     }
@@ -105,31 +71,24 @@ export class IdbSessionRepository implements SessionRepository {
 
   async load(id: string): Promise<SessionData | null> {
     const db = await this.getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readonly");
-      const req = tx.objectStore(STORE_NAME).get(id);
-      req.onsuccess = () => {
-        const data = req.result ?? null;
-        if (data && data.schemaVersion !== SCHEMA_VERSION) {
-          resolve(runMigrations(data));
-        } else {
-          resolve(data);
-        }
-      };
-      req.onerror = () => reject(req.error);
-      tx.onabort = () => reject(new Error("Transaction aborted"));
-    });
+    const tx = db.transaction(STORE_NAME, "readonly");
+    const req = tx.objectStore(STORE_NAME).get(id);
+    const data = (await idbRequest<SessionData | null>(req)) ?? null;
+    if (data && data.schemaVersion !== SCHEMA_VERSION) {
+      return runMigrations(data);
+    }
+    return data;
   }
 
   async delete(id: string): Promise<void> {
     const db = await this.getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      tx.objectStore(STORE_NAME).delete(id);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(new Error("Transaction aborted"));
-    });
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    tx.objectStore(STORE_NAME).delete(id);
+    const { promise, resolve, reject } = Promise.withResolvers<void>();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(new Error("Transaction aborted"));
+    return promise;
   }
 }
 

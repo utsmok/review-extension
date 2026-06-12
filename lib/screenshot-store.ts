@@ -1,4 +1,5 @@
 import type { Capture } from "./types";
+import { idbRequest, openIDBStore } from "./idb-helpers";
 
 const DB_NAME = "trust-review-screenshots";
 const STORE_NAME = "screenshots";
@@ -13,45 +14,11 @@ export interface ScreenshotBlob {
   annotatedScreenshotBase64?: string;
 }
 
-function openDB(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: "id" });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-    request.onblocked = () => reject(new Error("Screenshots DB blocked"));
-  });
-}
-
-let dbPromise: Promise<IDBDatabase> | null = null;
-
-function getDB(): Promise<IDBDatabase> {
-  if (!dbPromise) {
-    dbPromise = openDB();
-    dbPromise
-      .then((db) => {
-        db.onclose = () => {
-          dbPromise = null;
-        };
-        db.onerror = () => {
-          dbPromise = null;
-        };
-        db.onversionchange = () => {
-          db.close();
-          dbPromise = null;
-        };
-      })
-      .catch(() => {
-        dbPromise = null;
-      });
+const getDB = openIDBStore(DB_NAME, STORE_NAME, DB_VERSION, (db) => {
+  if (!db.objectStoreNames.contains(STORE_NAME)) {
+    db.createObjectStore(STORE_NAME, { keyPath: "id" });
   }
-  return dbPromise;
-}
+});
 
 /** Persist a capture's screenshot (and optional annotation) to the separate IDB store. Silently fails if IDB is unavailable. */
 export async function saveScreenshot(capture: Capture): Promise<void> {
@@ -64,12 +31,12 @@ export async function saveScreenshot(capture: Capture): Promise<void> {
     if (capture.annotatedScreenshotBase64) {
       blob.annotatedScreenshotBase64 = capture.annotatedScreenshotBase64;
     }
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      tx.objectStore(STORE_NAME).put(blob);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    tx.objectStore(STORE_NAME).put(blob);
+    const { promise, resolve, reject } = Promise.withResolvers<void>();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    await promise;
   } catch {
     // IDB unavailable (e.g. jsdom test environment) — screenshots stay in-memory only
   }
@@ -79,12 +46,9 @@ export async function saveScreenshot(capture: Capture): Promise<void> {
 export async function loadScreenshot(id: string): Promise<ScreenshotBlob | null> {
   try {
     const db = await getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readonly");
-      const req = tx.objectStore(STORE_NAME).get(id);
-      req.onsuccess = () => resolve(req.result ?? null);
-      req.onerror = () => reject(req.error);
-    });
+    const tx = db.transaction(STORE_NAME, "readonly");
+    const req = tx.objectStore(STORE_NAME).get(id);
+    return (await idbRequest<ScreenshotBlob | null>(req)) ?? null;
   } catch {
     return null;
   }
@@ -95,27 +59,27 @@ export async function loadAllScreenshots(ids: string[]): Promise<Map<string, Scr
   try {
     const db = await getDB();
     const result = new Map<string, ScreenshotBlob>();
-    return new Promise((resolve, _reject) => {
-      const tx = db.transaction(STORE_NAME, "readonly");
-      const store = tx.objectStore(STORE_NAME);
-      let pending = ids.length;
-      if (pending === 0) {
-        resolve(result);
-        return;
-      }
-      for (const id of ids) {
-        const req = store.get(id);
-        req.onsuccess = () => {
-          if (req.result) result.set(id, req.result);
-          pending--;
-          if (pending === 0) resolve(result);
-        };
-        req.onerror = () => {
-          pending--;
-          if (pending === 0) resolve(result);
-        };
-      }
-    });
+    const { promise, resolve } = Promise.withResolvers<Map<string, ScreenshotBlob>>();
+    const tx = db.transaction(STORE_NAME, "readonly");
+    const store = tx.objectStore(STORE_NAME);
+    let pending = ids.length;
+    if (pending === 0) {
+      resolve(result);
+      return promise;
+    }
+    for (const id of ids) {
+      const req = store.get(id);
+      req.onsuccess = () => {
+        if (req.result) result.set(id, req.result);
+        pending--;
+        if (pending === 0) resolve(result);
+      };
+      req.onerror = () => {
+        pending--;
+        if (pending === 0) resolve(result);
+      };
+    }
+    return promise;
   } catch {
     return new Map();
   }
@@ -125,12 +89,12 @@ export async function loadAllScreenshots(ids: string[]): Promise<Map<string, Scr
 export async function deleteScreenshot(id: string): Promise<void> {
   try {
     const db = await getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      tx.objectStore(STORE_NAME).delete(id);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    tx.objectStore(STORE_NAME).delete(id);
+    const { promise, resolve, reject } = Promise.withResolvers<void>();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    await promise;
   } catch {
     // IDB unavailable — no-op
   }
@@ -143,18 +107,18 @@ export async function saveAnnotatedScreenshot(
 ): Promise<void> {
   try {
     const db = await getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.get(id);
-      req.onsuccess = () => {
-        const blob: ScreenshotBlob = req.result ?? { id, screenshotBase64: "" };
-        blob.annotatedScreenshotBase64 = annotatedScreenshotBase64;
-        store.put(blob);
-      };
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.get(id);
+    req.onsuccess = () => {
+      const blob: ScreenshotBlob = req.result ?? { id, screenshotBase64: "" };
+      blob.annotatedScreenshotBase64 = annotatedScreenshotBase64;
+      store.put(blob);
+    };
+    const { promise, resolve, reject } = Promise.withResolvers<void>();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    await promise;
   } catch {
     // IDB unavailable — annotated data stays in-memory only
   }
@@ -165,15 +129,15 @@ export async function deleteScreenshotsForCaptures(captureIds: string[]): Promis
   if (captureIds.length === 0) return;
   try {
     const db = await getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      const store = tx.objectStore(STORE_NAME);
-      for (const id of captureIds) {
-        store.delete(id);
-      }
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    for (const id of captureIds) {
+      store.delete(id);
+    }
+    const { promise, resolve, reject } = Promise.withResolvers<void>();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    await promise;
   } catch {
     // IDB unavailable — no-op
   }
@@ -182,12 +146,12 @@ export async function deleteScreenshotsForCaptures(captureIds: string[]): Promis
 export async function deleteAllScreenshots(): Promise<void> {
   try {
     const db = await getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      tx.objectStore(STORE_NAME).clear();
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    tx.objectStore(STORE_NAME).clear();
+    const { promise, resolve, reject } = Promise.withResolvers<void>();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    await promise;
   } catch {
     // DB may not exist
   }
