@@ -95,27 +95,6 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
         </span>
       </div>
     </label>
-
-    <label className="flex items-start gap-ut-2 cursor-pointer">
-      <input
-        type="checkbox"
-        className="mt-0.5 accent-trust-magenta"
-        checked={settings.labs?.principleSummaries ?? false}
-        onChange={(e) =>
-          updateSettings({
-            labs: { ...settings.labs, principleSummaries: e.target.checked },
-          })
-        }
-      />
-      <div>
-        <span className="text-ut-xs font-semibold text-ut-navy block">
-          Principle Summaries
-        </span>
-        <span className="text-ut-xs text-ut-muted block leading-relaxed">
-          Add summary fields for each TRUST principle, auto-filled from question scores and notes.
-        </span>
-      </div>
-    </label>
   </div>
 </section>
       </div>

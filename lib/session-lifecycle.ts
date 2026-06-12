@@ -79,7 +79,6 @@ function computeSignature(state: SessionState): string {
     metadataDigest,
     (state.quickNotes ?? []).map((n) => [n.id, n.text]),
     finalizationDigest,
-    (state.principleSummaries ?? []).map((p) => [p.categoryId, p.observations, p.customObservations]),
   ]);
 }
 let lastSaveTime = 0;
@@ -102,7 +101,7 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
   }
   lastSaveTime = Date.now();
 
-  const { session: s, captures: c, evaluations: e, finalization: f, principleSummaries: ps } =
+  const { session: s, captures: c, evaluations: e, finalization: f } =
     useSessionStore.getState();
   const activeId = useRegistryStore.getState().activeSessionId;
   // Guard: skip if session switched between schedule and flush to prevent
@@ -128,7 +127,6 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
       captures: strippedCaptures,
       evaluations: e,
       finalization: f,
-      ...((ps ?? []).length ? { principleSummaries: ps } : {}),
     });
     if (ok) {
       document.dispatchEvent(
@@ -214,7 +212,7 @@ async function saveCurrentScreenshots(): Promise<void> {
 
 /** Snapshot current session store state as SessionData, stripping heavy screenshot data. */
 function snapshot(): SessionData | null {
-  const { session, captures, evaluations, finalization, quickNotes, principleSummaries } =
+  const { session, captures, evaluations, finalization, quickNotes } =
     useSessionStore.getState();
   if (!session) return null;
   // Strip heavy screenshot data from captures before saving to session IDB.
@@ -230,7 +228,6 @@ function snapshot(): SessionData | null {
     evaluations,
     finalization,
     quickNotes,
-    ...(principleSummaries.length ? { principleSummaries } : {}),
   };
 }
 
@@ -328,7 +325,6 @@ export async function exportSessionById(id: string): Promise<Blob> {
     data.finalization,
     data.quickNotes,
     { name: reviewerName || undefined, email: reviewerEmail || undefined },
-    data.principleSummaries,
   );
   return blob;
 }
@@ -355,7 +351,6 @@ export async function exportAllSessions(): Promise<Blob> {
       data.finalization,
       data.quickNotes,
       reviewerInfo,
-      data.principleSummaries,
     );
 
     entries.push({

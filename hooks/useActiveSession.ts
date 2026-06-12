@@ -37,7 +37,6 @@ export function useActiveSession() {
         captures: curCaptures,
         evaluations: curEvaluations,
         finalization: curFinalization,
-        principleSummaries: curPs,
       } = useSessionStore.getState();
       if (curSession) {
         getRepository()
@@ -46,7 +45,6 @@ export function useActiveSession() {
             captures: curCaptures,
             evaluations: curEvaluations,
             finalization: curFinalization,
-            ...(curPs.length ? { principleSummaries: curPs } : {}),
           })
           .catch((err) => {
             console.error("Failed to save session before clearing:", err);

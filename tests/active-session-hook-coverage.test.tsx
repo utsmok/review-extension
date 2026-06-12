@@ -266,7 +266,6 @@ describe("useActiveSession", () => {
         null,
         expect.any(Array),
         undefined, // reviewer — empty settings → undefined
-        expect.any(Array), // principleSummaries
       );
       expect(downloadBlob).toHaveBeenCalledWith(blob, "TRUST_Review_Test_Tool.zip");
 

@@ -3,7 +3,7 @@ import type { ReportScores } from "./report/compute-scores";
 import type { CaptureInfo, PrincipleScoreRow, QualityGateRow } from "./report-model";
 import { buildReportModel } from "./report-model";
 import { principleAverage, qualityGateResults } from "./rubric";
-import type { Capture, Evaluation, PrincipleSummary, ReviewFinalization, RubricData, SessionMetadata } from "./types";
+import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 // Cached dynamic import for logos (used by buildHtmlReport and buildNutritionLabel)
 let _logos: typeof import("./logos") | null = null;
@@ -79,13 +79,9 @@ function scoreCircles(avg: number | null): string {
 }
 
 // ── Section builders (render from ReportModel slices) ──────────────────
+function renderCategorySections(principles: PrincipleScoreRow[], captures: CaptureInfo[]): string {
 
-function renderCategorySections(principles: PrincipleScoreRow[], captures: CaptureInfo[], principleSummaries?: PrincipleSummary[]): string {
-  // Pre-compute capture ID → capture map for O(1) lookups
   const captureMap = new Map(captures.map((c) => [c.id, c]));
-  const summaryMap = new Map(
-    (principleSummaries ?? []).map((s) => [s.categoryId, s.customObservations ?? s.observations]),
-  );
 
   return principles
     .map((p, sectionIdx) => {
@@ -151,11 +147,6 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
         })
         .join("");
 
-      const summaryText = summaryMap.get(p.id);
-      const summaryHtml = summaryText
-        ? `\n      <div class="principle-summary">${esc(summaryText)}</div>`
-        : "";
-
       return `
     <section id="category-${p.id}" class="category-section${sectionIdx % 2 === 1 ? " category-alt" : ""}" style="--accent:${p.reportColor}" aria-labelledby="heading-${p.id}">
       <div class="category-header">
@@ -182,7 +173,6 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
           <tbody>${rows}</tbody>
         </table>
       </div>
-      ${summaryHtml}
     </section>
   `;
     })
@@ -642,7 +632,6 @@ export async function buildHtmlReport(
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
   reviewer?: { name?: string; email?: string },
-  principleSummaries?: PrincipleSummary[],
 ): Promise<string> {
   // Compress all screenshots in parallel
   if (!_logos) _logos = await import("./logos");
@@ -664,7 +653,7 @@ export async function buildHtmlReport(
   );
 
   const gateRows = renderGateRows(model.qualityGateRows);
-  const categorySections = renderCategorySections(model.principleScores, model.captures, principleSummaries);
+  const categorySections = renderCategorySections(model.principleScores, model.captures);
   const finalizationSection = buildFinalizationSection(
     finalization,
     model.verdict.label,

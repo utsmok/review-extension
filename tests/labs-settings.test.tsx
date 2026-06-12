@@ -23,12 +23,10 @@ describe("Labs settings", () => {
     expect(screen.getByText("Labs")).toBeDefined();
   });
 
-  it("starts with both toggles unchecked", () => {
+  it("starts with toggles unchecked", () => {
     render(<SettingsScreen onBack={() => {}} />);
     const enhanced = screen.getByRole("checkbox", { name: /Enhanced Recommendation/i });
-    const summaries = screen.getByRole("checkbox", { name: /Principle Summaries/i });
     expect(enhanced.hasAttribute("checked")).toBe(false);
-    expect(summaries.hasAttribute("checked")).toBe(false);
   });
 
   it("toggles Enhanced Recommendation on", () => {
@@ -45,11 +43,10 @@ describe("Labs settings", () => {
     expect(useRegistryStore.getState().settings.labs.enhancedRecommendation).toBe(false);
   });
 
-  it("toggling one does not affect the other", () => {
+  it("toggling Enhanced Recommendation does not affect other settings", () => {
     render(<SettingsScreen onBack={() => {}} />);
     screen.getByRole("checkbox", { name: /Enhanced Recommendation/i }).click();
     const { labs } = useRegistryStore.getState().settings;
     expect(labs.enhancedRecommendation).toBe(true);
-    expect(labs.principleSummaries).toBeUndefined();
   });
 });

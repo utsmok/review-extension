@@ -1,6 +1,5 @@
 // ── Rubric query helpers ─────────────────────────────────────────────────
-
-import type { Evaluation, HexColor, PrincipleSummary, RubricData, ScoringQuestion } from "./types";
+import type { Evaluation, HexColor, RubricData } from "./types";
 
 /** Collect all rubric question IDs (quality gate + scoring) as "category.questionKey" strings. */
 export function getRubricQuestionIds(rubric: RubricData): string[] {
@@ -265,75 +264,4 @@ export function countUnsure(
     if (em.get(`${categoryId}.${qId}`)?.score === "unsure") count++;
   }
   return count;
-}
-
-/** Auto-generate per-principle summaries from current evaluations and rubric data. */
-export function generatePrincipleSummaries(
-  evaluations: Evaluation[],
-  rubric: RubricData,
-  usesAi: boolean = true,
-): PrincipleSummary[] {
-  const evalMap = buildEvalMap(evaluations);
-  const summaries: PrincipleSummary[] = [];
-
-  for (const [categoryId, questions] of Object.entries(rubric.scoring_rubric)) {
-    const questionEntries = Object.entries(questions as Record<string, ScoringQuestion>);
-    const visibleQuestions = usesAi
-      ? questionEntries
-      : questionEntries.filter(([, q]) => !q.ai_only);
-
-    if (visibleQuestions.length === 0) continue;
-
-    const scoredQuestions: Array<{ code: string; score: number | string; notes: string }> = [];
-
-    for (const [qId, _q] of visibleQuestions) {
-      const rubricId = `${categoryId}.${qId}`;
-      const ev = evalMap.get(rubricId);
-      const idx = questionEntries.findIndex(([k]) => k === qId);
-      const code = getQuestionCode(categoryId, idx);
-
-      if (ev && ev.score !== "" && ev.score !== undefined) {
-        scoredQuestions.push({ code, score: ev.score, notes: ev.notes ?? "" });
-      }
-    }
-
-    if (scoredQuestions.length === 0) {
-      summaries.push({ categoryId, observations: "No questions scored yet." });
-      continue;
-    }
-
-    const parts: string[] = [];
-    const numericScores = scoredQuestions
-      .map((q) => (typeof q.score === "number" ? q.score : null))
-      .filter((s): s is number => s !== null);
-    const avg =
-      numericScores.length > 0
-        ? (numericScores.reduce((a, b) => a + b, 0) / numericScores.length).toFixed(1)
-        : "N/A";
-
-    parts.push(`${getCategoryLabel(categoryId)}: average score ${avg}/3.`);
-
-    const strengths = scoredQuestions.filter((q) => q.score === 3);
-    const weaknesses = scoredQuestions.filter(
-      (q) => typeof q.score === "number" && q.score <= 1,
-    );
-
-    if (strengths.length > 0) {
-      parts.push(`Strengths: ${strengths.map((q) => q.code).join(", ")} scored 3/3.`);
-    }
-    if (weaknesses.length > 0) {
-      parts.push(
-        `Concerns: ${weaknesses.map((q) => q.code).join(", ")} scored ${weaknesses.map((q) => `${q.score}/3`).join(", ")}.`,
-      );
-    }
-
-    const notesWithContent = scoredQuestions.filter((q) => q.notes.trim().length > 0);
-    if (notesWithContent.length > 0) {
-      parts.push(`Reviewer notes on ${notesWithContent.map((q) => q.code).join(", ")}.`);
-    }
-
-    summaries.push({ categoryId, observations: parts.join(" ") });
-  }
-
-  return summaries;
 }

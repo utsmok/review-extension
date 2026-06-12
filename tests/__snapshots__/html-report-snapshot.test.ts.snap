@@ -293,7 +293,6 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
   </tbody>
         </table>
       </div>
-      
     </section>
   
     <section id="category-RE" class="category-section category-alt" style="--accent:#127035" aria-labelledby="heading-RE">
@@ -375,7 +374,6 @@ For deterministic, index-based databases, identical queries should yield identic
   </tbody>
         </table>
       </div>
-      
     </section>
   
     <section id="category-US" class="category-section" style="--accent:#9333ea" aria-labelledby="heading-US">
@@ -455,7 +453,6 @@ Select N/A if the tool operates as a traditional, non-generative search engine t
   </tbody>
         </table>
       </div>
-      
     </section>
   
     <section id="category-SE" class="category-section category-alt" style="--accent:#c2410c" aria-labelledby="heading-SE">
@@ -535,7 +532,6 @@ This question is not applicable if the tool operates entirely offline on local i
   </tbody>
         </table>
       </div>
-      
     </section>
   
     <section id="category-TC" class="category-section" style="--accent:#0f766e" aria-labelledby="heading-TC">
@@ -613,7 +609,6 @@ This question is not applicable if the tool operates entirely offline on local i
   </tbody>
         </table>
       </div>
-      
     </section>
   
 
@@ -1011,7 +1006,6 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
   </tbody>
         </table>
       </div>
-      
     </section>
   
     <section id="category-RE" class="category-section category-alt" style="--accent:#127035" aria-labelledby="heading-RE">
@@ -1066,7 +1060,6 @@ For deterministic, index-based databases, identical queries should yield identic
   </tbody>
         </table>
       </div>
-      
     </section>
   
     <section id="category-US" class="category-section" style="--accent:#9333ea" aria-labelledby="heading-US">
@@ -1119,7 +1112,6 @@ For deterministic, index-based databases, identical queries should yield identic
   </tbody>
         </table>
       </div>
-      
     </section>
   
     <section id="category-SE" class="category-section category-alt" style="--accent:#c2410c" aria-labelledby="heading-SE">
@@ -1199,7 +1191,6 @@ This question is not applicable if the tool operates entirely offline on local i
   </tbody>
         </table>
       </div>
-      
     </section>
   
     <section id="category-TC" class="category-section" style="--accent:#0f766e" aria-labelledby="heading-TC">
@@ -1277,7 +1268,6 @@ This question is not applicable if the tool operates entirely offline on local i
   </tbody>
         </table>
       </div>
-      
     </section>
   
 

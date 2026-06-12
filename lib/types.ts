@@ -15,8 +15,6 @@ export interface Settings {
 export interface LabsSettings {
   /** Enable 6-level recommendation grades instead of 3-level. */
   enhancedRecommendation?: boolean;
-  /** Enable per-principle summary fields with auto-fill. */
-  principleSummaries?: boolean;
 }
 
 export interface SessionMetadata {
@@ -57,8 +55,6 @@ export interface SessionData {
   finalization: ReviewFinalization | null;
   schemaVersion?: number;
   quickNotes?: Array<{ id: string; text: string; timestamp: string }>;
-  /** Per-principle summaries. Only populated when Labs > Principle Summaries is enabled. */
-  principleSummaries?: PrincipleSummary[];
 }
 
 export interface Capture {
@@ -112,16 +108,6 @@ export interface ReviewFinalization {
   weaknesses: string[];
   recommendations: string;
   finalizedAt: string;
-}
-
-/** Per-principle summary written by the reviewer (or auto-filled). */
-export interface PrincipleSummary {
-  /** Category ID (e.g., "TR", "RE"). */
-  categoryId: string;
-  /** Auto-generated draft summarizing the question scores and notes. */
-  observations: string;
-  /** User-edited observations (undefined = use auto-generated). */
-  customObservations?: string;
 }
 
 /** Alias for quality gate scores (semantic clarity at call sites). */

@@ -11,7 +11,6 @@ export function useSessionData() {
       evaluations: s.evaluations,
       finalization: s.finalization,
       quickNotes: s.quickNotes,
-      principleSummaries: s.principleSummaries,
     })),
   );
 }

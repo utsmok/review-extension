@@ -603,16 +603,6 @@ table th {
   font-size: 0.75rem;
 }
 
-/* Principle summary */
-.principle-summary {
-  border-left: 3px solid var(--accent);
-  background: var(--panel);
-  padding: var(--rs-xs) var(--rs-md);
-  margin: var(--rs-xs) 0 0;
-  font-size: 0.85rem;
-  color: var(--muted);
-  line-height: 1.5;
-}
 /* Finalization */
 .finalization-section {
   border-top: 4px solid var(--magenta);

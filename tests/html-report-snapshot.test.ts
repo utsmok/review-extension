@@ -63,22 +63,4 @@ describe("HTML report snapshot", () => {
     expect(html).toMatchSnapshot();
   });
 
-  it("renders principle summaries when provided", async () => {
-    const metadata = makeMetadata({ toolName: "SummaryTool" });
-    const evaluations = [...allQualityGatePassEvaluations(), ...allScoringMaxEvaluations()];
-    const finalization = makeFinalization({ grade: "pass" });
-
-    const summaries: import("@/lib/types").PrincipleSummary[] = [
-      { categoryId: "TR", observations: "Transparency is strong with clear data sources." },
-      { categoryId: "RE", observations: "", customObservations: "Reliability needs work." },
-    ];
-
-    const html = await buildHtmlReport(metadata, [], evaluations, RUBRIC, finalization, undefined, summaries);
-    expect(html).toContain("principle-summary");
-    expect(html).toContain("Transparency is strong with clear data sources.");
-    expect(html).toContain("Reliability needs work.");
-    // Empty observations should not render a summary block
-    const summaryDivs = html.match(/class="principle-summary"/g);
-    expect(summaryDivs).toHaveLength(2);
-  });
 });
