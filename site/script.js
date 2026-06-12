@@ -14,6 +14,7 @@
   }
 
   tabs.forEach((a) => {
+    if (!a.dataset.tab) return; // skip non-tab links (e.g. "Try →")
     a.addEventListener("click", (e) => {
       e.preventDefault();
       showTab(a.dataset.tab);

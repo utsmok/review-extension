@@ -121,14 +121,14 @@ body {
   background: var(--trust-magenta);
 }
 
-.try-link {
-  background: var(--trust-magenta) !important;
-  color: #fff !important;
+.tab-nav a.try-link {
+  background: var(--trust-magenta);
+  color: #fff;
   font-weight: 700;
   border-radius: 4px;
 }
-.try-link:hover {
-  background: #a0265a !important;
+.tab-nav a.try-link:hover {
+  background: #a0265a;
 }
 
 /* ===== Tab Panels ===== */

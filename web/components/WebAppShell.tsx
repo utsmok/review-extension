@@ -66,6 +66,20 @@ export default function WebAppShell({
     };
   }, []);
 
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      const step = 10;
+      let next: number | null = null;
+      if (e.key === "ArrowLeft") next = Math.min(MAX_SIDEBAR_PX, sidebarWidth + step);
+      else if (e.key === "ArrowRight") next = Math.max(MIN_SIDEBAR_PX, sidebarWidth - step);
+      if (next !== null) {
+        e.preventDefault();
+        setSidebarWidth(next);
+      }
+    },
+    [sidebarWidth],
+  );
+
   const trialBanner = (
     <div className="bg-amber-100 border-b border-amber-300 px-ut-4 py-ut-2 flex items-center gap-2">
       <svg
@@ -219,6 +233,7 @@ export default function WebAppShell({
           className="bg-ut-border hover:bg-trust-magenta/40 active:bg-trust-magenta/60 cursor-col-resize shrink-0 transition-colors"
           style={{ width: DIVIDER_PX }}
           onMouseDown={onMouseDown}
+          onKeyDown={onKeyDown}
           role="separator"
           aria-orientation="vertical"
           aria-valuenow={sidebarWidth}
