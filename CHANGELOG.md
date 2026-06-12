@@ -1,6 +1,55 @@
 # Changelog
 
 
+## v0.8.1 — 2026-06-12
+
+### New: Enhanced Recommendation Grades (Labs)
+
+The Enhanced Recommendation Labs toggle now renders 9 grades in the GradeSelector (up from 3): Recommended, With Caveats, Needs Review, Pilot Only, Not Recommended, and Out of Scope join the original Pass, Conditional, and Fail. ExportCompleteScreen displays all 9 grades with correct labels and colors.
+
+### New: Principle Summaries in Reports
+
+Per-principle summaries are now included in all HTML report exports — single-session, batch, and by-ID. The summary editor auto-generates observations from your scoring and refreshes live as you answer more questions.
+
+### New: Business Card Nutrition Label
+
+A compact 85.6mm × 54mm credit-card-sized variant of the nutrition label is now included in every export ZIP as `{toolname}-card.html`. Shows verdict stamp, score fraction, quality gate failures, and principle indicators — designed for printing and physical handouts.
+
+### New: Tool Database & Comparison on Website
+
+- **Tools tab**: Sortable table of evaluated AI search tools with per-principle scores (TR/RE/US/SE/TC), verdicts, and status badges.
+- **Compare tab**: Upload multiple review ZIPs for side-by-side comparison with best-score highlighting across principles.
+
+### New: In-Browser Trial Version
+
+A standalone web build at `site/try/` lets users try the TRUST review workflow without installing the extension. Users enter a tool URL manually, answer rubric questions, finalize, and export — no Chrome/Firefox required.
+
+### New: Tool Profile Auto-Detection
+
+When starting a session with a known tool URL (Semantic Scholar, Elicit, Perplexity, etc.), metadata fields are auto-populated from a built-in profile database — company, data sources, search methods, discipline, pricing, and more. A suggested test queries panel also appears based on the tool's category.
+
+### Improved: Report Styling
+
+- Report spacing tightened ~25-30% for denser, more readable output.
+- HTML reports now render per-principle summary sections.
+
+### Changed: SE Principle Name
+
+The SE principle is now consistently "Soundness" across the website (previously showed "Secure" in some places). The extension was already correct.
+
+### Removed: Remotion
+
+The Remotion video-rendering setup (`remotion/`, config, 5 dev dependencies) has been removed. Rendered MP4s are preserved in `site/assets/video/`.
+
+### Fixed
+
+- Batch export deduplicates folder names for sessions with the same tool name (previously silent overwrites).
+- Compare page handles all-null principle scores without producing `-Infinity`.
+- JSZip CDN load shows an error on failure instead of hanging forever.
+- Duplicate `.bc-gate-fail` CSS rule merged in report stylesheet.
+- Web trial: dead `showNewSession` state and render-phase side effect removed; unused tldraw CSS import dropped from web bundle.
+- Clipboard copy in Metadata handles permission failures gracefully.
+
 
 ## v0.8.0 — 2026-06-09
 
