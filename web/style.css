@@ -1,0 +1,8 @@
+@import "../lib/tokens.css";
+@import "../lib/base.css";
+@import "../lib/components.css";
+
+@import "tldraw/tldraw.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

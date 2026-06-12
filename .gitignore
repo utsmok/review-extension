@@ -5,6 +5,7 @@ node_modules/
 .wxt/
 .output/
 dist/
+site/try/
 
 # OS files
 .DS_Store

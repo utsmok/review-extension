@@ -8,6 +8,7 @@
     "dev:firefox": "wxt --browser firefox",
     "build": "wxt build",
     "build:firefox": "wxt build --browser firefox",
+    "build:web": "vite build --config web/vite.config.ts",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip --browser firefox",
     "clean": "wxt clean",
