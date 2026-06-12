@@ -31,45 +31,50 @@ const GRADES: {
   },
 ];
 
-const ENHANCED_GRADES = [
-  ...GRADES,
+const ENHANCED_GRADES: {
+  value: FinalizationGrade;
+  label: string;
+  description: string;
+  color: string;
+  tint: string;
+}[] = [
   {
-    value: "recommended" as FinalizationGrade,
+    value: "recommended",
     label: "Recommended",
     description: "Exceeds TRUST standards",
     color: "bg-ut-green",
     tint: "bg-grade-pass-tint",
   },
   {
-    value: "recommended_with_caveats" as FinalizationGrade,
+    value: "recommended_with_caveats",
     label: "With Caveats",
     description: "Recommended with documented limitations",
     color: "bg-score-1-strong",
     tint: "bg-grade-conditional-tint",
   },
   {
-    value: "needs_review" as FinalizationGrade,
+    value: "needs_review",
     label: "Needs Review",
     description: "Insufficient evidence for recommendation",
     color: "bg-ut-muted",
     tint: "bg-gray-100",
   },
   {
-    value: "pilot_only" as FinalizationGrade,
+    value: "pilot_only",
     label: "Pilot Only",
     description: "Suitable only for limited pilot use",
     color: "bg-amber-600",
     tint: "bg-amber-50",
   },
   {
-    value: "not_recommended" as FinalizationGrade,
+    value: "not_recommended",
     label: "Not Recommended",
     description: "Does not meet minimum standards",
     color: "bg-ut-red",
     tint: "bg-grade-fail-tint",
   },
   {
-    value: "out_of_scope" as FinalizationGrade,
+    value: "out_of_scope",
     label: "Out of Scope",
     description: "Falls outside TRUST evaluation criteria",
     color: "bg-gray-500",
