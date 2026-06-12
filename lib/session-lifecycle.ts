@@ -128,7 +128,7 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
       captures: strippedCaptures,
       evaluations: e,
       finalization: f,
-      ...(ps.length ? { principleSummaries: ps } : {}),
+      ...((ps ?? []).length ? { principleSummaries: ps } : {}),
     });
     if (ok) {
       document.dispatchEvent(
