@@ -20,7 +20,9 @@
     </a>
     <nav class="tab-nav">
       <a href="#home" class="active" data-tab="home">Home</a>
+      <a href="#tools" data-tab="tools">Tools</a>
       <a href="#demo" data-tab="demo">Demo</a>
+      <a href="#compare" data-tab="compare">Compare</a>
       <a href="#background" data-tab="background">Background</a>
       <a href="#links" data-tab="links">Links</a>
     </nav>
@@ -92,6 +94,39 @@
   </div>
 </section>
 
+<!-- ===== Tools ===== -->
+<section id="tools" class="tab-panel">
+  <div class="container">
+    <div class="section">
+      <div class="section-title">Evaluated Tools</div>
+      <p style="color:var(--ut-muted);margin-bottom:var(--space-md)">
+        Tools reviewed using the TRUST framework. Status indicates review completion.
+        <a href="https://github.com/utsmok/review-extension/issues" style="color:var(--trust-magenta)">Nominate a tool →</a>
+      </p>
+      <div class="card" style="overflow-x:auto">
+        <table class="tools-table">
+          <thead>
+            <tr>
+              <th>Tool</th>
+              <th>Category</th>
+              <th>Verdict</th>
+              <th>TR</th>
+              <th>RE</th>
+              <th>US</th>
+              <th>SE</th>
+              <th>TC</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tools-tbody">
+            <tr><td colspan="9" style="text-align:center;color:var(--ut-muted)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ===== Demo ===== -->
 <section id="demo" class="tab-panel">
   <div class="container">
@@ -146,6 +181,36 @@
     <div class="section">
       <div class="section-title">Screenshots</div>
       <p style="color:var(--ut-muted);font-style:italic">Screenshots of the extension in action will appear here.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Compare ===== -->
+<section id="compare" class="tab-panel">
+  <div class="container">
+    <div class="section">
+      <div class="section-title">Compare Reviews</div>
+      <p style="color:var(--ut-muted);margin-bottom:var(--space-md)">
+        Upload multiple TRUST review ZIP files to compare scores, evidence, and verdicts side by side.
+      </p>
+      <div class="card">
+        <div class="upload-zone" id="compare-drop">
+          <p>Drop ZIP files here or <label for="compare-input" style="color:var(--trust-magenta);cursor:pointer">browse</label></p>
+          <input type="file" id="compare-input" multiple accept=".zip" style="display:none">
+        </div>
+        <div id="compare-results" style="display:none">
+          <div class="compare-controls">
+            <button class="compare-btn" id="compare-clear" type="button">Clear all</button>
+          </div>
+          <div class="compare-grid" id="compare-grid"></div>
+          <div class="card" style="margin-top:var(--space-md);overflow-x:auto">
+            <table class="compare-table" id="compare-table">
+              <thead id="compare-thead"></thead>
+              <tbody id="compare-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
