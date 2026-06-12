@@ -6,7 +6,7 @@
 /** Open an IndexedDB database with a singleton promise and auto-reconnect. */
 export function openIDBStore(
   dbName: string,
-  storeName: string,
+  _storeName: string,
   version: number,
   onUpgrade: (db: IDBDatabase) => void,
 ): () => Promise<IDBDatabase> {

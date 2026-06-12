@@ -4,20 +4,63 @@
  * loaded on demand via the dynamic import below — zero bundle cost.
  */
 import type { Editor } from "./TldrawAnnotation";
-import { lazy, Suspense } from "react";
+import { Component, lazy, Suspense, type ErrorInfo, type ReactNode } from "react";
 
 const LazyAnnotation = lazy(() => import("./TldrawAnnotation"));
 
-export default function TldrawCanvas({ onMount }: { onMount: (editor: Editor) => void }) {
-  return (
-    <Suspense
-      fallback={
+interface Props {
+  onMount: (editor: Editor) => void;
+}
+
+interface ErrorState {
+  hasError: boolean;
+}
+
+/**
+ * Catches tldraw load failures (network, CSP, missing chunk) and shows
+ * a fallback message instead of crashing the entire evidence modal.
+ */
+class TldrawErrorBoundary extends Component<{ children: ReactNode }, ErrorState> {
+  state: ErrorState = { hasError: false };
+
+  static getDerivedStateFromError(): ErrorState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo): void {
+    console.error(
+      "TRUST Review — failed to load tldraw annotation editor:",
+      error,
+      info.componentStack,
+    );
+  }
+
+  render(): ReactNode {
+    if (this.state.hasError) {
+      return (
         <div className="tldraw-loading">
-          <span className="tldraw-spinner" aria-hidden="true" /> Loading annotation editor…
+          <p className="text-ut-sm text-ut-muted">
+            Annotation editor could not be loaded. You can still view the screenshot.
+          </p>
         </div>
-      }
-    >
-      <LazyAnnotation onMount={onMount} />
-    </Suspense>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function TldrawCanvas({ onMount }: Props) {
+  return (
+    <TldrawErrorBoundary>
+      <Suspense
+        fallback={
+          <div className="tldraw-loading">
+            <span className="tldraw-spinner" aria-hidden="true" /> Loading annotation editor…
+          </div>
+        }
+      >
+        <LazyAnnotation onMount={onMount} />
+      </Suspense>
+    </TldrawErrorBoundary>
   );
 }
