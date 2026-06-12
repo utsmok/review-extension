@@ -1,3 +1,4 @@
+import { buildHtmlReport, buildNutritionLabel } from "./html-report";
 import JSZip from "jszip";
 import { ensureArray } from "./metadata-utils";
 import { minifyHtml } from "./minify";
