@@ -27,6 +27,21 @@ function makeMetadata(overrides?: Partial<SessionMetadata>): SessionMetadata {
   };
 }
 
+/** Unzip a Blob into a Map<path, string|Uint8Array>. */
+async function unzipToMap(blob: Blob): Promise<Map<string, string | Uint8Array>> {
+  const JSZip = (await import("jszip")).default;
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  const files = new Map<string, string | Uint8Array>();
+  for (const [path, entry] of Object.entries(zip.files)) {
+    if (entry.dir) continue;
+    const data = await entry.async("uint8array");
+    // Heuristic: treat non-binary-looking content as text
+    const isText = /\.(html?|csv|json|txt|md)$/i.test(path);
+    files.set(path, isText ? new TextDecoder().decode(data) : data);
+  }
+  return files;
+}
+
 // Minimal 1x1 transparent PNG as base64
 const TINY_PNG =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==";
@@ -519,5 +534,51 @@ describe("sanitizeFilename", () => {
 
   it("strips null bytes and control characters", () => {
     expect(sanitizeFilename("foo\x00bar\x01baz")).toBe("foo_bar_baz");
+  });
+});
+
+describe("exportSession with reviewer", () => {
+  it("includes reviewer name and email in CSV and HTML report", async () => {
+    const meta = makeMetadata({ toolName: "ReviewerTest" });
+    const cap = makeCapture();
+    const evals: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
+    ];
+    const reviewer = { name: "Jane Doe", email: "jane@example.com" };
+
+    const blob = await exportSession(meta, [cap], evals, RUBRIC, null, undefined, reviewer);
+    const files = await unzipToMap(blob);
+
+    // session_metadata.csv should contain reviewer columns
+    const csv = files.get("session_metadata.csv");
+    expect(csv).toBeDefined();
+    expect(typeof csv).toBe("string");
+    expect(csv!).toContain("Jane Doe");
+    expect(csv!).toContain("jane@example.com");
+
+    // HTML report should contain reviewer info
+    const html = files.get("Evaluation_Report_ReviewerTest.html");
+    expect(html).toBeDefined();
+    expect(typeof html).toBe("string");
+    expect(html!).toContain("Jane Doe");
+    expect(html!).toContain("jane@example.com");
+  });
+
+  it("omits reviewer section when no reviewer provided", async () => {
+    const meta = makeMetadata({ toolName: "NoReviewer" });
+    const cap = makeCapture();
+    const evals: Evaluation[] = [
+      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
+    ];
+
+    const blob = await exportSession(meta, [cap], evals, RUBRIC);
+    const files = await unzipToMap(blob);
+
+    const csv = files.get("session_metadata.csv") as string;
+    expect(csv).toBeDefined();
+    // CSV header should still have the columns, but values empty
+    const rows = parseCsv(csv);
+    expect(rows[0].Reviewer_Name).toBe("");
+    expect(rows[0].Reviewer_Email).toBe("");
   });
 });
