@@ -8,6 +8,8 @@ import {
   AUTH_METHOD_OPTIONS,
 } from "@/lib/metadata-options";
 import { ensureArray } from "@/lib/metadata-utils";
+import { detectToolProfile } from "@/lib/tool-profiles";
+import { getSuggestedQueries } from "@/lib/test-queries";
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
 import DisciplineField from "./metadata/DisciplineField";
@@ -109,6 +111,9 @@ export default function Metadata() {
   };
 
   if (!session) return null;
+
+  const profile = session.toolUrl ? detectToolProfile(session.toolUrl) : null;
+  const queries = profile ? getSuggestedQueries(profile.category) : [];
 
   const handleExport = async () => {
     setExporting(true);
@@ -560,6 +565,31 @@ export default function Metadata() {
             ))}
           </ul>
         </div>
+      )}
+      {queries.length > 0 && (
+        <details className="mb-ut-3">
+          <summary className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy cursor-pointer">
+            Suggested Test Queries
+          </summary>
+          <div className="mt-ut-2 space-y-ut-1">
+            {queries.map((tq) => (
+              <div key={tq.query} className="flex items-center gap-ut-2 text-ut-xs">
+                <code className="flex-1 bg-ut-grey px-ut-2 py-ut-0.5 rounded-ut-sm font-mono text-ut-body">
+                  {tq.query}
+                </code>
+                <span className="text-ut-muted text-[10px]">{tq.purpose}</span>
+                <button
+                  type="button"
+                  className="text-trust-magenta hover:text-trust-magenta-strong text-ut-xs"
+                  onClick={() => navigator.clipboard.writeText(tq.query)}
+                  title="Copy query"
+                >
+                  Copy
+                </button>
+              </div>
+            ))}
+          </div>
+        </details>
       )}
       {showExportConfirm && (
         <ConfirmDialog
