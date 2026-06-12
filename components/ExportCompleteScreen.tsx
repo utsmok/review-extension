@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { ReviewFinalization } from "@/lib/types";
+import { GRADE_LABELS } from "@/lib/report/compute-scores";
 
 interface ExportCompleteScreenProps {
   captures: number;
@@ -15,18 +16,23 @@ interface ExportCompleteScreenProps {
 
 function gradeLabel(finalization: ReviewFinalization | null): string {
   if (!finalization) return "";
-  const map: Record<string, string> = { pass: "Pass", conditional: "Conditional", fail: "Fail" };
-  return map[finalization.grade] ?? finalization.grade;
+  return GRADE_LABELS[finalization.grade] ?? finalization.grade;
 }
 
 function gradeColorClass(finalization: ReviewFinalization | null): string {
   if (!finalization) return "text-ut-muted";
-  const map: Record<string, string> = {
+  const colorMap: Record<string, string> = {
     pass: "text-ut-green",
     conditional: "text-score-1",
     fail: "text-ut-red",
+    recommended: "text-ut-green",
+    recommended_with_caveats: "text-score-1",
+    needs_review: "text-ut-muted",
+    pilot_only: "text-score-1",
+    not_recommended: "text-ut-red",
+    out_of_scope: "text-ut-muted",
   };
-  return map[finalization.grade] ?? "text-ut-muted";
+  return colorMap[finalization.grade] ?? "text-ut-muted";
 }
 
 function formatFileSize(bytes: number): string {

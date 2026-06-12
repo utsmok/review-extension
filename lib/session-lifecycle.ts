@@ -328,6 +328,7 @@ export async function exportSessionById(id: string): Promise<Blob> {
     data.finalization,
     data.quickNotes,
     { name: reviewerName || undefined, email: reviewerEmail || undefined },
+    data.principleSummaries,
   );
   return blob;
 }
@@ -354,6 +355,7 @@ export async function exportAllSessions(): Promise<Blob> {
       data.finalization,
       data.quickNotes,
       reviewerInfo,
+      data.principleSummaries,
     );
 
     entries.push({

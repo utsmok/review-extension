@@ -27,14 +27,15 @@ export function PrincipleSummaryEditor({
     return all.find((s) => s.categoryId === categoryId)?.observations ?? "No questions scored yet.";
   }, [evaluations, rubric, usesAi, categoryId]);
 
-  // Auto-fill on first appearance
+  // Refresh auto-observations when they change (only if user hasn't written custom)
   useEffect(() => {
-    if (!summary) {
-      onUpdate(categoryId, { categoryId, observations: autoObservations });
+    if (!summary?.customObservations && summary?.observations !== autoObservations) {
+      onUpdate(categoryId, {
+        categoryId,
+        observations: autoObservations,
+      });
     }
-  }, [summary, categoryId, autoObservations, onUpdate]);
-
-  const displayText = summary?.customObservations || summary?.observations || autoObservations;
+  }, [autoObservations, categoryId, onUpdate, summary]);
 
   const handleCustomChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -84,11 +85,6 @@ export function PrincipleSummaryEditor({
             >
               Reset to auto-generated
             </button>
-          )}
-          {!summary?.customObservations && (
-            <p className="text-ut-xs text-ut-slate">
-              {displayText}
-            </p>
           )}
         </div>
       )}

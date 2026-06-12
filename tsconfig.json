@@ -15,5 +15,5 @@
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".wxt/wxt.d.ts"],
-  "exclude": [".output", "node_modules", "tools", "remotion", "remotion.config.ts"]
+  "exclude": [".output", "node_modules", "tools"]
 }

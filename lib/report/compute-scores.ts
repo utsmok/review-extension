@@ -18,7 +18,7 @@ const GRADE_COLORS: Record<string, string> = {
   not_recommended: REPORT_SCORE_COLORS[0],
   out_of_scope: "#6b7f94",
 };
-const GRADE_LABELS: Record<string, string> = {
+export const GRADE_LABELS: Record<string, string> = {
   pass: "RECOMMENDED",
   conditional: "CAUTION",
   fail: "NOT RECOMMENDED",

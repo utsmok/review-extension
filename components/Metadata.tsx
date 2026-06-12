@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRubric, useTabNavigation } from "@/components/contexts";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureForMetadataField } from "@/lib/capture";
@@ -8,7 +8,7 @@ import {
   AUTH_METHOD_OPTIONS,
 } from "@/lib/metadata-options";
 import { ensureArray } from "@/lib/metadata-utils";
-import { detectToolProfile } from "@/lib/tool-profiles";
+import { type ToolProfile, detectToolProfile } from "@/lib/tool-profiles";
 import { getSuggestedQueries } from "@/lib/test-queries";
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
@@ -110,9 +110,30 @@ export default function Metadata() {
     }
   };
 
+  const profile = session?.toolUrl ? detectToolProfile(session.toolUrl) : null;
+  // Pre-fill empty metadata fields from detected tool profile defaults (once per profile)
+  const prefilledProfile = useRef<ToolProfile | null>(null);
+  useEffect(() => {
+    if (!profile?.defaults || !session) return;
+    if (prefilledProfile.current === profile) return;
+    prefilledProfile.current = profile;
+    const d = profile.defaults;
+    const patch: Record<string, unknown> = {};
+    if (d.company && !session.company) patch.company = d.company;
+    if (d.usesAi !== undefined && session.usesAi === undefined) patch.usesAi = d.usesAi;
+    if (d.dataSources?.length && !session.dataSources?.length) patch.dataSources = d.dataSources;
+    if (d.searchMethods?.length && !session.searchMethods?.length)
+      patch.searchMethods = d.searchMethods;
+    if (d.discipline?.length && !session.discipline?.length) patch.discipline = d.discipline;
+    if (d.pricing && !session.pricing) patch.pricing = d.pricing;
+    if (d.availability && !session.availability) patch.availability = d.availability;
+    if (d.authenticationMethod && !session.authenticationMethod)
+      patch.authenticationMethod = d.authenticationMethod;
+    if (Object.keys(patch).length > 0) updateMetadata(patch);
+  }, [profile, session, updateMetadata]);
+
   if (!session) return null;
 
-  const profile = session.toolUrl ? detectToolProfile(session.toolUrl) : null;
   const queries = profile ? getSuggestedQueries(profile.category) : [];
 
   const handleExport = async () => {
@@ -581,7 +602,7 @@ export default function Metadata() {
                 <button
                   type="button"
                   className="text-trust-magenta hover:text-trust-magenta-strong text-ut-xs"
-                  onClick={() => navigator.clipboard.writeText(tq.query)}
+                  onClick={() => navigator.clipboard.writeText(tq.query).catch(() => {})}
                   title="Copy query"
                 >
                   Copy

@@ -126,31 +126,40 @@
   }
 
   async function parseZip(file) {
-    // Dynamic import of JSZip from CDN
-    if (!window.JSZip) {
-      const s = document.createElement("script");
-      s.src = "https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js";
-      document.head.appendChild(s);
-      await new Promise((r) => (s.onload = r));
+    try {
+      // Dynamic import of JSZip from CDN
+      if (!window.JSZip) {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js";
+        document.head.appendChild(s);
+        await new Promise((resolve, reject) => {
+          s.onload = resolve;
+          s.onerror = () =>
+            reject(new Error("Failed to load JSZip from CDN. Check your internet connection."));
+        });
+      }
+      const zip = await JSZip.loadAsync(file);
+
+      // Try session.json first
+      const sessionFile = zip.file("session.json");
+      if (!sessionFile) return null;
+      const session = JSON.parse(await sessionFile.async("string"));
+
+      return {
+        fileName: file.name,
+        toolName: session.metadata?.toolName || "Unknown",
+        toolUrl: session.metadata?.toolUrl || "",
+        verdict: session.finalization?.grade || "",
+        conclusion: session.finalization?.conclusion || "",
+        strengths: session.finalization?.strengths || [],
+        weaknesses: session.finalization?.weaknesses || [],
+        principles: extractPrincipleScores(session.evaluations || []),
+        totalScore: computeTotal(session.evaluations || []),
+      };
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "An unexpected error occurred.");
+      return null;
     }
-    const zip = await JSZip.loadAsync(file);
-
-    // Try session.json first
-    const sessionFile = zip.file("session.json");
-    if (!sessionFile) return null;
-    const session = JSON.parse(await sessionFile.async("string"));
-
-    return {
-      fileName: file.name,
-      toolName: session.metadata?.toolName || "Unknown",
-      toolUrl: session.metadata?.toolUrl || "",
-      verdict: session.finalization?.grade || "",
-      conclusion: session.finalization?.conclusion || "",
-      strengths: session.finalization?.strengths || [],
-      weaknesses: session.finalization?.weaknesses || [],
-      principles: extractPrincipleScores(session.evaluations || []),
-      totalScore: computeTotal(session.evaluations || []),
-    };
   }
 
   function extractPrincipleScores(evaluations) {
@@ -251,7 +260,8 @@
     // Per-principle rows
     for (const code of principleCodes) {
       const values = compareData.map((d) => d.principles[code]);
-      const best = Math.max(...values.filter((v) => v !== null));
+      const filtered = values.filter((v) => v !== null);
+      const best = filtered.length > 0 ? Math.max(...filtered) : null;
       rows.push(
         `<tr><td style="color:var(--${code.toLowerCase()})">${code}</td>${values
           .map((v) => {

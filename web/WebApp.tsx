@@ -7,18 +7,10 @@ import { ActiveSession } from "@/components/ActiveSession";
 import SessionManager from "@/components/SessionManager";
 import SettingsScreen from "@/components/SettingsScreen";
 import WebAppShell from "./components/WebAppShell";
-import WebNewSession from "./components/WebNewSession";
 
 export default function WebApp() {
   const [showSettings, setShowSettings] = useState(false);
-  const [showNewSession, setShowNewSession] = useState(false);
-
   const { status, session } = useActiveSession();
-
-  // If there's an active session and the new-session modal was showing, close it
-  if (status === "active" && session && showNewSession) {
-    setShowNewSession(false);
-  }
 
   if (status === "loading") {
     return (
@@ -51,7 +43,6 @@ export default function WebApp() {
   return (
     <WebAppShell showSettingsButton onSettingsClick={() => setShowSettings(true)}>
       <SessionManager />
-      {showNewSession && <WebNewSession onClose={() => setShowNewSession(false)} />}
     </WebAppShell>
   );
 }

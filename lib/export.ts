@@ -4,12 +4,12 @@ import { saveScreenshot } from "./screenshot-store";
 import type {
   Capture,
   Evaluation,
+  PrincipleSummary,
   ReviewFinalization,
   RubricData,
   SessionData,
   SessionMetadata,
 } from "./types";
-
 export { sanitizeFilename };
 
 /** Trigger a browser download for a Blob by creating and clicking a temporary anchor element. */
@@ -34,6 +34,7 @@ export async function exportSession(
   finalization: ReviewFinalization | null = null,
   quickNotes?: SessionData["quickNotes"],
   reviewer?: ReviewerInfo,
+  principleSummaries?: PrincipleSummary[],
 ): Promise<Blob> {
   const artifacts = await prepareExportArtifacts(
     metadata,
@@ -43,6 +44,7 @@ export async function exportSession(
     finalization,
     quickNotes,
     reviewer,
+    principleSummaries,
   );
   return assembleZip(artifacts);
 }

@@ -36,4 +36,19 @@ describe("getSuggestedQueries", () => {
     const queries = getSuggestedQueries("ai_assistant");
     expect(queries.length).toBe(4);
   });
+
+  it("returns queries for database (aliased to academic_search)", () => {
+    const queries = getSuggestedQueries("database");
+    expect(queries.length).toBe(6);
+  });
+
+  it("returns default queries for general_search", () => {
+    const queries = getSuggestedQueries("general_search");
+    expect(queries.length).toBe(4);
+  });
+
+  it("returns default queries for other", () => {
+    const queries = getSuggestedQueries("other");
+    expect(queries.length).toBe(4);
+  });
 });

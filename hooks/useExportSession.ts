@@ -19,6 +19,7 @@ export function useExportSession() {
         evaluations: e,
         finalization: f,
         quickNotes: qn,
+        principleSummaries: ps,
       } = useSessionStore.getState();
       if (!s) throw new Error("No active session");
 
@@ -26,7 +27,7 @@ export function useExportSession() {
       const reviewer: ReviewerInfo | undefined =
         reviewerName || reviewerEmail ? { name: reviewerName, email: reviewerEmail } : undefined;
 
-      const blob = await exportSession(s, c, e, rubric, f, qn, reviewer);
+      const blob = await exportSession(s, c, e, rubric, f, qn, reviewer, ps);
       if (blob.size === 0) throw new Error("Export produced an empty file. Please try again.");
       downloadBlob(blob, `TRUST_Review_${sanitizeFilename(s.toolName)}.zip`);
       // Save session to IDB after export (no close — user can continue working)

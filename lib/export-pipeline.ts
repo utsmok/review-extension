@@ -419,8 +419,13 @@ export async function assembleBatchZip(
 ): Promise<Blob> {
   const zip = new JSZip();
 
+  const usedFolders = new Map<string, number>();
   for (const { artifacts, toolName } of sessions) {
-    const folder = zip.folder(sanitizeFilename(toolName));
+    const base = sanitizeFilename(toolName);
+    const count = usedFolders.get(base) ?? 0;
+    usedFolders.set(base, count + 1);
+    const folderName = count > 0 ? `${base}_${count + 1}` : base;
+    const folder = zip.folder(folderName);
     if (!folder) continue;
 
     for (const [filename, base64] of artifacts.imageFiles) {
