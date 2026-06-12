@@ -18,6 +18,12 @@ import type {
   SessionMetadata,
 } from "./types";
 
+/** Reviewer identity passed from global settings into exports. */
+export interface ReviewerInfo {
+  name?: string;
+  email?: string;
+}
+
 // biome-ignore lint/complexity/useRegexLiterals: must use RegExp constructor to avoid noControlCharactersInRegex
 const INVALID_FILENAME_CHARS = new RegExp('[<>:"/\\\\|?*\u0000-\u001F]', "g");
 /**
@@ -75,6 +81,7 @@ export async function prepareExportArtifacts(
   rubric: RubricData,
   finalization: ReviewFinalization | null,
   quickNotes?: SessionData["quickNotes"],
+  reviewer?: ReviewerInfo,
 ): Promise<ExportArtifacts> {
   // Load screenshots from separate IDB store
   const screenshotMap = await loadAllScreenshots(captures.map((c) => c.id));
@@ -204,6 +211,8 @@ export async function prepareExportArtifacts(
         Favicon_URL: metadata.faviconUrl ?? "",
         Finalized_At: metadata.finalizedAt ?? "",
         Notes: metadata.notes ?? "",
+        Reviewer_Name: reviewer?.name ?? "",
+        Reviewer_Email: reviewer?.email ?? "",
       },
     ]);
 
@@ -313,6 +322,7 @@ export async function prepareExportArtifacts(
     evaluations,
     rubric,
     finalization,
+    reviewer,
   );
   const labelHtml = await buildNutritionLabel(reportMetadata, evaluations, rubric, finalization);
 

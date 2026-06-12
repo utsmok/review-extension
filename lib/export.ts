@@ -1,4 +1,5 @@
 import { assembleZip, prepareExportArtifacts, sanitizeFilename, shortId } from "./export-pipeline";
+import type { ReviewerInfo } from "./export-pipeline";
 import { saveScreenshot } from "./screenshot-store";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
@@ -25,6 +26,7 @@ export async function exportSession(
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
   quickNotes?: import("./types").SessionData["quickNotes"],
+  reviewer?: ReviewerInfo,
 ): Promise<Blob> {
   const artifacts = await prepareExportArtifacts(
     metadata,
@@ -33,6 +35,7 @@ export async function exportSession(
     rubric,
     finalization,
     quickNotes,
+    reviewer,
   );
   return assembleZip(artifacts);
 }

@@ -519,6 +519,7 @@ export async function buildHtmlReport(
   evaluations: Evaluation[],
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
+  reviewer?: { name?: string; email?: string },
 ): Promise<string> {
   // Compress all screenshots in parallel
   if (!_logos) _logos = await import("./logos");
@@ -603,6 +604,17 @@ ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, model.sco
     ${metadata.termsConditionsUrl ? `<dt class="report-meta-label">Terms</dt><dd class="report-meta-value report-meta-value--muted">${safeLink(metadata.termsConditionsUrl)}</dd>` : ""}
     <dt class="report-meta-label">AI-powered</dt><dd class="report-meta-value report-meta-value--muted">${(metadata.usesAi ?? true) ? "Yes" : "No"}</dd>
     ${metadata.notes ? `<dt class="report-meta-label">Notes</dt><dd class="report-meta-value report-meta-value--muted report-meta-value--italic">${esc(metadata.notes)}</dd>` : ""}
+    ${
+      reviewer?.name || reviewer?.email
+        ? `<dt class="report-meta-label">Reviewer</dt><dd class="report-meta-value report-meta-value--muted">${[
+            reviewer.name,
+            reviewer.email,
+          ]
+            .filter((s): s is string => Boolean(s))
+            .map(esc)
+            .join(" &middot; ")}</dd>`
+        : ""
+    }
   </dl>
 </div>
 

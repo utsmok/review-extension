@@ -259,6 +259,7 @@ export async function markDoneAndClose(id: string): Promise<void> {
 export async function exportSessionById(id: string): Promise<Blob> {
   const data = await getRepository().load(id);
   if (!data) throw new Error(`Session ${id} not found in storage`);
+  const { reviewerName, reviewerEmail } = useRegistryStore.getState().settings;
   const blob = await exportSession(
     data.metadata,
     data.captures,
@@ -266,6 +267,7 @@ export async function exportSessionById(id: string): Promise<Blob> {
     RUBRIC_DATA,
     data.finalization,
     data.quickNotes,
+    { name: reviewerName || undefined, email: reviewerEmail || undefined },
   );
   return blob;
 }

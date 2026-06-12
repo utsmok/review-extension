@@ -115,6 +115,7 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 1`] = 
     
     <dt class="report-meta-label">AI-powered</dt><dd class="report-meta-value report-meta-value--muted">Yes</dd>
     
+    
   </dl>
 </div>
 
@@ -871,6 +872,7 @@ exports[`HTML report snapshot > matches snapshot for partially-scored session 1`
     
     
     <dt class="report-meta-label">AI-powered</dt><dd class="report-meta-value report-meta-value--muted">No</dd>
+    
     
   </dl>
 </div>
