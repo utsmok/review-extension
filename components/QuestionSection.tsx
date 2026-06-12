@@ -10,13 +10,7 @@ import {
   getQGQuestionCode,
   getQuestionCode,
 } from "@/lib/rubric";
-import type {
-  Capture,
-  Evaluation,
-  PassFailQuestion,
-  RubricScore,
-  ScoringQuestion,
-} from "@/lib/types";
+import type { Capture, Evaluation, PassFailQuestion, ScoringQuestion } from "@/lib/types";
 import { toastError } from "@/stores/toast";
 import EvidenceThumbnails from "./EvidenceThumbnails";
 import { getProgressState, ProgressCircle } from "./ProgressCircle";
@@ -24,7 +18,6 @@ import { DoneToggle } from "./question-section/DoneToggle";
 import { QualityGateSection } from "./question-section/QualityGateSection";
 import { QuestionNotes } from "./question-section/QuestionNotes";
 import { ScoringScoreInputs } from "./question-section/ScoringScoreInputs";
-import { ScoreOption } from "./ScoreOption";
 
 const NO_CAPTURES: Capture[] = [];
 
