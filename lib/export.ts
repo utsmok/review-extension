@@ -1,7 +1,14 @@
 import { assembleZip, prepareExportArtifacts, sanitizeFilename, shortId } from "./export-pipeline";
 import type { ReviewerInfo } from "./export-pipeline";
 import { saveScreenshot } from "./screenshot-store";
-import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
+import type {
+  Capture,
+  Evaluation,
+  ReviewFinalization,
+  RubricData,
+  SessionData,
+  SessionMetadata,
+} from "./types";
 
 export { sanitizeFilename };
 
@@ -25,7 +32,7 @@ export async function exportSession(
   evaluations: Evaluation[],
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
-  quickNotes?: import("./types").SessionData["quickNotes"],
+  quickNotes?: SessionData["quickNotes"],
   reviewer?: ReviewerInfo,
 ): Promise<Blob> {
   const artifacts = await prepareExportArtifacts(
@@ -45,7 +52,7 @@ const MAX_INPUT_SIZE = 200 * 1024 * 1024; // 200 MB compressed
 const MAX_ZIP_ENTRIES = 500;
 const MAX_TOTAL_BYTES = 500 * 1024 * 1024; // 500 MB uncompressed
 /** Validate and cast raw parsed JSON into SessionData, throwing descriptive errors on failure. */
-function validateSessionData(data: unknown): import("./types").SessionData {
+function validateSessionData(data: unknown): SessionData {
   if (!data || typeof data !== "object") throw new Error("session.json is not a valid object");
   const d = data as Record<string, unknown>;
 
@@ -98,11 +105,11 @@ function validateSessionData(data: unknown): import("./types").SessionData {
   if (d.schemaVersion !== undefined && typeof d.schemaVersion !== "number")
     throw new Error("schemaVersion must be a number");
 
-  return data as import("./types").SessionData;
+  return data as SessionData;
 }
 
 /** Import a session from a TRUST Review ZIP archive, reassembling screenshots and HTML. */
-export async function importSessionFromZip(zipBlob: Blob): Promise<import("./types").SessionData> {
+export async function importSessionFromZip(zipBlob: Blob): Promise<SessionData> {
   if (zipBlob.size > MAX_INPUT_SIZE) {
     throw new Error(
       `ZIP file too large (${Math.round(zipBlob.size / 1024 / 1024)} MB). Maximum compressed size is 200 MB.`,
