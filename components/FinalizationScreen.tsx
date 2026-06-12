@@ -15,8 +15,9 @@ export default function FinalizationScreen() {
 
   const principleScores = useMemo(() => {
     if (!rubric) return [];
+    const evalMap = new Map(evaluations.map((e) => [e.rubricId, e]));
     return PRINCIPLES.map((p) => {
-      const avg = principleAverage(p.id, evaluations, rubric);
+      const avg = principleAverage(p.id, evaluations, rubric, evalMap);
       return { id: p.id, code: p.code, color: p.color, avg };
     });
   }, [evaluations, rubric]);
