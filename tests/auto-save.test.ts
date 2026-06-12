@@ -309,19 +309,22 @@ describe("auto-save", () => {
   });
 
   it("does not falsely skip save when notes contain delimiter characters", () => {
+    // Under a hypothetical old delimiter-based scheme like `${score}|${notes}|${ids.join('::')}`,
+    // both fixtures below would produce "1|has | pipe :: colons|" — a collision.
+    // JSON.stringify produces different arrays, so the new scheme distinguishes them.
     const noteWithPipe = {
       rubricId: "TR-1",
       score: 1,
       notes: "has | pipe :: colons",
-      explicitEvidenceIds: [],
+      explicitEvidenceIds: [] as string[],
       customScore: undefined,
       manualDone: undefined,
     };
-    const noteWithSamePrefix = {
+    const noteWithDelimiterCollision = {
       rubricId: "TR-1",
       score: 1,
       notes: "has ",
-      explicitEvidenceIds: [],
+      explicitEvidenceIds: ["| pipe :: colons"],
       customScore: undefined,
       manualDone: undefined,
     };
@@ -339,8 +342,8 @@ describe("auto-save", () => {
     advanceTimer(3000);
     mockSave.mockResolvedValue(true);
 
-    // Second save: DIFFERENT note content (truncated) — must save again
-    sessionGetState.mockReturnValue(defaultSessionState({ evaluations: [noteWithSamePrefix] }));
+    // Second save: would collide under old delimiter scheme but is distinct via JSON.stringify
+    sessionGetState.mockReturnValue(defaultSessionState({ evaluations: [noteWithDelimiterCollision] }));
     listener();
     advanceTimer(1000);
     expect(mockSave).toHaveBeenCalledTimes(2);

@@ -28,12 +28,55 @@ function computeSignature(state: SessionState): string {
       e.customScore?.reasoning ?? "",
       e.manualDone ?? "",
     ]);
+
+  // Capture content (exclude heavy screenshot fields)
+  const captureDigest = state.captures.map((c) => [
+    c.id,
+    c.notes,
+    c.metadataField ?? "",
+  ]);
+
+  // Session metadata (user-editable text fields)
+  const s = state.session;
+  const metadataDigest = s
+    ? JSON.stringify({
+        toolName: s.toolName,
+        toolUrl: s.toolUrl,
+        company: s.company ?? "",
+        pricing: s.pricing ?? "",
+        availability: s.availability ?? "",
+        authenticationMethod: s.authenticationMethod ?? "",
+        dataSources: s.dataSources ?? [],
+        searchMethods: s.searchMethods ?? [],
+        discipline: s.discipline ?? [],
+        notes: s.notes ?? "",
+        usesAi: s.usesAi ?? false,
+        termsConditionsUrl: s.termsConditionsUrl ?? "",
+        toolLogoUrl: s.toolLogoUrl ?? "",
+        description: s.description ?? "",
+        finalizedAt: s.finalizedAt ?? "",
+      })
+    : "";
+
+  // Full finalization (not just grade)
+  const fin = state.finalization;
+  const finalizationDigest = fin
+    ? JSON.stringify({
+        conclusion: fin.conclusion,
+        grade: fin.grade,
+        strengths: fin.strengths,
+        weaknesses: fin.weaknesses,
+        recommendations: fin.recommendations,
+        finalizedAt: fin.finalizedAt,
+      })
+    : "";
+
   return JSON.stringify([
     evalDigest,
-    state.captures.length,
-    state.session?.finalizedAt ?? "",
+    captureDigest,
+    metadataDigest,
     (state.quickNotes ?? []).map((n) => [n.id, n.text]),
-    state.finalization?.grade ?? "",
+    finalizationDigest,
   ]);
 }
 let lastSaveTime = 0;
