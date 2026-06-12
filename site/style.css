@@ -305,36 +305,6 @@ body {
   font-size: 0.85rem;
 }
 
-/* ===== Video ===== */
-.video-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-lg);
-  margin-top: var(--space-md);
-}
-.video-card {
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: #000;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-}
-.video-card video {
-  width: 100%;
-  display: block;
-}
-.video-caption {
-  text-align: center;
-  padding: var(--space-sm) var(--space-md);
-  font-size: 0.85rem;
-  color: var(--ut-muted);
-  margin: 0;
-  background: #fff;
-}
-@media (max-width: 640px) {
-  .video-grid {
-    grid-template-columns: 1fr;
-  }
-}
 
 /* ===== Comparison Table ===== */
 .comparison-table {
