@@ -29,11 +29,17 @@ import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
 import { AllProviders, seedActiveSession } from "@/tests/helpers/render-utils";
 
-// Mock auto-save to avoid side effects
-vi.mock("@/lib/auto-save", () => ({
+// Mock session-lifecycle to avoid IndexedDB access
+vi.mock("@/lib/session-lifecycle", () => ({
   initAutoSave: vi.fn(),
   teardownAutoSave: vi.fn(),
-}));
+  switchToSession: vi.fn(),
+  createSession: vi.fn(),
+  deleteSession: vi.fn(),
+  markDoneAndClose: vi.fn(),
+  saveCurrentSession: vi.fn(),
+  loadSessionById: vi.fn(),
+}))
 
 // Mock session-repository to avoid IndexedDB
 vi.mock("@/lib/session-repository", () => ({
@@ -78,10 +84,8 @@ describe("FinalizationScreen", () => {
 
     const passBtn = screen.getAllByRole("button").find((b) => b.textContent?.startsWith("Pass"));
     expect(passBtn).toBeDefined();
-    // biome-ignore lint/style/noNonNullAssertion: guaranteed by expect above
     fireEvent.click(passBtn!);
 
-    // biome-ignore lint/style/noNonNullAssertion: guaranteed by expect above
     expect(passBtn!.className).toContain("is-selected");
   });
 
@@ -102,7 +106,6 @@ describe("FinalizationScreen", () => {
 
     // Select a grade
     const passBtn = screen.getAllByRole("button").find((b) => b.textContent?.startsWith("Pass"));
-    // biome-ignore lint/style/noNonNullAssertion: find + expect pattern
     fireEvent.click(passBtn!);
 
     // Click Lock & Finalize
@@ -110,7 +113,6 @@ describe("FinalizationScreen", () => {
       .getAllByRole("button")
       .find((b) => b.textContent === "Lock & Finalize Review");
     expect(finalizeBtn).toBeDefined();
-    // biome-ignore lint/style/noNonNullAssertion: guaranteed by expect above
     fireEvent.click(finalizeBtn!);
 
     // Expect "Saved" indicator
@@ -127,13 +129,11 @@ describe("FinalizationScreen", () => {
 
     // Select grade and save
     const passBtn = screen.getAllByRole("button").find((b) => b.textContent?.startsWith("Pass"));
-    // biome-ignore lint/style/noNonNullAssertion: find + expect pattern
     fireEvent.click(passBtn!);
 
     const finalizeBtn = screen
       .getAllByRole("button")
       .find((b) => b.textContent === "Lock & Finalize Review");
-    // biome-ignore lint/style/noNonNullAssertion: find + expect pattern
     fireEvent.click(finalizeBtn!);
 
     // Now click "Clear Finalization"
@@ -141,14 +141,12 @@ describe("FinalizationScreen", () => {
       .getAllByRole("button")
       .find((b) => b.textContent === "Clear Finalization");
     expect(clearBtn).toBeDefined();
-    // biome-ignore lint/style/noNonNullAssertion: guaranteed by expect above
     fireEvent.click(clearBtn!);
 
     // Grade buttons should no longer have is-selected
     const passBtnAfter = screen
       .getAllByRole("button")
       .find((b) => b.textContent?.startsWith("Pass"));
-    // biome-ignore lint/style/noNonNullAssertion: guaranteed by expect above
     expect(passBtnAfter!.className).not.toContain("is-selected");
 
     // "Saved" indicator should be gone

@@ -18,10 +18,16 @@ vi.mock("@/lib/capture", () => ({
   captureActiveTab: vi.fn(),
 }));
 
-vi.mock("@/lib/auto-save", () => ({
+vi.mock("@/lib/session-lifecycle", () => ({
   initAutoSave: vi.fn(),
   teardownAutoSave: vi.fn(),
-}));
+  switchToSession: vi.fn(),
+  createSession: vi.fn(),
+  deleteSession: vi.fn(),
+  markDoneAndClose: vi.fn(),
+  saveCurrentSession: vi.fn(),
+  loadSessionById: vi.fn(),
+}))
 
 vi.mock("@/lib/session-repository", () => ({
   getRepository: () => ({
@@ -255,7 +261,6 @@ describe("QuestionSection", () => {
     const details = getQuestionDetailsByRubricId("accessibility.compliance");
     openDetails(details);
 
-    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const body = details.querySelector(".question-body")!;
 
     const textarea = within(body as HTMLElement).getByPlaceholderText(
@@ -324,7 +329,6 @@ describe("QuestionSection", () => {
     openDetails(details);
     renderCount = 0;
 
-    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const body = details.querySelector(".question-body")!;
 
     const textarea = within(body as HTMLElement).getByPlaceholderText(
@@ -470,7 +474,6 @@ describe("QuestionRow memo isolation", () => {
     openDetails(q2Details);
 
     // Type in q1's notes
-    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const q1Body = q1Details.querySelector(".question-body")!;
 
     const q1Textarea = within(q1Body as HTMLElement).getByPlaceholderText(
@@ -484,7 +487,6 @@ describe("QuestionRow memo isolation", () => {
     expect((q1Textarea as HTMLTextAreaElement).value).toBe("hello from q1");
 
     // Now type in q2's notes
-    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const q2Body = q2Details.querySelector(".question-body")!;
 
     const q2Textarea = within(q2Body as HTMLElement).getByPlaceholderText(
@@ -526,7 +528,6 @@ describe("QuestionRow memo isolation", () => {
     openDetails(q2Details);
 
     // Type notes in q1
-    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const q1Body = q1Details.querySelector(".question-body")!;
 
     const q1Textarea = within(q1Body as HTMLElement).getByPlaceholderText(
@@ -537,7 +538,6 @@ describe("QuestionRow memo isolation", () => {
     await flush();
 
     // Click score on q2 (different question)
-    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const q2Body = q2Details.querySelector(".question-body")!;
     const failLabel = q2Body.querySelector('label[data-judgment="fail"]');
     const failRadio = failLabel?.querySelector("input[type=radio]") as HTMLInputElement;

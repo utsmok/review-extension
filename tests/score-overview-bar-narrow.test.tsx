@@ -156,7 +156,6 @@ describe("ScoreOverviewBar at narrow widths", () => {
     const evaluations = makeAllEvaluations();
     const { container } = renderNarrow(evaluations, [], 360);
 
-    /* biome-ignore lint/style/noNonNullAssertion: DOM query in test */
     const inner = container.querySelector(".score-overview-bar__inner")!;
     const divider = inner.querySelector(".score-overview-bar__divider-line");
     expect(divider).not.toBeNull();

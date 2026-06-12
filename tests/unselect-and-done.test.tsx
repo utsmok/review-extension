@@ -17,10 +17,16 @@ vi.mock("@/lib/capture", () => ({
   captureActiveTab: vi.fn(),
 }));
 
-vi.mock("@/lib/auto-save", () => ({
+vi.mock("@/lib/session-lifecycle", () => ({
   initAutoSave: vi.fn(),
   teardownAutoSave: vi.fn(),
-}));
+  switchToSession: vi.fn(),
+  createSession: vi.fn(),
+  deleteSession: vi.fn(),
+  markDoneAndClose: vi.fn(),
+  saveCurrentSession: vi.fn(),
+  loadSessionById: vi.fn(),
+}))
 
 vi.mock("@/lib/session-repository", () => ({
   getRepository: () => ({
@@ -167,7 +173,6 @@ describe("unselect (deselect) score", () => {
     const details = getQuestionDetailsByRubricId("TR.data_source_clarity");
     openDetails(details);
 
-    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const body = details.querySelector(".question-body")!;
     const score2Label = body.querySelector('label[data-score="2"]') as HTMLLabelElement;
     expect(score2Label).toBeTruthy();
@@ -195,7 +200,6 @@ describe("unselect (deselect) score", () => {
     const details = getQuestionDetailsByRubricId("TR.data_source_clarity");
     openDetails(details);
 
-    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const body = details.querySelector(".question-body")!;
     const naLabel = body.querySelector('label[data-score="na"]') as HTMLLabelElement;
     expect(naLabel).toBeTruthy();
@@ -222,7 +226,6 @@ describe("unselect (deselect) score", () => {
     const details = getQuestionDetailsByRubricId("TR.data_source_clarity");
     openDetails(details);
 
-    // biome-ignore lint/style/noNonNullAssertion: querySelector after openDetails guarantees element exists
     const body = details.querySelector(".question-body")!;
     const unsureLabel = body.querySelector('label[data-score="unsure"]') as HTMLLabelElement;
     expect(unsureLabel).toBeTruthy();

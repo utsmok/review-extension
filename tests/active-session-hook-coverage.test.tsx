@@ -42,10 +42,14 @@ import { makeMetadata, RUBRIC } from "@/tests/fixtures";
 
 // --- Mocks ---
 
-vi.mock("@/lib/auto-save", () => ({
-  initAutoSave: vi.fn(),
-  teardownAutoSave: vi.fn(),
-}));
+vi.mock("@/lib/session-lifecycle", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/session-lifecycle")>();
+  return {
+    ...actual,
+    initAutoSave: vi.fn(),
+    teardownAutoSave: vi.fn(),
+  };
+});
 
 vi.mock("@/lib/export", () => ({
   exportSession: vi.fn().mockResolvedValue(new Blob(["test"])),
@@ -62,7 +66,7 @@ vi.mock("@/stores/toast", async (importOriginal) => {
 });
 
 // Re-import mocked modules for assertion access
-import { initAutoSave } from "@/lib/auto-save";
+import { initAutoSave } from "@/lib/session-lifecycle";
 import { downloadBlob, exportSession, sanitizeFilename } from "@/lib/export";
 import { toastError } from "@/stores/toast";
 
@@ -307,7 +311,6 @@ describe("useActiveSession", () => {
     it("exposes switchToSession, createSession, deleteSession, markDoneAndClose as functions", () => {
       hookResult = renderHook(() => useActiveSession());
       const { switchToSession, createSession, deleteSession, markDoneAndClose } =
-        // biome-ignore lint/style/noNonNullAssertion: renderHook always returns a result
         hookResult!.result.current;
 
       expect(typeof switchToSession).toBe("function");

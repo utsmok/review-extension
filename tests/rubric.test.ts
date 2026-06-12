@@ -445,7 +445,6 @@ describe("qualityGateResults", () => {
     const evals = allGateEvals("pass");
     const failEntry = evals.find((e) => e.rubricId === "accessibility.compliance");
     expect(failEntry).toBeDefined();
-    // biome-ignore lint/style/noNonNullAssertion: guarded by expect above
     failEntry!.score = "fail";
     const results = qualityGateResults(evals, RUBRIC);
     const failed = results.find((r) => r.id === "accessibility.compliance");
