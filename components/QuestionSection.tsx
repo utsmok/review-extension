@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useRubric } from "@/components/contexts";
 import { useActiveSession } from "@/hooks/useActiveSession";
+import { useLabs } from "@/hooks/useLabs";
 import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
 import { captureActiveTab } from "@/lib/capture";
 import {
@@ -15,6 +16,7 @@ import { toastError } from "@/stores/toast";
 import EvidenceThumbnails from "./EvidenceThumbnails";
 import { getProgressState, ProgressCircle } from "./ProgressCircle";
 import { DoneToggle } from "./question-section/DoneToggle";
+import { PrincipleSummaryEditor } from "./question-section/PrincipleSummaryEditor";
 import { QualityGateSection } from "./question-section/QualityGateSection";
 import { QuestionNotes } from "./question-section/QuestionNotes";
 import { ScoringScoreInputs } from "./question-section/ScoringScoreInputs";
@@ -336,9 +338,17 @@ export function QuestionSection({
   onViewEvidence,
 }: QuestionSectionProps) {
   const { rubric, usesAi } = useRubric();
+  const labs = useLabs();
   const [linkPopoverFor, setLinkPopoverFor] = useState<string | null>(null);
-  const { evaluations, captures, setEvaluation, addCapture, linkCaptureToRubric } =
-    useActiveSession();
+  const {
+    evaluations,
+    captures,
+    setEvaluation,
+    addCapture,
+    linkCaptureToRubric,
+    principleSummaries,
+    setPrincipleSummary,
+  } = useActiveSession();
 
   const evaluationMap = useMemo(
     () => new Map(evaluations.map((e) => [e.rubricId, e])),
@@ -451,6 +461,16 @@ export function QuestionSection({
               />
             );
           })}
+          {!isQG && labs.principleSummaries && (
+            <PrincipleSummaryEditor
+              categoryId={category}
+              evaluations={evaluations}
+              rubric={rubric}
+              usesAi={usesAi}
+              summary={principleSummaries.find((p) => p.categoryId === category)}
+              onUpdate={setPrincipleSummary}
+            />
+          )}
         </div>
       ))}
 

@@ -10,6 +10,7 @@ function makeArtifacts(overrides?: Partial<ExportArtifacts>): ExportArtifacts {
     scoresCsv: "rubricId,score\nTR-1,3",
     captureLogCsv: "captureId,url\nc1,https://example.com",
     conclusionsCsv: null,
+    principleSummariesCsv: null,
     sessionJson: JSON.stringify({ id: "test" }),
     htmlReport: "<html>report</html>",
     nutritionLabel: "<html>label</html>",

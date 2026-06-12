@@ -3,6 +3,7 @@ import { deleteScreenshot, saveAnnotatedScreenshot, saveScreenshot } from "@/lib
 import type {
   Capture,
   Evaluation,
+  PrincipleSummary,
   ReviewFinalization,
   SessionData,
   SessionMetadata,
@@ -29,6 +30,8 @@ export interface SessionState {
   evaluations: Evaluation[];
   finalization: ReviewFinalization | null;
   quickNotes: QuickNote[];
+  /** Per-principle summaries (Labs feature). */
+  principleSummaries: PrincipleSummary[];
   /** Captures pending permanent deletion (5-second undo window). */
   recentlyDeleted: Array<{
     capture: Capture;
@@ -70,6 +73,9 @@ export interface SessionState {
   addQuickNote: (note: QuickNote) => void;
   /** Remove a quick note by ID. */
   removeQuickNote: (id: string) => void;
+
+  /** Upsert a per-principle summary (Labs feature). */
+  setPrincipleSummary: (categoryId: string, patch: Partial<PrincipleSummary>) => void;
 }
 
 const emptyState = {
@@ -79,6 +85,7 @@ const emptyState = {
   evaluations: [] as Evaluation[],
   finalization: null as ReviewFinalization | null,
   quickNotes: [] as QuickNote[],
+  principleSummaries: [] as PrincipleSummary[],
   recentlyDeleted: [] as SessionState["recentlyDeleted"],
 };
 
@@ -98,6 +105,7 @@ export const useSessionStore = create<SessionState>()((set, get) => ({
       evaluations: data.evaluations,
       finalization: data.finalization ?? null,
       quickNotes: data.quickNotes ?? [],
+      principleSummaries: data.principleSummaries ?? [],
       recentlyDeleted: [],
     }),
 
@@ -327,4 +335,18 @@ export const useSessionStore = create<SessionState>()((set, get) => ({
   addQuickNote: (note) => set((s) => ({ quickNotes: [...s.quickNotes, note] })),
 
   removeQuickNote: (id) => set((s) => ({ quickNotes: s.quickNotes.filter((n) => n.id !== id) })),
+
+  // ── Principle Summaries (Labs) ──────────────────────────────────────────
+
+  setPrincipleSummary: (categoryId, patch) =>
+    set((s) => {
+      const existing = s.principleSummaries ?? [];
+      const idx = existing.findIndex((p) => p.categoryId === categoryId);
+      if (idx >= 0) {
+        const updated = [...existing];
+        updated[idx] = { ...updated[idx], ...patch };
+        return { principleSummaries: updated };
+      }
+      return { principleSummaries: [...existing, { categoryId, observations: "", ...patch }] };
+    }),
 }));

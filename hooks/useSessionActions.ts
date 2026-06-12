@@ -16,6 +16,7 @@ export function useSessionActions() {
   const setFinalization = useSessionStore((s) => s.setFinalization);
   const addQuickNote = useSessionStore((s) => s.addQuickNote);
   const removeQuickNote = useSessionStore((s) => s.removeQuickNote);
+  const setPrincipleSummary = useSessionStore((s) => s.setPrincipleSummary);
   return {
     loadSession,
     clear,
@@ -31,5 +32,6 @@ export function useSessionActions() {
     setFinalization,
     addQuickNote,
     removeQuickNote,
+    setPrincipleSummary,
   };
 }

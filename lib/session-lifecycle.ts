@@ -79,6 +79,7 @@ function computeSignature(state: SessionState): string {
     metadataDigest,
     (state.quickNotes ?? []).map((n) => [n.id, n.text]),
     finalizationDigest,
+    (state.principleSummaries ?? []).map((p) => [p.categoryId, p.observations, p.customObservations]),
   ]);
 }
 let lastSaveTime = 0;
@@ -101,7 +102,8 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
   }
   lastSaveTime = Date.now();
 
-  const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
+  const { session: s, captures: c, evaluations: e, finalization: f, principleSummaries: ps } =
+    useSessionStore.getState();
   const activeId = useRegistryStore.getState().activeSessionId;
   // Guard: skip if session switched between schedule and flush to prevent
   // a stale debounced save from overwriting the new session's data.
@@ -126,6 +128,7 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
       captures: strippedCaptures,
       evaluations: e,
       finalization: f,
+      ...(ps.length ? { principleSummaries: ps } : {}),
     });
     if (ok) {
       document.dispatchEvent(
@@ -211,7 +214,8 @@ async function saveCurrentScreenshots(): Promise<void> {
 
 /** Snapshot current session store state as SessionData, stripping heavy screenshot data. */
 function snapshot(): SessionData | null {
-  const { session, captures, evaluations, finalization, quickNotes } = useSessionStore.getState();
+  const { session, captures, evaluations, finalization, quickNotes, principleSummaries } =
+    useSessionStore.getState();
   if (!session) return null;
   // Strip heavy screenshot data from captures before saving to session IDB.
   // Screenshots live in the separate screenshot IDB store.
@@ -220,7 +224,14 @@ function snapshot(): SessionData | null {
     screenshotBase64: "",
     annotatedScreenshotBase64: undefined,
   }));
-  return { metadata: session, captures: strippedCaptures, evaluations, finalization, quickNotes };
+  return {
+    metadata: session,
+    captures: strippedCaptures,
+    evaluations,
+    finalization,
+    quickNotes,
+    ...(principleSummaries.length ? { principleSummaries } : {}),
+  };
 }
 
 /** Load a session from IDB into the session store. Returns true if data was found. */

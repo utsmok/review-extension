@@ -13,6 +13,7 @@ import type {
   Capture,
   Evaluation,
   EvaluationScore,
+  PrincipleSummary,
   ReviewFinalization,
   RubricData,
   SessionData,
@@ -52,6 +53,8 @@ export interface ExportArtifacts {
   scoresCsv: string;
   captureLogCsv: string;
   conclusionsCsv: string | null;
+  /** Principle summaries CSV (null when labs feature is disabled). */
+  principleSummariesCsv: string | null;
   sessionJson: string;
   htmlReport: string;
   nutritionLabel: string;
@@ -83,6 +86,7 @@ export async function prepareExportArtifacts(
   finalization: ReviewFinalization | null,
   quickNotes?: SessionData["quickNotes"],
   reviewer?: ReviewerInfo,
+  principleSummaries?: PrincipleSummary[],
 ): Promise<ExportArtifacts> {
   // Load screenshots from separate IDB store
   const screenshotMap = await loadAllScreenshots(captures.map((c) => c.id));
@@ -278,6 +282,17 @@ export async function prepareExportArtifacts(
       ])
     : null;
 
+  const principleSummariesCsv =
+    principleSummaries && principleSummaries.length > 0
+      ? BOM +
+        Papa.unparse(
+          principleSummaries.map((ps) => ({
+            Category: ps.categoryId,
+            Observations: ps.observations,
+            Custom_Observations: ps.customObservations ?? "",
+          })),
+        )
+      : null;
   // ── session.json ──────────────────────────────────────────────────────
   const lightweightCaptures = capturesWithScreenshots.map((c): LightweightCapture => {
     const entry: LightweightCapture = {
@@ -298,6 +313,7 @@ export async function prepareExportArtifacts(
     evaluations,
     finalization,
     ...(quickNotes?.length ? { quickNotes } : {}),
+    ...(principleSummaries?.length ? { principleSummaries } : {}),
   };
 
   // ── Logo files (extracted as JPEG) ────────────────────────────────────
@@ -334,6 +350,7 @@ export async function prepareExportArtifacts(
     scoresCsv,
     captureLogCsv,
     conclusionsCsv,
+    principleSummariesCsv,
     sessionJson: JSON.stringify(sessionData),
     htmlReport: minifyHtml(htmlReport),
     nutritionLabel: minifyHtml(labelHtml),
@@ -368,6 +385,9 @@ export async function assembleZip(artifacts: ExportArtifacts): Promise<Blob> {
   zip.file("capture_log.csv", artifacts.captureLogCsv);
   if (artifacts.conclusionsCsv) {
     zip.file("review_conclusions.csv", artifacts.conclusionsCsv);
+  }
+  if (artifacts.principleSummariesCsv) {
+    zip.file("principle_summaries.csv", artifacts.principleSummariesCsv);
   }
 
   // Add session data
@@ -407,6 +427,9 @@ export async function assembleBatchZip(
     folder.file("capture_log.csv", artifacts.captureLogCsv);
     if (artifacts.conclusionsCsv) {
       folder.file("review_conclusions.csv", artifacts.conclusionsCsv);
+    }
+    if (artifacts.principleSummariesCsv) {
+      folder.file("principle_summaries.csv", artifacts.principleSummariesCsv);
     }
     folder.file("session.json", artifacts.sessionJson);
     folder.file(artifacts.reportFilename, artifacts.htmlReport);
