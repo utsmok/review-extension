@@ -307,4 +307,42 @@ describe("auto-save", () => {
 
     expect(mockSave).toHaveBeenCalledTimes(2);
   });
+
+  it("does not falsely skip save when notes contain delimiter characters", () => {
+    const noteWithPipe = {
+      rubricId: "TR-1",
+      score: 1,
+      notes: "has | pipe :: colons",
+      explicitEvidenceIds: [],
+      customScore: undefined,
+      manualDone: undefined,
+    };
+    const noteWithSamePrefix = {
+      rubricId: "TR-1",
+      score: 1,
+      notes: "has ",
+      explicitEvidenceIds: [],
+      customScore: undefined,
+      manualDone: undefined,
+    };
+
+    // First save
+    sessionGetState.mockReturnValue(defaultSessionState({ evaluations: [noteWithPipe] }));
+    registryGetState.mockReturnValue({ activeSessionId: "sess-1" });
+    mockSave.mockResolvedValue(true);
+    initAutoSave();
+    listener();
+    advanceTimer(1000);
+    expect(mockSave).toHaveBeenCalledTimes(1);
+
+    // Advance past rate-limit
+    advanceTimer(3000);
+    mockSave.mockResolvedValue(true);
+
+    // Second save: DIFFERENT note content (truncated) — must save again
+    sessionGetState.mockReturnValue(defaultSessionState({ evaluations: [noteWithSamePrefix] }));
+    listener();
+    advanceTimer(1000);
+    expect(mockSave).toHaveBeenCalledTimes(2);
+  });
 });

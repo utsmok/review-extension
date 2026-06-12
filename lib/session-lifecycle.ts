@@ -19,18 +19,22 @@ function computeSignature(state: SessionState): string {
   const evalDigest = state.evaluations
     .slice()
     .sort((a, b) => a.rubricId.localeCompare(b.rubricId))
-    .map(
-      (e) =>
-        `${e.rubricId}:${e.score}:${e.notes}:${(e.explicitEvidenceIds ?? []).sort().join(",")}:${e.customScore?.score ?? ""}:${e.customScore?.reasoning ?? ""}:${e.manualDone ?? ""}`,
-    )
-    .join("|");
-  return [
+    .map((e) => [
+      e.rubricId,
+      e.score,
+      e.notes,
+      (e.explicitEvidenceIds ?? []).sort(),
+      e.customScore?.score ?? "",
+      e.customScore?.reasoning ?? "",
+      e.manualDone ?? "",
+    ]);
+  return JSON.stringify([
     evalDigest,
     state.captures.length,
     state.session?.finalizedAt ?? "",
-    (state.quickNotes ?? []).map((n) => `${n.id}:${n.text}`).join("|"),
+    (state.quickNotes ?? []).map((n) => [n.id, n.text]),
     state.finalization?.grade ?? "",
-  ].join("::");
+  ]);
 }
 let lastSaveTime = 0;
 let rateLimitTimer: ReturnType<typeof setTimeout> | undefined;
