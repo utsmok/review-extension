@@ -94,7 +94,16 @@ export interface Evaluation {
 }
 
 /** Final verdict grade assigned during review finalization. */
-export type FinalizationGrade = "pass" | "conditional" | "fail";
+export type FinalizationGrade =
+  | "pass"
+  | "conditional"
+  | "fail"
+  | "recommended"
+  | "recommended_with_caveats"
+  | "needs_review"
+  | "pilot_only"
+  | "not_recommended"
+  | "out_of_scope";
 
 export interface ReviewFinalization {
   conclusion: string;

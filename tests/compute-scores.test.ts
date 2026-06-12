@@ -510,4 +510,29 @@ describe("computeReportScores", () => {
     expect(r.verdict).toBe("CUSTOM");
     expect(r.verdictColor).toBe("#4f5e73");
   });
+
+  // ── Enhanced grades ──────────────────────────────────────────────────
+
+  describe("enhanced finalization grades", () => {
+    const enhancedCases: Array<{ grade: string; label: string; color: string }> = [
+      { grade: "recommended", label: "RECOMMENDED", color: "#3d7249" },
+      { grade: "recommended_with_caveats", label: "RECOMMENDED WITH CAVEATS", color: "#0e7490" },
+      { grade: "needs_review", label: "NEEDS REVIEW", color: "#c2410c" },
+      { grade: "pilot_only", label: "PILOT ONLY", color: "#b45309" },
+      { grade: "not_recommended", label: "NOT RECOMMENDED", color: "#c60c30" },
+      { grade: "out_of_scope", label: "OUT OF SCOPE", color: "#6b7f94" },
+    ];
+
+    for (const { grade, label, color } of enhancedCases) {
+      it(`grade '${grade}' → verdict '${label}'`, () => {
+        const r = computeReportScores(
+          allPassEvals(),
+          RUBRIC,
+          makeFinalization({ grade: grade as never }),
+        );
+        expect(r.verdict).toBe(label);
+        expect(r.verdictColor).toBe(color);
+      });
+    }
+  });
 });

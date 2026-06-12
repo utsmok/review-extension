@@ -11,11 +11,23 @@ const GRADE_COLORS: Record<string, string> = {
   pass: REPORT_SCORE_COLORS[3],
   conditional: REPORT_SCORE_COLORS[1],
   fail: REPORT_SCORE_COLORS[0],
+  recommended: REPORT_SCORE_COLORS[3],
+  recommended_with_caveats: REPORT_SCORE_COLORS[2],
+  needs_review: REPORT_SCORE_COLORS[1],
+  pilot_only: "#b45309",
+  not_recommended: REPORT_SCORE_COLORS[0],
+  out_of_scope: "#6b7f94",
 };
 const GRADE_LABELS: Record<string, string> = {
   pass: "RECOMMENDED",
   conditional: "CAUTION",
   fail: "NOT RECOMMENDED",
+  recommended: "RECOMMENDED",
+  recommended_with_caveats: "RECOMMENDED WITH CAVEATS",
+  needs_review: "NEEDS REVIEW",
+  pilot_only: "PILOT ONLY",
+  not_recommended: "NOT RECOMMENDED",
+  out_of_scope: "OUT OF SCOPE",
 };
 const MUTED_COLOR = "#6b7f94";
 

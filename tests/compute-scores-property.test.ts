@@ -115,7 +115,11 @@ describe("computeReportScores — property invariants", () => {
 
   it("maintains invariants with random finalization overrides", () => {
     const rng = mulberry32(SEED + 1);
-    const grades: ReviewFinalization["grade"][] = ["pass", "conditional", "fail"];
+    const grades: ReviewFinalization["grade"][] = [
+      "pass", "conditional", "fail",
+      "recommended", "recommended_with_caveats", "needs_review",
+      "pilot_only", "not_recommended", "out_of_scope",
+    ];
 
     for (let i = 0; i < 200; i++) {
       const evals = generateRandomEvals(rng);
@@ -144,6 +148,12 @@ describe("computeReportScores — property invariants", () => {
         pass: "RECOMMENDED",
         conditional: "CAUTION",
         fail: "NOT RECOMMENDED",
+        recommended: "RECOMMENDED",
+        recommended_with_caveats: "RECOMMENDED WITH CAVEATS",
+        needs_review: "NEEDS REVIEW",
+        pilot_only: "PILOT ONLY",
+        not_recommended: "NOT RECOMMENDED",
+        out_of_scope: "OUT OF SCOPE",
       };
       expect(scores.verdict, `iter=${i}`).toBe(expectedLabels[finalization.grade]);
     }
