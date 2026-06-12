@@ -12,9 +12,9 @@ export const scripting = {
 
 export const tabs = {
   query: async () => [{ id: 1, url: "about:blank", title: "Web Trial" }],
-  captureVisibleTab: async () => {
-    throw new Error("Screenshot capture is available in the browser extension.");
-  },
+  // Not used directly — captureActiveTab in web-capture.ts generates mock data.
+  // Keep as no-op so any stray callers don't crash.
+  captureVisibleTab: async () => "",
 };
 
 export const sidePanel = {
