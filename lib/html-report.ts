@@ -3,7 +3,7 @@ import type { ReportScores } from "./report/compute-scores";
 import type { CaptureInfo, PrincipleScoreRow, QualityGateRow } from "./report-model";
 import { buildReportModel } from "./report-model";
 import { principleAverage, qualityGateResults } from "./rubric";
-import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
+import type { Capture, Evaluation, PrincipleSummary, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 // Cached dynamic import for logos (used by buildHtmlReport and buildNutritionLabel)
 let _logos: typeof import("./logos") | null = null;
@@ -80,9 +80,12 @@ function scoreCircles(avg: number | null): string {
 
 // ── Section builders (render from ReportModel slices) ──────────────────
 
-function renderCategorySections(principles: PrincipleScoreRow[], captures: CaptureInfo[]): string {
+function renderCategorySections(principles: PrincipleScoreRow[], captures: CaptureInfo[], principleSummaries?: PrincipleSummary[]): string {
   // Pre-compute capture ID → capture map for O(1) lookups
   const captureMap = new Map(captures.map((c) => [c.id, c]));
+  const summaryMap = new Map(
+    (principleSummaries ?? []).map((s) => [s.categoryId, s.customObservations ?? s.observations]),
+  );
 
   return principles
     .map((p, sectionIdx) => {
@@ -148,6 +151,11 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
         })
         .join("");
 
+      const summaryText = summaryMap.get(p.id);
+      const summaryHtml = summaryText
+        ? `\n      <div class="principle-summary">${esc(summaryText)}</div>`
+        : "";
+
       return `
     <section id="category-${p.id}" class="category-section${sectionIdx % 2 === 1 ? " category-alt" : ""}" style="--accent:${p.reportColor}" aria-labelledby="heading-${p.id}">
       <div class="category-header">
@@ -174,6 +182,7 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
           <tbody>${rows}</tbody>
         </table>
       </div>
+      ${summaryHtml}
     </section>
   `;
     })
@@ -512,6 +521,119 @@ ${labelHtml}
 </html>`;
 }
 
+// ── Business Card Label ────────────────────────────────────────────────
+
+function buildBusinessCardLabelHtml(
+  metadata: SessionMetadata,
+  evaluations: Evaluation[],
+  rubric: RubricData,
+  _finalization: ReviewFinalization | null,
+  scores: ReportScores,
+  TRUST_LOGO: string,
+  evalMap: Map<string, Evaluation>,
+): string {
+  const date = metadata.startTime.slice(0, 10);
+  const toolUrl = esc(metadata.toolUrl);
+  const toolName = esc(metadata.toolName);
+  const toolLink = `<a href="${toolUrl}" target="_blank" rel="noopener noreferrer">`;
+  const toolLinkClose = "</a>";
+
+  // Quality gate failures only
+  const gateFailures = qualityGateResults(evaluations, rubric, evalMap)
+    .filter((g) => g.result === "fail" || g.result === "unsure");
+
+  const gateHtml = gateFailures.length
+    ? gateFailures
+        .map(
+          (g) =>
+            `<div class="bc-gate-fail">${esc(g.label)}: <span class="bc-gate-${g.result}">${g.result === "fail" ? "FAIL" : "UNSURE"}</span></div>`,
+        )
+        .join("")
+    : "";
+
+  // Principle indicators — just code + filled/empty circle
+  const principleHtml = PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
+    .map((p) => {
+      const avg = principleAverage(p.id, evaluations, rubric, evalMap);
+      const passed = avg !== null && avg >= 1.5;
+      const color = REPORT_COLORS[p.id] ?? p.color;
+      return `<span class="bc-principle" style="--bc-pcolor:${color}">
+        <span class="bc-pcode">${p.code}</span>
+        <span class="bc-pindicator${passed ? " bc-pass" : ""}">${passed ? "●" : "○"}</span>
+      </span>`;
+    })
+    .join("");
+
+  const scoreText = !scores.noEvaluation ? `${scores.totalActual}/${scores.totalMax}` : "—";
+
+  return `
+<div class="bc-card">
+  <div class="bc-header">
+    <img class="bc-logo" src="${TRUST_LOGO}" alt="TRUST" />
+    <span class="bc-tagline">Information Tool Reviews</span>
+  </div>
+
+  <div class="bc-tool-row">
+    ${toolLink}<span class="bc-tool-name">${toolName}</span>${toolLinkClose}
+    <span class="bc-tool-url">${toolUrl}</span>
+  </div>
+
+  <div class="bc-divider"></div>
+
+  <div class="bc-verdict-row">
+    <span class="bc-verdict-stamp" style="color:${scores.verdictColor};border-color:${scores.verdictColor}">${esc(scores.verdict)}</span>
+    <span class="bc-score">${scoreText}</span>
+  </div>
+
+  ${gateHtml ? `<div class="bc-gates">${gateHtml}</div>` : ""}
+
+  <div class="bc-divider"></div>
+
+  <div class="bc-principles">${principleHtml}</div>
+
+  <div class="bc-footer">
+    <span>${date}</span>
+    <span>TRUST Framework v1.1</span>
+  </div>
+</div>`;
+}
+
+/** Build a compact business-card-sized TRUST label HTML (credit-card aspect ratio). */
+export async function buildBusinessCardLabel(
+  metadata: SessionMetadata,
+  evaluations: Evaluation[],
+  rubric: RubricData,
+  finalization: ReviewFinalization | null = null,
+): Promise<string> {
+  if (!_logos) _logos = await import("./logos");
+  const { TRUST_LOGO } = _logos;
+  const model = buildReportModel(metadata, [], evaluations, rubric, finalization, new Map());
+  const cardHtml = buildBusinessCardLabelHtml(
+    metadata,
+    evaluations,
+    rubric,
+    finalization,
+    model.scores,
+    TRUST_LOGO,
+    model.evalMap,
+  );
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:;">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TRUST Card: ${esc(metadata.toolName)}</title>
+<style>${REPORT_CSS}</style>
+</head>
+<body>
+<main id="report-content">
+${cardHtml}
+</main>
+</body>
+</html>`;
+}
+
 /** Build the full standalone HTML evaluation report with all sections, scores, and embedded screenshots. */
 export async function buildHtmlReport(
   metadata: SessionMetadata,
@@ -520,6 +642,7 @@ export async function buildHtmlReport(
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
   reviewer?: { name?: string; email?: string },
+  principleSummaries?: PrincipleSummary[],
 ): Promise<string> {
   // Compress all screenshots in parallel
   if (!_logos) _logos = await import("./logos");
@@ -541,7 +664,7 @@ export async function buildHtmlReport(
   );
 
   const gateRows = renderGateRows(model.qualityGateRows);
-  const categorySections = renderCategorySections(model.principleScores, model.captures);
+  const categorySections = renderCategorySections(model.principleScores, model.captures, principleSummaries);
   const finalizationSection = buildFinalizationSection(
     finalization,
     model.verdict.label,

@@ -5,6 +5,12 @@ import { describe, expect, it, vi } from "vitest";
 import { prepareExportArtifacts, sanitizeFilename, shortId } from "@/lib/export-pipeline";
 import { makeCapture, makeFinalization, makeMetadata, RUBRIC } from "./fixtures";
 
+vi.mock("@/lib/html-report", () => ({
+  buildHtmlReport: vi.fn().mockResolvedValue("<html>report</html>"),
+  buildNutritionLabel: vi.fn().mockResolvedValue("<html>label</html>"),
+  buildBusinessCardLabel: vi.fn().mockResolvedValue("<html>card</html>"),
+}));
+
 vi.mock("@/lib/screenshot-store", () => ({
   loadAllScreenshots: vi.fn().mockResolvedValue(new Map()),
 }));
@@ -21,11 +27,6 @@ vi.mock("@/lib/logos", () => ({
 
 vi.mock("@/lib/minify", () => ({
   minifyHtml: vi.fn((h: string) => h),
-}));
-
-vi.mock("@/lib/html-report", () => ({
-  buildHtmlReport: vi.fn().mockResolvedValue("<html>report</html>"),
-  buildNutritionLabel: vi.fn().mockResolvedValue("<html>label</html>"),
 }));
 
 type CsvRow = Record<string, string>;

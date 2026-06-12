@@ -1,4 +1,4 @@
-import { buildHtmlReport, buildNutritionLabel } from "./html-report";
+import { buildBusinessCardLabel, buildHtmlReport, buildNutritionLabel } from "./html-report";
 import JSZip from "jszip";
 import { ensureArray } from "./metadata-utils";
 import { minifyHtml } from "./minify";
@@ -58,6 +58,7 @@ export interface ExportArtifacts {
   sessionJson: string;
   htmlReport: string;
   nutritionLabel: string;
+  businessCardLabel: string;
   /** filename → base64-encoded content (images, logos). */
   imageFiles: Map<string, string>;
   /** filename → plain-text content (capture HTML files). */
@@ -65,6 +66,7 @@ export interface ExportArtifacts {
   /** Sanitized tool name — used for ZIP entry filenames. */
   reportFilename: string;
   labelFilename: string;
+  cardFilename: string;
 }
 
 // Cached dynamic imports
@@ -340,8 +342,10 @@ export async function prepareExportArtifacts(
     rubric,
     finalization,
     reviewer,
+    principleSummaries,
   );
   const labelHtml = await buildNutritionLabel(reportMetadata, evaluations, rubric, finalization);
+  const cardHtml = await buildBusinessCardLabel(reportMetadata, evaluations, rubric, finalization);
 
   const safeName = sanitizeFilename(metadata.toolName);
 
@@ -354,10 +358,12 @@ export async function prepareExportArtifacts(
     sessionJson: JSON.stringify(sessionData),
     htmlReport: minifyHtml(htmlReport),
     nutritionLabel: minifyHtml(labelHtml),
+    businessCardLabel: minifyHtml(cardHtml),
     imageFiles,
     captureHtmlFiles,
     reportFilename: `Evaluation_Report_${safeName}.html`,
     labelFilename: `TRUST_Label_${safeName}.html`,
+    cardFilename: `${safeName}-card.html`,
   };
 }
 
@@ -396,6 +402,7 @@ export async function assembleZip(artifacts: ExportArtifacts): Promise<Blob> {
   // Add HTML reports
   zip.file(artifacts.reportFilename, artifacts.htmlReport);
   zip.file(artifacts.labelFilename, artifacts.nutritionLabel);
+  zip.file(artifacts.cardFilename, artifacts.businessCardLabel);
 
   return zip.generateAsync({
     type: "blob",
@@ -434,6 +441,7 @@ export async function assembleBatchZip(
     folder.file("session.json", artifacts.sessionJson);
     folder.file(artifacts.reportFilename, artifacts.htmlReport);
     folder.file(artifacts.labelFilename, artifacts.nutritionLabel);
+    folder.file(artifacts.cardFilename, artifacts.businessCardLabel);
   }
 
   // Root manifest

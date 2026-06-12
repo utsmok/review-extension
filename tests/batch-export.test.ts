@@ -14,10 +14,12 @@ function makeArtifacts(overrides?: Partial<ExportArtifacts>): ExportArtifacts {
     sessionJson: JSON.stringify({ id: "test" }),
     htmlReport: "<html>report</html>",
     nutritionLabel: "<html>label</html>",
+    businessCardLabel: "<html>card</html>",
     imageFiles: new Map(),
     captureHtmlFiles: new Map(),
     reportFilename: "Evaluation_Report_Test.html",
     labelFilename: "TRUST_Label_Test.html",
+    cardFilename: "Test-card.html",
     ...overrides,
   };
 }
