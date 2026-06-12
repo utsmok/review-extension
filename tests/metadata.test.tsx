@@ -125,7 +125,7 @@ describe("Metadata", () => {
     useRegistryStore.setState({
       activeSessionId: null,
       sessionIndex: {},
-      settings: { reviewerName: "", reviewerEmail: "", preferredRubric: "trust-full" },
+      settings: { reviewerName: "", reviewerEmail: "", preferredRubric: "trust-full", labs: {} },
     });
   });
 

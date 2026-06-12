@@ -54,6 +54,7 @@ beforeEach(() => {
       reviewerName: "",
       reviewerEmail: "",
       preferredRubric: "trust-full",
+      labs: {},
     },
   });
 });

@@ -18,7 +18,7 @@ describe("registry store", () => {
     useRegistryStore.setState({
       sessionIndex: {},
       activeSessionId: null,
-      settings: { reviewerName: "", reviewerEmail: "", preferredRubric: "trust-full" },
+      settings: { reviewerName: "", reviewerEmail: "", preferredRubric: "trust-full", labs: {} },
     });
   });
 

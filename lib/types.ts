@@ -8,6 +8,15 @@ export interface Settings {
   reviewerEmail: string;
   preferredRubric: string;
   setupBannerDismissed?: boolean;
+  labs: LabsSettings;
+}
+
+/** Experimental features that users opt into via the Labs settings section. */
+export interface LabsSettings {
+  /** Enable 6-level recommendation grades instead of 3-level. */
+  enhancedRecommendation?: boolean;
+  /** Enable per-principle summary fields with auto-fill. */
+  principleSummaries?: boolean;
 }
 
 export interface SessionMetadata {

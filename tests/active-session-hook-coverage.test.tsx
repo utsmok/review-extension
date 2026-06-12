@@ -107,7 +107,7 @@ beforeEach(() => {
   useRegistryStore.setState({
     sessionIndex: {},
     activeSessionId: null,
-    settings: { reviewerName: "", reviewerEmail: "", preferredRubric: "trust-full" },
+    settings: { reviewerName: "", reviewerEmail: "", preferredRubric: "trust-full", labs: {} },
   });
   useSessionStore.setState({
     status: "empty",

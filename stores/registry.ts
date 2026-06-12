@@ -38,6 +38,7 @@ export const useRegistryStore = create<RegistryState>()(
         reviewerName: "",
         reviewerEmail: "",
         preferredRubric: "trust-full",
+        labs: {},
       },
 
       /** Set or clear the currently active session by ID. */
@@ -79,6 +80,20 @@ export const useRegistryStore = create<RegistryState>()(
             : s.sessionIndex,
         })),
     }),
-    { name: "trust-review-registry" },
+    {
+      name: "trust-review-registry",
+      merge: (persisted, current) => ({
+        ...current,
+        ...(persisted as Partial<RegistryState>),
+        settings: {
+          ...current.settings,
+          ...((persisted as RegistryState)?.settings ?? {}),
+          labs: {
+            ...current.settings.labs,
+            ...((persisted as RegistryState)?.settings?.labs ?? {}),
+          },
+        },
+      }),
+    },
   ),
 );
