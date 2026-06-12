@@ -50,6 +50,8 @@ vi.mock("@/lib/session-lifecycle", () => ({
   switchToSession: vi.fn(),
   createSession: vi.fn(),
   deleteSession: vi.fn(),
+  initAutoSave: vi.fn(),
+  teardownAutoSave: vi.fn(),
 }));
 
 vi.mock("@/lib/session-repository", () => ({
