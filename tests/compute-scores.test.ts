@@ -102,7 +102,7 @@ describe("computeReportScores", () => {
 
   it("returns INCOMPLETE when some but not all evaluations answered", () => {
     const r = computeReportScores(partialEvals(), RUBRIC, null);
-    expect(r.verdict).toBe("INCOMPLETE");
+    expect(r.verdict).toBe("IN PROGRESS");
     expect(r.verdictColor).toBe("#6b7f94");
     expect(r.isComplete).toBe(false);
     expect(r.noEvaluation).toBe(false);
@@ -450,7 +450,7 @@ describe("computeReportScores", () => {
     expect(r.answeredQGQuestions).toBe(4);
     // Not complete (no scoring answered)
     expect(r.isComplete).toBe(false);
-    expect(r.verdict).toBe("INCOMPLETE");
+    expect(r.verdict).toBe("IN PROGRESS");
   });
 
   it("noEvaluation is false when only scoring questions are answered", () => {
@@ -460,7 +460,7 @@ describe("computeReportScores", () => {
     expect(r.answeredScoringQuestions).toBe(10);
     expect(r.answeredQGQuestions).toBe(0);
     expect(r.isComplete).toBe(false);
-    expect(r.verdict).toBe("INCOMPLETE");
+    expect(r.verdict).toBe("IN PROGRESS");
   });
 
   it("computes correct totals for mixed evals", () => {

@@ -224,7 +224,7 @@ describe("buildReportModel", () => {
     const qg1 = model.qualityGateRows.find((r) => r.rubricId === "TR.qg1")!;
     expect(qg1.result).toBeNull();
     expect(qg1.label).toBe("—");
-    expect(qg1.color).toBe("#6b7f94");
+    expect(qg1.color).toBe("#52677c");
   });
 
   it("builds capture info with correct fields", () => {

@@ -81,7 +81,7 @@ describe("buildNutritionLabel", () => {
       makeEvaluation({ rubricId: "privacy_and_security.training_policy", score: "pass" }),
     ];
     const html = await buildNutritionLabel(makeMetadata(), partialEvals, RUBRIC);
-    expect(html).toContain("INCOMPLETE");
+    expect(html).toContain("IN PROGRESS");
   });
 
   it("with all-pass QG and high scoring, no finalization → verdict is RECOMMENDED", async () => {

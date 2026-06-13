@@ -182,7 +182,7 @@ describe("review lifecycle", () => {
     const scores = computeReportScores(partial, RUBRIC, null, undefined, true);
 
     expect(scores.isComplete).toBe(false);
-    expect(scores.verdict).toBe("INCOMPLETE");
+    expect(scores.verdict).toBe("IN PROGRESS");
     expect(scores.noEvaluation).toBe(false);
   });
 

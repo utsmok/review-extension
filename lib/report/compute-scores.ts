@@ -128,7 +128,7 @@ export function computeReportScores(
     verdict = "NOT EVALUATED";
     verdictColor = MUTED_COLOR;
   } else if (!isComplete) {
-    verdict = "INCOMPLETE";
+    verdict = "IN PROGRESS";
     verdictColor = MUTED_COLOR;
   } else if (totalMax === 0) {
     // Complete but every scoring answer is N/A — nothing numeric to judge.

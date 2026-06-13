@@ -2,7 +2,7 @@ import { PRINCIPLES } from "./principles";
 import type { ReportScores } from "./report/compute-scores";
 import type { CaptureInfo, PrincipleScoreRow, QualityGateRow } from "./report-model";
 import { buildReportModel } from "./report-model";
-import { principleAverage, qualityGateResults } from "./rubric";
+import { principleAverage, qualityGateResults, reportScoreColor } from "./rubric";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 // Cached dynamic import for logos (used by buildHtmlReport and buildNutritionLabel)
@@ -21,7 +21,11 @@ const PRINCIPLE_NAMES: Record<string, string> = Object.fromEntries(
 
 /** All CSS for the standalone HTML evaluation report. */
 import reportCss from "./report.css?raw";
+import { REPORT_HEADING_FONT_FACE } from "./report-heading-font";
+
 export const REPORT_CSS = reportCss;
+/** Standalone-report stylesheet: REPORT_CSS with the embedded condensed-heading @font-face prepended (keeps the heading identity without Arial Narrow installed). */
+const REPORT_STYLE = REPORT_HEADING_FONT_FACE + reportCss;
 
 import { ensureArray } from "./metadata-utils";
 
@@ -138,7 +142,7 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
     <tr class="score-row">
       <td class="code" style="color:${p.reportColor}">${q.code}</td>
       <td class="score-cell">
-        <span class="score-badge" style="background:${q.badgeColor}20;color:${q.badgeColor}">
+        <span class="score-badge" style="background:color-mix(in srgb, ${q.badgeColor} 12%, #fff);color:${q.badgeColor}">
           ${q.isNa ? "N/A" : q.isUnsure ? "?" : q.score >= 0 ? q.score : "—"}${q.customReasoning ? "*" : ""}
         </span>
       </td>
@@ -160,25 +164,28 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
         </div>
         <div class="category-info">
           <h2 id="heading-${p.id}">${esc(p.fullName)}</h2>
-          <div class="category-meta">
-            <span class="cat-score">${p.total} / ${p.max}</span>
-            <span class="cat-avg">avg ${p.avg}</span>
-            <span class="cat-evidence">${p.evidenceCount} evidence</span>
-          </div>
-          <div class="principle-chips">
+          <div class="principle-chips" role="list" aria-label="Question status overview">
             ${p.questions
               .map((q) => {
-                const display = q.isNa
-                  ? "N/A"
+                const ev = q.evidenceIds.length;
+                const answered = q.score >= 0 || q.isNa || q.isUnsure;
+                const state = answered ? (ev > 0 ? "complete" : "partial") : "empty";
+                const indicator =
+                  state === "complete" ? "\u2713" : state === "partial" ? "\u25cf" : "\u25cb";
+                const scoreVal = q.isNa
+                  ? "na"
                   : q.isUnsure
-                    ? "?"
+                    ? "unsure"
                     : q.score >= 0
                       ? String(q.score)
-                      : "·";
-                const ev = q.evidenceIds.length;
-                const state =
-                  q.score >= 0 ? "scored" : q.isNa ? "na" : q.isUnsure ? "unsure" : "blank";
-                return `<span class="pchip" data-state="${state}" style="--pc:${q.badgeColor}"><span class="pchip-code">${q.code}</span><span class="pchip-score">${display}</span>${ev > 0 ? `<span class="pchip-ev">${ev}</span>` : ""}</span>`;
+                      : "";
+                const statusText =
+                  state === "complete"
+                    ? "answered with evidence"
+                    : state === "partial"
+                      ? "answered"
+                      : "unanswered";
+                return `<span class="pchip" role="listitem" data-state="${state}" data-score="${scoreVal}" style="--pc:${q.badgeColor}" title="${esc(q.code)}: ${statusText}"><span class="pchip-code">${q.code}</span><span class="pchip-indicator" aria-hidden="true">${indicator}</span>${ev > 0 ? `<span class="pchip-ev">${ev}</span>` : ""}</span>`;
               })
               .join("")}
           </div>
@@ -230,7 +237,7 @@ function renderGateRows(gates: QualityGateRow[]): string {
       return `
     <tr>
       <td class="code">${g.code}</td>
-      <td><span class="gate-badge" style="background:${g.color}18;color:${g.color}">${g.label}</span></td>
+      <td><span class="gate-badge" style="background:color-mix(in srgb, ${g.color} 11%, #fff);color:${g.color}">${g.label}</span></td>
       <td>${esc(g.requirement)}</td>
       <td class="notes">${esc(g.notes)}</td>
     </tr>
@@ -390,6 +397,13 @@ function buildNutritionLabelHtml(
 </div>`
       : "";
 
+  const failedGates = qualityGateResults(evaluations, rubric, evalMap).filter(
+    (g) => g.result === "fail",
+  );
+  const gateFailCallout = failedGates.length
+    ? `<div class="gate-fail-callout"><strong>\u26a0\ufe0f Quality gate failed:</strong> ${failedGates.map((g) => esc(g.label)).join(", ")}</div>`
+    : "";
+
   return `
 <div class="nutrition-label">
   <div class="trust-branding">
@@ -421,6 +435,7 @@ function buildNutritionLabelHtml(
         Framework Verdict
       </span>
     </div>
+    ${gateFailCallout}
     ${scores.totalMax > 0 && (finalization || scores.isComplete) ? `<div class="nutrition-score-number">${scores.totalActual}/${scores.totalMax} points</div>` : ""}
     ${!scores.noEvaluation && !scores.isComplete ? `<div class="nutrition-status">${scores.answeredQuestions}/${scores.totalQuestions} questions answered</div>` : ""}
   </div>
@@ -486,12 +501,13 @@ function buildNutritionLabelHtml(
           })
           .join("")}
         <th scope="col" class="nutrition-overall-cell" style="color:var(--magenta)">
+          <div class="nutrition-overall-spacer" aria-hidden="true"></div>
           <div class="nutrition-overall-label">Overall</div>
           <div>${scoreCircles(scores.totalMax > 0 ? (scores.totalActual / scores.totalMax) * 3 : null)}</div>
         </th>
       </tr>
     </table>
-    <div class="nutrition-circle-legend">● = threshold met &nbsp; ○ = below threshold</div>
+    <div class="nutrition-circle-legend">Each \u25cf = one point of the average score (out of 3)</div>
   </div>
 
   ${swRow}
@@ -539,7 +555,7 @@ export async function buildNutritionLabel(
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <title>TRUST Label: ${esc(metadata.toolName)}</title>
-<style>${REPORT_CSS}</style>
+<style>${REPORT_STYLE}</style>
 </head>
 <body>
 <main id="report-content">
@@ -653,7 +669,7 @@ export async function buildBusinessCardLabel(
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>TRUST Card: ${esc(metadata.toolName)}</title>
-<style>${REPORT_CSS}</style>
+<style>${REPORT_STYLE}</style>
 </head>
 <body>
 <main id="report-content">
@@ -709,7 +725,7 @@ export async function buildHtmlReport(
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <title>TRUST Review: ${esc(metadata.toolName)}</title>
-<style>${REPORT_CSS}</style>
+<style>${REPORT_STYLE}</style>
 </head>
 <body>
 
@@ -781,7 +797,7 @@ ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, model.sco
   <tbody>${gateRows}</tbody>
 </table>
 
-<div class="score-legend"><span class="legend-label">Score levels:</span> <span style="color:#c60c30">0 = Inadequate</span> · <span style="color:#c2410c">1 = Poor</span> · <span style="color:#0e7490">2 = Adequate</span> · <span style="color:#3d7249">3 = Good</span></div>
+<div class="score-legend"><span class="legend-label">Score levels:</span> <span style="color:${reportScoreColor(0)}">0 = Inadequate</span> · <span style="color:${reportScoreColor(1)}">1 = Poor</span> · <span style="color:${reportScoreColor(2)}">2 = Adequate</span> · <span style="color:${reportScoreColor(3)}">3 = Good</span></div>
 ${categorySections}
 ${finalizationSection}
 ${unlinkedSection}

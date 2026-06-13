@@ -23,7 +23,7 @@ describe("buildHtmlReport completion tracking (I11)", () => {
       { rubricId: "TR.data_source_clarity", score: 3, notes: "", explicitEvidenceIds: [] },
     ];
     const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
-    expect(html).toContain("INCOMPLETE");
+    expect(html).toContain("IN PROGRESS");
     expect(html).toContain("questions answered");
   });
 
@@ -92,7 +92,7 @@ describe("buildHtmlReport completion tracking (I11)", () => {
     const html = await buildHtmlReport(makeMetadata(), [], evaluations, RUBRIC);
     // Incomplete: shows answered/total in conclusion
     expect(html).toContain("2/14 questions answered");
-    expect(html).toContain("INCOMPLETE");
+    expect(html).toContain("IN PROGRESS");
   });
 
   it("uses finalized grade when finalization is provided, even if incomplete", async () => {

@@ -104,7 +104,7 @@ describe("computeReportScores — property invariants", () => {
       if (scores.noEvaluation) {
         expect(
           scores.verdict === "NOT EVALUATED" ||
-            scores.verdict === "INCOMPLETE" ||
+            scores.verdict === "IN PROGRESS" ||
             scores.verdict === "RECOMMENDED" ||
             scores.verdict === "NOT RECOMMENDED",
           `iter=${i} noEvaluation verdict=${scores.verdict}`,
