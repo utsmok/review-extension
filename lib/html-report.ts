@@ -803,10 +803,10 @@ ${finalizationSection}
 ${unlinkedSection}
 </main>
 <div class="bottom-bar"></div>
-<div class="footer">
+<footer class="footer">
   <span class="footer-wordmark">TRUST Framework<span class="footer-edition">v1.1</span></span>
-  <span class="footer-meta">${esc(metadata.toolName)} · ${model.scores.totalQuestions} questions · Evaluated ${formatDate(metadata.startTime)}</span>
-</div>
+  <span class="footer-meta">${esc(metadata.toolName)} · ${model.scores.totalQuestions} questions · ${finalization?.finalizedAt ? "Finalized" : "Evaluated"} ${formatDate(finalization?.finalizedAt ?? metadata.startTime)}</span>
+</footer>
 
 </body>
 </html>`;

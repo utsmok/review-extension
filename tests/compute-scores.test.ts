@@ -91,7 +91,7 @@ describe("computeReportScores", () => {
   it("returns NOT EVALUATED when no evaluations and no finalization", () => {
     const r = computeReportScores([], RUBRIC, null);
     expect(r.verdict).toBe("NOT EVALUATED");
-    expect(r.verdictColor).toBe("#6b7f94");
+    expect(r.verdictColor).toBe("#4c5e74");
     expect(r.noEvaluation).toBe(true);
     expect(r.isComplete).toBe(false);
     expect(r.totalActual).toBe(0);
@@ -103,7 +103,7 @@ describe("computeReportScores", () => {
   it("returns INCOMPLETE when some but not all evaluations answered", () => {
     const r = computeReportScores(partialEvals(), RUBRIC, null);
     expect(r.verdict).toBe("IN PROGRESS");
-    expect(r.verdictColor).toBe("#6b7f94");
+    expect(r.verdictColor).toBe("#4c5e74");
     expect(r.isComplete).toBe(false);
     expect(r.noEvaluation).toBe(false);
     // We answered 2 QG + 2 scoring = 4 questions out of 4+10=14
@@ -520,7 +520,7 @@ describe("computeReportScores", () => {
       { grade: "needs_review", label: "NEEDS REVIEW", color: "#b23c0b" },
       { grade: "pilot_only", label: "PILOT ONLY", color: "#b45309" },
       { grade: "not_recommended", label: "NOT RECOMMENDED", color: "#c20c2f" },
-      { grade: "out_of_scope", label: "OUT OF SCOPE", color: "#6b7f94" },
+      { grade: "out_of_scope", label: "OUT OF SCOPE", color: "#4c5e74" },
     ];
 
     for (const { grade, label, color } of enhancedCases) {

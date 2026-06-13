@@ -423,6 +423,8 @@ img {
 .footer-meta {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* Full report section */
@@ -596,7 +598,7 @@ table th {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--accent);
+  color: var(--text);
   margin-top: 5px;
   line-height: 1.2;
 }
@@ -994,9 +996,6 @@ td.sc {
   text-decoration: underline;
 }
 .nutrition-tool-name {
-  /* Capture the tool name for the print running header (see @page report). */
-  /* biome-ignore lint/correctness/noUnknownFunction: content() is valid CSS Generated Content syntax for string-set */
-  string-set: rptool content(text);
   font-family: var(--ff-heading);
   font-size: 1.3rem;
   font-weight: 700;
@@ -1007,6 +1006,7 @@ td.sc {
 .nutrition-tool-url {
   font-size: 0.8rem;
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 .nutrition-tool-url a {
   color: var(--muted);
@@ -1561,24 +1561,12 @@ td.sc {
   /* Publication chrome for the full report and the nutrition label: a discreet
      running header (tool name + framework) and footer (publisher + page counter)
      so printed/PDF copies read like a real publication. Margin boxes are
-     print-only; engines that lack support (older Safari) ignore the whole block,
-     so the document still prints correctly without the chrome. */
+     print-only; margin boxes + counters work in Chrome 131+/Safari 18.2+ (not Firefox); unsupported engines ignore them, so the document still prints correctly without the chrome. */
   body.report {
     page: report;
   }
   @page report {
     margin: 1.6cm 1.2cm 1.5cm;
-    @top-left {
-      /* biome-ignore lint/correctness/noUnknownFunction: string() is valid CSS Paged Media syntax for margin boxes */
-      content: string(rptool);
-      font-family: var(--ff-heading);
-      font-size: 8pt;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      color: #555;
-      vertical-align: bottom;
-      padding-bottom: 4pt;
-    }
     @top-right {
       content: "TRUST Framework";
       font-family: var(--ff-heading);

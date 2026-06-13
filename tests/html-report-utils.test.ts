@@ -198,8 +198,8 @@ describe("buildGateRows — quality gate rendering", () => {
     // 'na' and 'unsure' results produce a dash badge ("—")
     // since they are neither pass nor fail in buildGateRows logic:
     //   result === ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null
-    //   → label = "—" for both na/unsure, color = "#6b7f94"
-    const dashBadges = html.match(/color:#6b7f94/g);
+    //   → label = "—" for both na/unsure, color = "#4c5e74"
+    const dashBadges = html.match(/color:#4c5e74/g);
     expect(dashBadges).not.toBeNull();
     expect(dashBadges?.length).toBeGreaterThanOrEqual(2);
   });

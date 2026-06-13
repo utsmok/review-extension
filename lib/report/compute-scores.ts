@@ -21,7 +21,7 @@ const GRADE_COLORS: Record<string, string> = {
   needs_review: REPORT_SCORE_COLORS[1],
   pilot_only: "#b45309",
   not_recommended: REPORT_SCORE_COLORS[0],
-  out_of_scope: "#6b7f94",
+  out_of_scope: "#4c5e74",
 };
 export const GRADE_LABELS: Record<string, string> = {
   pass: "RECOMMENDED",
@@ -34,7 +34,7 @@ export const GRADE_LABELS: Record<string, string> = {
   not_recommended: "NOT RECOMMENDED",
   out_of_scope: "OUT OF SCOPE",
 };
-const MUTED_COLOR = "#6b7f94";
+const MUTED_COLOR = "#4c5e74";
 
 export interface ReportScores {
   totalActual: number;
