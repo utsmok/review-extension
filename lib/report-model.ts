@@ -1,6 +1,6 @@
 import { PRINCIPLES } from "./principles";
 import { computeReportScores, type ReportScores } from "./report/compute-scores";
-import { distributionBar, getQGQuestionCode, getQuestionCode, reportScoreColor } from "./rubric";
+import { getQGQuestionCode, getQuestionCode, reportScoreColor } from "./rubric";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 // ── Sub-interfaces ─────────────────────────────────────────────────────
@@ -47,7 +47,6 @@ export interface PrincipleScoreRow {
   evidenceCount: number;
   catScores: (number | "na" | "unsure" | "" | undefined)[];
   questions: ScoringRow[];
-  distributionBarHtml: string;
 }
 
 /** Pre-computed capture info for rendering. */
@@ -212,7 +211,6 @@ export function buildReportModel(
       evidenceCount,
       catScores,
       questions: scoringRows,
-      distributionBarHtml: distributionBar(catScores, reportScoreColor),
     };
   });
 
@@ -227,7 +225,7 @@ export function buildReportModel(
 
       const ev = evalMap.get(`${cat}.${qId}`);
       const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
-      const color = result === "pass" ? "#4a8355" : result === "fail" ? "#c60c30" : "#6b7f94";
+      const color = result === "pass" ? "#3d7249" : result === "fail" ? "#c60c30" : "#6b7f94";
       const label = result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "—";
 
       qualityGateRows.push({

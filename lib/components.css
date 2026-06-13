@@ -92,7 +92,6 @@ body {
   --section-on-accent: var(--section-control-on-accent, var(--ut-white));
 }
 
-
 /* ── Top accent bar ─────────────────────────────────────────── */
 
 .top-accent {

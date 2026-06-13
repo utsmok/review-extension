@@ -70,7 +70,6 @@ export interface SessionState {
   addQuickNote: (note: QuickNote) => void;
   /** Remove a quick note by ID. */
   removeQuickNote: (id: string) => void;
-
 }
 
 const emptyState = {

@@ -65,38 +65,39 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
             </label>
           </div>
         </section>
-{/* ── Section: Labs ────────────────────────────── */}
-<section>
-  <h2 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-ut-1">
-    Labs
-  </h2>
-  <p className="text-ut-xs text-ut-muted mb-ut-2">
-    Experimental features under development. Enable them to try new capabilities
-    before they become default.
-  </p>
-  <div className="space-y-ut-3">
-    <label className="flex items-start gap-ut-2 cursor-pointer">
-      <input
-        type="checkbox"
-        className="mt-0.5 accent-trust-magenta"
-        checked={settings.labs?.enhancedRecommendation ?? false}
-        onChange={(e) =>
-          updateSettings({
-            labs: { ...settings.labs, enhancedRecommendation: e.target.checked },
-          })
-        }
-      />
-      <div>
-        <span className="text-ut-xs font-semibold text-ut-navy block">
-          Enhanced Recommendation
-        </span>
-        <span className="text-ut-xs text-ut-muted block leading-relaxed">
-          Use a 6-level recommendation scale instead of the standard Pass/Conditional/Fail grades.
-        </span>
-      </div>
-    </label>
-  </div>
-</section>
+        {/* ── Section: Labs ────────────────────────────── */}
+        <section>
+          <h2 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-ut-1">
+            Labs
+          </h2>
+          <p className="text-ut-xs text-ut-muted mb-ut-2">
+            Experimental features under development. Enable them to try new capabilities before they
+            become default.
+          </p>
+          <div className="space-y-ut-3">
+            <label className="flex items-start gap-ut-2 cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-0.5 accent-trust-magenta"
+                checked={settings.labs?.enhancedRecommendation ?? false}
+                onChange={(e) =>
+                  updateSettings({
+                    labs: { ...settings.labs, enhancedRecommendation: e.target.checked },
+                  })
+                }
+              />
+              <div>
+                <span className="text-ut-xs font-semibold text-ut-navy block">
+                  Enhanced Recommendation
+                </span>
+                <span className="text-ut-xs text-ut-muted block leading-relaxed">
+                  Use a 6-level recommendation scale instead of the standard Pass/Conditional/Fail
+                  grades.
+                </span>
+              </div>
+            </label>
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
-import type { Capture } from "./types";
 import { idbRequest, openIDBStore } from "./idb-helpers";
+import type { Capture } from "./types";
 
 const DB_NAME = "trust-review-screenshots";
 const STORE_NAME = "screenshots";
@@ -58,28 +58,17 @@ export async function loadScreenshot(id: string): Promise<ScreenshotBlob | null>
 export async function loadAllScreenshots(ids: string[]): Promise<Map<string, ScreenshotBlob>> {
   try {
     const db = await getDB();
-    const result = new Map<string, ScreenshotBlob>();
-    const { promise, resolve } = Promise.withResolvers<Map<string, ScreenshotBlob>>();
     const tx = db.transaction(STORE_NAME, "readonly");
-    const store = tx.objectStore(STORE_NAME);
-    let pending = ids.length;
-    if (pending === 0) {
-      resolve(result);
-      return promise;
+    const req = tx.objectStore(STORE_NAME).getAll();
+    const all = await idbRequest<ScreenshotBlob[]>(req);
+    const idSet = new Set(ids);
+    const result = new Map<string, ScreenshotBlob>();
+    for (const item of all) {
+      if (idSet.has(item.id)) {
+        result.set(item.id, item);
+      }
     }
-    for (const id of ids) {
-      const req = store.get(id);
-      req.onsuccess = () => {
-        if (req.result) result.set(id, req.result);
-        pending--;
-        if (pending === 0) resolve(result);
-      };
-      req.onerror = () => {
-        pending--;
-        if (pending === 0) resolve(result);
-      };
-    }
-    return promise;
+    return result;
   } catch {
     return new Map();
   }

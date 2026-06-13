@@ -181,9 +181,9 @@ const SCORE_COLORS: Record<number, HexColor> = {
 
 /** Darkened report-local score colors for WCAG AA contrast on light backgrounds */
 export const REPORT_SCORE_COLORS: Record<number, HexColor> = {
-  0: SCORE_COLORS[0],
-  1: SCORE_COLORS[1],
-  2: SCORE_COLORS[2],
+  0: "#c20c2f",
+  1: "#b23c0b",
+  2: "#0d6d87",
   3: "#3d7249",
 };
 
@@ -198,31 +198,6 @@ export function scoreColor(s: number | "na" | "unsure" | undefined): HexColor {
   if (s === "na" || s === undefined) return "#4c5e74";
   if (s === "unsure") return "#5a6e82";
   return SCORE_COLORS[s] ?? "#4c5e74";
-}
-
-/** Build an inline HTML distribution bar showing score counts by color. */
-export function distributionBar(
-  scores: (number | "na" | "unsure" | "" | undefined)[],
-  colorFn: (s: number | "na" | "unsure" | undefined) => HexColor = scoreColor,
-): string {
-  let numCount = 0;
-  const counts = [0, 0, 0, 0];
-  for (const s of scores) {
-    if (typeof s === "number") {
-      counts[s]++;
-      numCount++;
-    }
-  }
-  if (numCount === 0) return '<div class="dist-bar"><div class="dist-empty">No scores</div></div>';
-  let segments = "";
-  const labels: string[] = [];
-  for (let i = 0; i < 4; i++) {
-    const pct = (counts[i] / numCount) * 100;
-    segments += `<div class="dist-seg" style="width:${pct}%;background:${colorFn(i as 0 | 1 | 2 | 3)}"></div>`;
-    if (counts[i] > 0)
-      labels.push(`<span style="color:${colorFn(i as 0 | 1 | 2 | 3)}">${i}:${counts[i]}</span>`);
-  }
-  return `<div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px">${segments}</div><div class="dist-labels">${labels.join(" ")}</div>`;
 }
 
 /** Mean numeric score for a principle category, or null if no numeric scores. */
@@ -245,23 +220,4 @@ export function principleAverage(
     }
   }
   return count > 0 ? sum / count : null;
-}
-
-/** Count "unsure" answers in a scoring category (respects ai_only visibility). */
-export function countUnsure(
-  categoryId: string,
-  evaluations: Evaluation[],
-  rubric: RubricData,
-  evalMap?: EvalMap,
-  usesAi: boolean = true,
-): number {
-  const em = evalMap ?? buildEvalMap(evaluations);
-  const questions = rubric.scoring_rubric[categoryId];
-  if (!questions) return 0;
-  let count = 0;
-  for (const [qId, question] of Object.entries(questions)) {
-    if (!usesAi && question.ai_only) continue;
-    if (em.get(`${categoryId}.${qId}`)?.score === "unsure") count++;
-  }
-  return count;
 }

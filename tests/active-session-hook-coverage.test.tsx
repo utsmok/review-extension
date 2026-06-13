@@ -65,9 +65,9 @@ vi.mock("@/stores/toast", async (importOriginal) => {
   };
 });
 
+import { downloadBlob, exportSession, sanitizeFilename } from "@/lib/export";
 // Re-import mocked modules for assertion access
 import { initAutoSave } from "@/lib/session-lifecycle";
-import { downloadBlob, exportSession, sanitizeFilename } from "@/lib/export";
 import { toastError } from "@/stores/toast";
 
 // --- Helpers ---

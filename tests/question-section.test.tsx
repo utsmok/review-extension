@@ -27,7 +27,7 @@ vi.mock("@/lib/session-lifecycle", () => ({
   markDoneAndClose: vi.fn(),
   saveCurrentSession: vi.fn(),
   loadSessionById: vi.fn(),
-}))
+}));
 
 vi.mock("@/lib/session-repository", () => ({
   getRepository: () => ({

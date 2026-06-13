@@ -163,10 +163,13 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* Font families */
-  --ff-body: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --ff-heading: "Arial Narrow", Arial, sans-serif;
-  --ff-mono: "JetBrains Mono", ui-monospace, monospace;
-  --ff-display: "Nunito Sans", "Inter", sans-serif;
+  --ff-body: "Inter", "Segoe UI", "Helvetica Neue", ui-sans-serif, system-ui, Arial, sans-serif;
+  --ff-heading:
+    "Arial Narrow", "Roboto Condensed", "Open Sans Condensed", Arial, "Helvetica Neue", sans-serif;
+  --ff-mono:
+    "JetBrains Mono", "Cascadia Code", "Fira Code", "DejaVu Sans Mono", Menlo, Consolas,
+    ui-monospace, monospace;
+  --ff-display: "Nunito Sans", "Inter", "Segoe UI", system-ui, sans-serif;
 
   /* Neutral scale (navy-tinted) */
   --neutral-50: color-mix(in srgb, var(--ut-navy) 2%, var(--ut-white));

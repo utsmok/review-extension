@@ -131,7 +131,7 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 1`] = 
   <tbody>
     <tr>
       <td class="code">PS1</td>
-      <td><span class="gate-badge" style="background:#4a835518;color:#4a8355">PASS</span></td>
+      <td><span class="gate-badge" style="background:#3d724918;color:#3d7249">PASS</span></td>
       <td>Vendor must explicitly state that user search queries, history, and uploaded content are not sold, shared with third-party advertisers, or used for commercial profiling. User data must not be retained beyond the stated service period without explicit consent.</td>
       <td class="notes"></td>
     </tr>
@@ -153,7 +153,7 @@ N/A is applicable only if evaluating a purely local, offline-installed tool that
   
     <tr>
       <td class="code">PS2</td>
-      <td><span class="gate-badge" style="background:#4a835518;color:#4a8355">PASS</span></td>
+      <td><span class="gate-badge" style="background:#3d724918;color:#3d7249">PASS</span></td>
       <td>Vendor must explicitly state that user queries/inputs/uploads are NOT used to train future AI models.</td>
       <td class="notes"></td>
     </tr>
@@ -173,29 +173,29 @@ N/A is applicable only if evaluating a purely local, offline-installed tool that
   
     <tr>
       <td class="code">IP1</td>
-      <td><span class="gate-badge" style="background:#4a835518;color:#4a8355">PASS</span></td>
+      <td><span class="gate-badge" style="background:#3d724918;color:#3d7249">PASS</span></td>
       <td>The vendor&#39;s Terms of Service must explicitly state that the user retains full copyright and intellectual property rights over all uploaded documents, prompts, and generated outputs. The vendor must not claim any license to distribute, publish, or commercially exploit user uploads.</td>
       <td class="notes"></td>
     </tr>
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>Academic researchers routinely upload unpublished manuscripts, grant proposals, proprietary datasets, and pre-publication findings into search or synthesis tools. Some tools state in their Terms of Service that they acquire a perpetual, royalty-free license to use uploaded content for any purpose — including model improvement, redistribution, or commercial exploitation. This creates a direct risk of intellectual property loss, which can compromise patent applications, embargoed research, and institutional data ownership policies. Review the Terms of Service, paying particular attention to sections on &#39;User Content&#39;, &#39;License Grant&#39;, or &#39;Intellectual Property&#39;.
+      <p>Academic researchers routinely upload unpublished manuscripts, grant proposals, proprietary datasets, and pre-publication findings into search or synthesis tools. Some tools state in their Terms of Service that they acquire a perpetual, royalty-free license to use uploaded content for any purpose, including model improvement, redistribution, or commercial exploitation. This creates a direct risk of intellectual property loss, which can compromise patent applications, embargoed research, and institutional data ownership policies. Review the Terms of Service, paying particular attention to sections on &#39;User Content&#39;, &#39;License Grant&#39;, or &#39;Intellectual Property&#39;.
 
-N/A may apply for tools that do not accept any user-uploaded content — for example, a read-only citation database with no document upload, prompt, or file submission features. If the tool accepts any user content, this gate should be evaluated.</p></details>
+N/A may apply for tools that do not accept any user-uploaded content, for example, a read-only citation database with no document upload, prompt, or file submission features. If the tool accepts any user content, this gate should be evaluated.</p></details>
     </td></tr>
   
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Examples</summary>
       <table class="et">
-        <tr><td class="el">Pass</td><td>The Terms of Service include a section titled &#39;Your Content — Ownership&#39; that states: &#39;You retain all rights, title, and interest in and to your content. We do not claim any ownership or license to distribute, publish, or commercially exploit your uploaded documents, prompts, or outputs.&#39; No contradictory language appears elsewhere in the agreement.</td></tr><tr><td class="el">Fail</td><td>The Terms of Service state: &#39;By uploading content, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, modify, and distribute your content for the purpose of improving our services.&#39; Alternatively, the Terms make no mention of user intellectual property rights at all.</td></tr><tr><td class="el">N/A</td><td>Evaluating a read-only citation database (e.g., Google Scholar) that accepts no user-uploaded documents, prompts, or files — there is no user content for the vendor to claim rights over.</td></tr>
+        <tr><td class="el">Pass</td><td>The Terms of Service include a section titled &#39;Your Content — Ownership&#39; that states: &#39;You retain all rights, title, and interest in and to your content. We do not claim any ownership or license to distribute, publish, or commercially exploit your uploaded documents, prompts, or outputs.&#39; No contradictory language appears elsewhere in the agreement.</td></tr><tr><td class="el">Fail</td><td>The Terms of Service state: &#39;By uploading content, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, modify, and distribute your content for the purpose of improving our services.&#39; Alternatively, the Terms make no mention of user intellectual property rights at all.</td></tr><tr><td class="el">N/A</td><td>Evaluating a read-only citation database (e.g., Google Scholar) that accepts no user-uploaded documents, prompts, or files; there is no user content for the vendor to claim rights over.</td></tr>
       </table></details>
     </td></tr>
   
   
     <tr>
       <td class="code">AC1</td>
-      <td><span class="gate-badge" style="background:#4a835518;color:#4a8355">PASS</span></td>
+      <td><span class="gate-badge" style="background:#3d724918;color:#3d7249">PASS</span></td>
       <td>Tool must support keyboard navigation to all major features, allow text resizing to at least 200% without content loss, and provide alt text for images. An accessibility statement or conformance claim (e.g., WCAG 2.1 AA) is strong supporting evidence.</td>
       <td class="notes"></td>
     </tr>
@@ -210,13 +210,14 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Examples</summary>
       <table class="et">
-        <tr><td class="el">Pass</td><td>You can navigate to all search features, settings, and export options using only the Tab and Enter keys. Zooming the browser to 200% preserves the layout with no overlapping text or hidden controls. The tool&#39;s footer links to an accessibility statement declaring WCAG 2.1 AA conformance.</td></tr><tr><td class="el">Fail</td><td>Critical features such as the search filters or export button cannot be reached via keyboard — they only respond to mouse clicks. Zooming to 200% causes the navigation menu to overflow and become partially hidden.</td></tr><tr><td class="el">N/A</td><td>Evaluating a backend REST API with no graphical user interface, consumed exclusively through programmatic calls — there are no visual controls, images, or layouts to evaluate for accessibility compliance.</td></tr>
+        <tr><td class="el">Pass</td><td>You can navigate to all search features, settings, and export options using only the Tab and Enter keys. Zooming the browser to 200% preserves the layout with no overlapping text or hidden controls. The tool&#39;s footer links to an accessibility statement declaring WCAG 2.1 AA conformance.</td></tr><tr><td class="el">Fail</td><td>Critical features such as the search filters or export button cannot be reached via keyboard; they only respond to mouse clicks. Zooming to 200% causes the navigation menu to overflow and become partially hidden.</td></tr><tr><td class="el">N/A</td><td>Evaluating a backend REST API with no graphical user interface, consumed exclusively through programmatic calls; there are no visual controls, images, or layouts to evaluate for accessibility compliance.</td></tr>
       </table></details>
     </td></tr>
   
   </tbody>
 </table>
 
+<div class="score-legend"><span class="legend-label">Score levels:</span> <span style="color:#c60c30">0 = Inadequate</span> · <span style="color:#c2410c">1 = Poor</span> · <span style="color:#0e7490">2 = Adequate</span> · <span style="color:#3d7249">3 = Good</span></div>
 
     <section id="category-TR" class="category-section" style="--accent:#2563eb" aria-labelledby="heading-TR">
       <div class="category-header">
@@ -231,7 +232,9 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
             <span class="cat-avg">avg 3.0</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#3d7249"></div></div><div class="dist-labels"><span style="color:#3d7249">3:2</span></div>
+          <div class="principle-chips">
+            <span class="pchip" data-state="scored" style="--pc:#3d7249"><span class="pchip-code">TR1</span><span class="pchip-score">3</span></span><span class="pchip" data-state="scored" style="--pc:#3d7249"><span class="pchip-code">TR2</span><span class="pchip-score">3</span></span>
+          </div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -254,7 +257,7 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>Source transparency is the first step toward reproducible research. When a tool discloses which databases, publishers, and indices it searches, users can assess whether its coverage is adequate for their discipline and identify potential blind spots. Without this information, researchers cannot evaluate whether the tool&#39;s results are comprehensive or skewed toward particular sources. Look for a dedicated &#39;Sources&#39; or &#39;Coverage&#39; page, or documentation within the tool&#39;s help section. Note: this question evaluates macro-level data scope transparency — understanding the overall boundaries and composition of the tool&#39;s index. It is distinct from TC2 (Source quality indicators), which evaluates item-level metadata enrichment such as retraction warnings and publication type labels on individual search results. This question is not applicable if the tool does not retrieve or aggregate information from external databases, publishers, or indices, functioning solely as a platform for users to search their own internally uploaded or generated content.</p></details>
+      <p>Source transparency is the first step toward reproducible research. When a tool discloses which databases, publishers, and indices it searches, users can assess whether its coverage is adequate for their discipline and identify potential blind spots. Without this information, researchers cannot evaluate whether the tool&#39;s results are comprehensive or skewed toward particular sources. Look for a dedicated &#39;Sources&#39; or &#39;Coverage&#39; page, or documentation within the tool&#39;s help section. Note: this question evaluates macro-level data scope transparency, understanding the overall boundaries and composition of the tool&#39;s index. It is distinct from TC2 (Source quality indicators), which evaluates item-level metadata enrichment such as retraction warnings and publication type labels on individual search results. This question is not applicable if the tool does not retrieve or aggregate information from external databases, publishers, or indices, functioning solely as a platform for users to search their own internally uploaded or generated content.</p></details>
     </td></tr>
   
     <tr class="sr"><td colspan="4" class="sc">
@@ -279,7 +282,7 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>Understanding how a tool processes queries and generates results is essential for interpreting its outputs. This question evaluates whether the tool explains its underlying technology — retrieval method, ranking algorithm, and any AI generation steps. In academic contexts, researchers need to know whether results are purely retrieved from indexed databases or synthesized by a language model, as this affects how they interpret and cite the output. Reviewers do not need to verify the mathematics of the algorithm. Look for a &#39;System Architecture&#39;, &#39;Technical White Paper&#39;, or &#39;How It Works&#39; link in the footer or help documentation. If the vendor explains their retrieval, ranking, and generation steps in plain language (even without specific model parameters), they qualify for a higher score. This question only applies to AI-powered tools. Mark this question as N/A if the resource is a traditional, static database or non-digital reference material that does not utilize any algorithmic search, ranking, or AI generation components.</p></details>
+      <p>Understanding how a tool processes queries and generates results is essential for interpreting its outputs. This question evaluates whether the tool explains its underlying technology: retrieval method, ranking algorithm, and any AI generation steps. In academic contexts, researchers need to know whether results are purely retrieved from indexed databases or synthesized by a language model, as this affects how they interpret and cite the output. Reviewers do not need to verify the mathematics of the algorithm. Look for a &#39;System Architecture&#39;, &#39;Technical White Paper&#39;, or &#39;How It Works&#39; link in the footer or help documentation. If the vendor explains their retrieval, ranking, and generation steps in plain language (even without specific model parameters), they qualify for a higher score. This question only applies to AI-powered tools. Mark this question as N/A if the resource is a traditional, static database or non-digital reference material that does not utilize any algorithmic search, ranking, or AI generation components.</p></details>
     </td></tr>
   
     <tr class="sr"><td colspan="4" class="sc">
@@ -308,7 +311,9 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
             <span class="cat-avg">avg 3.0</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#3d7249"></div></div><div class="dist-labels"><span style="color:#3d7249">3:2</span></div>
+          <div class="principle-chips">
+            <span class="pchip" data-state="scored" style="--pc:#3d7249"><span class="pchip-code">RE1</span><span class="pchip-score">3</span></span><span class="pchip" data-state="scored" style="--pc:#3d7249"><span class="pchip-code">RE2</span><span class="pchip-score">3</span></span>
+          </div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -325,13 +330,13 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
           3
         </span>
       </td>
-      <td class="level">All claims are verifiable against original sources across every test query — no fabricated citations, no misattributions, and synthesis accurately represents areas of consensus and ongoing debate.</td>
+      <td class="level">All claims are verifiable against original sources across every test query; no fabricated citations, no misattributions, and synthesis accurately represents areas of consensus and ongoing debate.</td>
       <td class="notes"></td>
     </tr>
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>AI-powered search tools can generate plausible-sounding but fabricated claims, fake citations, or misattributed findings — a phenomenon known as hallucination. In academic research, this is particularly dangerous because users may incorporate inaccurate information into their work. This question assesses how frequently the tool produces verifiable errors across multiple test queries. To score this consistently, run a minimum of 5 distinct test queries: (1) a broad conceptual query in your discipline, (2) a highly specific niche query where you know the literature, (3) a query seeking recent research published post-2024, (4) a negative query designed to test boundaries (e.g., asking about a fabricated concept to see if the tool flags it as non-existent), and (5) a synthesis query asking the tool to summarize three known papers. Test with domain-specific queries where you can verify claims against known literature. This question only applies to AI-powered tools. Note: this question focuses on factual correctness of outputs. It is distinct from US2 (Critical thinking prompts), which evaluates whether the tool actively supports user verification and critical evaluation — regardless of whether the underlying claims are correct. A tool can score poorly on RE1 (factual errors) but well on US2 (good verification prompts), or vice versa.
+      <p>AI-powered search tools can generate plausible-sounding but fabricated claims, fake citations, or misattributed findings, a phenomenon known as hallucination. In academic research, this is particularly dangerous because users may incorporate inaccurate information into their work. This question assesses how frequently the tool produces verifiable errors across multiple test queries. To score this consistently, run a minimum of 5 distinct test queries: (1) a broad conceptual query in your discipline, (2) a highly specific niche query where you know the literature, (3) a query seeking recent research published post-2024, (4) a negative query designed to test boundaries (e.g., asking about a fabricated concept to see if the tool flags it as non-existent), and (5) a synthesis query asking the tool to summarize three known papers. Test with domain-specific queries where you can verify claims against known literature. This question only applies to AI-powered tools. Note: this question focuses on factual correctness of outputs. It is distinct from US2 (Critical thinking prompts), which evaluates whether the tool actively supports user verification and critical evaluation, regardless of whether the underlying claims are correct. A tool can score poorly on RE1 (factual errors) but well on US2 (good verification prompts), or vice versa.
 
 This question should be marked N/A if the tool functions purely as a traditional, non-generative search engine that only retrieves and links to existing publications without synthesizing summaries or generating text responses.</p></details>
     </td></tr>
@@ -358,7 +363,7 @@ This question should be marked N/A if the tool functions purely as a traditional
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>A reliable research tool should produce substantively equivalent answers when given the same query multiple times. High variance — where the same question yields different conclusions, sources, or recommendations on successive runs — undermines trust and makes the tool unsuitable for systematic work. This question evaluates reproducibility by asking the reviewer to submit identical queries and compare the substance of the responses. Small surface-level differences in phrasing are acceptable; substantive differences in claims or conclusions are not.
+      <p>A reliable research tool should produce substantively equivalent answers when given the same query multiple times. High variance (where the same question yields different conclusions, sources, or recommendations on successive runs) undermines trust and makes the tool unsuitable for systematic work. This question evaluates reproducibility by asking the reviewer to submit identical queries and compare the substance of the responses. Small surface-level differences in phrasing are acceptable; substantive differences in claims or conclusions are not.
 
 For deterministic, index-based databases, identical queries should yield identical results. Score 3 if result lists are perfectly stable. Score lower if results fluctuate between repeated runs without a documented update to the underlying index database, which may indicate unstable scraping, caching issues, or unpredictable API routing. Mark this question as N/A if the tool does not accept user queries, requires entirely distinct inputs for each session, or is explicitly designed as a single-use, non-generative utility where repeated iterations are functionally impossible.</p></details>
     </td></tr>
@@ -389,7 +394,9 @@ For deterministic, index-based databases, identical queries should yield identic
             <span class="cat-avg">avg 3.0</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#3d7249"></div></div><div class="dist-labels"><span style="color:#3d7249">3:2</span></div>
+          <div class="principle-chips">
+            <span class="pchip" data-state="scored" style="--pc:#3d7249"><span class="pchip-code">US1</span><span class="pchip-score">3</span></span><span class="pchip" data-state="scored" style="--pc:#3d7249"><span class="pchip-code">US2</span><span class="pchip-score">3</span></span>
+          </div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -406,13 +413,13 @@ For deterministic, index-based databases, identical queries should yield identic
           3
         </span>
       </td>
-      <td class="level">Offers direct push to reference managers (Zotero, EndNote, Mendeley), a documented API for programmatic access, or a browser extension that captures results with full metadata — results flow into academic workflows without manual data entry.</td>
+      <td class="level">Offers direct push to reference managers (Zotero, EndNote, Mendeley), a documented API for programmatic access, or a browser extension that captures results with full metadata; results flow into academic workflows without manual data entry.</td>
       <td class="notes"></td>
     </tr>
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>Research is a multi-tool workflow: search results need to flow into reference managers, citation tools, and writing environments. A tool that traps results in a silo — with no export or integration options — creates friction and discourages systematic use. This question evaluates whether and how well the tool connects to established academic workflows. Look for export formats (BibTeX, RIS, CSV), direct integrations (Zotero, EndNote, Mendeley), API access, or browser extension support. This question is N/A if the tool does not generate or manage individual search results or citations (e.g., a writing environment, flashcard app, or grammar checker) that would need to be exported to a reference manager.</p></details>
+      <p>Research is a multi-tool workflow: search results need to flow into reference managers, citation tools, and writing environments. A tool that traps results in a silo (with no export or integration options) creates friction and discourages systematic use. This question evaluates whether and how well the tool connects to established academic workflows. Look for export formats (BibTeX, RIS, CSV), direct integrations (Zotero, EndNote, Mendeley), API access, or browser extension support. This question is N/A if the tool does not generate or manage individual search results or citations (e.g., a writing environment, flashcard app, or grammar checker) that would need to be exported to a reference manager.</p></details>
     </td></tr>
   
     <tr class="sr"><td colspan="4" class="sc">
@@ -437,7 +444,7 @@ For deterministic, index-based databases, identical queries should yield identic
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>AI search tools that present outputs as authoritative facts — without caveats, source visibility, or verification prompts — risk encouraging passive acceptance. This is particularly concerning in academic settings where critical evaluation of sources is a core skill. The best tools actively support the user&#39;s judgment by surfacing original source material, flagging uncertainty, providing confidence indicators, or offering built-in comparison tools. This question only applies to AI-powered tools. Note: this question complements RE1 (Accuracy and hallucination). While RE1 evaluates whether the tool&#39;s factual claims are correct, this question evaluates whether the tool actively supports the user in verifying and critically evaluating those claims — regardless of accuracy. A tool with perfect factual accuracy still scores low here if it presents claims without any verification aids.
+      <p>AI search tools that present outputs as authoritative facts (without caveats, source visibility, or verification prompts) risk encouraging passive acceptance. This is particularly concerning in academic settings where critical evaluation of sources is a core skill. The best tools actively support the user&#39;s judgment by surfacing original source material, flagging uncertainty, providing confidence indicators, or offering built-in comparison tools. This question only applies to AI-powered tools. Note: this question complements RE1 (Accuracy and hallucination). While RE1 evaluates whether the tool&#39;s factual claims are correct, this question evaluates whether the tool actively supports the user in verifying and critically evaluating those claims, regardless of accuracy. A tool with perfect factual accuracy still scores low here if it presents claims without any verification aids.
 
 Select N/A if the tool operates as a traditional, non-generative search engine that merely directs users to external webpages without generating synthesized summaries.</p></details>
     </td></tr>
@@ -468,7 +475,9 @@ Select N/A if the tool operates as a traditional, non-generative search engine t
             <span class="cat-avg">avg 3.0</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#3d7249"></div></div><div class="dist-labels"><span style="color:#3d7249">3:2</span></div>
+          <div class="principle-chips">
+            <span class="pchip" data-state="scored" style="--pc:#3d7249"><span class="pchip-code">SE1</span><span class="pchip-score">3</span></span><span class="pchip" data-state="scored" style="--pc:#3d7249"><span class="pchip-code">SE2</span><span class="pchip-score">3</span></span>
+          </div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -491,7 +500,7 @@ Select N/A if the tool operates as a traditional, non-generative search engine t
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>Search tools can systematically favor certain perspectives, languages, regions, or publication venues — often reflecting biases in their training data, indexing sources, or ranking algorithms. In academic search, this can manifest as over-representation of English-language, Western-published, or high-impact-journal sources at the expense of research from the Global South, non-English publications, or smaller venues. This question evaluates whether the tool&#39;s index and ranking produce equitable, geographically diverse results. Test with queries that should return diverse geographic and linguistic results. This question is not applicable if the tool is a highly specialized, closed-domain database containing only a single known source or geographic focus (such as an internal institutional repository or a narrow legal database) where bibliographic diversity is structurally impossible.</p></details>
+      <p>Search tools can systematically favor certain perspectives, languages, regions, or publication venues, often reflecting biases in their training data, indexing sources, or ranking algorithms. In academic search, this can manifest as over-representation of English-language, Western-published, or high-impact-journal sources at the expense of research from the Global South, non-English publications, or smaller venues. This question evaluates whether the tool&#39;s index and ranking produce equitable, geographically diverse results. Test with queries that should return diverse geographic and linguistic results. This question is not applicable if the tool is a highly specialized, closed-domain database containing only a single known source or geographic focus (such as an internal institutional repository or a narrow legal database) where bibliographic diversity is structurally impossible.</p></details>
     </td></tr>
   
     <tr class="sr"><td colspan="4" class="sc">
@@ -516,7 +525,7 @@ Select N/A if the tool operates as a traditional, non-generative search engine t
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>Beyond the basic privacy policy (covered by the quality gate), this question evaluates the depth and specificity of the tool&#39;s data handling practices. Researchers need to know exactly how long their data is retained, whether it is encrypted, what happens in case of a breach, and whether they can export or delete their data. Strong data handling practices are especially important for tools used in institutional settings where data governance policies may apply. Look for specifics — not just &#39;we protect your data&#39; but actual retention periods, encryption standards, and breach notification timelines. Note: this question extends the data privacy quality gate (QG1) — while QG1 is a pass/fail check on whether the vendor commits to not selling or sharing user data, this scoring question evaluates the depth and specificity of those commitments (retention periods, encryption standards, breach protocols).
+      <p>Beyond the basic privacy policy (covered by the quality gate), this question evaluates the depth and specificity of the tool&#39;s data handling practices. Researchers need to know exactly how long their data is retained, whether it is encrypted, what happens in case of a breach, and whether they can export or delete their data. Strong data handling practices are especially important for tools used in institutional settings where data governance policies may apply. Look for specifics, not just &#39;we protect your data&#39; but actual retention periods, encryption standards, and breach notification timelines. Note: this question extends the data privacy quality gate (QG1), while QG1 is a pass/fail check on whether the vendor commits to not selling or sharing user data, this scoring question evaluates the depth and specificity of those commitments (retention periods, encryption standards, breach protocols).
 
 This question is not applicable if the tool operates entirely offline on local infrastructure and is designed so that no user data is ever collected, transmitted, or stored by the provider.</p></details>
     </td></tr>
@@ -547,7 +556,9 @@ This question is not applicable if the tool operates entirely offline on local i
             <span class="cat-avg">avg 3.0</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:0%;background:#0e7490"></div><div class="dist-seg" style="width:100%;background:#3d7249"></div></div><div class="dist-labels"><span style="color:#3d7249">3:2</span></div>
+          <div class="principle-chips">
+            <span class="pchip" data-state="scored" style="--pc:#3d7249"><span class="pchip-code">TC1</span><span class="pchip-score">3</span></span><span class="pchip" data-state="scored" style="--pc:#3d7249"><span class="pchip-code">TC2</span><span class="pchip-score">3</span></span>
+          </div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -564,19 +575,19 @@ This question is not applicable if the tool operates entirely offline on local i
           3
         </span>
       </td>
-      <td class="level">Citations link to the exact passage, page, or highlighted paragraph in the source document that supports the claim — the user can verify the claim in one click without searching within the paper.</td>
+      <td class="level">Citations link to the exact passage, page, or highlighted paragraph in the source document that supports the claim; the user can verify the claim in one click without searching within the paper.</td>
       <td class="notes"></td>
     </tr>
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>The depth of source linking determines how efficiently a researcher can verify claims and locate original material. A tool that links to a journal homepage requires the user to manually search for the specific article; a tool that links directly to the relevant passage saves significant time and enables precise verification. This question evaluates the granularity of citation links — from broken links (worst) to paragraph-level deep links (best). Test by clicking citations in the tool&#39;s output and noting where they lead. This question is N/A if the tool&#39;s output does not include any citations or source references to evaluate.</p></details>
+      <p>The depth of source linking determines how efficiently a researcher can verify claims and locate original material. A tool that links to a journal homepage requires the user to manually search for the specific article; a tool that links directly to the relevant passage saves significant time and enables precise verification. This question evaluates the granularity of citation links, from broken links (worst) to paragraph-level deep links (best). Test by clicking citations in the tool&#39;s output and noting where they lead. This question is N/A if the tool&#39;s output does not include any citations or source references to evaluate.</p></details>
     </td></tr>
   
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Examples</summary>
       <table class="et">
-        <tr><td class="el">0</td><td>The tool shows reference numbers in its output, but clicking them does nothing — there are no hyperlinks. Alternatively, the links exist but resolve to 404 error pages or redirect to the tool&#39;s own homepage.</td></tr><tr><td class="el">1</td><td>Clicking the superscript &quot;[1]&quot; citation link redirects to nature.com instead of the specific paper. To find the text &quot;quantum entanglement,&quot; the user must independently search the journal&#39;s homepage. The system fails to resolve the DOI for the source document.</td></tr><tr><td class="el">2</td><td>Each citation links directly to the article&#39;s abstract page on the publisher&#39;s site (e.g., doi.org/10.1038/s41586-023-12345). The user can immediately access the paper&#39;s metadata and abstract.</td></tr><tr><td class="el">3</td><td>Citations link to the exact passage within the source document that supports the claim — for example, a specific page in a PDF or a highlighted paragraph in an open-access article. The tool uses RAG (Retrieval-Augmented Generation) with passage-level attribution.</td></tr>
+        <tr><td class="el">0</td><td>The tool shows reference numbers in its output, but clicking them does nothing; there are no hyperlinks. Alternatively, the links exist but resolve to 404 error pages or redirect to the tool&#39;s own homepage.</td></tr><tr><td class="el">1</td><td>Clicking the superscript &quot;[1]&quot; citation link redirects to nature.com instead of the specific paper. To find the text &quot;quantum entanglement,&quot; the user must independently search the journal&#39;s homepage. The system fails to resolve the DOI for the source document.</td></tr><tr><td class="el">2</td><td>Each citation links directly to the article&#39;s abstract page on the publisher&#39;s site (e.g., doi.org/10.1038/s41586-023-12345). The user can immediately access the paper&#39;s metadata and abstract.</td></tr><tr><td class="el">3</td><td>Citations link to the exact passage within the source document that supports the claim, for example, a specific page in a PDF or a highlighted paragraph in an open-access article. The tool uses RAG (Retrieval-Augmented Generation) with passage-level attribution.</td></tr>
       </table></details>
     </td></tr>
   
@@ -595,13 +606,13 @@ This question is not applicable if the tool operates entirely offline on local i
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>Not all academic sources are equal: papers may be retracted, published in predatory journals, or exist only as non-peer-reviewed preprints. A tool that treats all sources identically — without any quality indicators — makes it harder for researchers to assess the reliability of the evidence behind a claim. This question evaluates whether the tool provides contextual quality metadata such as retraction status, peer-review labels, citation counts, and publication type. Look for quality badges, labels, or metadata near each cited source. Note: this question evaluates item-level metadata enrichment — whether the tool warns the user about the status of individual papers during search (e.g., retraction notices, publication type labels). It is distinct from TR1 (Data source clarity), which evaluates macro-level scope transparency about what the tool&#39;s index contains. Mark this question as N/A if the tool does not retrieve or cite individual academic sources (such as papers or preprints), or if it functions exclusively as a generalized search engine without the capacity to extract and display specific publication metadata.</p></details>
+      <p>Not all academic sources are equal: papers may be retracted, published in predatory journals, or exist only as non-peer-reviewed preprints. A tool that treats all sources identically (without any quality indicators) makes it harder for researchers to assess the reliability of the evidence behind a claim. This question evaluates whether the tool provides contextual quality metadata such as retraction status, peer-review labels, citation counts, and publication type. Look for quality badges, labels, or metadata near each cited source. Note: this question evaluates item-level metadata enrichment, whether the tool warns the user about the status of individual papers during search (e.g., retraction notices, publication type labels). It is distinct from TR1 (Data source clarity), which evaluates macro-level scope transparency about what the tool&#39;s index contains. Mark this question as N/A if the tool does not retrieve or cite individual academic sources (such as papers or preprints), or if it functions exclusively as a generalized search engine without the capacity to extract and display specific publication metadata.</p></details>
     </td></tr>
   
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Examples</summary>
       <table class="et">
-        <tr><td class="el">0</td><td>The tool cites a paper that was retracted in 2022 due to data fabrication, with no indication of the retraction. It also includes sources from a known predatory publisher on Beall&#39;s list, presented identically to legitimate journal articles.</td></tr><tr><td class="el">1</td><td>All cited sources appear with the same formatting and no quality labels. There is no distinction between a Nature peer-reviewed article, a preprint on arXiv, and a blog post — all look equally authoritative in the tool&#39;s output.</td></tr><tr><td class="el">2</td><td>Each source is labeled as either &#39;Peer-reviewed article&#39;, &#39;Preprint&#39;, &#39;Conference paper&#39;, or &#39;Thesis&#39;. The tool filters out known predatory journals but does not show citation counts or retraction status.</td></tr><tr><td class="el">3</td><td>Each cited source displays: a &#39;Peer-reviewed&#39; or &#39;Preprint&#39; badge, the citation count from Semantic Scholar, a retraction warning flag (e.g., &#39;This paper was retracted on 2024-01-15&#39;), an &#39;Open Access&#39; icon when the full text is freely available, and the journal&#39;s impact factor quartile.</td></tr>
+        <tr><td class="el">0</td><td>The tool cites a paper that was retracted in 2022 due to data fabrication, with no indication of the retraction. It also includes sources from a known predatory publisher on Beall&#39;s list, presented identically to legitimate journal articles.</td></tr><tr><td class="el">1</td><td>All cited sources appear with the same formatting and no quality labels. There is no distinction between a Nature peer-reviewed article, a preprint on arXiv, and a blog post; all look equally authoritative in the tool&#39;s output.</td></tr><tr><td class="el">2</td><td>Each source is labeled as either &#39;Peer-reviewed article&#39;, &#39;Preprint&#39;, &#39;Conference paper&#39;, or &#39;Thesis&#39;. The tool filters out known predatory journals but does not show citation counts or retraction status.</td></tr><tr><td class="el">3</td><td>Each cited source displays: a &#39;Peer-reviewed&#39; or &#39;Preprint&#39; badge, the citation count from Semantic Scholar, a retraction warning flag (e.g., &#39;This paper was retracted on 2024-01-15&#39;), an &#39;Open Access&#39; icon when the full text is freely available, and the journal&#39;s impact factor quartile.</td></tr>
       </table></details>
     </td></tr>
   
@@ -617,10 +628,11 @@ This question is not applicable if the tool operates entirely offline on local i
       <div class="fin-grade" style="color:#3d7249;background:#3d724910">
         RECOMMENDED
       </div>
+      <p class="fin-detail-note">Detailed evidence and per-principle scoring appear in the sections above.</p>
       <div class="fin-block"><h3>Conclusion</h3><p>Test conclusion</p></div>
       
         <div class="fin-block">
-          <h3 style="color:#4a8355">Strengths</h3>
+          <h3 style="color:#3d7249">Strengths</h3>
           <ul><li>Good</li></ul>
         </div>
       
@@ -815,11 +827,11 @@ exports[`HTML report snapshot > matches snapshot for partially-scored session 1`
         Framework Verdict
       </span>
     </div>
-    <div class="nutrition-score-number">2/3 points</div>
+    
     <div class="nutrition-status">2/10 questions answered</div>
   </div>
 
-  <div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gate-item" style="color:var(--muted)">All quality gates passed ✓</div></div>
+  <div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gate-item" style="color:var(--muted)">1 of 4 quality gates passed</div></div>
 
   <div class="nutrition-divider-thin"></div>
 
@@ -889,7 +901,7 @@ exports[`HTML report snapshot > matches snapshot for partially-scored session 1`
   <tbody>
     <tr>
       <td class="code">PS1</td>
-      <td><span class="gate-badge" style="background:#4a835518;color:#4a8355">PASS</span></td>
+      <td><span class="gate-badge" style="background:#3d724918;color:#3d7249">PASS</span></td>
       <td>Vendor must explicitly state that user search queries, history, and uploaded content are not sold, shared with third-party advertisers, or used for commercial profiling. User data must not be retained beyond the stated service period without explicit consent.</td>
       <td class="notes"></td>
     </tr>
@@ -918,15 +930,15 @@ N/A is applicable only if evaluating a purely local, offline-installed tool that
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>Academic researchers routinely upload unpublished manuscripts, grant proposals, proprietary datasets, and pre-publication findings into search or synthesis tools. Some tools state in their Terms of Service that they acquire a perpetual, royalty-free license to use uploaded content for any purpose — including model improvement, redistribution, or commercial exploitation. This creates a direct risk of intellectual property loss, which can compromise patent applications, embargoed research, and institutional data ownership policies. Review the Terms of Service, paying particular attention to sections on &#39;User Content&#39;, &#39;License Grant&#39;, or &#39;Intellectual Property&#39;.
+      <p>Academic researchers routinely upload unpublished manuscripts, grant proposals, proprietary datasets, and pre-publication findings into search or synthesis tools. Some tools state in their Terms of Service that they acquire a perpetual, royalty-free license to use uploaded content for any purpose, including model improvement, redistribution, or commercial exploitation. This creates a direct risk of intellectual property loss, which can compromise patent applications, embargoed research, and institutional data ownership policies. Review the Terms of Service, paying particular attention to sections on &#39;User Content&#39;, &#39;License Grant&#39;, or &#39;Intellectual Property&#39;.
 
-N/A may apply for tools that do not accept any user-uploaded content — for example, a read-only citation database with no document upload, prompt, or file submission features. If the tool accepts any user content, this gate should be evaluated.</p></details>
+N/A may apply for tools that do not accept any user-uploaded content, for example, a read-only citation database with no document upload, prompt, or file submission features. If the tool accepts any user content, this gate should be evaluated.</p></details>
     </td></tr>
   
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Examples</summary>
       <table class="et">
-        <tr><td class="el">Pass</td><td>The Terms of Service include a section titled &#39;Your Content — Ownership&#39; that states: &#39;You retain all rights, title, and interest in and to your content. We do not claim any ownership or license to distribute, publish, or commercially exploit your uploaded documents, prompts, or outputs.&#39; No contradictory language appears elsewhere in the agreement.</td></tr><tr><td class="el">Fail</td><td>The Terms of Service state: &#39;By uploading content, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, modify, and distribute your content for the purpose of improving our services.&#39; Alternatively, the Terms make no mention of user intellectual property rights at all.</td></tr><tr><td class="el">N/A</td><td>Evaluating a read-only citation database (e.g., Google Scholar) that accepts no user-uploaded documents, prompts, or files — there is no user content for the vendor to claim rights over.</td></tr>
+        <tr><td class="el">Pass</td><td>The Terms of Service include a section titled &#39;Your Content — Ownership&#39; that states: &#39;You retain all rights, title, and interest in and to your content. We do not claim any ownership or license to distribute, publish, or commercially exploit your uploaded documents, prompts, or outputs.&#39; No contradictory language appears elsewhere in the agreement.</td></tr><tr><td class="el">Fail</td><td>The Terms of Service state: &#39;By uploading content, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, modify, and distribute your content for the purpose of improving our services.&#39; Alternatively, the Terms make no mention of user intellectual property rights at all.</td></tr><tr><td class="el">N/A</td><td>Evaluating a read-only citation database (e.g., Google Scholar) that accepts no user-uploaded documents, prompts, or files; there is no user content for the vendor to claim rights over.</td></tr>
       </table></details>
     </td></tr>
   
@@ -948,13 +960,14 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Examples</summary>
       <table class="et">
-        <tr><td class="el">Pass</td><td>You can navigate to all search features, settings, and export options using only the Tab and Enter keys. Zooming the browser to 200% preserves the layout with no overlapping text or hidden controls. The tool&#39;s footer links to an accessibility statement declaring WCAG 2.1 AA conformance.</td></tr><tr><td class="el">Fail</td><td>Critical features such as the search filters or export button cannot be reached via keyboard — they only respond to mouse clicks. Zooming to 200% causes the navigation menu to overflow and become partially hidden.</td></tr><tr><td class="el">N/A</td><td>Evaluating a backend REST API with no graphical user interface, consumed exclusively through programmatic calls — there are no visual controls, images, or layouts to evaluate for accessibility compliance.</td></tr>
+        <tr><td class="el">Pass</td><td>You can navigate to all search features, settings, and export options using only the Tab and Enter keys. Zooming the browser to 200% preserves the layout with no overlapping text or hidden controls. The tool&#39;s footer links to an accessibility statement declaring WCAG 2.1 AA conformance.</td></tr><tr><td class="el">Fail</td><td>Critical features such as the search filters or export button cannot be reached via keyboard; they only respond to mouse clicks. Zooming to 200% causes the navigation menu to overflow and become partially hidden.</td></tr><tr><td class="el">N/A</td><td>Evaluating a backend REST API with no graphical user interface, consumed exclusively through programmatic calls; there are no visual controls, images, or layouts to evaluate for accessibility compliance.</td></tr>
       </table></details>
     </td></tr>
   
   </tbody>
 </table>
 
+<div class="score-legend"><span class="legend-label">Score levels:</span> <span style="color:#c60c30">0 = Inadequate</span> · <span style="color:#c2410c">1 = Poor</span> · <span style="color:#0e7490">2 = Adequate</span> · <span style="color:#3d7249">3 = Good</span></div>
 
     <section id="category-TR" class="category-section" style="--accent:#2563eb" aria-labelledby="heading-TR">
       <div class="category-header">
@@ -969,7 +982,9 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
             <span class="cat-avg">avg 2.0</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar" style="height:10px;border:1px solid rgba(0,0,0,0.12);border-radius:2px"><div class="dist-seg" style="width:0%;background:#c60c30"></div><div class="dist-seg" style="width:0%;background:#c2410c"></div><div class="dist-seg" style="width:100%;background:#0e7490"></div><div class="dist-seg" style="width:0%;background:#3d7249"></div></div><div class="dist-labels"><span style="color:#0e7490">2:1</span></div>
+          <div class="principle-chips">
+            <span class="pchip" data-state="scored" style="--pc:#0d6d87"><span class="pchip-code">TR1</span><span class="pchip-score">2</span></span>
+          </div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -982,7 +997,7 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
     <tr class="score-row">
       <td class="code" style="color:#2563eb">TR1</td>
       <td class="score-cell">
-        <span class="score-badge" style="background:#0e749020;color:#0e7490">
+        <span class="score-badge" style="background:#0d6d8720;color:#0d6d87">
           2
         </span>
       </td>
@@ -992,7 +1007,7 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>Source transparency is the first step toward reproducible research. When a tool discloses which databases, publishers, and indices it searches, users can assess whether its coverage is adequate for their discipline and identify potential blind spots. Without this information, researchers cannot evaluate whether the tool&#39;s results are comprehensive or skewed toward particular sources. Look for a dedicated &#39;Sources&#39; or &#39;Coverage&#39; page, or documentation within the tool&#39;s help section. Note: this question evaluates macro-level data scope transparency — understanding the overall boundaries and composition of the tool&#39;s index. It is distinct from TC2 (Source quality indicators), which evaluates item-level metadata enrichment such as retraction warnings and publication type labels on individual search results. This question is not applicable if the tool does not retrieve or aggregate information from external databases, publishers, or indices, functioning solely as a platform for users to search their own internally uploaded or generated content.</p></details>
+      <p>Source transparency is the first step toward reproducible research. When a tool discloses which databases, publishers, and indices it searches, users can assess whether its coverage is adequate for their discipline and identify potential blind spots. Without this information, researchers cannot evaluate whether the tool&#39;s results are comprehensive or skewed toward particular sources. Look for a dedicated &#39;Sources&#39; or &#39;Coverage&#39; page, or documentation within the tool&#39;s help section. Note: this question evaluates macro-level data scope transparency, understanding the overall boundaries and composition of the tool&#39;s index. It is distinct from TC2 (Source quality indicators), which evaluates item-level metadata enrichment such as retraction warnings and publication type labels on individual search results. This question is not applicable if the tool does not retrieve or aggregate information from external databases, publishers, or indices, functioning solely as a platform for users to search their own internally uploaded or generated content.</p></details>
     </td></tr>
   
     <tr class="sr"><td colspan="4" class="sc">
@@ -1021,7 +1036,9 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
             <span class="cat-avg">avg —</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar"><div class="dist-empty">No scores</div></div>
+          <div class="principle-chips">
+            <span class="pchip" data-state="blank" style="--pc:#4c5e74"><span class="pchip-code">RE1</span><span class="pchip-score">·</span></span>
+          </div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -1044,7 +1061,7 @@ N/A is not applicable for web-based tools, which must meet accessibility standar
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>A reliable research tool should produce substantively equivalent answers when given the same query multiple times. High variance — where the same question yields different conclusions, sources, or recommendations on successive runs — undermines trust and makes the tool unsuitable for systematic work. This question evaluates reproducibility by asking the reviewer to submit identical queries and compare the substance of the responses. Small surface-level differences in phrasing are acceptable; substantive differences in claims or conclusions are not.
+      <p>A reliable research tool should produce substantively equivalent answers when given the same query multiple times. High variance (where the same question yields different conclusions, sources, or recommendations on successive runs) undermines trust and makes the tool unsuitable for systematic work. This question evaluates reproducibility by asking the reviewer to submit identical queries and compare the substance of the responses. Small surface-level differences in phrasing are acceptable; substantive differences in claims or conclusions are not.
 
 For deterministic, index-based databases, identical queries should yield identical results. Score 3 if result lists are perfectly stable. Score lower if results fluctuate between repeated runs without a documented update to the underlying index database, which may indicate unstable scraping, caching issues, or unpredictable API routing. Mark this question as N/A if the tool does not accept user queries, requires entirely distinct inputs for each session, or is explicitly designed as a single-use, non-generative utility where repeated iterations are functionally impossible.</p></details>
     </td></tr>
@@ -1075,7 +1092,9 @@ For deterministic, index-based databases, identical queries should yield identic
             <span class="cat-avg">avg —</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar"><div class="dist-empty">No scores</div></div>
+          <div class="principle-chips">
+            <span class="pchip" data-state="blank" style="--pc:#4c5e74"><span class="pchip-code">US1</span><span class="pchip-score">·</span></span>
+          </div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -1098,7 +1117,7 @@ For deterministic, index-based databases, identical queries should yield identic
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>Research is a multi-tool workflow: search results need to flow into reference managers, citation tools, and writing environments. A tool that traps results in a silo — with no export or integration options — creates friction and discourages systematic use. This question evaluates whether and how well the tool connects to established academic workflows. Look for export formats (BibTeX, RIS, CSV), direct integrations (Zotero, EndNote, Mendeley), API access, or browser extension support. This question is N/A if the tool does not generate or manage individual search results or citations (e.g., a writing environment, flashcard app, or grammar checker) that would need to be exported to a reference manager.</p></details>
+      <p>Research is a multi-tool workflow: search results need to flow into reference managers, citation tools, and writing environments. A tool that traps results in a silo (with no export or integration options) creates friction and discourages systematic use. This question evaluates whether and how well the tool connects to established academic workflows. Look for export formats (BibTeX, RIS, CSV), direct integrations (Zotero, EndNote, Mendeley), API access, or browser extension support. This question is N/A if the tool does not generate or manage individual search results or citations (e.g., a writing environment, flashcard app, or grammar checker) that would need to be exported to a reference manager.</p></details>
     </td></tr>
   
     <tr class="sr"><td colspan="4" class="sc">
@@ -1127,7 +1146,9 @@ For deterministic, index-based databases, identical queries should yield identic
             <span class="cat-avg">avg —</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar"><div class="dist-empty">No scores</div></div>
+          <div class="principle-chips">
+            <span class="pchip" data-state="blank" style="--pc:#4c5e74"><span class="pchip-code">SE1</span><span class="pchip-score">·</span></span><span class="pchip" data-state="blank" style="--pc:#4c5e74"><span class="pchip-code">SE2</span><span class="pchip-score">·</span></span>
+          </div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -1150,7 +1171,7 @@ For deterministic, index-based databases, identical queries should yield identic
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>Search tools can systematically favor certain perspectives, languages, regions, or publication venues — often reflecting biases in their training data, indexing sources, or ranking algorithms. In academic search, this can manifest as over-representation of English-language, Western-published, or high-impact-journal sources at the expense of research from the Global South, non-English publications, or smaller venues. This question evaluates whether the tool&#39;s index and ranking produce equitable, geographically diverse results. Test with queries that should return diverse geographic and linguistic results. This question is not applicable if the tool is a highly specialized, closed-domain database containing only a single known source or geographic focus (such as an internal institutional repository or a narrow legal database) where bibliographic diversity is structurally impossible.</p></details>
+      <p>Search tools can systematically favor certain perspectives, languages, regions, or publication venues, often reflecting biases in their training data, indexing sources, or ranking algorithms. In academic search, this can manifest as over-representation of English-language, Western-published, or high-impact-journal sources at the expense of research from the Global South, non-English publications, or smaller venues. This question evaluates whether the tool&#39;s index and ranking produce equitable, geographically diverse results. Test with queries that should return diverse geographic and linguistic results. This question is not applicable if the tool is a highly specialized, closed-domain database containing only a single known source or geographic focus (such as an internal institutional repository or a narrow legal database) where bibliographic diversity is structurally impossible.</p></details>
     </td></tr>
   
     <tr class="sr"><td colspan="4" class="sc">
@@ -1175,7 +1196,7 @@ For deterministic, index-based databases, identical queries should yield identic
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>Beyond the basic privacy policy (covered by the quality gate), this question evaluates the depth and specificity of the tool&#39;s data handling practices. Researchers need to know exactly how long their data is retained, whether it is encrypted, what happens in case of a breach, and whether they can export or delete their data. Strong data handling practices are especially important for tools used in institutional settings where data governance policies may apply. Look for specifics — not just &#39;we protect your data&#39; but actual retention periods, encryption standards, and breach notification timelines. Note: this question extends the data privacy quality gate (QG1) — while QG1 is a pass/fail check on whether the vendor commits to not selling or sharing user data, this scoring question evaluates the depth and specificity of those commitments (retention periods, encryption standards, breach protocols).
+      <p>Beyond the basic privacy policy (covered by the quality gate), this question evaluates the depth and specificity of the tool&#39;s data handling practices. Researchers need to know exactly how long their data is retained, whether it is encrypted, what happens in case of a breach, and whether they can export or delete their data. Strong data handling practices are especially important for tools used in institutional settings where data governance policies may apply. Look for specifics, not just &#39;we protect your data&#39; but actual retention periods, encryption standards, and breach notification timelines. Note: this question extends the data privacy quality gate (QG1), while QG1 is a pass/fail check on whether the vendor commits to not selling or sharing user data, this scoring question evaluates the depth and specificity of those commitments (retention periods, encryption standards, breach protocols).
 
 This question is not applicable if the tool operates entirely offline on local infrastructure and is designed so that no user data is ever collected, transmitted, or stored by the provider.</p></details>
     </td></tr>
@@ -1206,7 +1227,9 @@ This question is not applicable if the tool operates entirely offline on local i
             <span class="cat-avg">avg —</span>
             <span class="cat-evidence">0 evidence</span>
           </div>
-          <div class="dist-bar"><div class="dist-empty">No scores</div></div>
+          <div class="principle-chips">
+            <span class="pchip" data-state="blank" style="--pc:#4c5e74"><span class="pchip-code">TC1</span><span class="pchip-score">·</span></span><span class="pchip" data-state="blank" style="--pc:#4c5e74"><span class="pchip-code">TC2</span><span class="pchip-score">·</span></span>
+          </div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -1229,13 +1252,13 @@ This question is not applicable if the tool operates entirely offline on local i
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>The depth of source linking determines how efficiently a researcher can verify claims and locate original material. A tool that links to a journal homepage requires the user to manually search for the specific article; a tool that links directly to the relevant passage saves significant time and enables precise verification. This question evaluates the granularity of citation links — from broken links (worst) to paragraph-level deep links (best). Test by clicking citations in the tool&#39;s output and noting where they lead. This question is N/A if the tool&#39;s output does not include any citations or source references to evaluate.</p></details>
+      <p>The depth of source linking determines how efficiently a researcher can verify claims and locate original material. A tool that links to a journal homepage requires the user to manually search for the specific article; a tool that links directly to the relevant passage saves significant time and enables precise verification. This question evaluates the granularity of citation links, from broken links (worst) to paragraph-level deep links (best). Test by clicking citations in the tool&#39;s output and noting where they lead. This question is N/A if the tool&#39;s output does not include any citations or source references to evaluate.</p></details>
     </td></tr>
   
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Examples</summary>
       <table class="et">
-        <tr><td class="el">0</td><td>The tool shows reference numbers in its output, but clicking them does nothing — there are no hyperlinks. Alternatively, the links exist but resolve to 404 error pages or redirect to the tool&#39;s own homepage.</td></tr><tr><td class="el">1</td><td>Clicking the superscript &quot;[1]&quot; citation link redirects to nature.com instead of the specific paper. To find the text &quot;quantum entanglement,&quot; the user must independently search the journal&#39;s homepage. The system fails to resolve the DOI for the source document.</td></tr><tr><td class="el">2</td><td>Each citation links directly to the article&#39;s abstract page on the publisher&#39;s site (e.g., doi.org/10.1038/s41586-023-12345). The user can immediately access the paper&#39;s metadata and abstract.</td></tr><tr><td class="el">3</td><td>Citations link to the exact passage within the source document that supports the claim — for example, a specific page in a PDF or a highlighted paragraph in an open-access article. The tool uses RAG (Retrieval-Augmented Generation) with passage-level attribution.</td></tr>
+        <tr><td class="el">0</td><td>The tool shows reference numbers in its output, but clicking them does nothing; there are no hyperlinks. Alternatively, the links exist but resolve to 404 error pages or redirect to the tool&#39;s own homepage.</td></tr><tr><td class="el">1</td><td>Clicking the superscript &quot;[1]&quot; citation link redirects to nature.com instead of the specific paper. To find the text &quot;quantum entanglement,&quot; the user must independently search the journal&#39;s homepage. The system fails to resolve the DOI for the source document.</td></tr><tr><td class="el">2</td><td>Each citation links directly to the article&#39;s abstract page on the publisher&#39;s site (e.g., doi.org/10.1038/s41586-023-12345). The user can immediately access the paper&#39;s metadata and abstract.</td></tr><tr><td class="el">3</td><td>Citations link to the exact passage within the source document that supports the claim, for example, a specific page in a PDF or a highlighted paragraph in an open-access article. The tool uses RAG (Retrieval-Augmented Generation) with passage-level attribution.</td></tr>
       </table></details>
     </td></tr>
   
@@ -1254,13 +1277,13 @@ This question is not applicable if the tool operates entirely offline on local i
     
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Background</summary>
-      <p>Not all academic sources are equal: papers may be retracted, published in predatory journals, or exist only as non-peer-reviewed preprints. A tool that treats all sources identically — without any quality indicators — makes it harder for researchers to assess the reliability of the evidence behind a claim. This question evaluates whether the tool provides contextual quality metadata such as retraction status, peer-review labels, citation counts, and publication type. Look for quality badges, labels, or metadata near each cited source. Note: this question evaluates item-level metadata enrichment — whether the tool warns the user about the status of individual papers during search (e.g., retraction notices, publication type labels). It is distinct from TR1 (Data source clarity), which evaluates macro-level scope transparency about what the tool&#39;s index contains. Mark this question as N/A if the tool does not retrieve or cite individual academic sources (such as papers or preprints), or if it functions exclusively as a generalized search engine without the capacity to extract and display specific publication metadata.</p></details>
+      <p>Not all academic sources are equal: papers may be retracted, published in predatory journals, or exist only as non-peer-reviewed preprints. A tool that treats all sources identically (without any quality indicators) makes it harder for researchers to assess the reliability of the evidence behind a claim. This question evaluates whether the tool provides contextual quality metadata such as retraction status, peer-review labels, citation counts, and publication type. Look for quality badges, labels, or metadata near each cited source. Note: this question evaluates item-level metadata enrichment, whether the tool warns the user about the status of individual papers during search (e.g., retraction notices, publication type labels). It is distinct from TR1 (Data source clarity), which evaluates macro-level scope transparency about what the tool&#39;s index contains. Mark this question as N/A if the tool does not retrieve or cite individual academic sources (such as papers or preprints), or if it functions exclusively as a generalized search engine without the capacity to extract and display specific publication metadata.</p></details>
     </td></tr>
   
     <tr class="sr"><td colspan="4" class="sc">
       <details><summary class="ss">Examples</summary>
       <table class="et">
-        <tr><td class="el">0</td><td>The tool cites a paper that was retracted in 2022 due to data fabrication, with no indication of the retraction. It also includes sources from a known predatory publisher on Beall&#39;s list, presented identically to legitimate journal articles.</td></tr><tr><td class="el">1</td><td>All cited sources appear with the same formatting and no quality labels. There is no distinction between a Nature peer-reviewed article, a preprint on arXiv, and a blog post — all look equally authoritative in the tool&#39;s output.</td></tr><tr><td class="el">2</td><td>Each source is labeled as either &#39;Peer-reviewed article&#39;, &#39;Preprint&#39;, &#39;Conference paper&#39;, or &#39;Thesis&#39;. The tool filters out known predatory journals but does not show citation counts or retraction status.</td></tr><tr><td class="el">3</td><td>Each cited source displays: a &#39;Peer-reviewed&#39; or &#39;Preprint&#39; badge, the citation count from Semantic Scholar, a retraction warning flag (e.g., &#39;This paper was retracted on 2024-01-15&#39;), an &#39;Open Access&#39; icon when the full text is freely available, and the journal&#39;s impact factor quartile.</td></tr>
+        <tr><td class="el">0</td><td>The tool cites a paper that was retracted in 2022 due to data fabrication, with no indication of the retraction. It also includes sources from a known predatory publisher on Beall&#39;s list, presented identically to legitimate journal articles.</td></tr><tr><td class="el">1</td><td>All cited sources appear with the same formatting and no quality labels. There is no distinction between a Nature peer-reviewed article, a preprint on arXiv, and a blog post; all look equally authoritative in the tool&#39;s output.</td></tr><tr><td class="el">2</td><td>Each source is labeled as either &#39;Peer-reviewed article&#39;, &#39;Preprint&#39;, &#39;Conference paper&#39;, or &#39;Thesis&#39;. The tool filters out known predatory journals but does not show citation counts or retraction status.</td></tr><tr><td class="el">3</td><td>Each cited source displays: a &#39;Peer-reviewed&#39; or &#39;Preprint&#39; badge, the citation count from Semantic Scholar, a retraction warning flag (e.g., &#39;This paper was retracted on 2024-01-15&#39;), an &#39;Open Access&#39; icon when the full text is freely available, and the journal&#39;s impact factor quartile.</td></tr>
       </table></details>
     </td></tr>
   

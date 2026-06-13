@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import type { ReviewFinalization } from "@/lib/types";
 import { GRADE_LABELS } from "@/lib/report/compute-scores";
+import type { ReviewFinalization } from "@/lib/types";
 
 interface ExportCompleteScreenProps {
   captures: number;

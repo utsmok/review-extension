@@ -3,7 +3,11 @@ import { RUBRIC_DATA } from "@/data/rubrics";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { downloadBlob, sanitizeFilename } from "@/lib/export";
 import { getVisibleRubricQuestionIds } from "@/lib/rubric";
-import { exportAllSessions, exportSessionById, importSessionFromZipFile } from "@/lib/session-lifecycle";
+import {
+  exportAllSessions,
+  exportSessionById,
+  importSessionFromZipFile,
+} from "@/lib/session-lifecycle";
 import { getRepository } from "@/lib/session-repository";
 import type { SessionMetadata } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
@@ -83,11 +87,7 @@ export default function SessionManager() {
       toastSuccess(`Exported ${sessions.length} reviews`);
     } catch (err) {
       console.error("Batch export failed:", err);
-      toastError(
-        err instanceof Error
-          ? err.message
-          : "Could not export reviews. Try again.",
-      );
+      toastError(err instanceof Error ? err.message : "Could not export reviews. Try again.");
     } finally {
       setExportingAll(false);
     }

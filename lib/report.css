@@ -15,9 +15,12 @@
   --score-2: #0e7490;
   --score-3: #4a8355;
   --score-0-tint: color-mix(in srgb, var(--score-0) 6%, var(--white));
-  --ff-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --ff-heading: "Arial Narrow", Arial, Helvetica, sans-serif;
-  --ff-mono: "JetBrains Mono", "Cascadia Code", "Fira Code", ui-monospace, monospace;
+  --ff-body: "Inter", "Segoe UI", "Helvetica Neue", system-ui, -apple-system, Arial, sans-serif;
+  --ff-heading:
+    "Arial Narrow", "Roboto Condensed", "Open Sans Condensed", Arial, "Helvetica Neue", sans-serif;
+  --ff-mono:
+    "JetBrains Mono", "Cascadia Code", "Fira Code", "DejaVu Sans Mono", Menlo, Consolas,
+    ui-monospace, monospace;
   /* Spacing scale — systematic rhythm for major sections */
   --rs-3xl: 40px;
   --rs-2xl: 28px;
@@ -188,7 +191,7 @@ img {
   gap: 6px;
   align-items: center;
   margin-bottom: var(--rs-md);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
 }
 .legend-label {
   font-family: var(--ff-heading);
@@ -241,30 +244,48 @@ img {
   border-top: 1px solid var(--border);
 }
 
-/* Distribution bar */
-.dist-bar {
+/* Principle chips — at-a-glance per-question score + evidence marker */
+.principle-chips {
   display: flex;
-  height: 10px;
-  background: var(--panel);
-  border-radius: 2px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  overflow: hidden;
-  margin-top: 4px;
-  print-color-adjust: exact;
-  -webkit-print-color-adjust: exact;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: var(--rs-2xs);
 }
-.dist-seg {
-  min-width: 2px;
-  print-color-adjust: exact;
-  -webkit-print-color-adjust: exact;
-}
-.dist-empty {
-  display: flex;
+.pchip {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  border: 1px solid color-mix(in srgb, var(--pc) 35%, var(--border));
+  background: color-mix(in srgb, var(--pc) 8%, var(--white));
+  font-family: var(--ff-mono);
   font-size: 0.7rem;
-  color: var(--slate);
+  line-height: 1.3;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.pchip-code {
+  color: var(--muted);
+  font-weight: 700;
+}
+.pchip-score {
+  color: var(--pc);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.pchip-ev {
+  padding: 0 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--pc) 20%, var(--white));
+  color: var(--pc);
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+.pchip[data-state="blank"] .pchip-score,
+.pchip[data-state="na"] .pchip-score,
+.pchip[data-state="unsure"] .pchip-score {
+  color: var(--muted);
 }
 
 /* Verdict */
@@ -272,17 +293,10 @@ img {
   height: 6px;
   margin-top: var(--rs-sm);
 }
-.dist-labels {
-  display: flex;
-  gap: 6px;
-  font-size: 0.7rem;
-  font-family: var(--ff-mono);
-  font-weight: 700;
-  margin-top: 2px;
-}
 .verdict-block {
   text-align: center;
   padding: var(--rs-lg) 0;
+  background: color-mix(in srgb, var(--verdict-color, transparent) 8%, white);
 }
 .verdict-label {
   font-size: 0.75rem;
@@ -358,6 +372,8 @@ img {
   font-size: 0.8rem;
   color: var(--text);
   margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .report-meta-value--muted {
   color: var(--muted);
@@ -378,7 +394,7 @@ img {
   text-transform: uppercase;
   letter-spacing: var(--ls-heading, 0.03em);
   color: var(--magenta);
-  margin: var(--rs-sm) 0 var(--rs-2xs);
+  margin: var(--rs-sm) 0 var(--rs-xs);
   font-size: 1rem;
   text-wrap: balance;
 }
@@ -416,6 +432,7 @@ table th {
 .qg-table td {
   padding: 4px 6px;
   border-bottom: 1px solid var(--panel);
+  vertical-align: top;
 }
 .qg-table .code {
   font-family: var(--ff-mono);
@@ -530,11 +547,11 @@ table th {
 }
 .category-section .level {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 .category-section .notes {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -556,8 +573,8 @@ table th {
 }
 
 .evidence-row td {
-  padding: 0 var(--rs-xs) var(--rs-xs) 52px !important;
-  border-bottom: none !important;
+  padding: 0 var(--rs-xs) var(--rs-xs) 52px;
+  border-bottom: none;
 }
 .evidence-list {
   display: flex;
@@ -586,7 +603,7 @@ table th {
   border-radius: 2px;
 }
 .evidence-meta {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   min-width: 0;
   flex: 1;
   display: flex;
@@ -655,17 +672,18 @@ table th {
 }
 
 .sr td {
-  border-bottom: none !important;
+  border-bottom: none;
 }
-.sc {
-  padding: 2px 8px 2px 52px !important;
+td.sc {
+  padding: 2px 8px 2px 52px;
 }
+
 .sc details {
   font-size: 0.75rem;
 }
 .ss {
   font-family: var(--ff-mono);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -679,10 +697,13 @@ table th {
   border-radius: 3px;
   transition: background 0.15s;
 }
-.ss:hover,
+.ss:hover {
+  background: var(--panel);
+}
 .ss:focus-visible {
   background: var(--panel);
-  outline: none;
+  outline: 2px solid var(--navy);
+  outline-offset: 1px;
 }
 .ss::-webkit-details-marker {
   display: none;
@@ -706,7 +727,7 @@ table th {
 }
 .et td {
   padding: 3px 6px;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   border-bottom: 1px solid var(--panel);
 }
 .el {
@@ -721,7 +742,7 @@ table th {
 .unlinked-section {
   border-top: 2px solid var(--magenta);
   padding-top: var(--rs-md);
-  margin-bottom: var(--rs-xl);
+  margin-bottom: var(--rs-lg);
 }
 .unlinked-section h2 {
   font-family: var(--ff-heading);
@@ -861,7 +882,7 @@ table th {
   max-width: 400px;
 }
 .nutrition-status {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--slate);
   text-align: center;
   margin-top: 2px;
@@ -949,7 +970,7 @@ table th {
 }
 .nutrition-principles-table th {
   padding: 6px 4px;
-  vertical-align: middle;
+  vertical-align: top;
   text-align: center;
   font-weight: normal;
 }
@@ -1032,7 +1053,7 @@ table th {
 .nutrition-sw-list {
   margin: 0;
   padding-left: var(--rs-lg);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--muted);
   line-height: 1.55;
 }
@@ -1041,7 +1062,7 @@ table th {
 }
 .nutrition-sw-empty {
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-style: italic;
 }
 .nutrition-sw-divider {
@@ -1355,8 +1376,13 @@ table th {
 
 /* ── Print ─────────────────────────────────────────────────────── */
 @media print {
+  @page {
+    /* biome-ignore lint/suspicious/noShorthandPropertyOverrides: @page margin is the only way to set page margins */
+    margin: 1.5cm 1cm;
+  }
+
   html {
-    font-size: 12px;
+    font-size: 13px;
   }
   body {
     max-width: none;
@@ -1442,11 +1468,6 @@ table th {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  .dist-bar,
-  .dist-seg {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
 
   /* Ensure nutrition label colors print */
   .nutrition-label {
@@ -1483,6 +1504,13 @@ table th {
   .category-section {
     page-break-inside: avoid;
   }
+  /* biome-ignore lint/style/noDescendingSpecificity: print-only break guard; sets break-inside, distinct from border-top rules on tr */
+  tr {
+    break-inside: avoid;
+  }
+  thead {
+    display: table-header-group;
+  }
   .finalization-section {
     page-break-inside: avoid;
   }
@@ -1503,9 +1531,7 @@ table th {
   .footer {
     font-size: 0.7rem;
   }
-  .toc {
-    page-break-after: avoid;
-  }
+
   /* Business card print: exact credit-card size */
   .bc-card {
     width: 85.6mm;
@@ -1517,14 +1543,6 @@ table th {
     border: 0.5pt solid #000;
     box-shadow: none;
     page-break-inside: avoid;
-  }
-  @page {
-    margin: 0;
-    size: 85.6mm 54mm;
-  }
-
-  @page {
-    margin: 1.5cm 1cm;
   }
 }
 /* ── Business Card Label ─────────────────────────────────────────── */
@@ -1541,6 +1559,9 @@ table th {
   border-radius: 6px;
   box-sizing: border-box;
   aspect-ratio: 85.6 / 54;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 .bc-header {
   display: flex;
@@ -1554,7 +1575,7 @@ table th {
 }
 .bc-tagline {
   font-size: 9px;
-  color: #6b7f94;
+  color: #5a6d7f;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -1577,7 +1598,7 @@ table th {
 }
 .bc-tool-url {
   font-size: 9px;
-  color: #6b7f94;
+  color: #5a6d7f;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1629,7 +1650,7 @@ table th {
   flex-direction: column;
   align-items: center;
   gap: 1px;
-  color: var(--bc-pcolor, #6b7f94);
+  color: var(--bc-pcolor, #5a6d7f);
 }
 .bc-pcode {
   font-weight: 700;
@@ -1649,7 +1670,7 @@ table th {
   display: flex;
   justify-content: space-between;
   font-size: 8px;
-  color: #6b7f94;
+  color: #5a6d7f;
 }
 
 /* Screen-reader only utility */
@@ -1663,4 +1684,11 @@ table th {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+.fin-detail-note {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-style: italic;
+  margin: var(--rs-2xs) 0 var(--rs-md);
 }

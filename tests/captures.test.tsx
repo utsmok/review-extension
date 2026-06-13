@@ -107,6 +107,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   cleanup();
 });
 
@@ -190,7 +191,6 @@ describe("Captures", () => {
     // One capture should remain
     const images = screen.getAllByRole("img");
     expect(images).toHaveLength(1);
-    vi.useRealTimers();
   });
 
   it("switches to list view", () => {

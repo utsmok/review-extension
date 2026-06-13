@@ -1,15 +1,24 @@
 import { RUBRIC_DATA } from "@/data/rubrics";
-import { assembleBatchZip, prepareExportArtifacts } from "@/lib/export-pipeline";
-import type { ExportArtifacts, ReviewerInfo } from "@/lib/export-pipeline";
 import { exportSession, importSessionFromZip } from "@/lib/export";
+import type { ExportArtifacts, ReviewerInfo } from "@/lib/export-pipeline";
+import { assembleBatchZip, prepareExportArtifacts } from "@/lib/export-pipeline";
 import { deleteScreenshotsForCaptures, saveScreenshot } from "@/lib/screenshot-store";
 import { getRepository } from "@/lib/session-repository";
-import type { SessionData, SessionMetadata } from "@/lib/types";
+import type { Capture, SessionData, SessionMetadata } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { type SessionState, useSessionStore } from "@/stores/session";
 import { toastError, toastWarning } from "@/stores/toast";
 
-// --- Auto-save singleton state ---
+/** Strip heavy screenshot data from captures before persisting to session IDB.
+ *  Screenshots live in the separate screenshot IDB store. */
+function stripScreenshots(captures: Capture[]): Capture[] {
+  return captures.map((c) => ({
+    ...c,
+    screenshotBase64: "",
+    annotatedScreenshotBase64: undefined as string | undefined,
+  }));
+}
+
 let autoSaveTimerRef: ReturnType<typeof setTimeout> | undefined;
 let autoSaveScheduledSessionId: string | null = null;
 let autoSaveUnsub: (() => void) | null = null;
@@ -32,11 +41,7 @@ function computeSignature(state: SessionState): string {
     ]);
 
   // Capture content (exclude heavy screenshot fields)
-  const captureDigest = state.captures.map((c) => [
-    c.id,
-    c.notes,
-    c.metadataField ?? "",
-  ]);
+  const captureDigest = state.captures.map((c) => [c.id, c.notes, c.metadataField ?? ""]);
 
   // Session metadata (user-editable text fields)
   const s = state.session;
@@ -101,8 +106,7 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
   }
   lastSaveTime = Date.now();
 
-  const { session: s, captures: c, evaluations: e, finalization: f } =
-    useSessionStore.getState();
+  const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
   const activeId = useRegistryStore.getState().activeSessionId;
   // Guard: skip if session switched between schedule and flush to prevent
   // a stale debounced save from overwriting the new session's data.
@@ -117,11 +121,7 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
         await saveScreenshot(cap);
       }
     }
-    const strippedCaptures = c.map((cap) => ({
-      ...cap,
-      screenshotBase64: "",
-      annotatedScreenshotBase64: undefined,
-    }));
+    const strippedCaptures = stripScreenshots(c);
     const ok = await getRepository().save(activeId, {
       metadata: s,
       captures: strippedCaptures,
@@ -134,7 +134,7 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
       );
       lastSaveSignature = null;
     } else {
-      toastWarning("Auto-save failed — your work may not be saved.");
+      toastWarning("Auto-save failed; your work may not be saved.");
       document.dispatchEvent(new CustomEvent("trust-save-failed"));
     }
   }
@@ -212,16 +212,11 @@ async function saveCurrentScreenshots(): Promise<void> {
 
 /** Snapshot current session store state as SessionData, stripping heavy screenshot data. */
 function snapshot(): SessionData | null {
-  const { session, captures, evaluations, finalization, quickNotes } =
-    useSessionStore.getState();
+  const { session, captures, evaluations, finalization, quickNotes } = useSessionStore.getState();
   if (!session) return null;
   // Strip heavy screenshot data from captures before saving to session IDB.
   // Screenshots live in the separate screenshot IDB store.
-  const strippedCaptures = captures.map((c) => ({
-    ...c,
-    screenshotBase64: "",
-    annotatedScreenshotBase64: undefined,
-  }));
+  const strippedCaptures = stripScreenshots(captures);
   return {
     metadata: session,
     captures: strippedCaptures,
@@ -385,11 +380,7 @@ export async function importSessionFromZipFile(zipBlob: Blob): Promise<string> {
   }
 
   // Strip screenshots before saving to session IDB
-  const strippedCaptures = data.captures.map((c) => ({
-    ...c,
-    screenshotBase64: "",
-    annotatedScreenshotBase64: undefined as string | undefined,
-  }));
+  const strippedCaptures = stripScreenshots(data.captures);
   await getRepository().save(id, { ...data, captures: strippedCaptures });
   useRegistryStore.getState().addSession(data.metadata);
   return id;

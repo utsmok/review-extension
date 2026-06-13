@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it } from "vitest";
 import "fake-indexeddb/auto";
 import {
-  saveScreenshot,
-  loadScreenshot,
-  loadAllScreenshots,
-  deleteScreenshot,
-  saveAnnotatedScreenshot,
-  deleteScreenshotsForCaptures,
   deleteAllScreenshots,
+  deleteScreenshot,
+  deleteScreenshotsForCaptures,
+  loadAllScreenshots,
+  loadScreenshot,
+  saveAnnotatedScreenshot,
+  saveScreenshot,
 } from "@/lib/screenshot-store";
 import type { Capture } from "@/lib/types";
 

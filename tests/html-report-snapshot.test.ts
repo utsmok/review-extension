@@ -62,5 +62,4 @@ describe("HTML report snapshot", () => {
     const html = await buildHtmlReport(metadata, captures, evaluations, RUBRIC, null);
     expect(html).toMatchSnapshot();
   });
-
 });

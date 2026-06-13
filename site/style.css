@@ -305,7 +305,6 @@ body {
   font-size: 0.85rem;
 }
 
-
 /* ===== Comparison Table ===== */
 .comparison-table {
   width: 100%;
@@ -424,7 +423,6 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-
 /* ===== Tools Table ===== */
 .tools-table {
   width: 100%;
@@ -457,9 +455,18 @@ body {
   font-size: 0.75rem;
   font-weight: 700;
 }
-.tools-table .score-pill.high { background: #dcfce7; color: #166534; }
-.tools-table .score-pill.mid { background: #fef9c3; color: #854d0e; }
-.tools-table .score-pill.low { background: #fce7f3; color: #9d174d; }
+.tools-table .score-pill.high {
+  background: #dcfce7;
+  color: #166534;
+}
+.tools-table .score-pill.mid {
+  background: #fef9c3;
+  color: #854d0e;
+}
+.tools-table .score-pill.low {
+  background: #fce7f3;
+  color: #9d174d;
+}
 .status-badge {
   display: inline-block;
   padding: 2px 8px;
@@ -467,9 +474,18 @@ body {
   font-size: 0.75rem;
   font-weight: 600;
 }
-.status-badge.done { background: #dcfce7; color: #166534; }
-.status-badge.in-progress { background: #dbeafe; color: #1e40af; }
-.status-badge.nominated { background: #f3e8ff; color: #6b21a8; }
+.status-badge.done {
+  background: #dcfce7;
+  color: #166534;
+}
+.status-badge.in-progress {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.status-badge.nominated {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
 
 /* ===== Compare Page ===== */
 .upload-zone {
@@ -479,7 +495,9 @@ body {
   text-align: center;
   color: var(--ut-muted);
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
 }
 .upload-zone:hover,
 .upload-zone.dragover {

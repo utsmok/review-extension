@@ -116,9 +116,15 @@ describe("computeReportScores — property invariants", () => {
   it("maintains invariants with random finalization overrides", () => {
     const rng = mulberry32(SEED + 1);
     const grades: ReviewFinalization["grade"][] = [
-      "pass", "conditional", "fail",
-      "recommended", "recommended_with_caveats", "needs_review",
-      "pilot_only", "not_recommended", "out_of_scope",
+      "pass",
+      "conditional",
+      "fail",
+      "recommended",
+      "recommended_with_caveats",
+      "needs_review",
+      "pilot_only",
+      "not_recommended",
+      "out_of_scope",
     ];
 
     for (let i = 0; i < 200; i++) {

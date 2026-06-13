@@ -51,9 +51,7 @@ const AI_ASSISTANT_QUERIES: TestQuery[] = [
   },
 ];
 
-export function getSuggestedQueries(
-  category: ToolProfile["category"],
-): TestQuery[] {
+export function getSuggestedQueries(category: ToolProfile["category"]): TestQuery[] {
   switch (category) {
     case "academic_search":
     case "database":

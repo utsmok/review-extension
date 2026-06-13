@@ -1,7 +1,6 @@
 import { bench, describe } from "vitest";
 import {
   computeCompletion,
-  distributionBar,
   getCategoryScores,
   getLinkedRubricIdsForCapture,
   getRubricQuestionIds,
@@ -93,16 +92,6 @@ describe("scoreColor", () => {
     scoreColor("na");
     scoreColor("unsure");
     scoreColor(undefined);
-  });
-});
-
-describe("distributionBar", () => {
-  bench("mixed scores", () => {
-    distributionBar([0, 1, 2, 3, 2, 1, 0, 3, 2, 1]);
-  });
-
-  bench("empty scores", () => {
-    distributionBar([]);
   });
 });
 

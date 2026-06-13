@@ -56,7 +56,7 @@ vi.mock("@/lib/session-lifecycle", () => ({
   deleteSession: vi.fn(),
   initAutoSave: vi.fn(),
   teardownAutoSave: vi.fn(),
-}))
+}));
 
 // Mock session-repository to avoid IndexedDB
 vi.mock("@/lib/session-repository", () => ({
@@ -102,6 +102,7 @@ describe("EvidenceModal", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     cleanup();
   });
 
@@ -136,7 +137,6 @@ describe("EvidenceModal", () => {
     });
 
     expect(onClose).toHaveBeenCalledOnce();
-    vi.useRealTimers();
   });
 
   it("calls onClose on Escape key", () => {
@@ -152,7 +152,6 @@ describe("EvidenceModal", () => {
     });
 
     expect(onClose).toHaveBeenCalledOnce();
-    vi.useRealTimers();
   });
 
   it("renders the dialog with correct aria attributes", () => {

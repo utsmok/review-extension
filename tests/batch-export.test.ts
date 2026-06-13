@@ -38,23 +38,23 @@ describe("assembleBatchZip", () => {
     const manifest = JSON.parse(manifestRaw);
     expect(manifest.version).toBe(1);
     expect(manifest.sessionCount).toBe(2);
-    expect(manifest.exportDate).toBeTruthy();
+    expect(manifest.exportDate).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(manifest.sessions).toHaveLength(2);
     expect(manifest.sessions[0]).toEqual({ toolName: "Tool A", grade: "pass" });
     expect(manifest.sessions[1]).toEqual({ toolName: "Tool B", grade: "not finalized" });
 
     // Folder structure — spaces preserved by sanitizeFilename
-    expect(zip.folder("Tool A")).toBeTruthy();
-    expect(zip.folder("Tool B")).toBeTruthy();
+    expect(zip.folder("Tool A")).toBeDefined();
+    expect(zip.folder("Tool B")).toBeDefined();
 
     // Files inside each folder
     const folderA = zip.folder("Tool A")!;
-    expect(folderA.file("session_metadata.csv")).toBeTruthy();
-    expect(folderA.file("rubric_scores.csv")).toBeTruthy();
-    expect(folderA.file("capture_log.csv")).toBeTruthy();
-    expect(folderA.file("session.json")).toBeTruthy();
-    expect(folderA.file("Evaluation_Report_Test.html")).toBeTruthy();
-    expect(folderA.file("TRUST_Label_Test.html")).toBeTruthy();
+    expect(folderA.file("session_metadata.csv")).not.toBeNull();
+    expect(folderA.file("rubric_scores.csv")).not.toBeNull();
+    expect(folderA.file("capture_log.csv")).not.toBeNull();
+    expect(folderA.file("session.json")).not.toBeNull();
+    expect(folderA.file("Evaluation_Report_Test.html")).not.toBeNull();
+    expect(folderA.file("TRUST_Label_Test.html")).not.toBeNull();
     // No conclusions CSV when null
     expect(folderA.file("review_conclusions.csv")).toBeNull();
   });
@@ -63,12 +63,14 @@ describe("assembleBatchZip", () => {
     const artifacts = makeArtifacts({
       conclusionsCsv: "strengths,weaknesses\nGood,Bad",
     });
-    const sessions = [{ artifacts, toolName: "Concluded Tool", grade: "pass" as string | undefined }];
+    const sessions = [
+      { artifacts, toolName: "Concluded Tool", grade: "pass" as string | undefined },
+    ];
 
     const blob = await assembleBatchZip(sessions);
     const zip = await JSZip.loadAsync(await blob.arrayBuffer());
     const folder = zip.folder("Concluded Tool")!;
-    expect(folder.file("review_conclusions.csv")).toBeTruthy();
+    expect(folder.file("review_conclusions.csv")).not.toBeNull();
   });
 
   it("includes capture HTML files inside session folder", async () => {
@@ -80,6 +82,6 @@ describe("assembleBatchZip", () => {
     const blob = await assembleBatchZip(sessions);
     const zip = await JSZip.loadAsync(await blob.arrayBuffer());
     const folder = zip.folder("WithCaptures")!;
-    expect(folder.file("abc12345.html")).toBeTruthy();
+    expect(folder.file("abc12345.html")).not.toBeNull();
   });
 });

@@ -65,6 +65,7 @@ describe("FinalizationScreen autosave", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     cleanup();
   });
 
@@ -89,8 +90,6 @@ describe("FinalizationScreen autosave", () => {
     expect(fin?.grade).toBe("pass");
     // Autosave does NOT set finalizedAt
     expect(fin?.finalizedAt).toBe("");
-
-    vi.useRealTimers();
   });
 
   it("autosaves text fields after 50ms debounce", () => {
@@ -121,8 +120,6 @@ describe("FinalizationScreen autosave", () => {
     const fin = useSessionStore.getState().finalization;
     expect(fin).not.toBeNull();
     expect(fin?.conclusion).toBe("Great tool");
-
-    vi.useRealTimers();
   });
 
   it("does NOT autosave when grade is empty", () => {
@@ -143,8 +140,6 @@ describe("FinalizationScreen autosave", () => {
     });
 
     expect(useSessionStore.getState().finalization).toBeNull();
-
-    vi.useRealTimers();
   });
 
   it("explicit Save sets finalizedAt", () => {
@@ -167,8 +162,6 @@ describe("FinalizationScreen autosave", () => {
     expect(fin).not.toBeNull();
     expect(fin?.finalizedAt).not.toBe("");
     expect(new Date(fin?.finalizedAt ?? "").getTime()).not.toBeNaN();
-
-    vi.useRealTimers();
   });
 
   it("autosave preserves existing finalizedAt from explicit Save", () => {
@@ -199,8 +192,6 @@ describe("FinalizationScreen autosave", () => {
     expect(fin).not.toBeNull();
     expect(fin?.conclusion).toBe("Updated");
     expect(fin?.finalizedAt).toBe("2025-06-15T12:00:00.000Z");
-
-    vi.useRealTimers();
   });
 
   it("shows Finalized banner only when finalizedAt is set", () => {
@@ -224,8 +215,6 @@ describe("FinalizationScreen autosave", () => {
 
     // Banner should show now
     expect(screen.getByText(/Finalized/)).toBeDefined();
-
-    vi.useRealTimers();
   });
 
   it("debounces rapid changes — last value wins", () => {
@@ -252,8 +241,6 @@ describe("FinalizationScreen autosave", () => {
     const fin = useSessionStore.getState().finalization;
     expect(fin).not.toBeNull();
     expect(fin?.grade).toBe("conditional");
-
-    vi.useRealTimers();
   });
 
   it("Clear Finalization resets store and local state", () => {
@@ -276,8 +263,6 @@ describe("FinalizationScreen autosave", () => {
     expect(useSessionStore.getState().finalization).toBeNull();
     expect(screen.queryByText(/Finalized/)).toBeNull();
     expect(screen.queryByText("Saved")).toBeNull();
-
-    vi.useRealTimers();
   });
 
   it("syncs local state when store finalization changes externally", () => {
@@ -323,7 +308,5 @@ describe("FinalizationScreen autosave", () => {
 
     const fin2 = useSessionStore.getState().finalization;
     expect(fin2).toEqual(fin1);
-
-    vi.useRealTimers();
   });
 });

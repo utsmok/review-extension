@@ -1,5 +1,5 @@
-import type { FinalizationGrade } from "@/lib/types";
 import { useLabs } from "@/hooks/useLabs";
+import type { FinalizationGrade } from "@/lib/types";
 
 const GRADES: {
   value: FinalizationGrade;

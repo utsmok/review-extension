@@ -6,6 +6,7 @@ import { useRovingTabIndex } from "@/hooks/useFocus";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { captureActiveTab, captureForMetadataField } from "@/lib/capture";
 import { computeCompletion } from "@/lib/rubric";
+import type { QuickNote } from "@/stores/session";
 import Captures from "./Captures";
 import Evaluation from "./Evaluation";
 import ExportCompleteScreen from "./ExportCompleteScreen";
@@ -38,6 +39,10 @@ const tabIds: Record<(typeof tabs)[number], string> = {
   Metadata: "panel-metadata",
   Finalize: "panel-finalize",
 };
+
+function createQuickNote(text: string): QuickNote {
+  return { id: crypto.randomUUID(), text, timestamp: new Date().toISOString() };
+}
 
 export function ActiveSession() {
   const { activeTab, setActiveTab, handleKeyDown } = useRovingTabIndex(tabs, "Evaluation");
@@ -117,33 +122,18 @@ export function ActiveSession() {
   );
   const readyToFinalize = evaluationComplete && !finalization?.finalizedAt;
 
-  const handleTopExport = async () => {
+  const handleExport = async (retry = false) => {
     setExporting(true);
-    setExportError(null);
+    if (!retry) setExportError(null);
     try {
       const result = await exportAndClose(rubric);
       if (result) {
         setExportFilename(`TRUST_Review_${session?.toolName ?? "review"}.zip`);
         setExportFileSize(result.blobSize);
-        setExportComplete(true);
+        if (!retry) setExportComplete(true);
+        setExportError(null);
       } else {
         setExportError("Export failed. Please try again.");
-      }
-    } catch {
-      setExportError("Export failed. Please try again.");
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  const handleRetryExport = async () => {
-    setExporting(true);
-    try {
-      const result = await exportAndClose(rubric);
-      if (result) {
-        setExportFilename(`TRUST_Review_${session?.toolName ?? "review"}.zip`);
-        setExportFileSize(result.blobSize);
-        setExportError(null);
       }
     } catch {
       setExportError("Export failed. Please try again.");
@@ -158,11 +148,7 @@ export function ActiveSession() {
   const handleSaveQuickNote = () => {
     const text = quickNoteText.trim();
     if (text) {
-      addQuickNote({
-        id: crypto.randomUUID(),
-        text,
-        timestamp: new Date().toISOString(),
-      });
+      addQuickNote(createQuickNote(text));
     }
     setQuickNoteText("");
     setQuickNoteOpen(false);
@@ -177,11 +163,7 @@ export function ActiveSession() {
             className="shrink-0 p-1 rounded-ut-sm text-ut-slate hover:text-trust-magenta hover:bg-white/60 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue"
             onClick={() => {
               if (quickNoteOpen && quickNoteText.trim()) {
-                addQuickNote({
-                  id: crypto.randomUUID(),
-                  text: quickNoteText.trim(),
-                  timestamp: new Date().toISOString(),
-                });
+                addQuickNote(createQuickNote(quickNoteText.trim()));
               }
               closeSession();
             }}
@@ -279,8 +261,7 @@ export function ActiveSession() {
               className="top-action-btn top-action-btn--export"
               title="Export — Download review as .zip"
               aria-label="Export review"
-              disabled={exporting}
-              onClick={handleTopExport}
+              onClick={() => handleExport()}
             >
               <IconDownload />
               <span className="text-ut-2xs font-heading font-bold uppercase tracking-ut-label ml-0.5">
@@ -425,7 +406,7 @@ export function ActiveSession() {
               error={exportError}
               fileSize={exportFileSize ?? undefined}
               loading={exporting}
-              onRetry={handleRetryExport}
+              onRetry={() => handleExport(true)}
               onDone={handleExportDone}
             />
           ) : (

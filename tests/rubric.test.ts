@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 import trustFull from "@/data/rubrics/trust-full.json";
 import {
   computeCompletion,
-  countUnsure,
-  distributionBar,
   getCategoryLabel,
   getCategoryScores,
   getLinkedRubricIdsForCapture,
@@ -501,38 +499,6 @@ describe("scoreColor", () => {
   });
 });
 
-describe("distributionBar", () => {
-  it("returns empty bar for no scores", () => {
-    const html = distributionBar([]);
-    expect(html).toContain("No scores");
-  });
-
-  it("returns empty bar when all scores are non-numeric", () => {
-    const html = distributionBar(["na", "unsure", ""]);
-    expect(html).toContain("No scores");
-  });
-
-  it("renders segments with correct colors", () => {
-    const html = distributionBar([0, 1, 2, 3]);
-    expect(html).toContain("#c60c30");
-    expect(html).toContain("#c2410c");
-    expect(html).toContain("#0e7490");
-    expect(html).toContain("#4a8355");
-  });
-
-  it("ignores non-numeric scores in distribution", () => {
-    const html = distributionBar([3, "na" as const, "unsure" as const]);
-    expect(html).toContain("#4a8355");
-    expect(html).not.toContain("No scores");
-  });
-
-  it("handles all same score", () => {
-    const html = distributionBar([2, 2, 2]);
-    expect(html).toContain("#0e7490");
-    expect(html).toContain("width:100%");
-  });
-});
-
 describe("principle minimum enforcement", () => {
   it("a category can have a low average even when others are high", () => {
     const evals: Evaluation[] = [
@@ -560,52 +526,5 @@ describe("principle minimum enforcement", () => {
         ),
     ];
     expect(principleAverage("TR", evals, RUBRIC)).toBe(0);
-  });
-});
-
-describe("countUnsure", () => {
-  it("returns 0 when no evaluations are unsure", () => {
-    const evals: Evaluation[] = [
-      { rubricId: "TR.data_source_clarity", score: 2, notes: "", explicitEvidenceIds: [] },
-      { rubricId: "TR.methodology_disclosure", score: 3, notes: "", explicitEvidenceIds: [] },
-    ];
-    expect(countUnsure("TR", evals, RUBRIC)).toBe(0);
-  });
-
-  it("counts unsure evaluations for a category", () => {
-    const evals: Evaluation[] = [
-      {
-        rubricId: "TR.data_source_clarity",
-        score: "unsure" as const,
-        notes: "",
-        explicitEvidenceIds: [],
-      },
-      { rubricId: "TR.methodology_disclosure", score: 2, notes: "", explicitEvidenceIds: [] },
-    ];
-    expect(countUnsure("TR", evals, RUBRIC)).toBe(1);
-  });
-
-  it("returns 0 for unknown category", () => {
-    expect(countUnsure("NONEXISTENT", [], RUBRIC)).toBe(0);
-  });
-
-  it("excludes ai_only questions when usesAi is false", () => {
-    // TR.methodology_disclosure is ai_only
-    const evals: Evaluation[] = [
-      {
-        rubricId: "TR.data_source_clarity",
-        score: "unsure" as const,
-        notes: "",
-        explicitEvidenceIds: [],
-      },
-      {
-        rubricId: "TR.methodology_disclosure",
-        score: "unsure" as const,
-        notes: "",
-        explicitEvidenceIds: [],
-      },
-    ];
-    expect(countUnsure("TR", evals, RUBRIC, undefined, true)).toBe(2);
-    expect(countUnsure("TR", evals, RUBRIC, undefined, false)).toBe(1);
   });
 });

@@ -89,7 +89,5 @@ export const AUTH_METHOD_OPTIONS = [
 ] as const;
 
 export const DISCIPLINE_DEFAULT = "Multidisciplinary";
-export const DISCIPLINE_OTHERS = DISCIPLINE_OPTIONS.filter(
-  (d) => d !== DISCIPLINE_DEFAULT,
-);
+export const DISCIPLINE_OTHERS = DISCIPLINE_OPTIONS.filter((d) => d !== DISCIPLINE_DEFAULT);
 export const MAX_CUSTOM_LENGTH = 120;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { detectToolProfile } from "@/lib/tool-profiles";
 import { getSuggestedQueries } from "@/lib/test-queries";
+import { detectToolProfile } from "@/lib/tool-profiles";
 
 describe("detectToolProfile", () => {
   it("detects Semantic Scholar", () => {

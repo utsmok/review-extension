@@ -1,8 +1,8 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { installBrowserShim } from "./shims/chrome";
 import WebApp from "./WebApp";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
 import "./style.css";
 
 // Install browser API shim before any module that references `browser` global

@@ -1,6 +1,55 @@
 # Changelog
 
 
+## v0.8.3 — 2026-06-12
+
+### New: Report Dev Preview
+
+- Added `pnpm report:dev` — Vite dev server that live-previews all 3 report variants (full, nutrition label, business card) with fixture data, viewport switching, and print support
+- Added `pnpm report:build` — builds the preview to static files
+- Added `report-generate.test.ts` — generates standalone report HTML files for visual auditing into `report-dev/audit/`
+
+### Improved: Report Visual Quality (Impeccable Sweep)
+
+- Fixed empty `<img src="">` in evidence sections — now shows \"No screenshot available\" placeholder when no screenshot exists
+- Score circle labels now show decimal averages (e.g., \"2.7/3\") instead of misleading floor-based integers
+- Added visible score legend before category sections for clarity
+- Darkened muted text colors in business card from `#6b7f94` to `#5a6d7f` for WCAG AA contrast compliance
+- Merged conflicting `@page` rules in print stylesheet for consistent print output
+- Added subtle `color-mix` background tint to verdict blocks for better visual differentiation of pass/fail states
+- Consolidated 18+ font-size tiers to 15 by unifying sub-pixel differences
+- Replaced all `!important` declarations with higher-specificity selectors
+
+### Improved: Report Visual Quality (Impeccable Sweep #2)
+
+- WCAG-AA contrast: darkened report score colors (0/1/2) and the gate-pass/Strengths green so score badges, verdict stamps, and distribution labels clear 4.5:1 on their tinted backgrounds
+- Per-principle scorebar revised: replaced the misleading 4-color distribution bar with at-a-glance per-question chips (code + colored score + evidence-count marker)
+- Business card: content now fills the card vertically (was ~54% empty whitespace)
+- Nutrition label: "Overall" column top-aligned with the principle columns; points/circles suppressed on incomplete reports to avoid misleading partial scores
+- Honest verdicts: all-N/A reports (no numeric scores) now read "NOT EVALUATED" instead of "RECOMMENDED"; the gate summary only claims "All passed" when every gate is answered-pass
+- Typography: broadened font fallback stacks (Arial Narrow → Roboto Condensed → Open Sans Condensed → Arial) so the condensed-heading identity survives without Arial Narrow
+- Finalization: added a signpost directing readers to the per-principle detail sections
+- Print: raised base font-size, prevented table rows from splitting across pages, and repeated headers on each printed page
+- Accessibility: visible keyboard focus on collapsible Background/Examples summaries; long URLs wrap instead of triggering horizontal scroll
+- Copy: replaced 49 prose em-dashes (asides) in rubric text and user-facing messages with commas, colons, semicolons, or parentheses
+
+
+## v0.8.2 — 2026-06-12
+
+### Improved: Code Quality (Deep Audit)
+
+- Extracted shared `stripScreenshots()` helper — eliminates 3× duplicated screenshot-stripping logic in session-lifecycle.ts
+- Named verdict threshold constants (`PRINCIPLE_FAIL_THRESHOLD`, `OVERALL_FAIL_RATIO`) replace magic numbers in compute-scores.ts
+- Removed dead exports: `countUnsure()` from rubric.ts, 6 unused logo dimension constants from logos.ts
+- Merged duplicated `handleTopExport`/`handleRetryExport` into single `handleExport(retry)` in ActiveSession.tsx
+- Extracted `createQuickNote()` factory and `buildFinalizationData()` helper to eliminate repeated object construction
+- Replaced unsafe `as Capture[]` type assertion in export-pipeline.ts with explicit `ExportSessionData` type
+- Clipboard copy failure in Metadata.tsx now shows a toast error instead of silently swallowing
+- Optimized `loadAllScreenshots()` to use a single `getAll()` IDB request instead of N individual `get()` calls
+- Added proper `afterEach(() => vi.useRealTimers())` cleanup to 4 test files using fake timers
+- Strengthened weak `toBeTruthy()` assertions in error-states.test.tsx and batch-export.test.ts
+
+
 ## v0.8.1 — 2026-06-12
 
 ### New: Enhanced Recommendation Grades (Labs)

@@ -106,12 +106,7 @@ describe("buildBusinessCardLabel", () => {
   });
 
   it("shows quality gate failures when gates fail", async () => {
-    const html = await buildBusinessCardLabel(
-      makeMetadata(),
-      failQGEvaluations(),
-      RUBRIC,
-      null,
-    );
+    const html = await buildBusinessCardLabel(makeMetadata(), failQGEvaluations(), RUBRIC, null);
     expect(html).toContain("bc-gate-fail");
     expect(html).toContain("FAIL");
   });
@@ -158,12 +153,7 @@ describe("buildBusinessCardLabel", () => {
   });
 
   it("with no evaluations → verdict is NOT EVALUATED", async () => {
-    const html = await buildBusinessCardLabel(
-      makeMetadata(),
-      [],
-      RUBRIC,
-      null,
-    );
+    const html = await buildBusinessCardLabel(makeMetadata(), [], RUBRIC, null);
     expect(html).toContain("NOT EVALUATED");
   });
 

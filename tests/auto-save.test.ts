@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initAutoSave, teardownAutoSave } from "@/lib/session-lifecycle";
 
 // --- Mocks ---
@@ -83,7 +83,7 @@ describe("auto-save", () => {
     registryGetState.mockReset();
   });
 
-  afterAll(() => {
+  afterEach(() => {
     vi.useRealTimers();
   });
 
@@ -229,7 +229,7 @@ describe("auto-save", () => {
     await vi.runAllTimersAsync();
 
     expect(mockSave).toHaveBeenCalled();
-    expect(mockToastWarning).toHaveBeenCalledWith("Auto-save failed — your work may not be saved.");
+    expect(mockToastWarning).toHaveBeenCalledWith("Auto-save failed; your work may not be saved.");
     expect(failedListener).toHaveBeenCalled();
 
     document.removeEventListener("trust-save-failed", failedListener);
@@ -343,7 +343,9 @@ describe("auto-save", () => {
     mockSave.mockResolvedValue(true);
 
     // Second save: would collide under old delimiter scheme but is distinct via JSON.stringify
-    sessionGetState.mockReturnValue(defaultSessionState({ evaluations: [noteWithDelimiterCollision] }));
+    sessionGetState.mockReturnValue(
+      defaultSessionState({ evaluations: [noteWithDelimiterCollision] }),
+    );
     listener();
     advanceTimer(1000);
     expect(mockSave).toHaveBeenCalledTimes(2);

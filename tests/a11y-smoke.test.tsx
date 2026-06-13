@@ -16,7 +16,7 @@ vi.mock("@/lib/session-lifecycle", () => ({
   loadSessionById: vi.fn(),
   initAutoSave: vi.fn(),
   teardownAutoSave: vi.fn(),
-}))
+}));
 vi.mock("@/lib/export", () => ({
   downloadBlob: vi.fn(),
   exportSession: vi.fn(() => new Blob()),

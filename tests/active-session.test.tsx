@@ -58,7 +58,7 @@ vi.mock("@/lib/session-lifecycle", () => ({
   deleteSession: vi.fn(),
   initAutoSave: vi.fn(),
   teardownAutoSave: vi.fn(),
-}))
+}));
 
 // Mock session-repository to avoid IndexedDB
 vi.mock("@/lib/session-repository", () => ({

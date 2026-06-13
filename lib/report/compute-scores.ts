@@ -7,6 +7,11 @@ import {
 } from "../rubric";
 import type { Evaluation, ReviewFinalization, RubricData } from "../types";
 
+/** Average score below which a principle is considered failed. */
+const PRINCIPLE_FAIL_THRESHOLD = 1.0;
+/** Ratio of actual-to-max score below which overall evaluation is considered failed. */
+const OVERALL_FAIL_RATIO = 0.6;
+
 const GRADE_COLORS: Record<string, string> = {
   pass: REPORT_SCORE_COLORS[3],
   conditional: REPORT_SCORE_COLORS[1],
@@ -100,9 +105,8 @@ export function computeReportScores(
         }
       }
     }
-    if (numCount > 0 && numSum / numCount < 1.0) principleFail = true;
+    if (numCount > 0 && numSum / numCount < PRINCIPLE_FAIL_THRESHOLD) principleFail = true;
   }
-
   const totalQGQuestions = visibleGates.length;
   const totalQuestions = totalScoringQuestions + totalQGQuestions;
   // Cap answered count — imported reviews from older rubrics may have more answers than current questions
@@ -113,9 +117,8 @@ export function computeReportScores(
   const isComplete = totalQuestions > 0 && answeredQuestions >= totalQuestions;
 
   const ratio = totalMax > 0 ? totalActual / totalMax : 0;
-  const computedFailed = anyFail || (totalMax > 0 && ratio < 0.6) || principleFail;
+  const computedFailed = anyFail || (totalMax > 0 && ratio < OVERALL_FAIL_RATIO) || principleFail;
   const noEvaluation = answeredScoringQuestions === 0 && answeredQGQuestions === 0;
-
   let verdict: string;
   let verdictColor: string;
   if (finalization) {
@@ -126,6 +129,10 @@ export function computeReportScores(
     verdictColor = MUTED_COLOR;
   } else if (!isComplete) {
     verdict = "INCOMPLETE";
+    verdictColor = MUTED_COLOR;
+  } else if (totalMax === 0) {
+    // Complete but every scoring answer is N/A — nothing numeric to judge.
+    verdict = "NOT EVALUATED";
     verdictColor = MUTED_COLOR;
   } else {
     verdict = computedFailed ? "NOT RECOMMENDED" : "RECOMMENDED";

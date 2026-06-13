@@ -8,6 +8,24 @@ import { principleAverage } from "@/lib/rubric";
 import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
 import { useSessionStore } from "@/stores/session";
 
+function buildFinalizationData(
+  grade: FinalizationGrade,
+  conclusion: string,
+  strengths: string[],
+  weaknesses: string[],
+  recommendations: string,
+  finalizedAt: string,
+): ReviewFinalization {
+  return {
+    grade,
+    conclusion: conclusion.trim(),
+    strengths: strengths.map((s) => s.trim()).filter(Boolean),
+    weaknesses: weaknesses.map((w) => w.trim()).filter(Boolean),
+    recommendations: recommendations.trim(),
+    finalizedAt,
+  };
+}
+
 export default function FinalizationScreen() {
   const { finalization, setFinalization, evaluations } = useActiveSession();
   const { rubric } = useRubric();
@@ -49,15 +67,14 @@ export default function FinalizationScreen() {
 
     autosaveTimerRef.current = setTimeout(() => {
       const currentFin = useSessionStore.getState().finalization;
-      const data: ReviewFinalization = {
+      const data = buildFinalizationData(
         grade,
-        conclusion: conclusion.trim(),
-        strengths: strengths.map((s) => s.trim()).filter(Boolean),
-        weaknesses: weaknesses.map((w) => w.trim()).filter(Boolean),
-        recommendations: recommendations.trim(),
-        // Autosave preserves existing finalizedAt — does NOT set it
-        finalizedAt: currentFin?.finalizedAt ?? "",
-      };
+        conclusion,
+        strengths,
+        weaknesses,
+        recommendations,
+        currentFin?.finalizedAt ?? "",
+      );
       isLocalChange.current = true;
       setFinalization(data);
       setDraftSaved(true);
@@ -106,14 +123,14 @@ export default function FinalizationScreen() {
       autosaveTimerRef.current = null;
     }
 
-    const data: ReviewFinalization = {
+    const data = buildFinalizationData(
       grade,
-      conclusion: conclusion.trim(),
-      strengths: strengths.map((s) => s.trim()).filter(Boolean),
-      weaknesses: weaknesses.map((w) => w.trim()).filter(Boolean),
-      recommendations: recommendations.trim(),
-      finalizedAt: new Date().toISOString(),
-    };
+      conclusion,
+      strengths,
+      weaknesses,
+      recommendations,
+      new Date().toISOString(),
+    );
     isLocalChange.current = true;
     setFinalization(data);
     lastSavedData.current = data;

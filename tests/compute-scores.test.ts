@@ -136,7 +136,7 @@ describe("computeReportScores", () => {
     evals[0] = qgEval("privacy_and_security.data_privacy", "fail");
     const r = computeReportScores(evals, RUBRIC, null);
     expect(r.verdict).toBe("NOT RECOMMENDED");
-    expect(r.verdictColor).toBe("#c60c30");
+    expect(r.verdictColor).toBe("#c20c2f");
     expect(r.anyFail).toBe(true);
     expect(r.computedFailed).toBe(true);
     // Scoring is still all 3 → ratio is fine, principles ok
@@ -202,7 +202,7 @@ describe("computeReportScores", () => {
       makeFinalization({ grade: "conditional" }),
     );
     expect(r.verdict).toBe("CAUTION");
-    expect(r.verdictColor).toBe("#c2410c");
+    expect(r.verdictColor).toBe("#b23c0b");
   });
 
   // ── 9. Finalization override: grade 'fail' → NOT RECOMMENDED ──────
@@ -210,7 +210,7 @@ describe("computeReportScores", () => {
   it("finalization grade 'fail' overrides computed to NOT RECOMMENDED", () => {
     const r = computeReportScores(allPassEvals(), RUBRIC, makeFinalization({ grade: "fail" }));
     expect(r.verdict).toBe("NOT RECOMMENDED");
-    expect(r.verdictColor).toBe("#c60c30");
+    expect(r.verdictColor).toBe("#c20c2f");
     // Underlying data was fine
     expect(r.computedFailed).toBe(false);
   });
@@ -435,9 +435,9 @@ describe("computeReportScores", () => {
     expect(r.noEvaluation).toBe(false);
     expect(r.anyFail).toBe(false);
     expect(r.principleFail).toBe(false);
-    // corrected: when totalMax=0, ratio check is skipped (nothing applies = nothing fails)
+    // complete but no numeric scores (all N/A) → nothing to recommend
     expect(r.computedFailed).toBe(false);
-    expect(r.verdict).toBe("RECOMMENDED");
+    expect(r.verdict).toBe("NOT EVALUATED");
   });
 
   // ── Additional edge cases ───────────────────────────────────────────
@@ -516,10 +516,10 @@ describe("computeReportScores", () => {
   describe("enhanced finalization grades", () => {
     const enhancedCases: Array<{ grade: string; label: string; color: string }> = [
       { grade: "recommended", label: "RECOMMENDED", color: "#3d7249" },
-      { grade: "recommended_with_caveats", label: "RECOMMENDED WITH CAVEATS", color: "#0e7490" },
-      { grade: "needs_review", label: "NEEDS REVIEW", color: "#c2410c" },
+      { grade: "recommended_with_caveats", label: "RECOMMENDED WITH CAVEATS", color: "#0d6d87" },
+      { grade: "needs_review", label: "NEEDS REVIEW", color: "#b23c0b" },
       { grade: "pilot_only", label: "PILOT ONLY", color: "#b45309" },
-      { grade: "not_recommended", label: "NOT RECOMMENDED", color: "#c60c30" },
+      { grade: "not_recommended", label: "NOT RECOMMENDED", color: "#c20c2f" },
       { grade: "out_of_scope", label: "OUT OF SCOPE", color: "#6b7f94" },
     ];
 

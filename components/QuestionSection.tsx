@@ -337,13 +337,8 @@ export function QuestionSection({
 }: QuestionSectionProps) {
   const { rubric, usesAi } = useRubric();
   const [linkPopoverFor, setLinkPopoverFor] = useState<string | null>(null);
-  const {
-    evaluations,
-    captures,
-    setEvaluation,
-    addCapture,
-    linkCaptureToRubric,
-  } = useActiveSession();
+  const { evaluations, captures, setEvaluation, addCapture, linkCaptureToRubric } =
+    useActiveSession();
 
   const evaluationMap = useMemo(
     () => new Map(evaluations.map((e) => [e.rubricId, e])),

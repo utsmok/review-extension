@@ -3,8 +3,9 @@
  * `import type` is erased at compile time, so the tldraw library is still
  * loaded on demand via the dynamic import below — zero bundle cost.
  */
+
+import { Component, type ErrorInfo, lazy, type ReactNode, Suspense } from "react";
 import type { Editor } from "./TldrawAnnotation";
-import { Component, lazy, Suspense, type ErrorInfo, type ReactNode } from "react";
 
 const LazyAnnotation = lazy(() => import("./TldrawAnnotation"));
 

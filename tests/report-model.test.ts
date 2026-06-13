@@ -204,7 +204,7 @@ describe("buildReportModel", () => {
     expect(qg1).toBeDefined();
     expect(qg1.result).toBe("pass");
     expect(qg1.label).toBe("PASS");
-    expect(qg1.color).toBe("#4a8355");
+    expect(qg1.color).toBe("#3d7249");
     expect(qg1.requirement).toBe("Tool must disclose AI usage");
     expect(qg1.notes).toBe("All good");
   });

@@ -20,13 +20,13 @@ export async function captureActiveTab(): Promise<Capture> {
     const url = new URL(tab.url);
     if (!ALLOWED_SCHEMES.includes(url.protocol)) {
       throw new Error(
-        `Cannot capture this page — ${url.protocol} URLs are not accessible. Browser-internal pages cannot be captured.`,
+        `Cannot capture this page: ${url.protocol} URLs are not accessible. Browser-internal pages cannot be captured.`,
       );
     }
   } catch (err) {
     if (err instanceof TypeError) {
       // Malformed URL
-      throw new Error("Cannot capture this page — the URL is invalid.");
+      throw new Error("Cannot capture this page: the URL is invalid.");
     }
     throw err;
   }

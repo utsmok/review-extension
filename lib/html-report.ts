@@ -75,12 +75,12 @@ const EXAMPLE_LEVELS = ["0", "1", "2", "3"] as const;
 function scoreCircles(avg: number | null): string {
   if (avg === null) return ALL_EMPTY_CIRCLES;
   const filled = Math.min(3, Math.floor(avg));
-  return `<span class="circles">${FILLED_CIRCLE.repeat(filled)}${EMPTY_CIRCLE.repeat(3 - filled)}</span><span class="circle-label">${filled}/3</span>`;
+  const label = avg % 1 === 0 ? `${filled}/3` : `${avg.toFixed(1)}/3`;
+  return `<span class="circles">${FILLED_CIRCLE.repeat(filled)}${EMPTY_CIRCLE.repeat(3 - filled)}</span><span class="circle-label">${label}</span>`;
 }
 
 // ── Section builders (render from ReportModel slices) ──────────────────
 function renderCategorySections(principles: PrincipleScoreRow[], captures: CaptureInfo[]): string {
-
   const captureMap = new Map(captures.map((c) => [c.id, c]));
 
   return principles
@@ -93,9 +93,13 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
                   .map((cid) => {
                     const c = captureMap.get(cid);
                     if (!c) return "";
+                    const imgSrc = c.compressedScreenshot ?? c.screenshotBase64;
+                    const imgHtml = imgSrc
+                      ? `<img src="${imgSrc}" alt="Evidence for ${q.code}: ${esc(c.pageTitle || "screenshot")}" loading="lazy" />`
+                      : `<div class="evidence-placeholder">No screenshot available</div>`;
                     return `
         <div class="evidence-item${q.isWeakEvidence ? " evidence-weak" : ""}">
-          <img src="${c.compressedScreenshot ?? c.screenshotBase64}" alt="Evidence for ${q.code}: ${esc(c.pageTitle || "screenshot")}" loading="lazy" />
+          ${imgHtml}
           <div class="evidence-meta">
             <strong>${esc(c.pageTitle || "Capture")}</strong>
             <span class="evidence-time">${formatDate(c.timestamp)}</span>
@@ -161,7 +165,23 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
             <span class="cat-avg">avg ${p.avg}</span>
             <span class="cat-evidence">${p.evidenceCount} evidence</span>
           </div>
-          ${p.distributionBarHtml}
+          <div class="principle-chips">
+            ${p.questions
+              .map((q) => {
+                const display = q.isNa
+                  ? "N/A"
+                  : q.isUnsure
+                    ? "?"
+                    : q.score >= 0
+                      ? String(q.score)
+                      : "·";
+                const ev = q.evidenceIds.length;
+                const state =
+                  q.score >= 0 ? "scored" : q.isNa ? "na" : q.isUnsure ? "unsure" : "blank";
+                return `<span class="pchip" data-state="${state}" style="--pc:${q.badgeColor}"><span class="pchip-code">${q.code}</span><span class="pchip-score">${display}</span>${ev > 0 ? `<span class="pchip-ev">${ev}</span>` : ""}</span>`;
+              })
+              .join("")}
+          </div>
         </div>
       </div>
       <div class="category-table-wrap">
@@ -236,12 +256,13 @@ function buildFinalizationSection(
       <div class="fin-grade" style="color:${verdictColor};background:${verdictColor}10">
         ${verdict}
       </div>
+      <p class="fin-detail-note">Detailed evidence and per-principle scoring appear in the sections above.</p>
       ${finalization.conclusion ? `<div class="fin-block"><h3>Conclusion</h3><p>${esc(finalization.conclusion)}</p></div>` : ""}
       ${
         strengthsList
           ? `
         <div class="fin-block">
-          <h3 style="color:#4a8355">Strengths</h3>
+          <h3 style="color:#3d7249">Strengths</h3>
           <ul>${strengthsList}</ul>
         </div>
       `
@@ -275,10 +296,14 @@ function buildFinalizationSection(
 function buildUnlinkedSection(captures: CaptureInfo[], linkedCaptureIds: Set<string>): string {
   const unlinkedHtml = captures
     .filter((c) => !linkedCaptureIds.has(c.id))
-    .map(
-      (c) => `
+    .map((c) => {
+      const imgSrc = c.compressedScreenshot ?? c.screenshotBase64;
+      const imgHtml = imgSrc
+        ? `<img src="${imgSrc}" alt="Additional evidence: ${esc(c.pageTitle || "screenshot")}" loading="lazy" />`
+        : `<div class="evidence-placeholder">No screenshot available</div>`;
+      return `
         <div class="unlinked-item">
-          <img src="${c.compressedScreenshot ?? c.screenshotBase64}" alt="Additional evidence: ${esc(c.pageTitle || "screenshot")}" loading="lazy" />
+          ${imgHtml}
           <div class="unlinked-meta">
             <strong>${esc(c.pageTitle || "Capture")}</strong>
             ${safeLink(c.sourceUrl)}
@@ -286,8 +311,8 @@ function buildUnlinkedSection(captures: CaptureInfo[], linkedCaptureIds: Set<str
             ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
           </div>
         </div>
-      `,
-    )
+      `;
+    })
     .join("");
 
   if (!unlinkedHtml) return "";
@@ -396,13 +421,14 @@ function buildNutritionLabelHtml(
         Framework Verdict
       </span>
     </div>
-    ${!scores.noEvaluation ? `<div class="nutrition-score-number">${scores.totalActual}/${scores.totalMax} points</div>` : ""}
+    ${scores.totalMax > 0 && (finalization || scores.isComplete) ? `<div class="nutrition-score-number">${scores.totalActual}/${scores.totalMax} points</div>` : ""}
     ${!scores.noEvaluation && !scores.isComplete ? `<div class="nutrition-status">${scores.answeredQuestions}/${scores.totalQuestions} questions answered</div>` : ""}
   </div>
 
   ${(() => {
-    const items = qualityGateResults(evaluations, rubric, evalMap)
-      .filter((g) => g.result === "fail" || g.result === "unsure")
+    const gates = qualityGateResults(evaluations, rubric, evalMap);
+    const flagged = gates.filter((g) => g.result === "fail" || g.result === "unsure");
+    const items = flagged
       .map(
         (g) =>
           '<div class="nutrition-gate-item">' +
@@ -414,11 +440,23 @@ function buildNutritionLabelHtml(
           "</span></div>",
       )
       .join("");
-    return items
-      ? '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gates-title">Quality Gate Notes</div>' +
-          items +
-          "</div>"
-      : '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gate-item" style="color:var(--muted)">All quality gates passed ✓</div></div>';
+    if (items) {
+      return (
+        '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gates-title">Quality Gate Notes</div>' +
+        items +
+        "</div>"
+      );
+    }
+    const passed = gates.filter((g) => g.result === "pass").length;
+    const allAnsweredPass = gates.length > 0 && passed === gates.length;
+    const summary = allAnsweredPass
+      ? "All quality gates passed \u2713"
+      : `${passed} of ${gates.length} quality gates passed`;
+    return (
+      '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gate-item" style="color:var(--muted)">' +
+      summary +
+      "</div></div>"
+    );
   })()}
 
   <div class="nutrition-divider-thin"></div>
@@ -529,8 +567,9 @@ function buildBusinessCardLabelHtml(
   const toolLinkClose = "</a>";
 
   // Quality gate failures only
-  const gateFailures = qualityGateResults(evaluations, rubric, evalMap)
-    .filter((g) => g.result === "fail" || g.result === "unsure");
+  const gateFailures = qualityGateResults(evaluations, rubric, evalMap).filter(
+    (g) => g.result === "fail" || g.result === "unsure",
+  );
 
   const gateHtml = gateFailures.length
     ? gateFailures
@@ -742,6 +781,7 @@ ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, model.sco
   <tbody>${gateRows}</tbody>
 </table>
 
+<div class="score-legend"><span class="legend-label">Score levels:</span> <span style="color:#c60c30">0 = Inadequate</span> · <span style="color:#c2410c">1 = Poor</span> · <span style="color:#0e7490">2 = Adequate</span> · <span style="color:#3d7249">3 = Good</span></div>
 ${categorySections}
 ${finalizationSection}
 ${unlinkedSection}

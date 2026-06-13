@@ -1,11 +1,10 @@
 import { useState } from "react";
-
-import { RubricContext } from "@/components/contexts";
-import { RUBRIC_DATA } from "@/data/rubrics";
-import { useActiveSession } from "@/hooks/useActiveSession";
 import { ActiveSession } from "@/components/ActiveSession";
+import { RubricContext } from "@/components/contexts";
 import SessionManager from "@/components/SessionManager";
 import SettingsScreen from "@/components/SettingsScreen";
+import { RUBRIC_DATA } from "@/data/rubrics";
+import { useActiveSession } from "@/hooks/useActiveSession";
 import WebAppShell from "./components/WebAppShell";
 
 export default function WebApp() {

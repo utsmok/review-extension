@@ -19,7 +19,7 @@ export function openIDBStore(
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
     request.onblocked = () =>
-      reject(new Error(`Database "${dbName}" upgrade blocked — close other tabs and retry`));
+      reject(new Error(`Database "${dbName}" upgrade blocked: close other tabs and retry`));
     return promise;
   }
 

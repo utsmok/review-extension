@@ -138,10 +138,10 @@ describe("prepareExportArtifacts with empty data", () => {
     console.error = vi.fn();
     const metadata = makeMetadata();
     const result = await prepareExportArtifacts(metadata, [], [], RUBRIC, null);
-    expect(result.metadataCsv).toBeTruthy();
-    expect(result.scoresCsv).toBeTruthy();
-    expect(result.captureLogCsv).toBeTruthy();
-    expect(result.htmlReport).toBeTruthy();
+    expect(result.metadataCsv).toContain("Tool_Name");
+    expect(result.scoresCsv).toContain("Question_ID");
+    expect(result.captureLogCsv.length).toBeGreaterThan(0);
+    expect(result.htmlReport).toContain("<html");
     // Logo files are always included
     expect(result.captureHtmlFiles.size).toBe(0);
     expect(result.conclusionsCsv).toBeNull();
@@ -152,7 +152,7 @@ describe("prepareExportArtifacts with empty data", () => {
     const metadata = makeMetadata();
     const finalization = makeFinalization();
     const result = await prepareExportArtifacts(metadata, [], [], RUBRIC, finalization);
-    expect(result.conclusionsCsv).toBeTruthy();
+    expect(result.conclusionsCsv).toContain("Grade");
     expect(result.conclusionsCsv).toContain("Test conclusion");
   });
 

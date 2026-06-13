@@ -3,17 +3,17 @@ import { useRubric, useTabNavigation } from "@/components/contexts";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureForMetadataField } from "@/lib/capture";
 import {
+  AUTH_METHOD_OPTIONS,
   DATA_SOURCE_OPTIONS,
   SEARCH_METHOD_OPTIONS,
-  AUTH_METHOD_OPTIONS,
 } from "@/lib/metadata-options";
 import { ensureArray } from "@/lib/metadata-utils";
-import { type ToolProfile, detectToolProfile } from "@/lib/tool-profiles";
 import { getSuggestedQueries } from "@/lib/test-queries";
+import { detectToolProfile, type ToolProfile } from "@/lib/tool-profiles";
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
-import DisciplineField from "./metadata/DisciplineField";
 import ExportCompleteScreen from "./ExportCompleteScreen";
+import DisciplineField from "./metadata/DisciplineField";
 import PillField from "./PillField";
 
 const MAX_TEXT_LENGTH = 500;
@@ -602,7 +602,11 @@ export default function Metadata() {
                 <button
                   type="button"
                   className="text-trust-magenta hover:text-trust-magenta-strong text-ut-xs"
-                  onClick={() => navigator.clipboard.writeText(tq.query).catch(() => {})}
+                  onClick={() =>
+                    navigator.clipboard
+                      .writeText(tq.query)
+                      .catch(() => toastError("Failed to copy to clipboard"))
+                  }
                   title="Copy query"
                 >
                   Copy

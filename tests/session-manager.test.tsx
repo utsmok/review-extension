@@ -43,7 +43,7 @@ vi.mock("@/lib/session-lifecycle", () => ({
   importSessionFromZipFile: vi.fn(),
   initAutoSave: vi.fn(),
   teardownAutoSave: vi.fn(),
-}))
+}));
 
 // Mock session-repository to avoid IndexedDB
 vi.mock("@/lib/session-repository", () => ({

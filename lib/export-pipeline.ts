@@ -1,5 +1,5 @@
-import { buildBusinessCardLabel, buildHtmlReport, buildNutritionLabel } from "./html-report";
 import JSZip from "jszip";
+import { buildBusinessCardLabel, buildHtmlReport, buildNutritionLabel } from "./html-report";
 import { ensureArray } from "./metadata-utils";
 import { minifyHtml } from "./minify";
 import {
@@ -45,6 +45,9 @@ type LightweightCapture = Pick<Capture, "id" | "timestamp" | "sourceUrl" | "page
   hasAnnotatedScreenshot?: boolean;
   metadataField?: string;
 };
+
+/** Session data shape for export — captures use the lightweight form (no heavy blobs). */
+type ExportSessionData = Omit<SessionData, "captures"> & { captures: LightweightCapture[] };
 
 /** Typed result of the data preparation phase — all artefacts ready for ZIP assembly. */
 export interface ExportArtifacts {
@@ -294,9 +297,9 @@ export async function prepareExportArtifacts(
     return entry;
   });
 
-  const sessionData: SessionData = {
+  const sessionData: ExportSessionData = {
     metadata,
-    captures: lightweightCaptures as Capture[],
+    captures: lightweightCaptures,
     evaluations,
     finalization,
     ...(quickNotes?.length ? { quickNotes } : {}),
@@ -426,15 +429,22 @@ export async function assembleBatchZip(
   }
 
   // Root manifest
-  zip.file("manifest.json", JSON.stringify({
-    version: 1,
-    exportDate: new Date().toISOString(),
-    sessionCount: sessions.length,
-    sessions: sessions.map(({ toolName, grade }) => ({
-      toolName,
-      grade: grade ?? "not finalized",
-    })),
-  }, null, 2));
+  zip.file(
+    "manifest.json",
+    JSON.stringify(
+      {
+        version: 1,
+        exportDate: new Date().toISOString(),
+        sessionCount: sessions.length,
+        sessions: sessions.map(({ toolName, grade }) => ({
+          toolName,
+          grade: grade ?? "not finalized",
+        })),
+      },
+      null,
+      2,
+    ),
+  );
 
   return zip.generateAsync({
     type: "blob",

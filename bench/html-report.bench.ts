@@ -1,7 +1,7 @@
 import { bench, describe } from "vitest";
 import { REPORT_CSS } from "@/lib/html-report";
 import { minifyCss } from "@/lib/minify";
-import { distributionBar, principleAverage, qualityGateResults, scoreColor } from "@/lib/rubric";
+import { principleAverage, qualityGateResults, scoreColor } from "@/lib/rubric";
 import type { Evaluation, EvaluationScore } from "@/lib/types";
 import { makeEvaluation, RUBRIC } from "@/tests/fixtures";
 
@@ -37,10 +37,6 @@ function buildReportEvaluations(): Evaluation[] {
 
 const evals = buildReportEvaluations();
 
-const DISTRIBUTION_SCORES = [0, 1, 2, 3, 2, 1, 0, 3, 2, 1];
-const ALL_MAX_SCORES = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3];
-const ALL_MIN_SCORES = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
 // ── Benchmarks ────────────────────────────────────────────────────────
 
 describe("minifyCss on REPORT_CSS", () => {
@@ -61,24 +57,6 @@ describe("scoreColor", () => {
     scoreColor("na");
     scoreColor("unsure");
     scoreColor(undefined);
-  });
-});
-
-describe("distributionBar", () => {
-  bench("mixed scores", () => {
-    distributionBar(DISTRIBUTION_SCORES);
-  });
-
-  bench("all max scores", () => {
-    distributionBar(ALL_MAX_SCORES);
-  });
-
-  bench("all min scores", () => {
-    distributionBar(ALL_MIN_SCORES);
-  });
-
-  bench("empty scores", () => {
-    distributionBar([]);
   });
 });
 
