@@ -1916,3 +1916,437 @@ td.sc {
   font-style: italic;
   margin: var(--rs-2xs) 0 var(--rs-md);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MOTION — on-screen viewing choreography
+   CSS-only (no JS; CSP-safe). Three layers tuned to the report's formal
+   register: (1) a load-time entrance that culminates in the verdict seal
+   stamping in, (2) scroll-driven section reveals with the finalization seal
+   stamped on scroll, (3) tactile hover micro-interactions. Every layer is
+   neutralized under prefers-reduced-motion and on print.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Spring-like easing — decisive and physical, never a wobbly bounce.
+     The settle/overshoot lives in the keyframes, not the curve. */
+  --mx-stamp: cubic-bezier(0.16, 1, 0.3, 1); /* ease-out-expo: authoritative */
+  --mx-rise: cubic-bezier(0.25, 1, 0.5, 1); /* ease-out-quart: smooth reveal */
+  --mx-soft: cubic-bezier(0.22, 1, 0.36, 1); /* ease-out-quint: hover */
+  /* Durations follow the 100/300/500 rule. */
+  --mx-d-stamp: 0.6s;
+  --mx-d-reveal: 0.5s;
+  --mx-d-hover: 0.2s;
+}
+
+/* ── Keyframes ───────────────────────────────────────────────────────────
+   The seal is "applied": a scale-in with a brief, controlled overshoot that
+   settles to rest — the physical feel of an impressed credential, never a
+   springy wobble. Reveals are a clean rise; the cornerstone is "placed". */
+@keyframes mx-stamp-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.035);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes mx-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes mx-letter-set {
+  0% {
+    opacity: 0;
+    transform: scale(0.82) translateY(-8px);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.04) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ── Layer 1: Entrance choreography (on load) ────────────────────────────
+   Confined to the opening block so below-the-fold content is left to the
+   scroll layer (no load-time avalanche). The masthead cascades, then the
+   verdict seal stamps in on the final beat — the report's signature moment.
+   Seals use fill-mode "backwards" (not "both") so their finished state
+   releases the transform to the hover layer below. */
+.nutrition-label {
+  animation: mx-rise-in var(--mx-d-reveal) var(--mx-rise) both;
+  animation-delay: 0.06s;
+}
+.report-header > .trust-branding {
+  animation: mx-rise-in var(--mx-d-reveal) var(--mx-rise) both;
+  animation-delay: 0.16s;
+}
+.report-header > h1 {
+  animation: mx-rise-in var(--mx-d-reveal) var(--mx-rise) both;
+  animation-delay: 0.24s;
+}
+.report-header > .report-meta-value {
+  animation: mx-rise-in var(--mx-d-reveal) var(--mx-rise) both;
+  animation-delay: 0.3s;
+}
+.report-header > .report-meta {
+  animation: mx-rise-in var(--mx-d-reveal) var(--mx-rise) both;
+  animation-delay: 0.34s;
+}
+/* The hero verdict seal stamps in on a deliberate beat. */
+.nutrition-verdict-stamp {
+  animation: mx-stamp-in var(--mx-d-stamp) var(--mx-stamp) backwards;
+  animation-delay: 0.32s;
+}
+/* Business-card label: the card settles, then its seal stamps. */
+.bc-card {
+  animation: mx-rise-in var(--mx-d-reveal) var(--mx-rise) both;
+  animation-delay: 0.08s;
+}
+.bc-verdict-stamp {
+  animation: mx-stamp-in var(--mx-d-stamp) var(--mx-stamp) backwards;
+  animation-delay: 0.36s;
+}
+
+/* ── Layer 2: Scroll-driven reveals (progressive enhancement) ────────────
+   Gated by @supports so unsupported browsers render fully visible with no
+   animation, and by prefers-reduced-motion for accessibility. Each element
+   owns its view() timeline, so a section, its cornerstone, and the verdict
+   seal resolve as a layered sequence as it scrolls into view. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .toc,
+    .section-heading,
+    .qg-table,
+    .score-legend,
+    .category-section,
+    .unlinked-section,
+    .footer {
+      animation: mx-rise-in var(--mx-d-reveal) var(--mx-rise) both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 25%;
+    }
+    /* Cornerstone letter: placed into its frame with a confident settle. */
+    .category-letter {
+      animation: mx-spring-stamp var(--mx-d-spring) var(--mx-stamp) backwards;
+      animation-timeline: view();
+      animation-range: entry 10% cover 38%;
+    }
+    /* Per-principle chips resolve a beat after the letter. */
+    .principle-chips {
+      animation: mx-rise-in var(--mx-d-reveal) var(--mx-rise) both;
+      animation-timeline: view();
+      animation-range: entry 15% cover 40%;
+    }
+    /* Finalization: the section reveals, then the verdict seal STAMPS —
+       the closing hero, mirroring the opening stamp as you scroll. */
+    .finalization-section {
+      animation: mx-rise-in var(--mx-d-reveal) var(--mx-rise) both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 22%;
+    }
+    .fin-grade {
+      animation: mx-spring-stamp var(--mx-d-spring) var(--mx-stamp) backwards;
+      animation-timeline: view();
+      animation-range: entry 22% cover 48%;
+    }
+  }
+}
+
+/* ── Layer 3: Hover micro-interactions ───────────────────────────────────
+   Tactile and quiet — a beat of feedback, not decoration. Each response is
+   carried in the element's own colour (--pc / --accent / currentColor) so it
+   reads as the element committing to its identity. */
+.pchip {
+  transition:
+    transform var(--mx-d-hover) var(--mx-soft),
+    border-color var(--mx-d-hover) var(--mx-soft),
+    box-shadow var(--mx-d-hover) var(--mx-soft);
+}
+.pchip:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--pc) 70%, var(--white));
+  box-shadow: 0 3px 9px -4px color-mix(in srgb, var(--pc) 55%, transparent);
+}
+
+/* Hero seals: a quiet lift + authority glow in their own colour. */
+.nutrition-verdict-stamp,
+.fin-grade,
+.bc-verdict-stamp {
+  transition:
+    transform var(--mx-d-hover) var(--mx-soft),
+    box-shadow var(--mx-d-hover) var(--mx-soft);
+}
+.nutrition-verdict-stamp:hover,
+.fin-grade:hover,
+.bc-verdict-stamp:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px -11px color-mix(in srgb, currentColor 50%, transparent);
+}
+
+/* Cornerstone: hovering its block lifts the framed initial to attention. */
+.category-letter {
+  transition:
+    transform var(--mx-d-hover) var(--mx-soft),
+    box-shadow var(--mx-d-hover) var(--mx-soft);
+}
+.category-letter-block:hover .category-letter {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px -7px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* Score & gate badges: a subtle settle on hover. */
+.score-badge,
+.gate-badge {
+  transition: transform var(--mx-d-hover) var(--mx-soft);
+}
+.score-badge:hover,
+.gate-badge:hover {
+  transform: translateY(-1px);
+}
+
+/* Inline links: the underline commits to full colour and lifts off the baseline. */
+#report-content a:not(.toc-item) {
+  transition:
+    text-decoration-color var(--mx-d-hover) var(--mx-soft),
+    text-underline-offset var(--mx-d-hover) var(--mx-soft);
+}
+#report-content a:not(.toc-item):hover {
+  text-decoration-color: currentColor;
+  text-underline-offset: 3px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   OVERDRIVE — the second motion designer. Builds on the entrance/scroll/hover
+   system above, reusing the --mx-* tokens. Adds depth and physicality without
+   breaking the formal register:
+     (4a) a reading-progress hairline tied to the root scroller,
+     (4b) gentle scroll parallax on the cornerstone block,
+     (4c) a staggered chip cascade — the principle "filling in",
+     (4d) a richer spring settle on the closing seal + cornerstone,
+     (4e) a one-shot reveal ring that ripples from the verdict seal,
+     (4f) tactile 3D perspective tilt on seal + cornerstone hover.
+   Scroll-driven layers stay inside the @supports + reduced-motion gates; the
+   load-time ring falls through to the global neutralize block below.
+   NOTE: a CSS-only TOC scroll-spy was considered and skipped — there is no
+   clean pure-CSS path (scroll() drives the element it is declared on, not the
+   section a link points at), so the progress hairline carries "where am I".
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Overdrive timing tokens (extend the motion scale). The overshoot lives in
+   the spring keyframes, not the curve — same discipline as Layer 1. */
+:root {
+  --mx-d-spring: 0.72s;
+  --mx-d-ring: 0.7s;
+  --mx-d-chip: 0.42s;
+}
+
+/* ── 4a. Reading-progress hairline ───────────────────────────────────────
+   A 2px bookmark ribbon in the brand magenta, scaled by the page scroll
+   position. Base scaleX(0) keeps it invisible where scroll-driven animations
+   are unsupported or disabled; it only exists where the timeline drives it.
+   Scoped to body.report, so it graces the full + nutrition reports and is
+   naturally absent from the (class-less) business-card body. */
+body.report::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--magenta);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  z-index: 100;
+  pointer-events: none;
+}
+@keyframes mx-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    body.report::before {
+      animation: mx-progress linear;
+      animation-timeline: scroll(root block);
+    }
+  }
+}
+
+/* ── 4b/4c. Cornerstone parallax + chip cascade (scroll-driven) ───────────
+   The cornerstone block drifts gently across its viewport pass for depth
+   (while its initial, the child, springs into frame); the chips then drop
+   into their slots one-by-one via per-child range offsets. Because every chip
+   in a row shares the same viewport position, shifting each nth-child's range
+   start is what produces the visible cascade — the data "filling in". */
+@keyframes mx-parallax-float {
+  from {
+    transform: translateY(6px) scale(0.975);
+  }
+  50% {
+    transform: translateY(-3px) scale(1);
+  }
+  to {
+    transform: translateY(4px) scale(0.985);
+  }
+}
+@keyframes mx-chip-drop {
+  0% {
+    transform: translateY(9px) scale(0.5);
+  }
+  55% {
+    transform: translateY(0) scale(1.09);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .category-letter-block {
+      animation: mx-parallax-float linear both;
+      animation-timeline: view();
+      animation-range: entry 0% exit 100%;
+    }
+    /* Chips drop in a quick cascade; opacity is left to the container reveal
+       so the pops read as position settling, not a second fade. */
+    .pchip {
+      animation: mx-chip-drop var(--mx-d-chip) var(--mx-stamp) backwards;
+      animation-timeline: view();
+      animation-range: entry 30% cover 38%;
+    }
+    .pchip:nth-child(2) {
+      animation-range: entry 34% cover 42%;
+    }
+    .pchip:nth-child(3) {
+      animation-range: entry 38% cover 46%;
+    }
+    .pchip:nth-child(4) {
+      animation-range: entry 42% cover 50%;
+    }
+    .pchip:nth-child(5) {
+      animation-range: entry 46% cover 54%;
+    }
+    .pchip:nth-child(6) {
+      animation-range: entry 50% cover 58%;
+    }
+    .pchip:nth-child(7) {
+      animation-range: entry 54% cover 62%;
+    }
+    .pchip:nth-child(8) {
+      animation-range: entry 58% cover 66%;
+    }
+  }
+}
+
+/* ── 4d. Spring settle ──────────────────────────────────────────────────
+   A weighted credential dropping home: one decisive overshoot, then two
+   diminishing settling ticks. Drives the fin-grade closing seal and the
+   cornerstone initial (their plainer stamp/letter keyframes were swapped
+   above; timeline, range and fill are unchanged). */
+@keyframes mx-spring-stamp {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  68% {
+    transform: scale(0.994);
+  }
+  82% {
+    transform: scale(1.004);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── 4e. Verdict-seal reveal ring (one-shot, on load) ────────────────────
+   A hairline of the verdict colour ripples outward as the stamp lands — the
+   ink settling, a quiet double-tap on the hero moment. Fires once after the
+   entrance stamp; neutralized by the global reduced-motion/print blocks. */
+.nutrition-verdict-stamp {
+  position: relative;
+}
+.nutrition-verdict-stamp::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  animation: mx-ring-expand var(--mx-d-ring) var(--mx-rise) both;
+  animation-delay: 0.5s;
+}
+@keyframes mx-ring-expand {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  35% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+}
+
+/* ── 4f. Tactile 3D tilt on hover ────────────────────────────────────────
+   A slight cant in perspective reads as lifting a credential off the page —
+   premium and physical, never a card-flip. Overrides the flat lift in Layer 3
+   for the seals and the cornerstone. */
+.nutrition-verdict-stamp:hover,
+.fin-grade:hover,
+.bc-verdict-stamp:hover {
+  transform: perspective(720px) rotateX(5deg) rotateY(-5deg) translateY(-3px);
+  box-shadow: 0 16px 32px -14px color-mix(in srgb, currentColor 55%, transparent);
+}
+.category-letter-block:hover .category-letter {
+  transform: perspective(540px) rotateX(6deg) rotateY(-4deg) translateY(-2px);
+  box-shadow: 0 9px 20px -9px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* ── Accessibility: neutralize all motion under reduced-motion ───────────
+   Scroll-driven reveals are additionally gated by `no-preference` above; this
+   catches the load entrance and every hover transition so nothing moves. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── Print: motion is screen-only ────────────────────────────────────────
+   Ensures every section renders fully on paper regardless of scroll position. */
+@media print {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
