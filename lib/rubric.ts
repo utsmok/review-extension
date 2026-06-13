@@ -189,8 +189,7 @@ export const REPORT_SCORE_COLORS: Record<number, HexColor> = {
 
 /** Score color for report context (darkens score-3 green for AA compliance). */
 export function reportScoreColor(s: number | "na" | "unsure" | undefined): HexColor {
-  if (s === "na" || s === undefined) return "#4c5e74";
-  if (s === "unsure") return "#5a6e82";
+  if (s === "na" || s === "unsure" || s === undefined) return "#4c5e74";
   return REPORT_SCORE_COLORS[s] ?? "#4c5e74";
 }
 /** Score color for the main UI (slightly lighter greens than the report variant). */

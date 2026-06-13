@@ -225,7 +225,7 @@ export function buildReportModel(
 
       const ev = evalMap.get(`${cat}.${qId}`);
       const result = ev?.score === "pass" ? "pass" : ev?.score === "fail" ? "fail" : null;
-      const color = result === "pass" ? "#3d7249" : result === "fail" ? "#c60c30" : "#52677c";
+      const color = reportScoreColor(result === "pass" ? 3 : result === "fail" ? 0 : undefined);
       const label = result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "—";
 
       qualityGateRows.push({

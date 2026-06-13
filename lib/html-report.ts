@@ -142,7 +142,7 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
     <tr class="score-row">
       <td class="code" style="color:${p.reportColor}">${q.code}</td>
       <td class="score-cell">
-        <span class="score-badge" style="background:color-mix(in srgb, ${q.badgeColor} 12%, #fff);color:${q.badgeColor}">
+        <span class="score-badge" style="background:color-mix(in srgb, ${q.badgeColor} 12%, var(--white));color:${q.badgeColor}">
           ${q.isNa ? "N/A" : q.isUnsure ? "?" : q.score >= 0 ? q.score : "—"}${q.customReasoning ? "*" : ""}
         </span>
       </td>
@@ -237,7 +237,7 @@ function renderGateRows(gates: QualityGateRow[]): string {
       return `
     <tr>
       <td class="code">${g.code}</td>
-      <td><span class="gate-badge" style="background:color-mix(in srgb, ${g.color} 11%, #fff);color:${g.color}">${g.label}</span></td>
+      <td><span class="gate-badge" style="background:color-mix(in srgb, ${g.color} 12%, var(--white));color:${g.color}">${g.label}</span></td>
       <td>${esc(g.requirement)}</td>
       <td class="notes">${esc(g.notes)}</td>
     </tr>
@@ -260,16 +260,16 @@ function buildFinalizationSection(
   return `
     <section class="finalization-section">
       <div class="fin-bar" style="background:${verdictColor}"></div>
-      <div class="fin-grade" style="color:${verdictColor};background:${verdictColor}10">
+      <div class="fin-grade" style="color:${verdictColor};background:color-mix(in srgb, ${verdictColor} 8%, var(--white))">
         ${verdict}
       </div>
       <p class="fin-detail-note">Detailed evidence and per-principle scoring appear in the sections above.</p>
-      ${finalization.conclusion ? `<div class="fin-block"><h3>Conclusion</h3><p>${esc(finalization.conclusion)}</p></div>` : ""}
+      ${finalization.conclusion ? `<div class="fin-block fin-block--conclusion" style="--fin-accent:${verdictColor}"><h3>Conclusion</h3><p>${esc(finalization.conclusion)}</p></div>` : ""}
       ${
         strengthsList
           ? `
         <div class="fin-block">
-          <h3 style="color:#3d7249">Strengths</h3>
+          <h3 style="color:var(--score-3)">Strengths</h3>
           <ul>${strengthsList}</ul>
         </div>
       `
@@ -279,7 +279,7 @@ function buildFinalizationSection(
         weaknessesList
           ? `
         <div class="fin-block">
-          <h3 style="color:#c60c30">Weaknesses</h3>
+          <h3 style="color:var(--score-0)">Weaknesses</h3>
           <ul>${weaknessesList}</ul>
         </div>
       `
@@ -436,7 +436,7 @@ function buildNutritionLabelHtml(
       </span>
     </div>
     ${gateFailCallout}
-    ${scores.totalMax > 0 && (finalization || scores.isComplete) ? `<div class="nutrition-score-number">${scores.totalActual}/${scores.totalMax} points</div>` : ""}
+    ${scores.totalMax > 0 && (finalization || scores.isComplete) ? `<div class="nutrition-score-number">${scores.totalActual}/${scores.totalMax} <span class="nutrition-score-unit">points</span></div>` : ""}
     ${!scores.noEvaluation && !scores.isComplete ? `<div class="nutrition-status">${scores.answeredQuestions}/${scores.totalQuestions} questions answered</div>` : ""}
   </div>
 
@@ -557,7 +557,7 @@ export async function buildNutritionLabel(
 <title>TRUST Label: ${esc(metadata.toolName)}</title>
 <style>${REPORT_STYLE}</style>
 </head>
-<body>
+<body class="report">
 <main id="report-content">
 ${labelHtml}
 </main>
@@ -727,7 +727,7 @@ export async function buildHtmlReport(
 <title>TRUST Review: ${esc(metadata.toolName)}</title>
 <style>${REPORT_STYLE}</style>
 </head>
-<body>
+<body class="report">
 
 <main id="report-content">
 
@@ -804,7 +804,8 @@ ${unlinkedSection}
 </main>
 <div class="bottom-bar"></div>
 <div class="footer">
-  TRUST Framework v1.1 · ${esc(metadata.toolName)} · ${model.scores.totalQuestions} questions · Evaluated ${formatDate(metadata.startTime)}
+  <span class="footer-wordmark">TRUST Framework<span class="footer-edition">v1.1</span></span>
+  <span class="footer-meta">${esc(metadata.toolName)} · ${model.scores.totalQuestions} questions · Evaluated ${formatDate(metadata.startTime)}</span>
 </div>
 
 </body>

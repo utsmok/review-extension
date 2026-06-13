@@ -9,12 +9,18 @@
   --panel: #f3f4f6;
   --white: #fafbfc;
   --link: #2563eb;
-  /* Score-level semantic colors — mirrors tokens.css for report context */
-  --score-0: #c60c30;
-  --score-1: #c2410c;
-  --score-2: #0e7490;
-  --score-3: #4a8355;
-  --score-0-tint: color-mix(in srgb, var(--score-0) 6%, var(--white));
+  /* Score-level semantic colours — the report's single source of truth.
+     These equal REPORT_SCORE_COLORS (lib/rubric.ts): the darkened, WCAG-AA
+     variants the inline badge styles render, so class-based and inline colour
+     usages never drift apart. */
+  --score-0: #c20c2f;
+  --score-1: #b23c0b;
+  --score-2: #0d6d87;
+  --score-3: #3d7249;
+  /* Neutral "undecided" state — shared by gate unsure flags (not a failure). */
+  --score-unsure: var(--slate);
+  /* Unified tint scale: 8% subtle wash · 12% badge/chip fill · 35% border. */
+  --score-0-tint: color-mix(in srgb, var(--score-0) 8%, var(--white));
   --ff-body: "Inter", "Segoe UI", "Helvetica Neue", system-ui, -apple-system, Arial, sans-serif;
   --ff-heading:
     "Arial Narrow", "Roboto Condensed", "Open Sans Condensed", Arial, "Helvetica Neue", sans-serif;
@@ -30,6 +36,10 @@
   --rs-sm: 8px;
   --rs-xs: 6px;
   --rs-2xs: 3px;
+  /* Letter-spacing tiers — consistent tracking across the type system */
+  --ls-display: 0.06em;
+  --ls-heading: 0.04em;
+  --ls-label: 0.04em;
 }
 *,
 *::before,
@@ -103,7 +113,7 @@ img {
 .letterform-letter {
   font-family: var(--ff-heading);
   font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: 0.08em;
 }
@@ -128,6 +138,7 @@ img {
 .letterform-score .pct {
   font-size: 0.75rem;
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Gate summary */
@@ -155,20 +166,23 @@ img {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: var(--rs-md);
-  padding: 10px 12px;
+  margin-bottom: var(--rs-lg);
+  padding: 12px 14px;
   background: var(--white);
   border: 1px solid var(--border);
+  border-top: 3px solid var(--navy);
   border-radius: 2px;
 }
 .toc-label {
   font-family: var(--ff-heading);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--muted);
-  margin-right: 4px;
+  color: var(--navy);
+  margin-right: 8px;
+  padding-right: 10px;
+  border-right: 1px solid var(--border);
   align-self: center;
 }
 .toc-item {
@@ -190,16 +204,19 @@ img {
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  margin-bottom: var(--rs-md);
+  margin-bottom: var(--rs-xl);
+  margin-top: var(--rs-sm);
+  padding: var(--rs-xs) 0;
+  border-top: 1px solid var(--border);
   font-size: 0.75rem;
 }
 .legend-label {
   font-family: var(--ff-heading);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--muted);
+  color: var(--navy);
   margin-right: 2px;
 }
 
@@ -216,7 +233,7 @@ img {
 .cat-table .cat-code {
   font-family: var(--ff-heading);
   font-size: 1.3rem;
-  font-weight: 800;
+  font-weight: 700;
   width: 40px;
 }
 .cat-table .cat-label {
@@ -234,11 +251,13 @@ img {
 .cat-table .cat-evidence .count {
   font-size: 1.1rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 .cat-table .cat-evidence .label {
   font-size: 0.7rem;
   color: var(--muted);
   text-transform: uppercase;
+  letter-spacing: var(--ls-label);
 }
 .cat-table tr + tr {
   border-top: 1px solid var(--border);
@@ -259,24 +278,24 @@ img {
   gap: 4px;
   padding: 2px 7px;
   border-radius: 3px;
-  border: 1.5px solid color-mix(in srgb, var(--pc) 45%, var(--border));
-  background: color-mix(in srgb, var(--pc) 10%, var(--white));
+  border: 1.5px solid color-mix(in srgb, var(--pc) 35%, var(--white));
+  background: color-mix(in srgb, var(--pc) 12%, var(--white));
   font-family: var(--ff-mono);
   font-size: 0.7rem;
-  line-height: 1.3;
+  line-height: 1.25;
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
 }
 .pchip-code {
   color: var(--muted);
-  font-weight: 700;
-  font-size: 0.62rem;
-  letter-spacing: 0.02em;
+  font-weight: 600;
+  font-size: 0.6rem;
+  letter-spacing: 0.03em;
 }
 .pchip-indicator {
   color: var(--pc);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 1rem;
   line-height: 1;
 }
 .pchip[data-state="empty"] {
@@ -291,8 +310,9 @@ img {
   border-radius: 2px;
   background: color-mix(in srgb, var(--pc) 12%, var(--white));
   color: var(--pc);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
 }
@@ -305,11 +325,11 @@ img {
 .verdict-block {
   text-align: center;
   padding: var(--rs-lg) 0;
-  background: color-mix(in srgb, var(--verdict-color, transparent) 8%, white);
+  background: color-mix(in srgb, var(--verdict-color, transparent) 8%, var(--white));
 }
 /* Prominent (non-verdict-changing) warning when a quality gate has failed. */
 .gate-fail-callout {
-  background: color-mix(in srgb, var(--score-0) 10%, var(--white));
+  background: color-mix(in srgb, var(--score-0) 8%, var(--white));
   border: 1px solid color-mix(in srgb, var(--score-0) 35%, var(--white));
   color: var(--text);
   padding: var(--rs-xs) var(--rs-sm);
@@ -324,7 +344,7 @@ img {
 }
 /* Spacer row so the nutrition Overall cell's score circles align with the principle columns. */
 .nutrition-overall-spacer {
-  height: 1.45rem;
+  height: 1.15rem;
 }
 /* Placeholder shown when a capture has no screenshot. */
 .evidence-placeholder {
@@ -372,24 +392,55 @@ img {
 /* Footer */
 .footer {
   display: flex;
-  gap: 12px;
-  align-items: center;
-  font-size: 0.75rem;
+  flex-wrap: wrap;
+  gap: var(--rs-2xs) var(--rs-lg);
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.72rem;
   color: var(--slate);
-  margin-bottom: var(--rs-lg);
+  margin: var(--rs-sm) 0 var(--rs-lg);
+}
+/* Colophon — a quiet wordmark lockup closes the document. The magenta close-bar
+   above separates it from the body; the lockup carries framework identity (left)
+   and the record's particulars (right). */
+.footer-wordmark {
+  font-family: var(--ff-heading);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  color: var(--magenta);
+}
+.footer-edition {
+  margin-left: 0.45em;
+  font-family: var(--ff-mono);
+  font-weight: 600;
+  font-size: 0.82em;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+}
+.footer-meta {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Full report section */
+/* Masthead — the report opens like a publication flag: a committed top rule,
+   the wordmark band, then the title. */
 .report-header {
   padding-top: var(--rs-lg);
-  border-top: 4px solid var(--magenta);
+  border-top: 5px solid var(--magenta);
   margin-top: var(--rs-2xl);
+  margin-bottom: var(--rs-lg);
 }
 .report-header h1 {
   font-family: var(--ff-heading);
-  font-size: 1.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.15;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--ls-display);
   color: var(--magenta);
   margin-bottom: var(--rs-xs);
   text-wrap: balance;
@@ -438,10 +489,12 @@ img {
 .section-heading {
   font-family: var(--ff-heading);
   text-transform: uppercase;
-  letter-spacing: var(--ls-heading, 0.03em);
+  letter-spacing: var(--ls-heading, 0.04em);
   color: var(--magenta);
-  margin: var(--rs-sm) 0 var(--rs-xs);
-  font-size: 1.15rem;
+  margin: var(--rs-lg) 0 var(--rs-sm);
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.2;
   text-wrap: balance;
 }
 
@@ -449,7 +502,7 @@ img {
 .qg-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: var(--rs-lg);
+  margin-bottom: var(--rs-sm);
   table-layout: fixed;
   font-size: 0.85rem;
 }
@@ -470,10 +523,10 @@ table th {
   font-family: var(--ff-heading);
   font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--ls-label);
   padding: 6px 8px;
   text-align: left;
-  border-bottom: 2px solid #001a3a;
+  border-bottom: 2px solid color-mix(in srgb, var(--navy) 70%, black);
 }
 .qg-table td {
   padding: 4px 6px;
@@ -505,7 +558,7 @@ table th {
 
 /* Category section */
 .category-section {
-  margin-bottom: var(--rs-lg);
+  margin-bottom: var(--rs-2xl);
   border-top: 3px solid var(--accent);
 }
 .category-section.category-alt {
@@ -518,18 +571,25 @@ table th {
   padding: var(--rs-xs) var(--rs-sm);
   background: #f5f6f8;
   /* biome-ignore lint/suspicious/noDuplicateProperties: progressive enhancement fallback */
-  background: color-mix(in srgb, var(--accent) 6%, var(--white));
+  background: color-mix(in srgb, var(--accent) 8%, var(--white));
 }
 .category-letter-block {
   text-align: center;
   min-width: 48px;
+  align-self: flex-start;
 }
+/* The principle initial as a framed cornerstone — architectural section identity. */
 .category-letter {
   font-family: var(--ff-heading);
   font-size: clamp(1.8rem, 4vw, 2.5rem);
-  font-weight: 800;
+  font-weight: 700;
   color: var(--accent);
   line-height: 1;
+  display: inline-block;
+  border: 2px solid var(--accent);
+  border-radius: 3px;
+  padding: 0.18em 0.5em;
+  background: var(--white);
 }
 .category-letter-name {
   font-size: 0.7rem;
@@ -537,13 +597,16 @@ table th {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--accent);
-  margin-top: 2px;
+  margin-top: 5px;
+  line-height: 1.2;
 }
 .category-info h2 {
   font-family: var(--ff-heading);
-  font-size: 1.3rem;
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.2;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: var(--ls-heading);
   margin-bottom: var(--rs-2xs);
   text-wrap: balance;
 }
@@ -570,7 +633,7 @@ table th {
   font-family: var(--ff-heading);
   font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--ls-label);
   padding: 6px 8px;
   text-align: left;
   border-bottom: 2px solid rgba(0, 0, 0, 0.3);
@@ -672,7 +735,7 @@ table th {
 .finalization-section {
   border-top: 4px solid var(--magenta);
   padding-top: var(--rs-sm);
-  margin-bottom: var(--rs-lg);
+  margin-bottom: var(--rs-2xl);
 }
 .fin-bar {
   height: 4px;
@@ -681,24 +744,42 @@ table th {
 .fin-grade {
   text-align: center;
   font-family: var(--ff-heading);
-  font-size: clamp(2rem, 5vw, 3rem);
+  font-size: clamp(2.2rem, 6vw, 3.4rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  padding: var(--rs-md) 0;
+  padding: var(--rs-lg) var(--rs-xl);
   margin-bottom: var(--rs-md);
-  letter-spacing: 0.03em;
-  border: 2px solid currentColor;
-  border-radius: 2px;
-  opacity: 0.95;
+  line-height: 1;
+  letter-spacing: var(--ls-display);
+  text-transform: uppercase;
+  border: 2.5px solid currentColor;
+  outline: 1px solid currentColor;
+  outline-offset: -6px;
+  border-radius: 3px;
+}
+/* Legend echoed inside the fin-grade seal so it reads as the framework's verdict
+   — mirrors the nutrition stamp's "Framework Verdict" caption. */
+.fin-grade::after {
+  content: "Framework Verdict";
+  display: block;
+  font-size: 0.32em;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  margin-top: 0.5em;
+  padding-top: 0.5em;
+  border-top: 1px solid color-mix(in srgb, currentColor 28%, transparent);
 }
 .fin-block {
   margin-bottom: var(--rs-md);
+  max-width: 72ch;
 }
 .fin-block h3 {
   font-family: var(--ff-heading);
-  font-size: 1.05rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.3;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: var(--ls-heading);
   margin-bottom: var(--rs-xs);
 }
 .fin-block p,
@@ -717,6 +798,18 @@ table th {
   font-size: 0.75rem;
   color: var(--slate);
   text-align: right;
+}
+/* Conclusion standfirst — a modest drop-cap lends the reviewer's final word the
+   cadence of a considered close: heading face, roughly two lines, accent drawn
+   from the verdict so the flourish responds to the outcome. Print-safe. */
+.fin-block--conclusion > p:first-of-type::first-letter {
+  font-family: var(--ff-heading);
+  font-size: 3.1em;
+  font-weight: 700;
+  line-height: 0.78;
+  float: left;
+  margin: 0.04em 0.1em 0 0;
+  color: var(--fin-accent, var(--magenta));
 }
 
 .sr td {
@@ -794,8 +887,11 @@ td.sc {
 }
 .unlinked-section h2 {
   font-family: var(--ff-heading);
-  font-size: 1rem;
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.2;
   text-transform: uppercase;
+  letter-spacing: var(--ls-heading);
   color: var(--magenta);
   margin-bottom: var(--rs-sm);
 }
@@ -856,7 +952,9 @@ td.sc {
   padding: var(--rs-lg) var(--rs-lg) var(--rs-sm);
 }
 .report-header > .trust-branding {
-  margin-bottom: var(--rs-sm);
+  margin-bottom: var(--rs-md);
+  padding-bottom: var(--rs-sm);
+  border-bottom: 1px solid var(--border);
 }
 .trust-branding img {
   height: 28px;
@@ -896,12 +994,15 @@ td.sc {
   text-decoration: underline;
 }
 .nutrition-tool-name {
+  /* Capture the tool name for the print running header (see @page report). */
+  /* biome-ignore lint/correctness/noUnknownFunction: content() is valid CSS Generated Content syntax for string-set */
+  string-set: rptool content(text);
   font-family: var(--ff-heading);
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--magenta);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: var(--ls-heading);
 }
 .nutrition-tool-url {
   font-size: 0.8rem;
@@ -938,11 +1039,21 @@ td.sc {
 }
 .nutrition-score-number {
   font-family: var(--ff-heading);
-  font-size: 1.1rem;
+  font-size: 1.5rem;
   font-weight: 700;
+  line-height: 1.1;
   color: var(--magenta);
   margin-top: var(--rs-xs);
   font-variant-numeric: tabular-nums;
+}
+.nutrition-score-unit {
+  font-family: var(--ff-body);
+  font-size: 0.5em;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  margin-left: 0.3em;
 }
 .nutrition-divider {
   height: 2px;
@@ -958,30 +1069,38 @@ td.sc {
   padding: var(--rs-xl) var(--rs-lg);
   text-align: center;
 }
+/* Verdict seal — the report's most authoritative output. Double-rule frame
+   (border + inset outline) + committed scale read as a credential stamp, not
+   a label. Upright for formal authority; the legend sits inside its own rule. */
 .nutrition-verdict-stamp {
   display: inline-block;
-  border: 3px solid;
-  border-radius: 2px;
-  padding: 0.5em 1em;
-  transform: rotate(-3deg);
+  border: 2.5px solid;
+  outline: 1px solid;
+  outline-offset: -6px;
+  border-radius: 3px;
+  padding: 0.75em 1.4em 0.6em;
+  background: color-mix(in srgb, currentColor 5%, var(--white));
   font-family: var(--ff-heading);
-  font-size: clamp(1.8rem, 5vw, 3rem);
-  font-weight: 800;
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  line-height: 1.1;
+  line-height: 1;
 }
 .nutrition-verdict-stamp span {
   display: block;
   font-size: 0.55em;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
+  margin-top: 0.4em;
+  padding-top: 0.4em;
+  border-top: 1px solid color-mix(in srgb, currentColor 28%, transparent);
 }
 .nutrition-verdict-sub img {
   vertical-align: middle;
 }
 .nutrition-gates {
-  padding: var(--rs-2xs) var(--rs-md) var(--rs-xs);
+  padding: var(--rs-sm) var(--rs-lg) var(--rs-xs);
 }
 .nutrition-gates-title {
   font-family: var(--ff-heading);
@@ -1003,11 +1122,11 @@ td.sc {
   font-weight: 700;
 }
 .nutrition-gate-item .unsure {
-  color: #5a6e82;
+  color: var(--score-unsure);
   font-weight: 700;
 }
 .nutrition-principles {
-  padding: var(--rs-xs) var(--rs-md) var(--rs-sm);
+  padding: var(--rs-xs) var(--rs-lg) var(--rs-sm);
   overflow-x: auto;
 }
 .nutrition-principles-table {
@@ -1024,17 +1143,19 @@ td.sc {
 .nutrition-principle-code {
   font-family: var(--ff-heading);
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 700;
+  line-height: 1.1;
 }
 .nutrition-principle-name {
   font-size: 0.7rem;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  line-height: 1.25;
 }
 .nutrition-overall-cell {
   text-align: center;
-  vertical-align: middle;
+  vertical-align: top;
   padding-left: var(--rs-md);
   border-left: 2px solid var(--text);
 }
@@ -1044,8 +1165,9 @@ td.sc {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  line-height: 1.25;
   color: var(--muted);
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 .circles {
   display: inline-flex;
@@ -1062,12 +1184,14 @@ td.sc {
   font-size: 0.65rem;
   color: var(--muted);
   margin-left: 3px;
+  font-variant-numeric: tabular-nums;
 }
 .nutrition-principle-fraction {
   font-family: var(--ff-mono);
   font-size: 0.7rem;
   color: var(--muted);
   margin-top: 2px;
+  font-variant-numeric: tabular-nums;
 }
 .nutrition-circle-legend {
   font-size: 0.7rem;
@@ -1111,6 +1235,11 @@ td.sc {
   color: var(--muted);
   font-size: 0.8rem;
   font-style: italic;
+}
+/* Editorial em-dash lead so an absent field reads as a deliberate placeholder
+   rather than missing data (the convention used in statistical/reference tables). */
+.nutrition-sw-empty::before {
+  content: "—\00a0";
 }
 .nutrition-sw-divider {
   width: 1px;
@@ -1423,9 +1552,59 @@ td.sc {
 
 /* ── Print ─────────────────────────────────────────────────────── */
 @media print {
+  /* Default page (business card + unscoped exports): plain margins, no chrome. */
   @page {
     /* biome-ignore lint/suspicious/noShorthandPropertyOverrides: @page margin is the only way to set page margins */
     margin: 1.5cm 1cm;
+  }
+
+  /* Publication chrome for the full report and the nutrition label: a discreet
+     running header (tool name + framework) and footer (publisher + page counter)
+     so printed/PDF copies read like a real publication. Margin boxes are
+     print-only; engines that lack support (older Safari) ignore the whole block,
+     so the document still prints correctly without the chrome. */
+  body.report {
+    page: report;
+  }
+  @page report {
+    margin: 1.6cm 1.2cm 1.5cm;
+    @top-left {
+      /* biome-ignore lint/correctness/noUnknownFunction: string() is valid CSS Paged Media syntax for margin boxes */
+      content: string(rptool);
+      font-family: var(--ff-heading);
+      font-size: 8pt;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #555;
+      vertical-align: bottom;
+      padding-bottom: 4pt;
+    }
+    @top-right {
+      content: "TRUST Framework";
+      font-family: var(--ff-heading);
+      font-size: 8pt;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #555;
+      vertical-align: bottom;
+      padding-bottom: 4pt;
+    }
+    @bottom-left {
+      content: "LISA-EIS · University of Twente";
+      font-family: var(--ff-body);
+      font-size: 7.5pt;
+      color: #555;
+      vertical-align: top;
+      padding-top: 4pt;
+    }
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+      font-family: var(--ff-body);
+      font-size: 7.5pt;
+      color: #555;
+      vertical-align: top;
+      padding-top: 4pt;
+    }
   }
 
   html {
@@ -1456,7 +1635,8 @@ td.sc {
   .category-section .notes,
   .report-meta-label,
   .report-meta-value--muted,
-  .footer {
+  .footer,
+  .footer-wordmark {
     color: #555;
   }
 
@@ -1483,7 +1663,7 @@ td.sc {
   }
   .evidence-item.evidence-weak {
     background: #fff5f5;
-    border-top: 3px solid #c60c30;
+    border-top: 3px solid #c20c2f;
   }
 
   /* Bar accents use print-safe dark gray */
@@ -1600,9 +1780,9 @@ td.sc {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 11px;
   line-height: 1.35;
-  color: #222;
-  background: #fff;
-  border: 1px solid #d0d7de;
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border);
   border-radius: 6px;
   box-sizing: border-box;
   aspect-ratio: 85.6 / 54;
@@ -1622,7 +1802,7 @@ td.sc {
 }
 .bc-tagline {
   font-size: 9px;
-  color: #5a6d7f;
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -1637,7 +1817,7 @@ td.sc {
 .bc-tool-name {
   font-weight: 700;
   font-size: 13px;
-  color: #111;
+  color: var(--text);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1649,14 +1829,14 @@ td.sc {
 }
 .bc-tool-url {
   font-size: 9px;
-  color: #5a6d7f;
+  color: var(--muted);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .bc-divider {
-  border-top: 1px solid #d0d7de;
+  border-top: 1px solid var(--border);
   margin: 3px 0;
 }
 .bc-verdict-row {
@@ -1667,8 +1847,10 @@ td.sc {
 }
 .bc-verdict-stamp {
   display: inline-block;
-  padding: 1px 6px;
+  padding: 2.5px 8px;
   border: 1.5px solid;
+  outline: 1px solid currentColor;
+  outline-offset: -2.5px;
   border-radius: 3px;
   font-weight: 700;
   font-size: 10px;
@@ -1679,18 +1861,19 @@ td.sc {
 .bc-score {
   font-weight: 600;
   font-size: 11px;
-  color: #555;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 .bc-gates {
   margin-bottom: 2px;
 }
 .bc-gate-fail {
   font-size: 9px;
-  color: #c60c30;
+  color: var(--score-0);
   line-height: 1.3;
 }
 .bc-gate-unsure {
-  color: #8a6913;
+  color: var(--score-unsure);
 }
 .bc-principles {
   display: flex;
@@ -1703,7 +1886,7 @@ td.sc {
   flex-direction: column;
   align-items: center;
   gap: 1px;
-  color: var(--bc-pcolor, #5a6d7f);
+  color: var(--bc-pcolor, var(--muted));
 }
 .bc-pcode {
   font-weight: 700;
@@ -1714,16 +1897,16 @@ td.sc {
   line-height: 1;
 }
 .bc-pindicator.bc-pass {
-  color: var(--bc-pcolor, #222);
+  color: var(--bc-pcolor, var(--text));
 }
 .bc-pindicator:not(.bc-pass) {
-  color: #6b7280;
+  color: var(--slate);
 }
 .bc-footer {
   display: flex;
   justify-content: space-between;
   font-size: 8px;
-  color: #5a6d7f;
+  color: var(--muted);
 }
 
 /* Screen-reader only utility */

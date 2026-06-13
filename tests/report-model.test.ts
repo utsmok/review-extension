@@ -216,7 +216,7 @@ describe("buildReportModel", () => {
     const qg1 = model.qualityGateRows.find((r) => r.rubricId === "TR.qg1")!;
     expect(qg1.result).toBe("fail");
     expect(qg1.label).toBe("FAIL");
-    expect(qg1.color).toBe("#c60c30");
+    expect(qg1.color).toBe("#c20c2f");
   });
 
   it("handles null quality gate result when no evaluation exists", () => {
@@ -224,7 +224,7 @@ describe("buildReportModel", () => {
     const qg1 = model.qualityGateRows.find((r) => r.rubricId === "TR.qg1")!;
     expect(qg1.result).toBeNull();
     expect(qg1.label).toBe("—");
-    expect(qg1.color).toBe("#52677c");
+    expect(qg1.color).toBe("#4c5e74");
   });
 
   it("builds capture info with correct fields", () => {
