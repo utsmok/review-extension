@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="license" />
   <a href="https://github.com/utsmok/review-extension/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/utsmok/review-extension/ci.yml?branch=main&label=CI" alt="CI" /></a>
   <a href="https://codspeed.io/utsmok/review-extension"><img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed" /></a>
-  <img src="https://img.shields.io/badge/tests-575%20passing-brightgreen" alt="tests" />
+  <img src="https://img.shields.io/badge/tests-767%20passing-brightgreen" alt="tests" />
 </div>
 
 ---

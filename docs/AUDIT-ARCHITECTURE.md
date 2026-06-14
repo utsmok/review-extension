@@ -53,7 +53,7 @@ The TRUST Review Extension follows a clean, layered architecture with clear sepa
 ┌──────────▼───────────────────────────────────────────────────────┐
 │                         stores/                                  │
 │  session.ts ─── Zustand (in-memory only, no persist)             │
-│  registry.ts ─── Zustand + persist middleware (IDB)              │
+│  registry.ts ─── Zustand + persist middleware (localStorage)        │
 │  toast.ts ─── Zustand (ephemeral, timer-managed)                 │
 └──────────┬───────────────────────────────────────────────────────┘
            │
@@ -277,12 +277,11 @@ The content paths don't include `lib/` files. Since `lib/` contains CSS files (`
 **Severity:** P3
 **File:** `vitest.config.ts:14-18`
 
-```ts
 thresholds: {
-  statements: 65,
-  branches: 60,
-  functions: 70,
-  lines: 65,
+  statements: 75,
+  branches: 75,
+  functions: 80,
+  lines: 80,
 },
 ```
 

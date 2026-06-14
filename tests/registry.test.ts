@@ -18,7 +18,7 @@ describe("registry store", () => {
     useRegistryStore.setState({
       sessionIndex: {},
       activeSessionId: null,
-      settings: { reviewerName: "", reviewerEmail: "", preferredRubric: "trust-full", labs: {} },
+      settings: { reviewerName: "", reviewerEmail: "", labs: {} },
     });
   });
 
@@ -117,7 +117,6 @@ describe("registry store", () => {
       const settings = useRegistryStore.getState().settings;
       expect(settings.reviewerName).toBe("Alice");
       expect(settings.reviewerEmail).toBe("");
-      expect(settings.preferredRubric).toBe("trust-full");
     });
 
     it("merges multiple fields", () => {

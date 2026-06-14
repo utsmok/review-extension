@@ -3,16 +3,17 @@ import { persist } from "zustand/middleware";
 import type { SessionMetadata, Settings } from "@/lib/types";
 
 /**
- * Zustand registry store, persisted to IDB via zustand/middleware persist.
+ * Zustand registry store, persisted to localStorage via zustand/middleware persist.
  * The `settings` field contains reviewer name and email, stored unencrypted
- * in IndexedDB. IDB is accessible to extensions sharing the same origin.
+ * in localStorage. The browser's origin-scoped storage is accessible to
+ * extensions sharing the same origin.
  */
 interface RegistryState {
   /** All known sessions keyed by session UUID. */
   sessionIndex: Record<string, SessionMetadata>;
   /** UUID of the currently active session, or null. */
   activeSessionId: string | null;
-  /** Global reviewer settings (name, email, rubric preference). */
+  /** Global reviewer settings (name, email, Labs flags). */
   settings: Settings;
 
   /** Set or clear the currently active session by ID. */
@@ -23,7 +24,7 @@ interface RegistryState {
   deleteSession: (id: string) => void;
   /** Mark a session as finalized ("done"). No-op if the ID is not in the index. */
   markSessionDone: (id: string) => void;
-  /** Shallow-merge settings fields (reviewer name, email, rubric preference). */
+  /** Shallow-merge settings fields (reviewer name, email). */
   updateSettings: (patch: Partial<Settings>) => void;
   /** Update metadata fields on a registered session. No-op if the ID is not in the index. */
   updateSessionMetadata: (id: string, patch: Partial<SessionMetadata>) => void;
@@ -37,7 +38,6 @@ export const useRegistryStore = create<RegistryState>()(
       settings: {
         reviewerName: "",
         reviewerEmail: "",
-        preferredRubric: "trust-full",
         labs: {},
       },
 
@@ -82,18 +82,23 @@ export const useRegistryStore = create<RegistryState>()(
     }),
     {
       name: "trust-review-registry",
-      merge: (persisted, current) => ({
-        ...current,
-        ...(persisted as Partial<RegistryState>),
-        settings: {
-          ...current.settings,
-          ...((persisted as RegistryState)?.settings ?? {}),
-          labs: {
-            ...current.settings.labs,
-            ...((persisted as RegistryState)?.settings?.labs ?? {}),
+      merge: (persisted, current) => {
+        const p = persisted as RegistryState;
+        const persistedSettings = { ...(p?.settings ?? {}) } as Record<string, unknown>;
+        delete persistedSettings.preferredRubric;
+        return {
+          ...current,
+          ...p,
+          settings: {
+            ...current.settings,
+            ...persistedSettings,
+            labs: {
+              ...current.settings.labs,
+              ...(p?.settings?.labs ?? {}),
+            },
           },
-        },
-      }),
+        };
+      },
     },
   ),
 );

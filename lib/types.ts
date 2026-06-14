@@ -6,7 +6,6 @@ export type StoreStatus = "empty" | "loading" | "active";
 export interface Settings {
   reviewerName: string;
   reviewerEmail: string;
-  preferredRubric: string;
   setupBannerDismissed?: boolean;
   labs: LabsSettings;
 }

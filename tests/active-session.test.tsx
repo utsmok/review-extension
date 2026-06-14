@@ -115,7 +115,7 @@ describe("ActiveSession", () => {
     useRegistryStore.setState({
       activeSessionId: null,
       sessionIndex: {},
-      settings: { reviewerName: "", reviewerEmail: "", preferredRubric: "trust-full", labs: {} },
+      settings: { reviewerName: "", reviewerEmail: "", labs: {} },
     });
   });
 

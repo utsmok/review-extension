@@ -13,13 +13,13 @@ your row when done.
 | 003  | Enhanced Recommendation | P2 | M | 002 | DONE (shipped v0.8.1) |
 | 004  | Per-Principle Summaries | P2 | M | 002 | REJECTED (added `8aed436`, removed `d410513` — redundant with per-question notes) |
 | 005  | Smart Review Templates | P3 | M | — | DONE (shipped v0.8.1 as tool-profiles) |
-| 006  | Enforce quality gates (coverage/lint/format) | P1 | S | — | TODO |
-| 007  | Harden session lifecycle (switch guard + delete/import errors) | P1 | S | — | TODO |
-| 008  | Re-sanitize imported archive HTML | P1 | S | — | TODO |
-| 009  | Codebase hygiene (stale docs + vestigial preferredRubric) | P2 | S | — | TODO |
+| 006  | Enforce quality gates (coverage/lint/format) | P1 | S | — | DONE |
+| 007  | Harden session lifecycle (switch guard + delete/import errors) | P1 | S | — | DONE |
+| 008  | Re-sanitize imported archive HTML | P1 | S | — | DONE |
+| 009  | Codebase hygiene (stale docs + vestigial preferredRubric) | P2 | S | — | DONE |
 | 010  | undo-delete union merge + migration robustness | P2 | S | — | TODO |
 | 011  | Export pipeline cleanup (font asset, ?raw fidelity, reuse model) | P3 | M | — | TODO |
-| 012  | Dependency hygiene (runtime deps + @types/node) | P3 | S | — | TODO |
+| 012  | Dependency hygiene (runtime deps + @types/node) | P3 | S | — | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
 

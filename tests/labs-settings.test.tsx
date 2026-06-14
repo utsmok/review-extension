@@ -13,7 +13,7 @@ beforeEach(() => {
   useRegistryStore.setState({
     sessionIndex: {},
     activeSessionId: null,
-    settings: { reviewerName: "", reviewerEmail: "", preferredRubric: "trust-full", labs: {} },
+    settings: { reviewerName: "", reviewerEmail: "", labs: {} },
   });
 });
 
