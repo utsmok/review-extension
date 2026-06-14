@@ -285,7 +285,9 @@ export async function deleteSession(id: string): Promise<void> {
     await deleteScreenshotsForCaptures(captureIds);
   } catch (err) {
     console.error("Failed to delete session from IDB:", err);
-    toastError("Could not fully remove this review's stored data. It may reappear on reload.");
+    toastError(
+      "Could not fully remove this review's data from storage. The card has been removed, but leftover data may occupy space.",
+    );
   } finally {
     // Always remove from the registry so the card disappears from the UI.
     useRegistryStore.getState().deleteSession(id);

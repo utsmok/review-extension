@@ -196,5 +196,14 @@ export function sanitizeArchiveHtml(html: string): string {
       m.remove();
     }
   });
+  // Strip external url() references in <style> elements (match archivePageHtml)
+  doc.querySelectorAll("style").forEach((styleEl) => {
+    if (styleEl.textContent) {
+      styleEl.textContent = styleEl.textContent.replace(
+        /url\(\s*['"]?(?!data:)[^)]*\)\s*/gi,
+        "/* stripped external URL */",
+      );
+    }
+  });
   return doc.documentElement.outerHTML;
 }

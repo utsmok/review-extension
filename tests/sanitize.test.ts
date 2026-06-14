@@ -211,4 +211,19 @@ describe("sanitizeArchiveHtml", () => {
     expect(out).toContain("https://example.com");
     expect(out).toContain('class="link"');
   });
+
+  it("strips external url() in <style> elements", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><head><style>body{background:url(https://evil.com/beacon)}</style></head><body>ok</body></html>`,
+    );
+    expect(out).not.toContain("evil.com");
+    expect(out).toContain("stripped external URL");
+  });
+
+  it("preserves data: url() in <style> elements", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><head><style>body{background:url(data:image/png;base64,ABC)}</style></head><body>ok</body></html>`,
+    );
+    expect(out).toContain("data:image/png;base64,ABC");
+  });
 });

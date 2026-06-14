@@ -215,7 +215,7 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<SessionData> 
       if (htmlFile) {
         const raw = await htmlFile.async("string");
         checkBudget(raw.length);
-        capture.htmlContent = sanitizeArchiveHtml(raw);
+        capture.htmlContent = raw;
       }
     }
     // Reassemble annotated screenshot if flagged in session.json
@@ -228,6 +228,10 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<SessionData> 
         const mime = annFile.name.endsWith(".jpg") ? "image/jpeg" : "image/png";
         capture.annotatedScreenshotBase64 = `data:${mime};base64,${base64}`;
       }
+    }
+    // Unconditionally sanitize HTML from any source (session.json or .html file)
+    if (capture.htmlContent) {
+      capture.htmlContent = sanitizeArchiveHtml(capture.htmlContent);
     }
   }
 

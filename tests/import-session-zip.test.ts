@@ -33,7 +33,17 @@ describe("importSessionFromZip", () => {
 
     const result = await importSessionFromZip(blob);
     expect(result.metadata).toEqual(metadata);
-    expect(result.captures).toEqual(captures);
+    // htmlContent is now sanitized (DOMParser restructures), so compare field-by-field
+    expect(result.captures).toHaveLength(1);
+    expect(result.captures[0]).toMatchObject({
+      id: captures[0].id,
+      timestamp: captures[0].timestamp,
+      sourceUrl: captures[0].sourceUrl,
+      pageTitle: captures[0].pageTitle,
+      screenshotBase64: captures[0].screenshotBase64,
+      notes: captures[0].notes,
+    });
+    expect(result.captures[0].htmlContent).toContain("Test page");
     expect(result.evaluations).toEqual(evaluations);
     expect(result.finalization).toEqual(finalization);
   });
@@ -141,7 +151,17 @@ describe("importSessionFromZip", () => {
 
     const imported = await importSessionFromZip(blob);
     expect(imported.metadata).toEqual(metadata);
-    expect(imported.captures).toEqual(captures);
+    // htmlContent is sanitized on import; compare non-HTML fields exactly
+    expect(imported.captures).toHaveLength(1);
+    expect(imported.captures[0]).toMatchObject({
+      id: captures[0].id,
+      timestamp: captures[0].timestamp,
+      sourceUrl: captures[0].sourceUrl,
+      pageTitle: captures[0].pageTitle,
+      screenshotBase64: captures[0].screenshotBase64,
+      notes: captures[0].notes,
+    });
+    expect(imported.captures[0].htmlContent).toContain("Test page");
     expect(imported.evaluations).toEqual(evaluations);
     expect(imported.finalization).toEqual(finalization);
   });
@@ -338,7 +358,7 @@ describe("importSessionFromZip", () => {
 
     const result = await importSessionFromZip(blob);
     expect(result.captures[0].screenshotBase64).toBe("data:image/png;base64,EXISTING");
-    expect(result.captures[0].htmlContent).toBe("<html>existing</html>");
+    expect(result.captures[0].htmlContent).toContain("existing");
   });
 
   // --- ZIP bomb protection ---
@@ -469,5 +489,24 @@ describe("importSessionFromZip", () => {
     expect(result.captures[0].htmlContent).toBeDefined();
     expect(result.captures[0].htmlContent).not.toContain("<script");
     expect(result.captures[0].htmlContent).toContain("<p>safe</p>");
+  });
+
+  it("sanitizes HTML embedded in session.json (not just .html files)", async () => {
+    const captureId = crypto.randomUUID();
+    const metadata = makeMetadata();
+    const capture = makeCapture({
+      id: captureId,
+      htmlContent:
+        "<html><body><script>alert(1)</script><img src=x onerror=alert(2)></body></html>",
+    });
+
+    const blob = await buildZip({
+      "session.json": { metadata, captures: [capture], evaluations: [] },
+      // No .html file — the XSS payload comes from session.json directly
+    });
+
+    const result = await importSessionFromZip(blob);
+    expect(result.captures[0].htmlContent).not.toContain("<script");
+    expect(result.captures[0].htmlContent).not.toContain("onerror");
   });
 });

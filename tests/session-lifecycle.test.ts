@@ -315,7 +315,7 @@ describe("deleteSession error handling", () => {
 
     // toastError should have been called
     expect(toastError).toHaveBeenCalledWith(
-      "Could not fully remove this review's stored data. It may reappear on reload.",
+      "Could not fully remove this review's data from storage. The card has been removed, but leftover data may occupy space.",
     );
 
     deleteSpy.mockRestore();
