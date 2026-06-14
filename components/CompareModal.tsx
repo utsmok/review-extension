@@ -64,7 +64,7 @@ export default function CompareModal({ entries, onClose }: CompareModalProps) {
               </th>
               {entries.map((e) => (
                 <th
-                  key={e.toolName}
+                  key={e.id}
                   className="text-left p-1.5 text-ut-text font-heading font-bold text-ut-xs"
                 >
                   {e.toolName}
@@ -77,7 +77,7 @@ export default function CompareModal({ entries, onClose }: CompareModalProps) {
             <tr className="border-t border-ut-border">
               <td className="p-1.5 text-ut-muted">Verdict</td>
               {entries.map((e) => (
-                <td key={e.toolName} className="p-1.5 text-ut-text">
+                <td key={e.id} className="p-1.5 text-ut-text">
                   {e.conclusion || "\u2014"}
                 </td>
               ))}
@@ -90,7 +90,7 @@ export default function CompareModal({ entries, onClose }: CompareModalProps) {
                 const isBest = entries.length >= 2 && e.total[0] === best.total;
                 return (
                   <td
-                    key={e.toolName}
+                    key={e.id}
                     className={`p-1.5 text-ut-text ${isBest ? "font-bold underline" : ""}`}
                   >
                     {e.total[1] > 0 ? `${e.total[0]}/${e.total[1]}` : "\u2014"}
@@ -114,7 +114,7 @@ export default function CompareModal({ entries, onClose }: CompareModalProps) {
                   const isBest = entries.length >= 2 && val !== null && val === best[p.id];
                   return (
                     <td
-                      key={e.toolName}
+                      key={e.id}
                       className={`p-1.5 text-ut-text ${isBest ? "font-bold underline" : ""}`}
                       data-testid={`cell-${e.toolName}-${p.id}`}
                     >
@@ -129,7 +129,7 @@ export default function CompareModal({ entries, onClose }: CompareModalProps) {
             <tr className="border-t border-ut-border">
               <td className="p-1.5 text-ut-muted">Strengths</td>
               {entries.map((e) => (
-                <td key={e.toolName} className="p-1.5 text-ut-text">
+                <td key={e.id} className="p-1.5 text-ut-text">
                   {e.strengths.length > 0 ? (
                     <ul className="list-disc pl-3 m-0 space-y-0.5">
                       {e.strengths.map((s) => (
@@ -147,7 +147,7 @@ export default function CompareModal({ entries, onClose }: CompareModalProps) {
             <tr className="border-t border-ut-border">
               <td className="p-1.5 text-ut-muted">Weaknesses</td>
               {entries.map((e) => (
-                <td key={e.toolName} className="p-1.5 text-ut-text">
+                <td key={e.id} className="p-1.5 text-ut-text">
                   {e.weaknesses.length > 0 ? (
                     <ul className="list-disc pl-3 m-0 space-y-0.5">
                       {e.weaknesses.map((w) => (

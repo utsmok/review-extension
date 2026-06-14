@@ -52,6 +52,7 @@ import CompareModal from "@/components/CompareModal";
 
 function makeEntry(overrides?: Partial<ComparisonEntry>): ComparisonEntry {
   return {
+    id: "test-entry-1",
     toolName: "ToolA",
     conclusion: "Good tool",
     strengths: ["Fast"],

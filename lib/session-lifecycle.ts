@@ -414,6 +414,7 @@ export async function buildSessionComparison(ids: string[]): Promise<ComparisonE
     const { metadata, evaluations, finalization } = data;
     if (evaluations.length === 0) {
       entries.push({
+        id: metadata.id,
         toolName: metadata.toolName,
         conclusion: finalization?.conclusion ?? "",
         strengths: finalization?.strengths ?? [],
@@ -423,7 +424,8 @@ export async function buildSessionComparison(ids: string[]): Promise<ComparisonE
       });
       continue;
     }
-    const scores = computeReportScores(evaluations, RUBRIC_DATA, finalization);
+    const usesAi = metadata.usesAi ?? true;
+    const scores = computeReportScores(evaluations, RUBRIC_DATA, finalization, undefined, usesAi);
     const principleAverages: Record<string, number | null> = {};
     for (const p of PRINCIPLES) {
       const cs = scores.catScores.get(p.id);
@@ -443,6 +445,7 @@ export async function buildSessionComparison(ids: string[]): Promise<ComparisonE
     }
     const ratio = scores.totalMax > 0 ? scores.totalActual / scores.totalMax : 0;
     entries.push({
+      id: metadata.id,
       toolName: metadata.toolName,
       conclusion: finalization?.conclusion ?? "",
       strengths: finalization?.strengths ?? [],

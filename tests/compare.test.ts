@@ -123,6 +123,35 @@ describe("buildSessionComparison", () => {
     expect(result).toHaveLength(1);
     expect(result[0]!.toolName).toBe("Existing");
   });
+
+  it("excludes AI-only questions from totalMax when usesAi is false", async () => {
+    const meta = makeMetadata({ toolName: "NonAiTool", usesAi: false });
+    // Score max (3) on all 7 non-AI questions
+    const evals = [
+      makeEvaluation({ rubricId: "TR.data_source_clarity", score: 3 }),
+      makeEvaluation({ rubricId: "RE.variance_consistency", score: 3 }),
+      makeEvaluation({ rubricId: "US.workflow_integration", score: 3 }),
+      makeEvaluation({ rubricId: "SE.algorithmic_fairness", score: 3 }),
+      makeEvaluation({ rubricId: "SE.data_handling", score: 3 }),
+      makeEvaluation({ rubricId: "TC.source_attribution_depth", score: 3 }),
+      makeEvaluation({ rubricId: "TC.bibliometric_credibility", score: 3 }),
+    ];
+    mockStore.set(
+      meta.id,
+      makeSessionData({ metadata: meta, evaluations: evals, finalization: makeFinalization() }),
+    );
+
+    const result = await buildSessionComparison([meta.id]);
+    expect(result).toHaveLength(1);
+    const entry = result[0]!;
+
+    // 7 non-AI questions × 3 max = 21
+    expect(entry.total[1]).toBe(21);
+    // AI-inclusive would be 10 × 3 = 30 — confirm it's strictly less
+    expect(entry.total[1]).toBeLessThan(30);
+    // actual should also be 21 (all scored max)
+    expect(entry.total[0]).toBe(21);
+  });
 });
 
 describe("bestValue helper", () => {
@@ -140,6 +169,7 @@ describe("bestValue helper", () => {
   it("computes highest total and per-principle averages across entries", () => {
     const entries: ComparisonEntry[] = [
       {
+        id: "a",
         toolName: "A",
         conclusion: "",
         strengths: [],
@@ -148,6 +178,7 @@ describe("bestValue helper", () => {
         total: [10, 15, 10 / 15],
       },
       {
+        id: "b",
         toolName: "B",
         conclusion: "",
         strengths: [],

@@ -169,6 +169,7 @@ export type TotalScore = [number, number, number];
 
 /** A single tool's comparison entry built by `buildSessionComparison`. */
 export interface ComparisonEntry {
+  id: string;
   toolName: string;
   conclusion: string;
   strengths: string[];
