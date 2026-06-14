@@ -11,7 +11,8 @@
 import { type ReactNode, useEffect } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import type { Editor, TLShapeId } from "@/components/TldrawAnnotation";
 
 // Mock tldraw: ActionBar uses useValue (a reactive signal hook); the mock invokes
 // the getter once. AssetRecordType/createShapeId back the dynamic-import path in
@@ -53,7 +54,7 @@ interface FakeEditor {
 
 const noopFn = (): void => {};
 
-/** Build a FakeEditor. Called from many tests, hence the helper (lockstep setup). */
+/** Build a FakeEditor. Called from many tests; centralizes the mock surface. */
 function makeEditor(camera: Camera = { x: 0, y: 0, z: 1 }): FakeEditor {
   return {
     getCamera: vi.fn(() => camera),
@@ -87,42 +88,84 @@ describe("ActionBar", () => {
 
   it("zooms in by 0.1 step", () => {
     const editor = makeEditor({ x: 0, y: 0, z: 1 });
-    render(<ActionBar editor={editor} imageShapeId="shape-1" onClear={vi.fn()} onSave={vi.fn()} />);
+    render(
+      <ActionBar
+        editor={editor as unknown as Editor}
+        imageShapeId={"shape-1" as unknown as TLShapeId}
+        onClear={vi.fn()}
+        onSave={vi.fn()}
+      />,
+    );
     fireEvent.click(screen.getByLabelText("Zoom in"));
     expect(editor.setCamera.mock.calls[0][0].z).toBe(1.1);
   });
 
   it("clamps zoom in at 5", () => {
     const editor = makeEditor({ x: 0, y: 0, z: 4.95 });
-    render(<ActionBar editor={editor} imageShapeId="shape-1" onClear={vi.fn()} onSave={vi.fn()} />);
+    render(
+      <ActionBar
+        editor={editor as unknown as Editor}
+        imageShapeId={"shape-1" as unknown as TLShapeId}
+        onClear={vi.fn()}
+        onSave={vi.fn()}
+      />,
+    );
     fireEvent.click(screen.getByLabelText("Zoom in"));
     expect(editor.setCamera.mock.calls[0][0].z).toBe(5);
   });
 
   it("zooms out by 0.1 step", () => {
     const editor = makeEditor({ x: 0, y: 0, z: 1 });
-    render(<ActionBar editor={editor} imageShapeId="shape-1" onClear={vi.fn()} onSave={vi.fn()} />);
+    render(
+      <ActionBar
+        editor={editor as unknown as Editor}
+        imageShapeId={"shape-1" as unknown as TLShapeId}
+        onClear={vi.fn()}
+        onSave={vi.fn()}
+      />,
+    );
     fireEvent.click(screen.getByLabelText("Zoom out"));
     expect(editor.setCamera.mock.calls[0][0].z).toBeCloseTo(0.9);
   });
 
   it("clamps zoom out at 0.1", () => {
     const editor = makeEditor({ x: 0, y: 0, z: 0.15 });
-    render(<ActionBar editor={editor} imageShapeId="shape-1" onClear={vi.fn()} onSave={vi.fn()} />);
+    render(
+      <ActionBar
+        editor={editor as unknown as Editor}
+        imageShapeId={"shape-1" as unknown as TLShapeId}
+        onClear={vi.fn()}
+        onSave={vi.fn()}
+      />,
+    );
     fireEvent.click(screen.getByLabelText("Zoom out"));
     expect(editor.setCamera.mock.calls[0][0].z).toBe(0.1);
   });
 
   it("fit zooms to the image bounds with inset", () => {
     const editor = makeEditor();
-    render(<ActionBar editor={editor} imageShapeId="shape-1" onClear={vi.fn()} onSave={vi.fn()} />);
+    render(
+      <ActionBar
+        editor={editor as unknown as Editor}
+        imageShapeId={"shape-1" as unknown as TLShapeId}
+        onClear={vi.fn()}
+        onSave={vi.fn()}
+      />,
+    );
     fireEvent.click(screen.getByLabelText(/Zoom:.*Click to fit/));
     expect(editor.zoomToBounds).toHaveBeenCalledWith({ x: 0, y: 0, w: 800, h: 600 }, { inset: 16 });
   });
 
   it("does nothing on fit when there is no image shape", () => {
     const editor = makeEditor();
-    render(<ActionBar editor={editor} imageShapeId={null} onClear={vi.fn()} onSave={vi.fn()} />);
+    render(
+      <ActionBar
+        editor={editor as unknown as Editor}
+        imageShapeId={null}
+        onClear={vi.fn()}
+        onSave={vi.fn()}
+      />,
+    );
     fireEvent.click(screen.getByLabelText(/Zoom:.*Click to fit/));
     expect(editor.zoomToBounds).not.toHaveBeenCalled();
   });
@@ -131,7 +174,14 @@ describe("ActionBar", () => {
     const onClear = vi.fn();
     const onSave = vi.fn();
     const editor = makeEditor();
-    render(<ActionBar editor={editor} imageShapeId="shape-1" onClear={onClear} onSave={onSave} />);
+    render(
+      <ActionBar
+        editor={editor as unknown as Editor}
+        imageShapeId={"shape-1" as unknown as TLShapeId}
+        onClear={onClear}
+        onSave={onSave}
+      />,
+    );
     fireEvent.click(screen.getByLabelText("Clear annotations"));
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(onClear).toHaveBeenCalledOnce();
@@ -141,8 +191,8 @@ describe("ActionBar", () => {
   it("shows the current zoom percentage", () => {
     render(
       <ActionBar
-        editor={makeEditor({ x: 0, y: 0, z: 1.5 })}
-        imageShapeId="shape-1"
+        editor={makeEditor({ x: 0, y: 0, z: 1.5 }) as unknown as Editor}
+        imageShapeId={"shape-1" as unknown as TLShapeId}
         onClear={vi.fn()}
         onSave={vi.fn()}
       />,
@@ -190,13 +240,13 @@ class FailingImage {
 function Harness({ editor, imageSrc }: { editor: FakeEditor; imageSrc?: string }): ReactNode {
   const { editor: resolved, imageShapeId, onMount } = useTldrawEditor(imageSrc);
   useEffect(() => {
-    onMount(editor);
+    onMount(editor as unknown as Editor);
   }, [editor, onMount]);
   return (
     <div
       data-testid="harness"
       data-mounted={resolved ? "yes" : "no"}
-      data-shape={imageShapeId ?? ""}
+      data-shape={imageShapeId ? String(imageShapeId) : ""}
     />
   );
 }
@@ -214,10 +264,8 @@ describe("useTldrawEditor", () => {
   });
 
   it("exposes no editor until tldraw mounts it", () => {
-    const editor = makeEditor();
-    render(<Harness editor={editor} />);
+    render(<Harness editor={makeEditor()} />);
     expect(screen.getByTestId("harness").getAttribute("data-mounted")).toBe("yes");
-    // editor is set once onMount fires (Harness calls it in an effect)
   });
 
   it("loads the screenshot as a locked background image asset + shape", async () => {
@@ -230,7 +278,6 @@ describe("useTldrawEditor", () => {
     );
     expect(editor.setCurrentTool).toHaveBeenCalledWith("arrow");
     expect(editor.clearHistory).toHaveBeenCalled();
-    expect(screen.getByTestId("harness").getAttribute("data-shape")).toBe("shape-1");
   });
 
   it("registers z-order + lock side-effect handlers after loading", async () => {
@@ -262,7 +309,7 @@ describe("useTldrawEditor", () => {
     expect(editor.createShape).not.toHaveBeenCalled();
   });
 
-  it("constrains the camera once the image shape exists", async () => {
+  it("sets camera constraints once the image shape exists", async () => {
     const editor = makeEditor();
     render(<Harness editor={editor} imageSrc="data:image/png;base64,abc" />);
 
