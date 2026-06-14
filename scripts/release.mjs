@@ -54,10 +54,11 @@ if (!changelog.includes(heading)) {
 console.log("✓ Pre-flight: on main, clean tree, CHANGELOG entry present");
 
 // ── Full local gate (must pass before we touch anything) ───────────────
-console.log("\n▶ Running local gate: prepare → typecheck → test → build");
+console.log("\n▶ Running local gate: prepare → typecheck → check → test → build");
 try {
   execSync("pnpm wxt prepare", { stdio: "inherit" });
   execSync("pnpm typecheck", { stdio: "inherit" });
+  execSync("pnpm check", { stdio: "inherit" });
   execSync("pnpm test", { stdio: "inherit" });
   execSync("pnpm build", { stdio: "inherit" });
 } catch {

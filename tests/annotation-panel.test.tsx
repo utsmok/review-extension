@@ -8,10 +8,10 @@
 // why the v0.7.1 CSP regression (tldraw CDN translation fetch blocked) shipped
 // unnoticed — see manifest-csp.test.ts for the static CSP guard.
 
-import { type ReactNode, useEffect } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Mock } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { type ReactNode, useEffect } from "react";
+import type { Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Editor, TLShapeId } from "@/components/TldrawAnnotation";
 
 // Mock tldraw: ActionBar uses useValue (a reactive signal hook); the mock invokes

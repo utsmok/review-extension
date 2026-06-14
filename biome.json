@@ -27,15 +27,15 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        "noUnusedVariables": "warn",
-        "noUnusedImports": "warn"
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error"
       },
       "suspicious": {
-        "noExplicitAny": "warn",
+        "noExplicitAny": "error",
         "noUnknownAtRules": "off"
       },
       "a11y": {
-        "useButtonType": "warn",
+        "useButtonType": "error",
         "useKeyWithClickEvents": "warn",
         "noNoninteractiveElementToInteractiveRole": "warn",
         "useSemanticElements": "off",
