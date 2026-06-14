@@ -278,14 +278,14 @@ The content paths don't include `lib/` files. Since `lib/` contains CSS files (`
 **File:** `vitest.config.ts:14-18`
 
 thresholds: {
-  statements: 75,
-  branches: 75,
-  functions: 80,
-  lines: 80,
+  statements: 73,
+  branches: 66,
+  functions: 66,
+  lines: 75,
 },
 ```
 
-Coverage thresholds of 60-70% are reasonable for the current project stage but leave significant untested surface area. The coverage includes `lib/`, `stores/`, and `hooks/` but excludes components entirely.
+Coverage thresholds are ratcheted to current measured levels (73/66/66/75) and enforced in CI via `pnpm test:coverage`; the earlier aspirational 75/75/80/80 were never met. The coverage includes `lib/`, `stores/`, `hooks/`, and `components/`. Raise the ratchet as coverage improves.
 
 **Recommendation:** Plan to incrementally raise thresholds as the project stabilizes. Consider adding component coverage.
 

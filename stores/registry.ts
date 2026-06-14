@@ -69,7 +69,7 @@ export const useRegistryStore = create<RegistryState>()(
             : s.sessionIndex,
         })),
 
-      /** Shallow-merge settings fields (reviewer name, email, rubric preference). */
+      /** Shallow-merge settings fields (reviewer name, email). */
       updateSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),
 
       /** Update metadata fields on a registered session. No-op if the ID is not in the index. */
