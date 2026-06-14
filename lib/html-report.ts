@@ -21,11 +21,11 @@ const PRINCIPLE_NAMES: Record<string, string> = Object.fromEntries(
 
 /** All CSS for the standalone HTML evaluation report. */
 import reportCss from "./report.css?raw";
-import { REPORT_HEADING_FONT_FACE } from "./report-heading-font";
+import reportHeadingFontFace from "./report-heading-font.txt?raw";
 
 export const REPORT_CSS = reportCss;
 /** Standalone-report stylesheet: REPORT_CSS with the embedded condensed-heading @font-face prepended (keeps the heading identity without Arial Narrow installed). */
-const REPORT_STYLE = REPORT_HEADING_FONT_FACE + reportCss;
+const REPORT_STYLE = reportHeadingFontFace + reportCss;
 
 import { ensureArray } from "./metadata-utils";
 
