@@ -60,6 +60,7 @@ const {
   switchToSession,
   markDoneAndClose,
   exportSessionById,
+  importSessionFromZipFile,
 } = await import("@/lib/session-lifecycle");
 
 afterEach(() => {
@@ -265,5 +266,114 @@ describe("exportSessionById", () => {
     await expect(exportSessionById(meta.id)).rejects.toThrow(
       `Session ${meta.id} not found in storage`,
     );
+  });
+});
+
+// We also need the toast mock for assertions
+import { toastError } from "@/stores/toast";
+
+describe("switchToSession re-entrancy guard", () => {
+  it("ignores a rapid second call while the first is in flight", async () => {
+    const metaA = makeMetadata({ toolName: "Session A" });
+    const metaB = makeMetadata({ toolName: "Session B" });
+
+    await createSession(metaA);
+    await loadSessionById(metaA.id);
+
+    await createSession(metaB);
+
+    // Spy on clear to count calls
+    const clearSpy = vi.spyOn(useSessionStore.getState(), "clear");
+
+    // Fire both calls concurrently
+    await Promise.all([
+      switchToSession(metaB.id),
+      switchToSession(metaA.id),
+    ]);
+
+    // clear should be called only once (the first call wins)
+    expect(clearSpy).toHaveBeenCalledTimes(1);
+
+    // activeSessionId should be the first call's target
+    const { activeSessionId } = useRegistryStore.getState();
+    expect(activeSessionId).toBe(metaB.id);
+
+    clearSpy.mockRestore();
+  });
+});
+
+describe("deleteSession error handling", () => {
+  it("removes registry entry and toasts when getRepository().delete rejects", async () => {
+    const meta = makeMetadata();
+    await createSession(meta);
+
+    // Spy on delete to force rejection
+    const deleteSpy = vi.spyOn(repo, "delete").mockRejectedValue(new Error("IDB quota exceeded"));
+
+    await deleteSession(meta.id);
+
+    // Registry entry should still be removed (finally block)
+    const { sessionIndex } = useRegistryStore.getState();
+    expect(sessionIndex[meta.id]).toBeUndefined();
+
+    // toastError should have been called
+    expect(toastError).toHaveBeenCalledWith(
+      "Could not fully remove this review's stored data. It may reappear on reload.",
+    );
+
+    deleteSpy.mockRestore();
+  });
+});
+
+describe("importSessionFromZipFile error handling", () => {
+  it("cleans up saved screenshots and re-throws when getRepository().save rejects", async () => {
+    const captureId = "cap-123";
+
+    // Mock importSessionFromZip to return data with a screenshot capture
+    vi.mocked(await import("@/lib/export")).importSessionFromZip = vi.fn().mockResolvedValue({
+      metadata: makeMetadata(),
+      captures: [
+        {
+          id: captureId,
+          screenshotBase64: "fakepng",
+          annotatedScreenshotBase64: undefined,
+          notes: "",
+          metadataField: undefined,
+        },
+      ],
+      evaluations: [],
+      finalization: null,
+      quickNotes: [],
+    });
+
+    // Mock saveScreenshot to succeed
+    const saveScreenshotSpy = vi.spyOn(
+      await import("@/lib/screenshot-store"),
+      "saveScreenshot",
+    ).mockResolvedValue(undefined);
+
+    // Spy on deleteScreenshotsForCaptures
+    const cleanupSpy = vi.spyOn(
+      await import("@/lib/screenshot-store"),
+      "deleteScreenshotsForCaptures",
+    ).mockResolvedValue(undefined);
+
+    // Force getRepository().save to reject
+    vi.spyOn(repo, "save").mockRejectedValue(new Error("IDB write failed"));
+
+    await expect(importSessionFromZipFile(new Blob(["fake"]))).rejects.toThrow("IDB write failed");
+
+    // Screenshots should have been cleaned up with the saved capture ID
+    expect(cleanupSpy).toHaveBeenCalledWith([captureId]);
+
+    // toastError should have been called
+    expect(toastError).toHaveBeenCalledWith("Import failed. Could not save the review.");
+
+    // No registry entry should remain
+    const { sessionIndex } = useRegistryStore.getState();
+    expect(Object.keys(sessionIndex)).toHaveLength(0);
+
+    cleanupSpy.mockRestore();
+    saveScreenshotSpy.mockRestore();
   });
 });

@@ -24,6 +24,7 @@ let autoSaveScheduledSessionId: string | null = null;
 let autoSaveUnsub: (() => void) | null = null;
 let autoSaveVisibilityHandler: (() => void) | null = null;
 let lastSaveSignature: string | null = null;
+let switching = false;
 
 /** Content-aware signature that detects actual data changes, not just array lengths. */
 function computeSignature(state: SessionState): string {
@@ -277,21 +278,31 @@ export async function deleteSession(id: string): Promise<void> {
   if (activeSessionId === id) {
     useSessionStore.getState().clear();
   }
-  // Load session to get capture IDs for screenshot cleanup
-  const data = await getRepository().load(id);
-  const captureIds = data?.captures.map((c) => c.id) ?? [];
-  // Delete from IDB first — if this fails, the registry entry stays valid
-  await getRepository().delete(id);
-  // Clean up associated screenshots from the separate store
-  await deleteScreenshotsForCaptures(captureIds);
-  useRegistryStore.getState().deleteSession(id);
+  try {
+    const data = await getRepository().load(id);
+    const captureIds = data?.captures.map((c) => c.id) ?? [];
+    await getRepository().delete(id);
+    await deleteScreenshotsForCaptures(captureIds);
+  } catch (err) {
+    console.error("Failed to delete session from IDB:", err);
+    toastError("Could not fully remove this review's stored data. It may reappear on reload.");
+  } finally {
+    // Always remove from the registry so the card disappears from the UI.
+    useRegistryStore.getState().deleteSession(id);
+  }
 }
 
 /** Switch from current session to another. Saves current first (awaited). */
 export async function switchToSession(id: string): Promise<void> {
-  await saveCurrentSession();
-  useSessionStore.getState().clear();
-  useRegistryStore.getState().setActiveSessionId(id);
+  if (switching) return;
+  switching = true;
+  try {
+    await saveCurrentSession();
+    useSessionStore.getState().clear();
+    useRegistryStore.getState().setActiveSessionId(id);
+  } finally {
+    switching = false;
+  }
 }
 
 /** Mark session as done, save, and close. */
@@ -354,7 +365,6 @@ export async function exportAllSessions(): Promise<Blob> {
       grade: data.finalization?.grade,
     });
   }
-
   if (entries.length === 0) throw new Error("No sessions to export");
   return assembleBatchZip(entries);
 }
@@ -363,25 +373,28 @@ export async function exportAllSessions(): Promise<Blob> {
 export async function importSessionFromZipFile(zipBlob: Blob): Promise<string> {
   const data = await importSessionFromZip(zipBlob);
   let id = data.metadata.id;
-
-  // Check if session already exists — if so, assign a new ID
   const existing = useRegistryStore.getState().sessionIndex[id];
   if (existing) {
     id = crypto.randomUUID();
     data.metadata = { ...data.metadata, id };
     toastWarning(`A review of "${existing.toolName}" already exists. Imported as a copy.`);
   }
-
-  // Persist imported screenshots to the separate screenshot IDB store
-  for (const c of data.captures) {
-    if (c.screenshotBase64) {
-      await saveScreenshot(c);
+  const savedCaptureIds: string[] = [];
+  try {
+    for (const c of data.captures) {
+      if (c.screenshotBase64) {
+        await saveScreenshot(c);
+        savedCaptureIds.push(c.id);
+      }
     }
+    const strippedCaptures = stripScreenshots(data.captures);
+    await getRepository().save(id, { ...data, captures: strippedCaptures });
+    useRegistryStore.getState().addSession(data.metadata);
+    return id;
+  } catch (err) {
+    console.error("Failed to import session:", err);
+    await deleteScreenshotsForCaptures(savedCaptureIds).catch(() => {});
+    toastError("Import failed. Could not save the review.");
+    throw err;
   }
-
-  // Strip screenshots before saving to session IDB
-  const strippedCaptures = stripScreenshots(data.captures);
-  await getRepository().save(id, { ...data, captures: strippedCaptures });
-  useRegistryStore.getState().addSession(data.metadata);
-  return id;
 }
