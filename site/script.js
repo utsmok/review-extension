@@ -33,51 +33,52 @@
     const tbody = document.getElementById("tools-tbody");
     if (!tbody) return;
     try {
-      const res = await fetch("data/tools.csv");
-      const text = await res.text();
-      const rows = parseCSV(text);
-      if (rows.length === 0) {
+      const res = await fetch("data/tools/registry.json");
+      const entries = await res.json();
+      if (!entries.length) {
         tbody.innerHTML =
           '<tr><td colspan="9" style="text-align:center;color:var(--ut-muted)">No tools yet.</td></tr>';
         return;
       }
-      tbody.innerHTML = rows
-        .map((r) => {
-          const verdictClass =
-            r.verdict === "recommended"
-              ? "verdict-recommended"
-              : r.verdict === "conditional" || r.verdict === "needs_review"
-                ? "verdict-provisional"
-                : r.verdict === "not_recommended"
-                  ? "verdict-not-recommended"
-                  : "";
-          const verdictLabel = r.verdict
-            ? r.verdict.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-            : "—";
-          const scorePill = (val) => {
-            if (!val || val === "0") return '<span style="color:var(--ut-muted)">—</span>';
-            const n = parseFloat(val);
-            const cls = n >= 2.5 ? "high" : n >= 1.5 ? "mid" : "low";
-            return `<span class="score-pill ${cls}">${n.toFixed(1)}</span>`;
-          };
-          const statusClass =
-            r.status === "done" ? "done" : r.status === "in-progress" ? "in-progress" : "nominated";
-          const statusLabel =
-            r.status === "done"
-              ? "Reviewed"
-              : r.status === "in-progress"
-                ? "In progress"
-                : "Nominated";
+      const scorePill = (val) => {
+        if (val === 0 || val == null) return '<span style="color:var(--ut-muted)">—</span>';
+        const cls = val >= 2.5 ? "high" : val >= 1.5 ? "mid" : "low";
+        return `<span class="score-pill ${cls}">${val.toFixed(1)}</span>`;
+      };
+      const verdictLabel = (v) =>
+        v ? v.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "—";
+      const verdictClass = (v) =>
+        v === "recommended"
+          ? "verdict-recommended"
+          : v === "conditional" || v === "needs_review"
+            ? "verdict-provisional"
+            : v === "not_recommended"
+              ? "verdict-not-recommended"
+              : "";
+      const statusLabel = (s) =>
+        s === "done" ? "Reviewed" : s === "in-progress" ? "In progress" : "Nominated";
+      const statusClass = (s) =>
+        s === "done" ? "done" : s === "in-progress" ? "in-progress" : "nominated";
+      tbody.innerHTML = entries
+        .map((e) => {
+          const r = e.review;
+          if (!r) {
+            return `<tr>
+          <td><a href="${esc(e.url)}" target="_blank" rel="noopener" style="color:var(--trust-magenta)">${esc(e.name)}</a></td>
+          <td>${esc(e.category.replace(/_/g, " "))}</td>
+          <td colspan="7" style="color:var(--ut-muted)">Not yet reviewed</td>
+        </tr>`;
+          }
           return `<tr>
-          <td><a href="${r.tool_url}" target="_blank" rel="noopener" style="color:var(--trust-magenta)">${esc(r.tool_name)}</a></td>
-          <td>${esc(r.category.replace(/_/g, " "))}</td>
-          <td class="${verdictClass}">${verdictLabel}</td>
-          <td>${scorePill(r.tr_score)}</td>
-          <td>${scorePill(r.re_score)}</td>
-          <td>${scorePill(r.us_score)}</td>
-          <td>${scorePill(r.se_score)}</td>
-          <td>${scorePill(r.tc_score)}</td>
-          <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+          <td><a href="${esc(e.url)}" target="_blank" rel="noopener" style="color:var(--trust-magenta)">${esc(e.name)}</a></td>
+          <td>${esc(e.category.replace(/_/g, " "))}</td>
+          <td class="${verdictClass(r.verdict)}">${verdictLabel(r.verdict)}</td>
+          <td>${scorePill(r.scores.TR)}</td>
+          <td>${scorePill(r.scores.RE)}</td>
+          <td>${scorePill(r.scores.US)}</td>
+          <td>${scorePill(r.scores.SE)}</td>
+          <td>${scorePill(r.scores.TC)}</td>
+          <td><span class="status-badge ${statusClass(r.status)}">${statusLabel(r.status)}</span></td>
         </tr>`;
         })
         .join("");
@@ -296,21 +297,6 @@
       .replace(/"/g, "&quot;");
   }
 
-  function parseCSV(text) {
-    const lines = text.trim().split("\n");
-    if (lines.length < 2) return [];
-    const headers = lines[0].split(",").map((h) => h.trim());
-    return lines.slice(1).map((line) => {
-      const vals = line.split(",").map((v) => v.trim());
-      const obj = {};
-      headers.forEach((h, i) => {
-        obj[h] = vals[i] || "";
-      });
-      return obj;
-    });
-  }
-
-  // ── Init ─────────────────────────────────────────────────────────
   loadTools();
   initCompare();
 })();
