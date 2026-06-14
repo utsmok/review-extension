@@ -32,7 +32,7 @@ export interface SessionState {
   /** Captures pending permanent deletion (5-second undo window). */
   recentlyDeleted: Array<{
     capture: Capture;
-    evidenceLinks: Record<string, string[]>;
+    linkedRubricIds: string[];
     metadataPatch: Partial<SessionMetadata>;
   }>;
 
@@ -151,12 +151,10 @@ export const useSessionStore = create<SessionState>()((set, get) => ({
     const removed = state.captures.find((c) => c.id === id);
     if (!removed) return;
 
-    // Snapshot the evidence links for this capture across all evaluations
-    const evidenceLinks: Record<string, string[]> = {};
+    // Snapshot the rubric ids that reference this capture
+    const linkedRubricIds: string[] = [];
     for (const e of state.evaluations) {
-      if (e.explicitEvidenceIds.includes(id)) {
-        evidenceLinks[e.rubricId] = e.explicitEvidenceIds;
-      }
+      if (e.explicitEvidenceIds.includes(id)) linkedRubricIds.push(e.rubricId);
     }
 
     // Snapshot the metadata values before clearing (for undo restoration)
@@ -181,7 +179,7 @@ export const useSessionStore = create<SessionState>()((set, get) => ({
       session: s.session ? { ...s.session, ...metadataPatch } : s.session,
       recentlyDeleted: [
         ...s.recentlyDeleted,
-        { capture: removed, evidenceLinks, metadataPatch: previousMetadata },
+        { capture: removed, linkedRubricIds, metadataPatch: previousMetadata },
       ],
     }));
 
@@ -227,11 +225,12 @@ export const useSessionStore = create<SessionState>()((set, get) => ({
     const metadataPatch = last.metadataPatch;
 
     set((s) => {
-      // Restore evidence links
+      // Restore evidence links via union-merge (preserving links added during undo window)
       const evals = s.evaluations.map((e) => {
-        const originalIds = last.evidenceLinks[e.rubricId];
-        if (originalIds) {
-          return { ...e, explicitEvidenceIds: originalIds };
+        if (last.linkedRubricIds.includes(e.rubricId)) {
+          return e.explicitEvidenceIds.includes(last.capture.id)
+            ? e
+            : { ...e, explicitEvidenceIds: [...e.explicitEvidenceIds, last.capture.id] };
         }
         return e;
       });

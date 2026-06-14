@@ -97,8 +97,8 @@ describe("runMigrations (unit)", () => {
     const future = raw as SessionData & { schemaVersion: number };
 
     const result = runMigrations(future);
-    // schemaVersion gets stamped to CURRENT_SCHEMA_VERSION (downgrade protection not in scope)
-    expect(result.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    // schemaVersion is left untouched (downgrade protection)
+    expect(result.schemaVersion).toBe(99);
     // But no migration logic ran — data is otherwise untouched
     expect(result.captures).toEqual([]);
     expect(result.evaluations).toEqual([]);

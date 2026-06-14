@@ -213,6 +213,45 @@ describe("capture management", () => {
   });
 });
 
+describe("undo-delete preserves new evidence links", () => {
+  beforeEach(() => {
+    useSessionStore.setState({
+      status: "empty",
+      session: null,
+      captures: [],
+      evaluations: [],
+      recentlyDeleted: [],
+    });
+  });
+
+  it("undo-merge keeps evidence links added during undo window", () => {
+    const store = useSessionStore.getState();
+    const capA = makeCapture({ id: "cap-A" });
+    const capB = makeCapture({ id: "cap-B" });
+    store.addCapture(capA);
+    store.addCapture(capB);
+
+    // Link capture A to rubric R
+    store.linkCaptureToRubric("cap-A", "TR.data_source_clarity");
+
+    // Delete capture A
+    store.removeCapture("cap-A");
+
+    // During the undo window, link capture B to the same rubric
+    store.linkCaptureToRubric("cap-B", "TR.data_source_clarity");
+
+    // Undo the deletion of A
+    store.undoDeleteCapture();
+
+    const state = useSessionStore.getState();
+    expect(state.captures).toHaveLength(2);
+
+    const ev = state.evaluations.find((e) => e.rubricId === "TR.data_source_clarity");
+    expect(ev?.explicitEvidenceIds).toContain("cap-A");
+    expect(ev?.explicitEvidenceIds).toContain("cap-B");
+  });
+});
+
 describe("evaluation management", () => {
   beforeEach(() => {
     useSessionStore.setState({
