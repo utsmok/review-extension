@@ -1,6 +1,33 @@
 # Changelog
 
 
+## v0.8.2 — 2026-06-14
+
+### New
+
+- **In-extension tool comparison** — select two or more reviewed tools and compare them side-by-side (verdict, score, per-principle averages with best-score highlighting, strengths/weaknesses) directly in the session list. The website's Compare tab is now in the extension.
+- **Unified tool registry** — the extension and website now share a single tool database (19 tools); the marketing site's Tools table reads the same data the extension uses for auto-detection.
+
+### Fixed
+
+- **Security: imported review archives are sanitized unconditionally.** A crafted review ZIP could previously embed malicious HTML in its session data, which survived import and executed when a reviewer opened the re-exported evidence file in a browser. All imported HTML is now stripped of scripts, event handlers, dangerous URL schemes, and external CSS references — regardless of whether it came from a `.html` file or the session JSON.
+- **Undo-delete preserves new evidence links** — linking a capture to a rubric during the 5-second undo window no longer gets overwritten when the deletion is undone.
+- **Session-switch guard** — rapid double-clicking "switch" can no longer interleave saves and lose the in-memory session.
+- **Storage-failure resilience** — delete and import now handle IndexedDB failures gracefully (best-effort cleanup + clear error messages) instead of leaving orphaned data.
+- **Comparison respects AI/non-AI tools** — non-AI tools are no longer penalized for the three AI-only questions in the comparison table (their max excludes them, matching the exported report).
+- **Migration robustness** — schema migrations no longer mutate the loaded session in place and guard against future-version data (no silent field loss on downgrade).
+
+### Improved
+
+- **Quality gates enforced** — CI now runs the coverage check (ratcheted to current levels: 73/66/66/75), strict lint (four rules promoted from warning to error), and format checks; the release script gates on the full `pnpm check` before tagging. The previous coverage thresholds were aspirational and never enforced.
+- Report heading-font asset moved out of TypeScript source into a build asset.
+- Runtime image dependencies (jpeg-js, pngjs) correctly classified as runtime; `@types/node` aligned to the Node 22 target.
+- 786 tests (+29 since v0.8.1).
+
+### Docs
+
+- Fixed stale architecture documentation (seven renamed/deleted file paths, the registry storage backend) and removed the vestigial rubric-preference setting.
+
 ## v0.8.1 — 2026-06-14
 
 ### New
