@@ -2,9 +2,11 @@ import { RUBRIC_DATA } from "@/data/rubrics";
 import { exportSession, importSessionFromZip } from "@/lib/export";
 import type { ExportArtifacts, ReviewerInfo } from "@/lib/export-pipeline";
 import { assembleBatchZip, prepareExportArtifacts } from "@/lib/export-pipeline";
+import { PRINCIPLES } from "@/lib/principles";
+import { computeReportScores } from "@/lib/report/compute-scores";
 import { deleteScreenshotsForCaptures, saveScreenshot } from "@/lib/screenshot-store";
 import { getRepository } from "@/lib/session-repository";
-import type { Capture, SessionData, SessionMetadata } from "@/lib/types";
+import type { Capture, ComparisonEntry, SessionData, SessionMetadata } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { type SessionState, useSessionStore } from "@/stores/session";
 import { toastError, toastWarning } from "@/stores/toast";
@@ -399,4 +401,55 @@ export async function importSessionFromZipFile(zipBlob: Blob): Promise<string> {
     toastError("Import failed. Could not save the review.");
     throw err;
   }
+}
+
+/** Load multiple sessions by ID and build comparison entries.
+ *  Skips sessions not found in storage. */
+export async function buildSessionComparison(ids: string[]): Promise<ComparisonEntry[]> {
+  const repo = getRepository();
+  const entries: ComparisonEntry[] = [];
+  for (const id of ids) {
+    const data = await repo.load(id);
+    if (!data) continue;
+    const { metadata, evaluations, finalization } = data;
+    if (evaluations.length === 0) {
+      entries.push({
+        toolName: metadata.toolName,
+        conclusion: finalization?.conclusion ?? "",
+        strengths: finalization?.strengths ?? [],
+        weaknesses: finalization?.weaknesses ?? [],
+        principleAverages: Object.fromEntries(PRINCIPLES.map((p) => [p.id, null])),
+        total: [0, 0, 0],
+      });
+      continue;
+    }
+    const scores = computeReportScores(evaluations, RUBRIC_DATA, finalization);
+    const principleAverages: Record<string, number | null> = {};
+    for (const p of PRINCIPLES) {
+      const cs = scores.catScores.get(p.id);
+      if (!cs) {
+        principleAverages[p.id] = null;
+        continue;
+      }
+      let sum = 0;
+      let count = 0;
+      for (const s of cs) {
+        if (typeof s === "number") {
+          sum += s;
+          count++;
+        }
+      }
+      principleAverages[p.id] = count > 0 ? sum / count : null;
+    }
+    const ratio = scores.totalMax > 0 ? scores.totalActual / scores.totalMax : 0;
+    entries.push({
+      toolName: metadata.toolName,
+      conclusion: finalization?.conclusion ?? "",
+      strengths: finalization?.strengths ?? [],
+      weaknesses: finalization?.weaknesses ?? [],
+      principleAverages,
+      total: [scores.totalActual, scores.totalMax, ratio],
+    });
+  }
+  return entries;
 }

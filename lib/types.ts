@@ -161,3 +161,18 @@ export interface RubricData {
     Record<string, Readonly<Record<string, Readonly<ScoringQuestion>>>>
   >;
 }
+
+/** Per-principle average score (null if no numeric answers for that principle). */
+export type PrincipleAvg = Record<string, number | null>;
+/** Total score breakdown: [actual, max, ratio]. Ratio is 0 when max is 0. */
+export type TotalScore = [number, number, number];
+
+/** A single tool's comparison entry built by `buildSessionComparison`. */
+export interface ComparisonEntry {
+  toolName: string;
+  conclusion: string;
+  strengths: string[];
+  weaknesses: string[];
+  principleAverages: PrincipleAvg;
+  total: TotalScore;
+}

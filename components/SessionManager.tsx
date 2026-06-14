@@ -4,14 +4,16 @@ import { useActiveSession } from "@/hooks/useActiveSession";
 import { downloadBlob, sanitizeFilename } from "@/lib/export";
 import { getVisibleRubricQuestionIds } from "@/lib/rubric";
 import {
+  buildSessionComparison,
   exportAllSessions,
   exportSessionById,
   importSessionFromZipFile,
 } from "@/lib/session-lifecycle";
 import { getRepository } from "@/lib/session-repository";
-import type { SessionMetadata } from "@/lib/types";
+import type { ComparisonEntry, SessionMetadata } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
 import { toastError, toastSuccess } from "@/stores/toast";
+import CompareModal from "./CompareModal";
 import ConfirmDialog from "./ConfirmDialog";
 import NewSessionModal from "./NewSessionModal";
 
@@ -39,6 +41,10 @@ function FaviconOrFallback({ url, toolName }: { url?: string; toolName: string }
 export default function SessionManager() {
   const [showModal, setShowModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [compareEntries, setCompareEntries] = useState<ComparisonEntry[]>([]);
+  const [showCompare, setShowCompare] = useState(false);
   const sessionIndex = useRegistryStore((s) => s.sessionIndex);
   const markSessionDone = useRegistryStore((s) => s.markSessionDone);
   const updateSessionMetadata = useRegistryStore((s) => s.updateSessionMetadata);
@@ -136,6 +142,29 @@ export default function SessionManager() {
     setDeleteTargetId(null);
   };
 
+  const toggleSelectId = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleShowComparison = async () => {
+    const ids = [...selectedIds];
+    if (ids.length < 2) return;
+    const entries = await buildSessionComparison(ids);
+    setCompareEntries(entries);
+    setShowCompare(true);
+  };
+
+  const exitCompareMode = () => {
+    setCompareMode(false);
+    setSelectedIds(new Set());
+    setCompareEntries([]);
+  };
+
   const deleteTargetMeta = deleteTargetId ? sessionIndex[deleteTargetId] : null;
 
   return (
@@ -174,8 +203,34 @@ export default function SessionManager() {
             {exportingAll ? "Exporting\u2026" : "Export All Reviews"}
           </button>
         )}
+        {sessions.length >= 2 && (
+          <button
+            type="button"
+            className={`border text-ut-navy rounded-ut-sm px-ut-4 py-ut-2 text-ut-xs font-heading font-bold uppercase tracking-ut-uppercase hover:bg-ut-grey transition-all w-full mt-ut-2 ${compareMode ? "bg-ut-grey border-trust-magenta text-trust-magenta" : "border-ut-border"}`}
+            onClick={() => {
+              if (compareMode) exitCompareMode();
+              else setCompareMode(true);
+            }}
+          >
+            {compareMode ? "Cancel Compare" : "Compare Tools"}
+          </button>
+        )}
       </div>
 
+      {/* Compare mode bar */}
+      {compareMode && (
+        <div className="px-ut-4 pb-ut-2 flex items-center justify-between">
+          <span className="text-ut-xs text-ut-muted">Compare {selectedIds.size} selected</span>
+          <button
+            type="button"
+            className="bg-trust-magenta text-white rounded-ut-sm px-ut-3 py-ut-1.5 text-ut-xs font-heading font-bold uppercase tracking-ut-uppercase hover:bg-trust-magenta-strong disabled:opacity-50 transition-all"
+            disabled={selectedIds.size < 2}
+            onClick={handleShowComparison}
+          >
+            Show comparison
+          </button>
+        </div>
+      )}
       {/* Session list or welcome */}
       <section aria-label="Review sessions" className="flex-1 min-h-0 overflow-y-auto">
         {sessions.length === 0 ? (
@@ -241,6 +296,9 @@ export default function SessionManager() {
                 onExport={() => handleExport(s.id)}
                 onDelete={() => handleDelete(s.id)}
                 onToggleDone={() => handleToggleDone(s.id)}
+                compareMode={compareMode}
+                selected={selectedIds.has(s.id)}
+                onSelectToggle={() => toggleSelectId(s.id)}
               />
             ))}
           </div>
@@ -271,6 +329,11 @@ export default function SessionManager() {
           ]}
         />
       )}
+
+      {/* Compare modal */}
+      {showCompare && compareEntries.length > 0 && (
+        <CompareModal entries={compareEntries} onClose={() => setShowCompare(false)} />
+      )}
     </div>
   );
 }
@@ -285,12 +348,18 @@ function SessionCard({
   onExport,
   onDelete,
   onToggleDone,
+  compareMode = false,
+  selected = false,
+  onSelectToggle,
 }: {
   session: SessionMetadata;
   onSwitch: () => void;
   onExport: () => void;
   onDelete: () => void;
   onToggleDone: () => void;
+  compareMode?: boolean;
+  selected?: boolean;
+  onSelectToggle?: () => void;
 }) {
   const [progress, setProgress] = useState<{ pct: number; scored: number; total: number } | null>(
     null,
@@ -336,6 +405,20 @@ function SessionCard({
         }
       }}
     >
+      {/* Compare checkbox */}
+      {compareMode && (
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={(e) => {
+            e.stopPropagation();
+            onSelectToggle?.();
+          }}
+          onClick={(e) => e.stopPropagation()}
+          aria-label={`Select ${s.toolName} for comparison`}
+          className="shrink-0"
+        />
+      )}
       {/* Favicon */}
       <FaviconOrFallback url={s.faviconUrl} toolName={s.toolName} />
 
