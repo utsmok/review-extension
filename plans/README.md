@@ -17,8 +17,8 @@ your row when done.
 | 007  | Harden session lifecycle (switch guard + delete/import errors) | P1 | S | — | DONE |
 | 008  | Re-sanitize imported archive HTML | P1 | S | — | DONE |
 | 009  | Codebase hygiene (stale docs + vestigial preferredRubric) | P2 | S | — | DONE |
-| 010  | undo-delete union merge + migration robustness | P2 | S | — | TODO |
-| 011  | Export pipeline cleanup (font asset, ?raw fidelity, reuse model) | P3 | M | — | TODO |
+| 010  | undo-delete union merge + migration robustness | P2 | S | — | DONE |
+| 011  | Export pipeline cleanup (font asset) | P3 | M | — | DONE (scoped: font-move only; #9 report.css?raw fidelity + #11 model-reuse deferred as low-value/marginal) |
 | 012  | Dependency hygiene (runtime deps + @types/node) | P3 | S | — | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
