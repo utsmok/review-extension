@@ -2,19 +2,19 @@ import { type ToastType, useToastStore } from "@/stores/toast";
 
 const typeStyles: Record<ToastType, { bg: string; border: string; text: string; label: string }> = {
   error: {
-    bg: "bg-[color-mix(in_srgb,var(--ut-red)_10%,var(--ut-white))]",
+    bg: "bg-[var(--state-error-tint)]",
     border: "border-[color-mix(in_srgb,var(--ut-red)_30%,var(--ut-border))]",
     text: "text-ut-red",
     label: "Error",
   },
   success: {
-    bg: "bg-[color-mix(in_srgb,var(--ut-green)_10%,var(--ut-white))]",
+    bg: "bg-[var(--state-success-tint)]",
     border: "border-[color-mix(in_srgb,var(--ut-green)_30%,var(--ut-border))]",
     text: "text-ut-green",
     label: "Success",
   },
   warning: {
-    bg: "bg-[color-mix(in_srgb,var(--state-warning)_10%,var(--ut-white))]",
+    bg: "bg-[var(--state-warning-tint)]",
     border: "border-[color-mix(in_srgb,var(--state-warning)_30%,var(--ut-border))]",
     text: "text-state-warning",
     label: "Warning",

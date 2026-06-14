@@ -67,7 +67,7 @@ export default function Captures() {
 
   return (
     <div className="flex flex-col gap-ut-3 p-ut-4">
-      <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta mb-ut-2">
+      <h2 className="screen-title font-heading text-ut-sub font-bold uppercase tracking-ut-heading text-trust-magenta mb-ut-2">
         Captures
       </h2>
       <button

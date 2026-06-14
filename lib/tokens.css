@@ -14,15 +14,15 @@
   --ut-green: #4a8355;
   --ut-purple: #4f2d7f;
 
-  --ut-grey: #eef0f3;
-
-  --ut-offwhite: #f3f4f6;
+  /* Light surfaces — navy-tinted to sit on the --neutral-* ramp, not flat gray */
+  --ut-grey: color-mix(in srgb, var(--ut-navy) 6%, var(--ut-white));
+  --ut-offwhite: color-mix(in srgb, var(--ut-navy) 3%, var(--ut-white));
   --ut-border: #bfc6cf;
   --ut-text: #172033;
   --ut-muted: #4f5e73; /* DESIGN.md says #576578; intentionally darker for WCAG AAA contrast (~7:1 on white) */
   --ut-slate: #4c5e74; /* WCAG AAA: ~6.5:1 against white. Was #5f7088 (5.05:1). R=76,G=94,B=116 */
 
-  --ut-panel-bg: #f3f4f6;
+  --ut-panel-bg: var(--ut-offwhite);
   --ut-white: #fafbfc;
   --ut-canvas: var(--ut-grey);
   --ut-on-accent: #ffffff;
@@ -105,9 +105,11 @@
   --judgment-pass: var(--ut-green);
   --judgment-pass-tint: color-mix(in srgb, var(--judgment-pass) 10%, var(--ut-white));
   --judgment-pass-border: color-mix(in srgb, var(--judgment-pass) 24%, var(--ut-border));
+  --judgment-pass-strong: color-mix(in srgb, var(--judgment-pass) 86%, black);
   --judgment-fail: var(--ut-red);
   --judgment-fail-tint: color-mix(in srgb, var(--judgment-fail) 10%, var(--ut-white));
   --judgment-fail-border: color-mix(in srgb, var(--judgment-fail) 24%, var(--ut-border));
+  --judgment-fail-strong: color-mix(in srgb, var(--judgment-fail) 86%, black);
 
   /* Validation / state family */
   --state-success: var(--ut-green);
@@ -117,17 +119,19 @@
   --state-error: var(--ut-red);
   --state-error-tint: color-mix(in srgb, var(--state-error) 10%, var(--ut-white));
 
-  /* Type scale */
-  --text-3xs: 0.5rem;
-  --text-2xs: 0.625rem;
-  --text-badge: 0.6875rem;
-  --text-xs: 0.75rem;
-  --text-sm: 0.8125rem;
-  --text-md: 0.9375rem;
-  --text-body: 1rem;
-  --text-sub: 1.2rem;
-  --text-heading: 1.563rem;
-  --text-hero: 3rem;
+  /* Type scale — fixed rem steps tuned for a dense evaluation instrument.
+     Lower rungs (< --text-body) cluster tightly by design: this is a data-
+     dense pro tool, not a marketing page. Each step owns a distinct role. */
+  --text-3xs: 0.5rem; /*  8px — overview-bar state-indicator glyphs        */
+  --text-2xs: 0.625rem; /* 10px — evidence counts, score badges, chip caps  */
+  --text-badge: 0.6875rem; /* 11px — overview-bar question-badge code       */
+  --text-xs: 0.75rem; /* 12px — captions, meta, mono codes, tab labels      */
+  --text-sm: 0.8125rem; /* 13px — secondary body, field labels, foldouts    */
+  --text-md: 0.9375rem; /* 15px — input/textarea values (legible in edit)   */
+  --text-body: 1rem; /* 16px — primary body                                 */
+  --text-sub: 1.2rem; /* 19px — screen titles + sub-display numbers         */
+  --text-heading: 1.563rem; /* 25px — result verdicts (export-complete)     */
+  --text-hero: 3rem; /* 48px — finalization overall score                   */
 
   /* Line heights */
   --lh-body: 1.55;
@@ -180,6 +184,8 @@
   --neutral-600: var(--ut-muted);
   --neutral-700: var(--ut-text);
   --neutral-800: var(--ut-navy);
+  /* Canonical "no-verdict" emphasis surface (na / unsure) — joins the 10% judgment/state tint tier */
+  --neutral-active-tint: color-mix(in srgb, var(--ut-slate) 10%, var(--ut-white));
 
   /* Focus ring */
   --focus-ring: var(--ut-blue);

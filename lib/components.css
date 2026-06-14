@@ -100,6 +100,12 @@ body {
   transition: background var(--duration-accent) ease;
 }
 
+/* ── Screen / section title — committed masthead rule ───────── */
+.screen-title {
+  padding-bottom: var(--space-2);
+  border-bottom: var(--border-default) solid var(--ut-border);
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    NAVIGATION & LAYOUT
    ═══════════════════════════════════════════════════════════════════ */
@@ -123,9 +129,9 @@ body {
   color: var(--ut-muted);
   background: none;
   border: none;
-  border-bottom: var(--border-default) solid transparent;
+  border-bottom: 3px solid transparent;
   cursor: pointer;
-  margin-bottom: calc(var(--border-default) * -1);
+  margin-bottom: -3px;
   transition:
     color var(--duration-fast) ease,
     border-color var(--duration-fast) ease,
@@ -147,7 +153,7 @@ body {
 .sidebar-tab.is-active {
   color: var(--trust-magenta);
   border-bottom-color: var(--trust-magenta);
-  background: color-mix(in srgb, var(--trust-magenta) 6%, var(--ut-white));
+  background: var(--trust-magenta-tint);
 }
 
 /* ── Rubric chip (linked / unlinked) ────────────────────────── */
@@ -244,29 +250,42 @@ body {
 }
 
 .judgment-label[data-judgment="pass"][data-active="true"] {
-  background: color-mix(in srgb, var(--judgment-pass) 14%, var(--ut-white));
-  border-color: var(--judgment-pass);
-  border-bottom: 3px solid var(--judgment-pass);
-
-  color: var(--judgment-pass);
+  background: var(--judgment-pass-tint);
+  border: 2px solid var(--judgment-pass);
+  color: var(--judgment-pass-strong);
   font-weight: 700;
 }
 
 .judgment-label[data-judgment="fail"][data-active="true"] {
-  background: color-mix(in srgb, var(--judgment-fail) 14%, var(--ut-white));
-  border-color: var(--judgment-fail);
-  border-bottom: 3px solid var(--judgment-fail);
-
-  color: var(--judgment-fail);
+  background: var(--judgment-fail-tint);
+  border: 2px solid var(--judgment-fail);
+  color: var(--judgment-fail-strong);
   font-weight: 700;
 }
 
 .judgment-label[data-judgment="na"][data-active="true"] {
-  background: color-mix(in srgb, var(--ut-slate) 12%, var(--ut-white));
-  border-color: var(--ut-slate);
-  border-bottom: 3px solid var(--ut-slate);
+  background: var(--neutral-active-tint);
+  border: 2px solid var(--ut-slate);
   color: var(--ut-muted);
   font-weight: 700;
+}
+
+/* Satisfying selected-state pop for pass/fail/na judgment — masks the
+   1→2px border-width change with a quiet, decelerating acknowledgment. */
+.judgment-label[data-active="true"] {
+  animation: omp-judgment-select var(--duration-fast) var(--ease-out-expo) both;
+}
+
+@keyframes omp-judgment-select {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 .judgment-label[data-disabled="true"],
 .score-row[data-disabled="true"] {
@@ -387,7 +406,7 @@ body {
   align-items: center;
   gap: var(--space-2);
   position: relative;
-  padding: 5px var(--space-2);
+  padding: var(--space-1) var(--space-2);
   color: var(--ut-muted);
   min-height: 28px;
   cursor: pointer;
@@ -754,6 +773,7 @@ body {
   padding: var(--space-8) var(--space-3) var(--space-3);
   z-index: 9999;
   overflow-y: auto;
+  animation: omp-backdrop-in var(--duration-normal) ease-out both;
 }
 
 .modal-panel {
@@ -768,6 +788,7 @@ body {
   flex-direction: column;
   border: 2px solid var(--ut-slate);
   padding: var(--space-4);
+  animation: omp-panel-in var(--duration-normal) var(--ease-out-quart) both;
 }
 
 .confirm-dialog-actions {
@@ -787,7 +808,12 @@ body {
   cursor: pointer;
   transition:
     background var(--duration-fast) ease,
-    border-color var(--duration-fast) ease;
+    border-color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out-quart);
+}
+
+.confirm-dialog-actions button:active {
+  transform: scale(0.96);
 }
 
 .confirm-dialog-actions button:focus-visible {
@@ -1038,9 +1064,14 @@ body {
   transition:
     background var(--duration-fast) ease,
     color var(--duration-fast) ease,
-    border-color var(--duration-fast) ease;
+    border-color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out-quart);
   flex-shrink: 0;
   padding: var(--space-2) 0;
+}
+
+.quick-action-btn:active {
+  transform: scale(0.94);
 }
 
 .quick-action-group {
@@ -1166,22 +1197,22 @@ body {
   border: 1px solid var(--ut-border);
   border-radius: var(--radius-md);
 
-  padding: 8px;
+  padding: var(--space-2);
   background: var(--ut-grey);
 }
 
 .meta-capture-linked {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 6px;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
 }
 
 .meta-capture-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-md);
 
   background: var(--ut-white);
@@ -1208,13 +1239,13 @@ body {
 
 .meta-capture-actions {
   display: flex;
-  gap: 4px;
-  margin-top: 6px;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
 }
 
 .meta-capture-actions button {
   font-size: var(--text-xs, 0.75rem);
-  padding: 4px 8px;
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-md);
   border: 1px solid var(--ut-border);
   background: var(--ut-white);
@@ -1295,7 +1326,7 @@ body {
 .score-overview-bar__track {
   display: inline-block;
   width: 60px;
-  height: 4px;
+  height: 6px;
   background: var(--neutral-100);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -1416,11 +1447,11 @@ body {
 }
 .score-overview-bar__badge[data-score="na"].is-complete {
   border-color: var(--ut-slate);
-  background: color-mix(in srgb, var(--ut-slate) 10%, var(--ut-white));
+  background: var(--neutral-active-tint);
 }
 .score-overview-bar__badge[data-score="unsure"].is-complete {
   border-color: var(--ut-slate);
-  background: color-mix(in srgb, var(--ut-slate) 10%, var(--ut-white));
+  background: var(--neutral-active-tint);
 }
 /* Badge code text — colored by section accent */
 .score-overview-bar__code {
@@ -2376,12 +2407,18 @@ body {
   background: transparent;
   cursor: pointer;
   transition:
-    background var(--duration-fast),
-    color var(--duration-fast);
+    background var(--duration-fast) var(--ease-out-quart),
+    color var(--duration-fast) var(--ease-out-quart),
+    border-color var(--duration-fast) var(--ease-out-quart),
+    transform var(--duration-fast) var(--ease-out-quart);
 }
 
 .tab-empty-state__action:hover {
   background: var(--trust-magenta-tint);
+}
+
+.tab-empty-state__action:active {
+  transform: scale(0.97);
 }
 
 /* Generic empty-state entrance */
@@ -2399,6 +2436,7 @@ body {
   overflow: hidden;
   min-width: 0;
   text-wrap: balance;
+  border: 1px solid var(--ut-border);
 }
 
 .finalization-score-number {
@@ -2421,7 +2459,7 @@ body {
 .finalization-principle-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 /* Compact to 3 columns when panel is very narrow */
 @container (max-width: 340px) {

@@ -365,7 +365,7 @@ export function ActiveSession() {
         </div>
         <div
           role="status"
-          className="px-ut-4 py-ut-1 border-b border-ut-border bg-ut-offwhite flex items-center gap-ut-2 text-ut-2xs text-ut-muted"
+          className="px-ut-4 py-ut-1 border-b border-ut-border bg-ut-offwhite flex items-center gap-ut-2 text-ut-2xs text-ut-muted tabular-nums"
           aria-label="Review progress"
         >
           <span className={metadataComplete ? "text-ut-green font-bold" : ""}>

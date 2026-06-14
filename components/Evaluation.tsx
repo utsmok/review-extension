@@ -34,7 +34,7 @@ export default function Evaluation() {
       />
       {evaluations.length === 0 && (
         <div className="tab-empty-state">
-          <div className="tab-empty-state__icon bg-[color-mix(in_srgb,var(--trust-magenta)_10%,var(--ut-white))]">
+          <div className="tab-empty-state__icon bg-[var(--trust-magenta-tint)]">
             <svg
               width="20"
               height="20"

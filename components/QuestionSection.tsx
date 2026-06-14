@@ -407,7 +407,7 @@ export function QuestionSection({
   return (
     <section data-section-type={isQG ? "quality_gate" : "scoring_rubric"}>
       <h2
-        className={`font-heading text-ut-heading font-bold uppercase tracking-ut-heading mb-ut-2 ${isQG ? "text-ut-navy" : "text-trust-magenta"}`}
+        className={`screen-title font-heading text-ut-sub font-bold uppercase tracking-ut-heading mb-ut-2 ${isQG ? "text-ut-navy" : "text-trust-magenta"}`}
       >
         {headerText}
       </h2>

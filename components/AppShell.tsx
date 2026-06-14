@@ -32,7 +32,7 @@ function SetupBanner({ onOpenSettings }: { onOpenSettings: () => void }) {
         <path d="M12 8v4" />
         <path d="M12 16h.01" />
       </svg>
-      <p className="text-ut-xs text-ut-body flex-1">
+      <p className="text-ut-xs flex-1">
         Set up your reviewer name to get started.{" "}
         <button
           type="button"

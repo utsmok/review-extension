@@ -28,7 +28,7 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
             <path d="M10 3L5 8l5 5" />
           </svg>
         </button>
-        <h1 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta">
+        <h1 className="font-heading text-ut-sub font-bold uppercase tracking-ut-heading text-trust-magenta">
           Settings
         </h1>
       </div>

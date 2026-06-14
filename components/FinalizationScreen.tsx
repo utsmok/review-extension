@@ -201,7 +201,7 @@ export default function FinalizationScreen() {
       <p className="text-ut-xs font-heading font-bold uppercase tracking-ut-kicker text-ut-slate">
         Review Summary
       </p>
-      <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta">
+      <h2 className="screen-title font-heading text-ut-sub font-bold uppercase tracking-ut-heading text-trust-magenta">
         Finalize Review
       </h2>
       {draftSaved && !saved && (
@@ -325,7 +325,9 @@ export default function FinalizationScreen() {
       )}
 
       {/* Grade selector */}
-      <GradeSelector grade={grade} onGradeChange={handleGradeChange} />
+      <div className="mt-ut-2">
+        <GradeSelector grade={grade} onGradeChange={handleGradeChange} />
+      </div>
       <p className="text-ut-sm text-ut-muted">
         Select the overall recommendation based on scoring results and your professional judgment.
         The conclusion should stand on its own — a colleague reading only the report should

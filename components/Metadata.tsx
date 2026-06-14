@@ -198,7 +198,7 @@ export default function Metadata() {
 
   return (
     <div className="flex flex-col gap-ut-3 p-ut-4">
-      <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta">
+      <h2 className="screen-title font-heading text-ut-sub font-bold uppercase tracking-ut-heading text-trust-magenta">
         Tool Details
       </h2>
 
@@ -265,7 +265,7 @@ export default function Metadata() {
       )}
 
       {/* Secondary fields — progressive disclosure */}
-      <div className="flex flex-col gap-ut-3">
+      <div className="flex flex-col gap-ut-3 mt-ut-2">
         <label className="flex flex-col gap-1">
           <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
             Review Notes
@@ -465,7 +465,7 @@ export default function Metadata() {
       </div>
 
       {/* Review summary */}
-      <div className="border-t-2 border-ut-border pt-ut-3 mt-1">
+      <div className="border-t-2 border-ut-border pt-ut-3 mt-ut-2">
         <div className="flex justify-between text-ut-xs text-ut-muted font-mono mb-1">
           <span>Started</span>
           <span className="text-ut-text">{new Date(session.startTime).toLocaleString()}</span>
@@ -545,7 +545,7 @@ export default function Metadata() {
       {/* Quick Notes */}
       {quickNotes.length > 0 && (
         <div>
-          <h3 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-ut-slate text-ut-xs mb-ut-2">
+          <h3 className="font-heading text-ut-xs font-bold uppercase tracking-ut-label text-ut-slate mb-ut-2">
             Quick Notes
           </h3>
           <ul className="space-y-ut-1">

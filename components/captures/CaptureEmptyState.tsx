@@ -7,7 +7,7 @@ export default function CaptureEmptyState({
 }) {
   return (
     <div className="tab-empty-state">
-      <div className="tab-empty-state__icon bg-[color-mix(in_srgb,var(--trust-magenta)_10%,var(--ut-white))] captures-empty-icon">
+      <div className="tab-empty-state__icon bg-[var(--trust-magenta-tint)] captures-empty-icon">
         <svg
           width="20"
           height="20"
