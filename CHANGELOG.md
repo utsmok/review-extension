@@ -3,6 +3,10 @@
 
 ## v0.8.3 — 2026-06-12
 
+### Fixed
+
+- Annotation panel (tldraw) CSP error on mount — the v0.7.1 strict CSP (`connect-src 'self'`) blocked tldraw's runtime translation fetch from `cdn.tldraw.com`, which broke the annotation canvas whenever it opened. Added `https://cdn.tldraw.com` to `connect-src` (a benign vendor-served UI-translation resource: not user data, not executable).
+
 ### New: Report Dev Preview
 
 - Added `pnpm report:dev` — Vite dev server that live-previews all 3 report variants (full, nutrition label, business card) with fixture data, viewport switching, and print support

@@ -8,7 +8,10 @@ export default defineConfig({
 
     // ── SECURITY POSTURE ────────────────────────────────────────────────
     // • All data is stored locally in IndexedDB. No external servers.
-    // • CSP connect-src 'self' blocks all outbound network from extension pages.
+    // • CSP connect-src 'self' blocks outbound network, EXCEPT https://cdn.tldraw.com which
+    //   serves the annotation canvas's UI translations — a benign vendor resource (not user
+    //   data, not executable). tldraw fetches its locale JSON at runtime; required or the
+    //   annotation panel CSP-errors on mount.
     // • Content scripts (executeScript) run in ISOLATED world — no access to page JS.
     // • executeScript functions are hardcoded (not user-controlled), read-only DOM queries.
     // • Zero eval(), new Function(), or document.write() anywhere in the codebase.
@@ -32,7 +35,8 @@ export default defineConfig({
       },
     },
     content_security_policy: {
-      extension_pages: "script-src 'self'; object-src 'self'; connect-src 'self'",
+      extension_pages:
+        "script-src 'self'; object-src 'self'; connect-src 'self' https://cdn.tldraw.com",
     },
   },
   vite: () => ({
