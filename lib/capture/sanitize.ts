@@ -170,3 +170,31 @@ export async function archivePageHtml(): Promise<{ html: string; title: string }
     title: doc.title,
   };
 }
+
+/**
+ * Re-sanitize an imported HTML archive string using the same strip rules as
+ * archivePageHtml. Defense-in-depth: foreign ZIPs may carry unsanitized HTML.
+ * Uses DOMParser (available in the extension sidepanel and in jsdom tests).
+ */
+export function sanitizeArchiveHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const dangerous = "script,iframe,object,embed,base,frame,applet,noscript";
+  doc.querySelectorAll(dangerous).forEach((el) => {
+    el.remove();
+  });
+  const urlAttrs = /^(href|src|srcset|action|formaction|xlink:href)$/i;
+  const badScheme = /^\s*(javascript|vbscript|data:text\/html)/i;
+  doc.querySelectorAll("*").forEach((el) => {
+    for (const attr of Array.from(el.attributes)) {
+      if (attr.name.startsWith("on")) el.removeAttribute(attr.name);
+      else if (urlAttrs.test(attr.name) && badScheme.test(attr.value))
+        el.removeAttribute(attr.name);
+    }
+  });
+  doc.querySelectorAll("meta[http-equiv]").forEach((m) => {
+    if (/refresh/i.test(m.getAttribute("http-equiv") ?? "")) {
+      m.remove();
+    }
+  });
+  return doc.documentElement.outerHTML;
+}

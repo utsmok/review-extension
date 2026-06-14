@@ -1,3 +1,4 @@
+import { sanitizeArchiveHtml } from "./capture/sanitize";
 import type { ReviewerInfo } from "./export-pipeline";
 import { assembleZip, prepareExportArtifacts, sanitizeFilename, shortId } from "./export-pipeline";
 import { saveScreenshot } from "./screenshot-store";
@@ -212,9 +213,9 @@ export async function importSessionFromZip(zipBlob: Blob): Promise<SessionData> 
         `evidence/capture_${capture.id}.html`,
       ]);
       if (htmlFile) {
-        const html = await htmlFile.async("string");
-        checkBudget(html.length);
-        capture.htmlContent = html;
+        const raw = await htmlFile.async("string");
+        checkBudget(raw.length);
+        capture.htmlContent = sanitizeArchiveHtml(raw);
       }
     }
     // Reassemble annotated screenshot if flagged in session.json

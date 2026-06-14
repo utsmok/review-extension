@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from "vitest";
-import { archivePageHtml } from "@/lib/capture/sanitize";
+import { archivePageHtml, sanitizeArchiveHtml } from "@/lib/capture/sanitize";
 
 describe("archivePageHtml", () => {
   beforeEach(() => {
@@ -142,5 +142,73 @@ describe("archivePageHtml", () => {
     expect(html).toContain("<head>");
     expect(html).toContain("<body>");
     expect(title).toBe("Test Page");
+  });
+});
+
+describe("sanitizeArchiveHtml", () => {
+  it("strips <script> elements", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><body><script>alert(1)</script><p>safe</p></body></html>`,
+    );
+    expect(out).not.toContain("<script");
+    expect(out).not.toContain("alert");
+    expect(out).toContain("<p>safe</p>");
+  });
+
+  it("strips on* event handler attributes", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><body><div onclick="evil()" onmouseover="steal()">ok</div></body></html>`,
+    );
+    expect(out).not.toContain("onclick");
+    expect(out).not.toContain("onmouseover");
+    expect(out).toContain("<div");
+  });
+
+  it("strips javascript:, vbscript:, and data:text/html URLs", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><body><a href="javascript:alert(1)">x</a><a href="vbscript:run()">y</a><a href="data:text/html,<script>alert(1)</script>">z</a></body></html>`,
+    );
+    expect(out).not.toContain("javascript:");
+    expect(out).not.toContain("vbscript:");
+    expect(out).not.toContain("data:text/html");
+  });
+
+  it("strips iframe, object, embed, base, frame, applet, noscript", () => {
+    const html = [
+      "<html><body>",
+      '<iframe src="evil.html"></iframe>',
+      '<object data="evil.swf"></object>',
+      '<embed src="evil.swf">',
+      '<base href="http://evil.com">',
+      '<frame src="evil.html">',
+      '<applet code="Evil.class"></applet>',
+      "<noscript>hidden</noscript>",
+      "<p>safe</p></body></html>",
+    ].join("");
+    const out = sanitizeArchiveHtml(html);
+    expect(out).not.toContain("<iframe");
+    expect(out).not.toContain("<object");
+    expect(out).not.toContain("<embed");
+    expect(out).not.toContain("<base");
+    expect(out).not.toContain("<frame");
+    expect(out).not.toContain("<applet");
+    expect(out).not.toContain("<noscript");
+    expect(out).toContain("<p>safe</p>");
+  });
+
+  it("strips meta http-equiv refresh", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><head><meta http-equiv="refresh" content="0;url=javascript:alert(1)"></head><body>ok</body></html>`,
+    );
+    expect(out).not.toContain("refresh");
+    expect(out).toContain("<body>ok</body>");
+  });
+
+  it("preserves safe http/https URLs", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><body><a href="https://example.com" class="link">ok</a></body></html>`,
+    );
+    expect(out).toContain("https://example.com");
+    expect(out).toContain('class="link"');
   });
 });

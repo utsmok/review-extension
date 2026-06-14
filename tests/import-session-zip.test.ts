@@ -173,7 +173,7 @@ describe("importSessionFromZip", () => {
 
     const result = await importSessionFromZip(blob);
     expect(result.captures[0].screenshotBase64).toBe("data:image/jpeg;base64,ZmFrZS1qcGVnLWRhdGE=");
-    expect(result.captures[0].htmlContent).toBe("<html><body>Captured page</body></html>");
+    expect(result.captures[0].htmlContent).toContain("Captured page");
   });
 
   // 11. Reassembly cascade: tries e/ folder when root files missing
@@ -201,7 +201,7 @@ describe("importSessionFromZip", () => {
 
     const result = await importSessionFromZip(blob);
     expect(result.captures[0].screenshotBase64).toContain("data:image/jpeg;base64,");
-    expect(result.captures[0].htmlContent).toBe("<html>e-folder</html>");
+    expect(result.captures[0].htmlContent).toContain("e-folder");
   });
 
   // 12. Reassembly cascade: tries evidence/ folder
@@ -229,7 +229,7 @@ describe("importSessionFromZip", () => {
 
     const result = await importSessionFromZip(blob);
     expect(result.captures[0].screenshotBase64).toContain("data:image/jpeg;base64,");
-    expect(result.captures[0].htmlContent).toBe("<html>evidence-folder</html>");
+    expect(result.captures[0].htmlContent).toContain("evidence-folder");
   });
 
   // 13. Reassembly cascade: tries evidence/ with full UUID
@@ -256,7 +256,7 @@ describe("importSessionFromZip", () => {
 
     const result = await importSessionFromZip(blob);
     expect(result.captures[0].screenshotBase64).toContain("data:image/jpeg;base64,");
-    expect(result.captures[0].htmlContent).toBe("<html>full-uuid</html>");
+    expect(result.captures[0].htmlContent).toContain("full-uuid");
   });
 
   // 14. Reassembly cascade: tries legacy capture_ prefix
@@ -283,7 +283,7 @@ describe("importSessionFromZip", () => {
 
     const result = await importSessionFromZip(blob);
     expect(result.captures[0].screenshotBase64).toContain("data:image/jpeg;base64,");
-    expect(result.captures[0].htmlContent).toBe("<html>legacy</html>");
+    expect(result.captures[0].htmlContent).toContain("legacy");
   });
 
   // 15. Reassembly cascade: tries PNG when JPG not found
@@ -311,7 +311,7 @@ describe("importSessionFromZip", () => {
 
     const result = await importSessionFromZip(blob);
     expect(result.captures[0].screenshotBase64).toBe("data:image/png;base64,ZmFrZS1wbmctZGF0YQ==");
-    expect(result.captures[0].htmlContent).toBe("<html>png-page</html>");
+    expect(result.captures[0].htmlContent).toContain("png-page");
   });
 
   // 16. Captures with existing blobs are left untouched
@@ -452,5 +452,22 @@ describe("importSessionFromZip", () => {
 
     const result = await importSessionFromZip(blob);
     expect(result.metadata).toEqual(metadata);
+  });
+
+  it("sanitizes imported HTML to strip script elements", async () => {
+    const captureId = crypto.randomUUID();
+    const sid = captureId.replace(/-/g, "").substring(0, 8);
+    const capture = makeCapture({ id: captureId, htmlContent: undefined as unknown as string });
+    const metadata = makeMetadata();
+
+    const blob = await buildZip({
+      "session.json": { metadata, captures: [capture], evaluations: [] },
+      [`${sid}.html`]: "<html><body><script>alert('xss')</script><p>safe</p></body></html>",
+    });
+
+    const result = await importSessionFromZip(blob);
+    expect(result.captures[0].htmlContent).toBeDefined();
+    expect(result.captures[0].htmlContent).not.toContain("<script");
+    expect(result.captures[0].htmlContent).toContain("<p>safe</p>");
   });
 });

@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { exportSession, importSessionFromZip } from "@/lib/export";
+import { describe, expect, it, vi } from "vitest";
+
 import { computeReportScores } from "@/lib/report/compute-scores";
 import type { Capture, Evaluation, ReviewFinalization, SessionMetadata } from "@/lib/types";
 import { makeCapture, makeEvaluation, makeFinalization, makeMetadata, RUBRIC } from "./fixtures";
@@ -224,8 +224,17 @@ describe("review lifecycle", () => {
   });
 
   it("exports to ZIP and re-imports with matching data (round-trip)", async () => {
+    // Mock sanitizeArchiveHtml as identity — this test asserts round-trip fidelity, not sanitization.
+    vi.doMock("@/lib/capture/sanitize", async (actual) => ({
+      ...(await actual),
+      sanitizeArchiveHtml: (h: string) => h,
+    }));
+
     // 8. Export
-    const zipBlob = await exportSession(metadata, captures, evaluations, RUBRIC, finalization);
+    const { exportSession: reExport, importSessionFromZip: reImport } = await import(
+      "@/lib/export"
+    );
+    const zipBlob = await reExport(metadata, captures, evaluations, RUBRIC, finalization);
 
     // Verify blob is a valid ZIP
     expect(zipBlob).toBeInstanceOf(Blob);
@@ -255,7 +264,7 @@ describe("review lifecycle", () => {
     expect(sessionData.finalization.grade).toBe("pass");
 
     // 9. Import
-    const imported = await importSessionFromZip((await zipBlob.arrayBuffer()) as unknown as Blob);
+    const imported = await reImport((await zipBlob.arrayBuffer()) as unknown as Blob);
 
     // 10. Verify round-trip
     // Metadata
