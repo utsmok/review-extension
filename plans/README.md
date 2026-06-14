@@ -20,6 +20,8 @@ your row when done.
 | 010  | undo-delete union merge + migration robustness | P2 | S | — | DONE |
 | 011  | Export pipeline cleanup (font asset) | P3 | M | — | DONE (scoped: font-move only; #9 report.css?raw fidelity + #11 model-reuse deferred as low-value/marginal) |
 | 012  | Dependency hygiene (runtime deps + @types/node) | P3 | S | — | DONE |
+| 013  | In-extension tool comparison (Direction A) | P2 | M | 007 | DONE |
+| 014  | Unified tool registry (Direction C) | P2 | M | — | DONE (19 tools; site reads registry.json; tools.csv retired) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
 
