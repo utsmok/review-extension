@@ -286,10 +286,7 @@ describe("switchToSession re-entrancy guard", () => {
     const clearSpy = vi.spyOn(useSessionStore.getState(), "clear");
 
     // Fire both calls concurrently
-    await Promise.all([
-      switchToSession(metaB.id),
-      switchToSession(metaA.id),
-    ]);
+    await Promise.all([switchToSession(metaB.id), switchToSession(metaA.id)]);
 
     // clear should be called only once (the first call wins)
     expect(clearSpy).toHaveBeenCalledTimes(1);
@@ -347,16 +344,14 @@ describe("importSessionFromZipFile error handling", () => {
     });
 
     // Mock saveScreenshot to succeed
-    const saveScreenshotSpy = vi.spyOn(
-      await import("@/lib/screenshot-store"),
-      "saveScreenshot",
-    ).mockResolvedValue(undefined);
+    const saveScreenshotSpy = vi
+      .spyOn(await import("@/lib/screenshot-store"), "saveScreenshot")
+      .mockResolvedValue(undefined);
 
     // Spy on deleteScreenshotsForCaptures
-    const cleanupSpy = vi.spyOn(
-      await import("@/lib/screenshot-store"),
-      "deleteScreenshotsForCaptures",
-    ).mockResolvedValue(undefined);
+    const cleanupSpy = vi
+      .spyOn(await import("@/lib/screenshot-store"), "deleteScreenshotsForCaptures")
+      .mockResolvedValue(undefined);
 
     // Force getRepository().save to reject
     vi.spyOn(repo, "save").mockRejectedValue(new Error("IDB write failed"));
