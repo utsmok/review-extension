@@ -16,14 +16,13 @@
 ## Why this matters
 The repo defines coverage thresholds (75/75/80/80) and four correctness/a11y lint rules, but neither is enforced: CI runs `pnpm test` (no coverage) and `pnpm lint` (Biome exits 0 on `warn`-level diagnostics). Format drift is also unchecked (CI runs `lint`, not `check`). Coverage can silently regress and lint violations accumulate with zero signal. This plan closes those gaps so every later change is actually gated.
 
-## Current state
+## Current state (revised after measurement)
 - `.github/workflows/ci.yml:27` runs `pnpm lint`; line `29` runs `pnpm test`.
 - `package.json:17` defines `test:coverage` (`vitest run --coverage`); `package.json:23` defines `check` (`biome check .`).
-- `biome.json:29-43` sets `noUnusedVariables`, `noUnusedImports` (correctness) and `noExplicitAny` (suspicious) and `useButtonType` (a11y) all to `"warn"`.
-- `vitest.config.ts:14-18` defines thresholds statements:75, branches:75, functions:80, lines:80.
+- `biome.json:29-43` sets `noUnusedVariables`, `noUnusedImports` (correctness), `noExplicitAny` (suspicious), `useButtonType` (a11y) all to `"warn"`.
+- `vitest.config.ts:14-18` defines thresholds statements:75, branches:75, functions:80, lines:80 — but **actual coverage measured on HEAD is Statements 73.27%, Branches 66.51%, Functions 66.22%, Lines 75.04%**. The configured thresholds are aspirational and unmet; enforcing them as-is breaks CI. This plan RATCHETS the thresholds to current levels and enforces them (no-regression protection now; raising them is future work).
 - `scripts/release.mjs:58-62` gate runs `wxt prepare → typecheck → test → build` (no lint/check).
-- Confirmed on HEAD `b5554b5`: `pnpm lint` reports 0 warnings, so flipping warn→error is safe on current code.
-
+- Confirmed on HEAD: `pnpm lint` reports 0 warnings, so flipping warn→error is safe on current code.
 ## Commands you will need
 | Purpose | Command | Expected |
 |---|---|---|
@@ -32,8 +31,8 @@ The repo defines coverage thresholds (75/75/80/80) and four correctness/a11y lin
 | Typecheck | `pnpm typecheck` | exit 0 |
 
 ## Scope
-**In scope**: `.github/workflows/ci.yml`, `biome.json`, `scripts/release.mjs`
-**Out of scope**: any source file; `vitest.config.ts` (thresholds already correct).
+**In scope**: `.github/workflows/ci.yml`, `biome.json`, `scripts/release.mjs`, `vitest.config.ts` (ratchet thresholds).
+**Out of scope**: any source file.
 
 ## Git workflow
 - Branch: work on `main` (operator authorized direct commits).
@@ -53,12 +52,23 @@ Leave the other rules (`noUnknownAtRules: off`, `useSemanticElements: off`, `noS
 
 **Verify**: `pnpm lint` → exit 0 (no violations on current code).
 
-### Step 2: Enforce coverage + format in CI
-In `.github/workflows/ci.yml`, in the `check` job:
+### Step 2: Ratchet coverage thresholds to current levels, then enforce in CI
+In `vitest.config.ts:15-18`, set the thresholds to just below the measured current coverage (a no-regression ratchet; raising them is future work):
+```ts
+thresholds: {
+  statements: 73,
+  branches: 66,
+  functions: 66,
+  lines: 75,
+},
+```
+Add a trailing comment: `// ratchet: raise as coverage improves — was aspirational 75/75/80/80, unenforced`.
+
+Then in `.github/workflows/ci.yml`, in the `check` job:
 - Change `- run: pnpm lint` → `- run: pnpm check`
 - Change `- run: pnpm test` → `- run: pnpm test:coverage`
 
-**Verify**: `pnpm check` → exit 0; `pnpm test:coverage` → exit 0 with all 4 thresholds shown as met in the coverage summary.
+**Verify**: `pnpm check` → exit 0; `pnpm test:coverage` → exit 0 with all 4 ratcheted thresholds met (statements ≥73, branches ≥66, functions ≥66, lines ≥75).
 
 ### Step 3: Add lint+check to the release gate
 In `scripts/release.mjs`, in the local-gate try block (lines ~58-62), add `pnpm check` after `pnpm typecheck`:
@@ -88,4 +98,4 @@ Commit all three files with the message above.
 
 ## STOP conditions
 - `pnpm lint` reports violations after Step 1 → STOP (do not sweep-fix unrelated code; report which files/lines so the reviewer can decide).
-- `pnpm test:coverage` falls below any threshold → STOP and report which metric and the gap (do not lower thresholds).
+- `pnpm test:coverage` falls below the RATCHETED thresholds (73/66/66/75) → STOP and report which metric and the gap. Do NOT lower the ratchet further to make it pass; report so the reviewer can decide (the gap likely means a real regression introduced by this or a prior change).
