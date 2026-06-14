@@ -1,108 +1,47 @@
 # Changelog
 
 
-## v0.8.3 — 2026-06-12
+## v0.8.1 — 2026-06-14
+
+### New
+
+- **Enhanced Recommendation Grades (Labs)** — the finalization grade selector now offers 9 grades: Recommended, With Caveats, Needs Review, Pilot Only, Not Recommended, and Out of Scope join the original Pass, Conditional, and Fail.
+- **Business-card report** — a compact 85.6 × 54 mm credit-card variant (`{tool}-card.html`) in every export ZIP, designed for printing and physical handouts.
+- **Tool database & comparison (website)** — sortable tools table with per-principle scores, plus a side-by-side Compare tab (upload multiple review ZIPs, best-score highlighting).
+- **In-browser trial** — a standalone web build at `site/try/` to try the TRUST review workflow without installing the extension.
+- **Tool Profile Auto-Detection** — known tool URLs (Semantic Scholar, Elicit, Perplexity, …) auto-populate metadata and suggest test queries.
+- **Report dev preview** — `pnpm report:dev` / `pnpm report:build` to live-preview all three report variants with fixture data.
+
+### Improved: Generated reports (design + motion)
+
+- **Per-principle overview chips** replace the misleading 4-color distribution bar — each question shows a state indicator (○ unanswered · ● answered · ✓ answered with evidence) plus score colour and evidence marker.
+- **WCAG-AA contrast** across score badges, verdict stamps, and labels; an embedded Roboto Condensed subset keeps the condensed-heading identity even without Arial Narrow installed.
+- **Verdict honesty**: all-N/A reports read "NOT EVALUATED" (was "RECOMMENDED"); the quality-gate summary only claims "all passed" when every gate is actually answered-pass; in-progress reports suppress misleading partial scores.
+- **Premium report craft**: authoritative double-rule verdict seals, framed principle cornerstones, a screen-title masthead, a verdict-coloured conclusion drop-cap, print publication chrome (running header + page counters), and tasteful scroll-reveal + spring-stamp entrance motion (fully neutralized under `prefers-reduced-motion`).
+- Print: larger base type, no table rows split across pages, repeated headers; long URLs wrap; visible keyboard focus on collapsible sections.
+- Copy: replaced 49 prose em-dashes with standard punctuation.
+
+### Improved: Extension UI (sidepanel)
+
+- Unified screen-title hierarchy; flat-gray neutrals moved onto the navy-tint token system (fixing a green judgment-text WCAG-AA contrast failure); committed structural presence (3 px active-tab indicator, masthead rule, judgment frames, verdict framing); restrained micro-interactions (modal open choreography, tactile presses).
+
+### Improved: Code quality
+
+- Shared `stripScreenshots()` helper, named verdict-threshold constants, removed dead exports, single-IDB-call screenshot loading, hardened test assertions and fake-timer cleanup.
+
+### Changed
+
+- The SE principle is now consistently "Soundness" across the website (previously "Secure" in some places).
+
+### Removed
+
+- Remotion video-rendering setup (`remotion/`, config, dev dependencies). Rendered MP4s are preserved in `site/assets/video/`.
 
 ### Fixed
 
-- Annotation panel (tldraw) CSP error on mount — the v0.7.1 strict CSP (`connect-src 'self'`) blocked tldraw's runtime translation fetch from `cdn.tldraw.com`, which broke the annotation canvas whenever it opened. Added `https://cdn.tldraw.com` to `connect-src` (a benign vendor-served UI-translation resource: not user data, not executable).
-
-### New: Report Dev Preview
-
-- Added `pnpm report:dev` — Vite dev server that live-previews all 3 report variants (full, nutrition label, business card) with fixture data, viewport switching, and print support
-- Added `pnpm report:build` — builds the preview to static files
-- Added `report-generate.test.ts` — generates standalone report HTML files for visual auditing into `report-dev/audit/`
-
-### Improved: Report Visual Quality (Impeccable Sweep)
-
-- Fixed empty `<img src="">` in evidence sections — now shows \"No screenshot available\" placeholder when no screenshot exists
-- Score circle labels now show decimal averages (e.g., \"2.7/3\") instead of misleading floor-based integers
-- Added visible score legend before category sections for clarity
-- Darkened muted text colors in business card from `#6b7f94` to `#5a6d7f` for WCAG AA contrast compliance
-- Merged conflicting `@page` rules in print stylesheet for consistent print output
-- Added subtle `color-mix` background tint to verdict blocks for better visual differentiation of pass/fail states
-- Consolidated 18+ font-size tiers to 15 by unifying sub-pixel differences
-- Replaced all `!important` declarations with higher-specificity selectors
-
-### Improved: Report Visual Quality (Impeccable Sweep #2)
-
-- WCAG-AA contrast: darkened report score colors (0/1/2) and the gate-pass/Strengths green so score badges, verdict stamps, and distribution labels clear 4.5:1 on their tinted backgrounds
-- Per-principle scorebar revised: replaced the misleading 4-color distribution bar with at-a-glance per-question chips (code + colored score + evidence-count marker)
-- Business card: content now fills the card vertically (was ~54% empty whitespace)
-- Nutrition label: "Overall" column top-aligned with the principle columns; points/circles suppressed on incomplete reports to avoid misleading partial scores
-- Honest verdicts: all-N/A reports (no numeric scores) now read "NOT EVALUATED" instead of "RECOMMENDED"; the gate summary only claims "All passed" when every gate is answered-pass
-- Typography: broadened font fallback stacks (Arial Narrow → Roboto Condensed → Open Sans Condensed → Arial) so the condensed-heading identity survives without Arial Narrow
-- Finalization: added a signpost directing readers to the per-principle detail sections
-- Print: raised base font-size, prevented table rows from splitting across pages, and repeated headers on each printed page
-- Accessibility: visible keyboard focus on collapsible Background/Examples summaries; long URLs wrap instead of triggering horizontal scroll
-- Copy: replaced 49 prose em-dashes (asides) in rubric text and user-facing messages with commas, colons, semicolons, or parentheses
-
-
-## v0.8.2 — 2026-06-12
-
-### Improved: Code Quality (Deep Audit)
-
-- Extracted shared `stripScreenshots()` helper — eliminates 3× duplicated screenshot-stripping logic in session-lifecycle.ts
-- Named verdict threshold constants (`PRINCIPLE_FAIL_THRESHOLD`, `OVERALL_FAIL_RATIO`) replace magic numbers in compute-scores.ts
-- Removed dead exports: `countUnsure()` from rubric.ts, 6 unused logo dimension constants from logos.ts
-- Merged duplicated `handleTopExport`/`handleRetryExport` into single `handleExport(retry)` in ActiveSession.tsx
-- Extracted `createQuickNote()` factory and `buildFinalizationData()` helper to eliminate repeated object construction
-- Replaced unsafe `as Capture[]` type assertion in export-pipeline.ts with explicit `ExportSessionData` type
-- Clipboard copy failure in Metadata.tsx now shows a toast error instead of silently swallowing
-- Optimized `loadAllScreenshots()` to use a single `getAll()` IDB request instead of N individual `get()` calls
-- Added proper `afterEach(() => vi.useRealTimers())` cleanup to 4 test files using fake timers
-- Strengthened weak `toBeTruthy()` assertions in error-states.test.tsx and batch-export.test.ts
-
-
-## v0.8.1 — 2026-06-12
-
-### New: Enhanced Recommendation Grades (Labs)
-
-The Enhanced Recommendation Labs toggle now renders 9 grades in the GradeSelector (up from 3): Recommended, With Caveats, Needs Review, Pilot Only, Not Recommended, and Out of Scope join the original Pass, Conditional, and Fail. ExportCompleteScreen displays all 9 grades with correct labels and colors.
-
-### New: Principle Summaries in Reports
-
-Per-principle summaries are now included in all HTML report exports — single-session, batch, and by-ID. The summary editor auto-generates observations from your scoring and refreshes live as you answer more questions.
-
-### New: Business Card Nutrition Label
-
-A compact 85.6mm × 54mm credit-card-sized variant of the nutrition label is now included in every export ZIP as `{toolname}-card.html`. Shows verdict stamp, score fraction, quality gate failures, and principle indicators — designed for printing and physical handouts.
-
-### New: Tool Database & Comparison on Website
-
-- **Tools tab**: Sortable table of evaluated AI search tools with per-principle scores (TR/RE/US/SE/TC), verdicts, and status badges.
-- **Compare tab**: Upload multiple review ZIPs for side-by-side comparison with best-score highlighting across principles.
-
-### New: In-Browser Trial Version
-
-A standalone web build at `site/try/` lets users try the TRUST review workflow without installing the extension. Users enter a tool URL manually, answer rubric questions, finalize, and export — no Chrome/Firefox required.
-
-### New: Tool Profile Auto-Detection
-
-When starting a session with a known tool URL (Semantic Scholar, Elicit, Perplexity, etc.), metadata fields are auto-populated from a built-in profile database — company, data sources, search methods, discipline, pricing, and more. A suggested test queries panel also appears based on the tool's category.
-
-### Improved: Report Styling
-
-- Report spacing tightened ~25-30% for denser, more readable output.
-- HTML reports now render per-principle summary sections.
-
-### Changed: SE Principle Name
-
-The SE principle is now consistently "Soundness" across the website (previously showed "Secure" in some places). The extension was already correct.
-
-### Removed: Remotion
-
-The Remotion video-rendering setup (`remotion/`, config, 5 dev dependencies) has been removed. Rendered MP4s are preserved in `site/assets/video/`.
-
-### Fixed
-
-- Batch export deduplicates folder names for sessions with the same tool name (previously silent overwrites).
-- Compare page handles all-null principle scores without producing `-Infinity`.
-- JSZip CDN load shows an error on failure instead of hanging forever.
-- Duplicate `.bc-gate-fail` CSS rule merged in report stylesheet.
-- Web trial: dead `showNewSession` state and render-phase side effect removed; unused tldraw CSS import dropped from web bundle.
-- Clipboard copy in Metadata handles permission failures gracefully.
-
+- **Annotation panel CSP error on mount** — the v0.7.1 strict CSP (`connect-src 'self'`) blocked tldraw's runtime translation fetch from `cdn.tldraw.com`, which broke the annotation canvas whenever it opened (uncaught from v0.7.1 through v0.8.0). Added `https://cdn.tldraw.com` to `connect-src` (a benign vendor-served UI-translation resource).
+- New tests guard the CSP regression and cover the annotation panel (ActionBar zoom/clear/save + the editor lifecycle) — 757 tests total.
+- Batch export deduplicates folders for sessions with the same tool name (was silent overwrites); the Compare page handles all-null principle scores; web-trial dead state and unused CSS removed; clipboard-copy permission failures handled.
 
 ## v0.8.0 — 2026-06-09
 
