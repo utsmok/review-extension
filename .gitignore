@@ -46,6 +46,7 @@ CLAUDE.md
 .superpowers/
 skills-lock.json
 .audit/
+.impeccable/
 .roborev.toml
 
 # Installed skills (not project source)
