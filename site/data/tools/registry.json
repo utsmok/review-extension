@@ -1,1 +1,343 @@
-../../../data/tools/registry.json
+[
+  {
+    "name": "Semantic Scholar",
+    "category": "academic_search",
+    "url": "https://www.semanticscholar.org",
+    "hostnames": ["semanticscholar.org"],
+    "defaults": {
+      "company": "Allen Institute for AI",
+      "usesAi": true,
+      "dataSources": ["Peer-reviewed papers", "Preprints"],
+      "searchMethods": ["Semantic search", "Keyword search"],
+      "discipline": ["Multidisciplinary"],
+      "pricing": "Free",
+      "availability": "Open access",
+      "authenticationMethod": "None required"
+    },
+    "review": {
+      "verdict": "recommended",
+      "scores": { "TR": 2.5, "RE": 3.0, "US": 2.5, "SE": 2.5, "TC": 3.0 },
+      "total": 38,
+      "totalMax": 42,
+      "status": "done",
+      "notes": "Strong Reliability and Traceability. Limited Transparency on ranking methodology."
+    }
+  },
+  {
+    "name": "Elicit",
+    "category": "academic_search",
+    "url": "https://elicit.com",
+    "hostnames": ["elicit.com"],
+    "defaults": {
+      "company": "Elicit",
+      "usesAi": true,
+      "dataSources": ["Peer-reviewed papers"],
+      "searchMethods": ["Natural language queries", "Semantic search"],
+      "discipline": ["Multidisciplinary"],
+      "pricing": "Freemium",
+      "availability": "Open access",
+      "authenticationMethod": "Email"
+    },
+    "review": {
+      "verdict": "conditional",
+      "scores": { "TR": 2.0, "RE": 2.0, "US": 2.5, "SE": 2.0, "TC": 1.5 },
+      "total": 30,
+      "totalMax": 42,
+      "status": "done",
+      "notes": "Valuable for abstract summarization but ranking algorithm not fully disclosed."
+    }
+  },
+  {
+    "name": "Consensus",
+    "category": "academic_search",
+    "url": "https://consensus.app",
+    "hostnames": ["consensus.app"],
+    "defaults": {
+      "company": "Consensus",
+      "usesAi": true,
+      "dataSources": ["Peer-reviewed papers"],
+      "searchMethods": ["Natural language queries"],
+      "discipline": ["Multidisciplinary"],
+      "pricing": "Freemium"
+    },
+    "review": {
+      "verdict": "conditional",
+      "scores": { "TR": 2.0, "RE": 2.5, "US": 2.0, "SE": 2.0, "TC": 2.0 },
+      "total": 31,
+      "totalMax": 42,
+      "status": "done",
+      "notes": "Claims AI-assisted search but sources are verifiable. Moderate across all principles."
+    }
+  },
+  {
+    "name": "ai2 Asta",
+    "category": "academic_search",
+    "url": "https://asta.allenai.org",
+    "hostnames": ["asta.ai2.dev", "allennlp.org"],
+    "defaults": {
+      "company": "Allen Institute for AI",
+      "usesAi": true,
+      "dataSources": ["Peer-reviewed papers"],
+      "searchMethods": ["Semantic search"],
+      "discipline": ["Multidisciplinary"],
+      "pricing": "Free",
+      "availability": "Open access"
+    },
+    "review": {
+      "verdict": "recommended",
+      "scores": { "TR": 3.0, "RE": 3.0, "US": 2.0, "SE": 3.0, "TC": 3.0 },
+      "total": 42,
+      "totalMax": 42,
+      "status": "done",
+      "notes": "Restricts outputs to Semantic Scholar corpus. Excels in Traceability and Reliability."
+    }
+  },
+  {
+    "name": "Google Scholar",
+    "category": "academic_search",
+    "url": "https://scholar.google.com",
+    "hostnames": ["scholar.google.com"],
+    "defaults": {
+      "company": "Google",
+      "usesAi": false,
+      "dataSources": ["Peer-reviewed papers", "Preprints", "Theses", "Books"],
+      "searchMethods": ["Keyword search", "Citation search"],
+      "discipline": ["Multidisciplinary"],
+      "pricing": "Free",
+      "availability": "Open access"
+    }
+  },
+  {
+    "name": "Web of Science AI",
+    "category": "academic_search",
+    "url": "https://www.webofscience.com",
+    "hostnames": ["webofscience.com"],
+    "defaults": {
+      "company": "Clarivate",
+      "usesAi": false,
+      "dataSources": ["Peer-reviewed papers", "Conference proceedings"],
+      "searchMethods": ["Keyword search", "Citation search"],
+      "discipline": ["Multidisciplinary"],
+      "pricing": "Subscription",
+      "availability": "Institutional access"
+    },
+    "review": {
+      "verdict": "",
+      "scores": { "TR": 0, "RE": 0, "US": 0, "SE": 0, "TC": 0 },
+      "total": 0,
+      "totalMax": 0,
+      "status": "nominated",
+      "notes": "Nominated for review. Clarivate's AI assistant."
+    }
+  },
+  {
+    "name": "Scopus AI",
+    "category": "academic_search",
+    "url": "https://www.scopus.com",
+    "hostnames": ["scopus.com"],
+    "defaults": {
+      "company": "Elsevier",
+      "usesAi": false,
+      "dataSources": ["Peer-reviewed papers", "Conference proceedings"],
+      "searchMethods": ["Keyword search", "Citation search"],
+      "discipline": ["Multidisciplinary"],
+      "pricing": "Subscription",
+      "availability": "Institutional access"
+    },
+    "review": {
+      "verdict": "",
+      "scores": { "TR": 0, "RE": 0, "US": 0, "SE": 0, "TC": 0 },
+      "total": 0,
+      "totalMax": 0,
+      "status": "nominated",
+      "notes": "Nominated for review. Elsevier's AI-enhanced search."
+    }
+  },
+  {
+    "name": "PubMed",
+    "category": "academic_search",
+    "url": "https://pubmed.ncbi.nlm.nih.gov",
+    "hostnames": ["pubmed.ncbi.nlm.nih.gov"],
+    "defaults": {
+      "company": "NIH/NLM",
+      "usesAi": false,
+      "dataSources": ["Peer-reviewed papers", "Preprints"],
+      "searchMethods": ["Keyword search", "MeSH terms"],
+      "discipline": ["Biomedical", "Life sciences"],
+      "pricing": "Free",
+      "availability": "Open access"
+    }
+  },
+  {
+    "name": "JSTOR",
+    "category": "academic_search",
+    "url": "https://www.jstor.org",
+    "hostnames": ["jstor.org"],
+    "defaults": {
+      "company": "ITHAKA",
+      "usesAi": false,
+      "dataSources": ["Peer-reviewed papers", "Books"],
+      "searchMethods": ["Keyword search", "Full-text search"],
+      "discipline": ["Humanities", "Social sciences"],
+      "pricing": "Subscription",
+      "availability": "Institutional access"
+    }
+  },
+  {
+    "name": "BASE",
+    "category": "academic_search",
+    "url": "https://www.base-search.net",
+    "hostnames": ["base-search.net"],
+    "defaults": {
+      "company": "Bielefeld University Library",
+      "usesAi": false,
+      "dataSources": ["Peer-reviewed papers", "Preprints", "Theses"],
+      "searchMethods": ["Keyword search"],
+      "discipline": ["Multidisciplinary"],
+      "pricing": "Free",
+      "availability": "Open access"
+    }
+  },
+  {
+    "name": "CORE",
+    "category": "academic_search",
+    "url": "https://core.ac.uk",
+    "hostnames": ["core.ac.uk"],
+    "defaults": {
+      "company": "Open University",
+      "usesAi": false,
+      "dataSources": ["Peer-reviewed papers", "Preprints"],
+      "searchMethods": ["Keyword search"],
+      "discipline": ["Multidisciplinary"],
+      "pricing": "Free",
+      "availability": "Open access"
+    }
+  },
+  {
+    "name": "Dimensions",
+    "category": "academic_search",
+    "url": "https://app.dimensions.ai",
+    "hostnames": ["app.dimensions.ai"],
+    "defaults": {
+      "company": "Digital Science",
+      "usesAi": true,
+      "dataSources": ["Peer-reviewed papers", "Patents", "Clinical trials"],
+      "searchMethods": ["Keyword search", "Semantic search"],
+      "discipline": ["Multidisciplinary"],
+      "pricing": "Freemium",
+      "availability": "Open access"
+    }
+  },
+  {
+    "name": "ProQuest",
+    "category": "academic_search",
+    "url": "https://www.proquest.com",
+    "hostnames": ["proquest.com"],
+    "defaults": {
+      "company": "Clarivate",
+      "usesAi": false,
+      "dataSources": ["Peer-reviewed papers", "Dissertations", "Newspapers"],
+      "searchMethods": ["Keyword search", "Boolean search"],
+      "discipline": ["Multidisciplinary"],
+      "pricing": "Subscription",
+      "availability": "Institutional access"
+    }
+  },
+  {
+    "name": "EBSCO",
+    "category": "academic_search",
+    "url": "https://www.ebsco.com",
+    "hostnames": ["ebsco.com", "search.ebscohost.com"],
+    "defaults": {
+      "company": "EBSCO",
+      "usesAi": false,
+      "dataSources": ["Peer-reviewed papers", "Magazines", "Books"],
+      "searchMethods": ["Keyword search", "Boolean search"],
+      "discipline": ["Multidisciplinary"],
+      "pricing": "Subscription",
+      "availability": "Institutional access"
+    }
+  },
+  {
+    "name": "Perplexity AI",
+    "category": "ai_assistant",
+    "url": "https://www.perplexity.ai",
+    "hostnames": ["perplexity.ai"],
+    "defaults": {
+      "company": "Perplexity AI",
+      "usesAi": true,
+      "dataSources": ["Web search", "Peer-reviewed papers"],
+      "searchMethods": ["Natural language queries"],
+      "discipline": ["Multidisciplinary"],
+      "pricing": "Freemium"
+    },
+    "review": {
+      "verdict": "not_recommended",
+      "scores": { "TR": 1.5, "RE": 1.0, "US": 2.5, "SE": 1.0, "TC": 1.0 },
+      "total": 21,
+      "totalMax": 42,
+      "status": "done",
+      "notes": "Prone to citation errors. Fails Reliability and Traceability."
+    }
+  },
+  {
+    "name": "ChatGPT",
+    "category": "ai_assistant",
+    "url": "https://chat.openai.com",
+    "hostnames": ["chat.openai.com"],
+    "defaults": {},
+    "review": {
+      "verdict": "not_recommended",
+      "scores": { "TR": 1.0, "RE": 1.0, "US": 2.5, "SE": 1.0, "TC": 0.5 },
+      "total": 18,
+      "totalMax": 42,
+      "status": "done",
+      "notes": "Not designed for academic search. Hallucinated citations are common."
+    }
+  },
+  {
+    "name": "Google Gemini",
+    "category": "ai_assistant",
+    "url": "https://gemini.google.com",
+    "hostnames": ["gemini.google.com"],
+    "defaults": {},
+    "review": {
+      "verdict": "not_recommended",
+      "scores": { "TR": 1.5, "RE": 1.0, "US": 2.5, "SE": 1.0, "TC": 0.5 },
+      "total": 19,
+      "totalMax": 42,
+      "status": "in-progress",
+      "notes": "Early evaluation shows similar issues to other general-purpose AI assistants."
+    }
+  },
+  {
+    "name": "Microsoft Copilot",
+    "category": "ai_assistant",
+    "url": "https://copilot.microsoft.com",
+    "hostnames": ["copilot.microsoft.com"],
+    "defaults": {},
+    "review": {
+      "verdict": "conditional",
+      "scores": { "TR": 2.0, "RE": 2.0, "US": 2.0, "SE": 1.5, "TC": 1.5 },
+      "total": 28,
+      "totalMax": 42,
+      "status": "done",
+      "notes": "Bing-based search with citations. Better than pure LLM but still inconsistent."
+    }
+  },
+  {
+    "name": "You.com",
+    "category": "academic_search",
+    "url": "https://you.com",
+    "hostnames": ["you.com"],
+    "defaults": {},
+    "review": {
+      "verdict": "conditional",
+      "scores": { "TR": 1.5, "RE": 2.0, "US": 2.0, "SE": 1.5, "TC": 1.5 },
+      "total": 26,
+      "totalMax": 42,
+      "status": "done",
+      "notes": "Offers academic mode but Transparency on data sources is limited."
+    }
+  }
+]
