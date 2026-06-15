@@ -16,8 +16,10 @@ if (!resultsPath) {
 const results = JSON.parse(readFileSync(resultsPath, "utf-8"));
 const passed = results.numPassedTests ?? 0;
 const total = results.numTotalTests ?? passed;
+const failed = results.numFailedTests ?? 0;
 
-const color = total === 0 ? "red" : passed === total ? "brightgreen" : "yellow";
+// Gate on failures, not passed/total — a skipped/todo test must not flip a green suite yellow.
+const color = total === 0 ? "red" : failed === 0 ? "brightgreen" : "yellow";
 const badge = {
   schemaVersion: 1,
   label: "tests",
