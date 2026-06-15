@@ -35,6 +35,12 @@ vi.mock("@/stores/registry", () => ({
   },
 }));
 
+const mockSaveScreenshot = vi.fn();
+vi.mock("@/lib/screenshot-store", () => ({
+  saveScreenshot: (...args: unknown[]) => mockSaveScreenshot(...args),
+  deleteScreenshotsForCaptures: vi.fn().mockResolvedValue(undefined),
+}));
+
 // --- Helpers ---
 
 let listener: () => void;
@@ -68,6 +74,7 @@ describe("auto-save", () => {
     mockSave.mockReset();
     mockToastError.mockReset();
     mockToastWarning.mockReset();
+    mockSaveScreenshot.mockReset();
 
     // Reset module-level state by calling teardown before each init
     teardownAutoSave();
@@ -349,5 +356,75 @@ describe("auto-save", () => {
     listener();
     advanceTimer(1000);
     expect(mockSave).toHaveBeenCalledTimes(2);
+  });
+  it("retries a screenshot that fails to persist (does not mark it persisted)", async () => {
+    const cap = {
+      id: "c-fail",
+      screenshotBase64: "data:image/png;base64,AAA",
+      timestamp: "",
+      sourceUrl: "",
+      pageTitle: "",
+      htmlContent: "",
+      notes: "",
+    };
+    sessionGetState.mockReturnValue(defaultSessionState({ captures: [cap] }));
+    registryGetState.mockReturnValue({ activeSessionId: "sess-1" });
+    mockSave.mockResolvedValue(true);
+    mockSaveScreenshot.mockResolvedValue(false); // persist fails (e.g. quota)
+
+    initAutoSave();
+    listener();
+    advanceTimer(1000);
+    await vi.runAllTimersAsync();
+
+    // A non-screenshot change alters the signature → triggers a second flush
+    advanceTimer(3000); // past the rate-limit window
+    sessionGetState.mockReturnValue(
+      defaultSessionState({
+        captures: [cap],
+        evaluations: [{ rubricId: "TR.x", score: 1, notes: "", explicitEvidenceIds: [] }],
+      }),
+    );
+    listener();
+    advanceTimer(1000);
+    await vi.runAllTimersAsync();
+
+    // A failed persist must not be recorded as persisted → retried on the next flush
+    expect(mockSaveScreenshot).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not re-persist a screenshot once it is saved (dedup)", async () => {
+    const cap = {
+      id: "c-ok",
+      screenshotBase64: "data:image/png;base64,BBB",
+      timestamp: "",
+      sourceUrl: "",
+      pageTitle: "",
+      htmlContent: "",
+      notes: "",
+    };
+    sessionGetState.mockReturnValue(defaultSessionState({ captures: [cap] }));
+    registryGetState.mockReturnValue({ activeSessionId: "sess-1" });
+    mockSave.mockResolvedValue(true);
+    mockSaveScreenshot.mockResolvedValue(true); // persist succeeds
+
+    initAutoSave();
+    listener();
+    advanceTimer(1000);
+    await vi.runAllTimersAsync();
+
+    advanceTimer(3000);
+    sessionGetState.mockReturnValue(
+      defaultSessionState({
+        captures: [cap],
+        evaluations: [{ rubricId: "TR.x", score: 2, notes: "", explicitEvidenceIds: [] }],
+      }),
+    );
+    listener();
+    advanceTimer(1000);
+    await vi.runAllTimersAsync();
+
+    // Success is recorded → the second flush skips the already-persisted screenshot
+    expect(mockSaveScreenshot).toHaveBeenCalledTimes(1);
   });
 });
