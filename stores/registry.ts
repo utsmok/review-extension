@@ -85,7 +85,6 @@ export const useRegistryStore = create<RegistryState>()(
       merge: (persisted, current) => {
         const p = persisted as RegistryState;
         const persistedSettings = { ...(p?.settings ?? {}) } as Record<string, unknown>;
-        delete persistedSettings.preferredRubric;
         return {
           ...current,
           ...p,

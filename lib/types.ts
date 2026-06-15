@@ -50,7 +50,6 @@ export interface SessionData {
   metadata: SessionMetadata;
   captures: Capture[];
   evaluations: Evaluation[];
-  questionModes?: Record<string, "expert" | "standard">;
   finalization: ReviewFinalization | null;
   schemaVersion?: number;
   quickNotes?: Array<{ id: string; text: string; timestamp: string }>;
