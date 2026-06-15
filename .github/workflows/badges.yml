@@ -1,18 +1,19 @@
-name: Test badge
+name: Badges
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
-# Publishes a dynamic shields.io endpoint badge (test count) to an orphan
-# `badges` branch. The README points at the raw JSON on that branch, so the
-# "tests" badge stays in sync with the real suite size without manual edits.
+# Publishes dynamic shields.io endpoint badges (test count + version) to an orphan
+# `badges` branch. The README points at the raw JSON on that branch, so the badges
+# stay in sync without depending on the GitHub-API token pool (which rate-limits
+# shields.io's github/v/* badges).
 permissions:
   contents: write
 
 jobs:
-  badge:
+  badges:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -31,7 +32,9 @@ jobs:
       - run: pnpm exec vitest run --reporter=json --outputFile=test-results.json
 
       - name: Build badge JSON
-        run: node scripts/badge-test-count.mjs test-results.json test-count.json
+        run: |
+          node scripts/badge-test-count.mjs test-results.json test-count.json
+          node scripts/badge-version.mjs version.json
 
       - name: Publish to badges branch
         run: |
@@ -39,6 +42,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout --orphan badges
           git rm -rf --quiet .
-          git add test-count.json
-          git commit -m "chore: update test-count badge"
+          git add test-count.json version.json
+          git commit -m "chore: update badge endpoints"
           git push origin badges --force

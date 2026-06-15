@@ -5,7 +5,7 @@
   <br />
   Capture evidence, score against the TRUST framework, export a complete review package — all inside a browser side panel.
   <br /><br />
-  <img src="https://img.shields.io/github/v/tag/utsmok/review-extension?label=version&color=8e036c" alt="version" />
+  <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/utsmok/review-extension/badges/version.json" alt="version" />
   <img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="license" />
   <a href="https://github.com/utsmok/review-extension/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/utsmok/review-extension/ci.yml?branch=main&label=CI" alt="CI" /></a>
   <a href="https://codspeed.io/utsmok/review-extension"><img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed" /></a>
