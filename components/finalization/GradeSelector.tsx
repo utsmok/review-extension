@@ -95,13 +95,13 @@ export default function GradeSelector({ grade, onGradeChange }: GradeSelectorPro
       <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-1 block">
         Overall Grade
       </span>
-      <div className="flex gap-ut-2">
+      <div className="grid grid-cols-3 gap-ut-2">
         {grades.map((g) => (
           <button
             key={g.value}
             type="button"
             onClick={() => onGradeChange(g.value)}
-            className={`grade-btn flex-1 px-ut-3 py-ut-3 rounded-ut-sm font-heading font-semibold uppercase tracking-ut-label ${
+            className={`grade-btn px-ut-3 py-ut-3 rounded-ut-sm font-heading font-semibold uppercase tracking-ut-label ${
               grade === g.value
                 ? `${g.color} text-white is-selected`
                 : `border-2 border-ut-border ${g.tint} text-ut-text hover:brightness-95`
