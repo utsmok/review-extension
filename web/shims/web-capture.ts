@@ -84,7 +84,7 @@ export async function captureCurrentPageInfo(): Promise<{
 }> {
   return {
     url: "https://example-tool.edu",
-    title: "Example Tool — Web Trial",
+    title: "Example Tool (Web Trial)",
     faviconUrl: undefined,
   };
 }

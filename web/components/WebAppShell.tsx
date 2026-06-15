@@ -81,7 +81,7 @@ export default function WebAppShell({
   );
 
   const trialBanner = (
-    <div className="bg-amber-100 border-b border-amber-300 px-ut-4 py-ut-2 flex items-center gap-2">
+    <div className="bg-[var(--state-warning-tint)] border-b border-[var(--state-warning)] px-ut-4 py-ut-2 flex items-center gap-2">
       <svg
         width="16"
         height="16"
@@ -97,12 +97,12 @@ export default function WebAppShell({
         <line x1="12" y1="9" x2="12" y2="13" />
         <line x1="12" y1="17" x2="12.01" y2="17" />
       </svg>
-      <p className="text-ut-xs text-amber-900 flex-1">
-        <strong>Trial version</strong> — This demo lets you explore the full review workflow.
+      <p className="text-ut-xs text-ut-text flex-1">
+        <strong>Trial version.</strong> This demo lets you explore the full review workflow.
         Screenshots are mocked. Some features (annotations, real captures) require the{" "}
         <a
           href="https://chromewebstore.google.com/detail/trust-review/leclhemhkfmogioabkfcboddalmlncjg"
-          className="underline font-semibold hover:text-amber-700"
+          className="underline font-semibold hover:text-trust-magenta"
         >
           browser extension
         </a>
@@ -197,31 +197,46 @@ export default function WebAppShell({
       <div className="flex flex-1 min-h-0">
         {/* Left: mock browser pane */}
         <div
-          className="bg-gray-100 flex flex-col overflow-hidden"
+          className="bg-[var(--ut-offwhite)] flex flex-col overflow-hidden"
           style={{ width: `calc(100% - ${sidebarWidth + DIVIDER_PX}px)` }}
         >
           {/* Fake browser chrome */}
-          <div className="bg-gray-200 border-b border-gray-300 px-3 py-2 flex items-center gap-2 shrink-0">
+          <div className="bg-[var(--neutral-200)] border-b border-[var(--ut-border)] px-3 py-2 flex items-center gap-2 shrink-0">
             <div className="flex gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-red-400" />
-              <span className="w-3 h-3 rounded-full bg-yellow-400" />
-              <span className="w-3 h-3 rounded-full bg-green-400" />
+              <span className="w-3 h-3 rounded-full bg-[var(--ut-red)]" />
+              <span className="w-3 h-3 rounded-full bg-[var(--state-warning)]" />
+              <span className="w-3 h-3 rounded-full bg-[var(--ut-green)]" />
             </div>
-            <div className="flex-1 bg-white rounded px-3 py-1 text-xs text-gray-400 font-mono truncate">
+            <div className="flex-1 bg-[var(--ut-white)] rounded-ut-sm px-3 py-1 text-xs text-[var(--ut-muted)] font-mono truncate">
               example-tool.edu/search?q=climate+change
             </div>
           </div>
           {/* Placeholder content */}
           <div className="flex-1 flex items-center justify-center p-8">
             <div className="text-center max-w-md">
-              <div className="text-5xl mb-4">🌐</div>
-              <h2 className="text-xl font-bold text-gray-400 mb-2">Browser Preview</h2>
-              <p className="text-gray-400 text-sm leading-relaxed">
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mx-auto mb-4 text-[var(--ut-border)]"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              <h2 className="text-xl font-bold text-[var(--ut-slate)] mb-2">Browser Preview</h2>
+              <p className="text-[var(--ut-slate)] text-sm leading-relaxed">
                 This area simulates the browser page showing the tool under review. In the real
                 extension, you would see the actual website here while the review panel runs
                 alongside it as a sidebar.
               </p>
-              <p className="text-gray-300 text-xs mt-4">
+              <p className="text-[var(--ut-muted)] text-xs mt-4">
                 Drag the divider to resize the review panel
               </p>
             </div>
