@@ -8,18 +8,12 @@ importers:
 
   .:
     dependencies:
-      jpeg-js:
-        specifier: ^0.4.4
-        version: 0.4.4
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
       papaparse:
         specifier: ^5.4.1
         version: 5.5.3
-      pngjs:
-        specifier: ^7.0.0
-        version: 7.0.0
       react:
         specifier: ^19.0.0
         version: 19.2.5
@@ -72,9 +66,15 @@ importers:
       fake-indexeddb:
         specifier: ^6.2.5
         version: 6.2.5
+      jpeg-js:
+        specifier: ^0.4.4
+        version: 0.4.4
       jsdom:
         specifier: ^29.1.1
         version: 29.1.1
+      pngjs:
+        specifier: ^7.0.0
+        version: 7.0.0
       postcss:
         specifier: ^8.4.49
         version: 8.5.13
