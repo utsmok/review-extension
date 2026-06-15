@@ -1,32 +1,46 @@
-// TRUST Conference Site — Tab Navigation + Tools + Compare
+// TRUST site — scroll-spy nav + Tools table + Compare
 (() => {
-  const tabs = document.querySelectorAll(".tab-nav a");
-  const panels = document.querySelectorAll(".tab-panel");
+  // ── Scroll-spy: highlight the nav link for the section in view ────
+  function initScrollSpy() {
+    const nav = document.querySelector(".tab-nav");
+    const links = Array.from(document.querySelectorAll(".tab-nav a[href^='#']"));
+    if (!links.length) return;
+    const map = new Map();
+    for (const link of links) {
+      const id = link.getAttribute("href").slice(1);
+      const sec = document.getElementById(id);
+      if (sec) map.set(sec, link);
+    }
+    const sections = [...map.keys()];
 
-  function showTab(id) {
-    tabs.forEach((a) => {
-      a.classList.toggle("active", a.dataset.tab === id);
-    });
-    panels.forEach((panel) => {
-      panel.classList.toggle("active", panel.id === id);
-    });
-    history.replaceState(null, "", `#${id}`);
+    const setActive = (id) => {
+      let active = null;
+      for (const link of links) {
+        const on = link.getAttribute("href") === `#${id}`;
+        link.classList.toggle("active", on);
+        if (on) active = link;
+      }
+      // On narrow viewports the nav scrolls horizontally: keep the active link in view.
+      if (active && nav && nav.scrollWidth > nav.clientWidth) {
+        active.scrollIntoView({ inline: "center", block: "nearest" });
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Pick the topmost intersecting section.
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) setActive(visible[0].target.id);
+      },
+      { rootMargin: "-45% 0px -50% 0px", threshold: 0 },
+    );
+    for (const sec of sections) observer.observe(sec);
+
+    // Default to first section.
+    if (sections[0]) setActive(sections[0].id);
   }
-
-  tabs.forEach((a) => {
-    if (!a.dataset.tab) return; // skip non-tab links (e.g. "Try →")
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      showTab(a.dataset.tab);
-    });
-  });
-
-  function initFromHash() {
-    var hash = location.hash.slice(1);
-    if (hash && document.getElementById(hash)) showTab(hash);
-  }
-  window.addEventListener("hashchange", initFromHash);
-  initFromHash();
 
   // ── Tools Table ──────────────────────────────────────────────────
   async function loadTools() {
@@ -35,15 +49,15 @@
     try {
       const res = await fetch("data/tools/registry.json");
       const entries = await res.json();
-      if (!entries.length) {
-        tbody.innerHTML =
-          '<tr><td colspan="9" style="text-align:center;color:var(--ut-muted)">No tools yet.</td></tr>';
+      if (!Array.isArray(entries) || !entries.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="muted center">No tools yet.</td></tr>';
         return;
       }
+
       const scorePill = (val) => {
-        if (val === 0 || val == null) return '<span style="color:var(--ut-muted)">—</span>';
-        const cls = val >= 2.5 ? "high" : val >= 1.5 ? "mid" : "low";
-        return `<span class="score-pill ${cls}">${val.toFixed(1)}</span>`;
+        if (val === 0 || val == null) return '<span class="score-pill">—</span>';
+        const band = Math.max(0, Math.min(3, Math.round(val)));
+        return `<span class="score-pill" data-score="${band}">${val.toFixed(1)}</span>`;
       };
       const verdictLabel = (v) =>
         v ? v.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "—";
@@ -55,36 +69,37 @@
             : v === "not_recommended"
               ? "verdict-not-recommended"
               : "";
+      const verdictCell = (v) =>
+        `<td><span class="verdict ${verdictClass(v)}">${verdictLabel(v)}</span></td>`;
       const statusLabel = (s) =>
         s === "done" ? "Reviewed" : s === "in-progress" ? "In progress" : "Nominated";
       const statusClass = (s) =>
         s === "done" ? "done" : s === "in-progress" ? "in-progress" : "nominated";
+
       tbody.innerHTML = entries
         .map((e) => {
           const r = e.review;
+          const name = `<a class="tool-link" href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.name)}</a>`;
+          const category = esc((e.category || "").replace(/_/g, " "));
           if (!r) {
-            return `<tr>
-          <td><a href="${esc(e.url)}" target="_blank" rel="noopener" style="color:var(--trust-magenta)">${esc(e.name)}</a></td>
-          <td>${esc(e.category.replace(/_/g, " "))}</td>
-          <td colspan="7" style="color:var(--ut-muted)">Not yet reviewed</td>
-        </tr>`;
+            return `<tr><td>${name}</td><td>${category}</td><td colspan="7" class="muted">Not yet reviewed</td></tr>`;
           }
           return `<tr>
-          <td><a href="${esc(e.url)}" target="_blank" rel="noopener" style="color:var(--trust-magenta)">${esc(e.name)}</a></td>
-          <td>${esc(e.category.replace(/_/g, " "))}</td>
-          <td class="${verdictClass(r.verdict)}">${verdictLabel(r.verdict)}</td>
-          <td>${scorePill(r.scores.TR)}</td>
-          <td>${scorePill(r.scores.RE)}</td>
-          <td>${scorePill(r.scores.US)}</td>
-          <td>${scorePill(r.scores.SE)}</td>
-          <td>${scorePill(r.scores.TC)}</td>
-          <td><span class="status-badge ${statusClass(r.status)}">${statusLabel(r.status)}</span></td>
-        </tr>`;
+            <td>${name}</td>
+            <td>${category}</td>
+            ${verdictCell(r.verdict)}
+            <td class="num">${scorePill(r.scores?.TR)}</td>
+            <td class="num">${scorePill(r.scores?.RE)}</td>
+            <td class="num">${scorePill(r.scores?.US)}</td>
+            <td class="num">${scorePill(r.scores?.SE)}</td>
+            <td class="num">${scorePill(r.scores?.TC)}</td>
+            <td><span class="status-badge ${statusClass(r.status)}">${statusLabel(r.status)}</span></td>
+          </tr>`;
         })
         .join("");
     } catch (_e) {
       tbody.innerHTML =
-        '<tr><td colspan="9" style="text-align:center;color:var(--ut-muted)">Could not load tools data.</td></tr>';
+        '<tr><td colspan="9" class="muted center">Could not load tools data.</td></tr>';
     }
   }
 
@@ -109,10 +124,13 @@
     });
     input.addEventListener("change", () => handleFiles(input.files));
 
-    document.getElementById("compare-clear").addEventListener("click", () => {
-      compareData.length = 0;
-      renderCompare();
-    });
+    const clear = document.getElementById("compare-clear");
+    if (clear) {
+      clear.addEventListener("click", () => {
+        compareData.length = 0;
+        renderCompare();
+      });
+    }
   }
 
   async function handleFiles(files) {
@@ -129,7 +147,6 @@
 
   async function parseZip(file) {
     try {
-      // Dynamic import of JSZip from CDN
       if (!window.JSZip) {
         const s = document.createElement("script");
         s.src = "https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js";
@@ -141,12 +158,9 @@
         });
       }
       const zip = await JSZip.loadAsync(file);
-
-      // Try session.json first
       const sessionFile = zip.file("session.json");
       if (!sessionFile) return null;
       const session = JSON.parse(await sessionFile.async("string"));
-
       return {
         fileName: file.name,
         toolName: session.metadata?.toolName || "Unknown",
@@ -167,7 +181,7 @@
   function extractPrincipleScores(evaluations) {
     const principles = { TR: [], RE: [], US: [], SE: [], TC: [] };
     for (const ev of evaluations) {
-      const [cat] = ev.rubricId.split(".");
+      const [cat] = (ev.rubricId || "").split(".");
       if (principles[cat] !== undefined && typeof ev.score === "number") {
         principles[cat].push(ev.score);
       }
@@ -191,40 +205,41 @@
     return { actual: total, max: count * 3, answered: count };
   }
 
+  const cmpVerdictClass = (v) =>
+    v === "pass" || v === "recommended"
+      ? "verdict-recommended"
+      : v === "conditional" || v === "needs_review"
+        ? "verdict-provisional"
+        : v === "fail" || v === "not_recommended"
+          ? "verdict-not-recommended"
+          : "";
+
   function renderCompare() {
     const results = document.getElementById("compare-results");
     const grid = document.getElementById("compare-grid");
     const thead = document.getElementById("compare-thead");
     const tbody = document.getElementById("compare-tbody");
+    if (!results || !grid || !thead || !tbody) return;
 
     if (compareData.length === 0) {
-      results.style.display = "none";
+      results.hidden = true;
       return;
     }
-    results.style.display = "block";
+    results.hidden = false;
 
-    // Cards
     grid.innerHTML = compareData
       .map((d, i) => {
-        const verdictClass =
-          d.verdict === "pass"
-            ? "verdict-recommended"
-            : d.verdict === "conditional"
-              ? "verdict-provisional"
-              : d.verdict === "fail"
-                ? "verdict-not-recommended"
-                : "";
+        const cls = cmpVerdictClass(d.verdict);
         return `<div class="compare-card">
-        <button class="compare-remove" data-idx="${i}" title="Remove">&times;</button>
-        <h3>${esc(d.toolName)}</h3>
-        <div class="compare-url">${esc(d.toolUrl)}</div>
-        <div class="${verdictClass}" style="margin-top:var(--space-xs);font-weight:600">${esc(d.verdict || "—")}</div>
-        <div style="color:var(--ut-muted);font-size:0.85rem">${d.totalScore.actual}/${d.totalScore.max} points</div>
-      </div>`;
+          <button class="compare-remove" data-idx="${i}" aria-label="Remove ${esc(d.toolName)}">&times;</button>
+          <h3>${esc(d.toolName)}</h3>
+          <div class="compare-url">${esc(d.toolUrl)}</div>
+          <div><span class="verdict ${cls}">${esc(d.verdict || "—")}</span></div>
+          <div class="compare-points">${d.totalScore.actual}/${d.totalScore.max} points</div>
+        </div>`;
       })
       .join("");
 
-    // Remove handlers
     grid.querySelectorAll(".compare-remove").forEach((btn) => {
       btn.addEventListener("click", () => {
         compareData.splice(parseInt(btn.dataset.idx, 10), 1);
@@ -232,40 +247,32 @@
       });
     });
 
-    // Comparison table
     const principleCodes = ["TR", "RE", "US", "SE", "TC"];
-    thead.innerHTML = `<tr><th>Criterion</th>${compareData.map((d) => `<th>${esc(d.toolName)}</th>`).join("")}</tr>`;
+    thead.innerHTML = `<tr><th>Criterion</th>${compareData
+      .map((d) => `<th>${esc(d.toolName)}</th>`)
+      .join("")}</tr>`;
 
     const rows = [];
-    // Verdict row
     rows.push(
       `<tr><td>Verdict</td>${compareData
-        .map((d) => {
-          const cls =
-            d.verdict === "pass"
-              ? "verdict-recommended"
-              : d.verdict === "conditional"
-                ? "verdict-provisional"
-                : d.verdict === "fail"
-                  ? "verdict-not-recommended"
-                  : "";
-          return `<td class="${cls}">${esc(d.verdict || "—")}</td>`;
-        })
+        .map(
+          (d) =>
+            `<td><span class="verdict ${cmpVerdictClass(d.verdict)}">${esc(d.verdict || "—")}</span></td>`,
+        )
+        .join("")}</tr>`,
+    );
+    rows.push(
+      `<tr><td>Score</td>${compareData
+        .map((d) => `<td>${d.totalScore.actual}/${d.totalScore.max}</td>`)
         .join("")}</tr>`,
     );
 
-    // Score row
-    rows.push(
-      `<tr><td>Score</td>${compareData.map((d) => `<td>${d.totalScore.actual}/${d.totalScore.max}</td>`).join("")}</tr>`,
-    );
-
-    // Per-principle rows
     for (const code of principleCodes) {
       const values = compareData.map((d) => d.principles[code]);
       const filtered = values.filter((v) => v !== null);
       const best = filtered.length > 0 ? Math.max(...filtered) : null;
       rows.push(
-        `<tr><td style="color:var(--${code.toLowerCase()})">${code}</td>${values
+        `<tr><td data-code="${code.toLowerCase()}">${code}</td>${values
           .map((v) => {
             const isBest = v === best && compareData.length > 1;
             return `<td${isBest ? ' class="highlight-best"' : ""}>${v !== null ? v.toFixed(1) : "—"}</td>`;
@@ -274,14 +281,13 @@
       );
     }
 
-    // Strengths
+    const proseCell = (items) =>
+      `<td class="cell-prose">${items.length ? items.map((s) => esc(s)).join("<br>") : "<em>—</em>"}</td>`;
     rows.push(
-      `<tr><td>Strengths</td>${compareData.map((d) => `<td style="text-align:left;font-size:0.8rem">${d.strengths.length ? d.strengths.map((s) => esc(s)).join("<br>") : "<em>—</em>"}</td>`).join("")}</tr>`,
+      `<tr><td class="cell-prose">Strengths</td>${compareData.map((d) => proseCell(d.strengths)).join("")}</tr>`,
     );
-
-    // Weaknesses
     rows.push(
-      `<tr><td>Weaknesses</td>${compareData.map((d) => `<td style="text-align:left;font-size:0.8rem">${d.weaknesses.length ? d.weaknesses.map((w) => esc(w)).join("<br>") : "<em>—</em>"}</td>`).join("")}</tr>`,
+      `<tr><td class="cell-prose">Weaknesses</td>${compareData.map((d) => proseCell(d.weaknesses)).join("")}</tr>`,
     );
 
     tbody.innerHTML = rows.join("");
@@ -289,14 +295,15 @@
 
   // ── Utilities ────────────────────────────────────────────────────
   function esc(s) {
-    if (!s) return "";
-    return s
+    if (s == null) return "";
+    return String(s)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
   }
 
+  initScrollSpy();
   loadTools();
   initCompare();
 })();

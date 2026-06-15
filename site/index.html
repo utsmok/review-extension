@@ -3,194 +3,244 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TRUST — Evaluating AI Search Tools</title>
+  <title>TRUST: Evaluating AI Search Tools</title>
+  <meta name="description" content="A practical framework and browser extension for assessing AI-based academic search tools against the TRUST principles: Transparent, Reliable, User-centric, Sound, and Traceable. From the University of Twente, debuting at LIBER 2026.">
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Nunito+Sans:wght@800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-<!-- ===== Header ===== -->
-<header class="site-header">
-  <div class="container">
-    <a href="#" class="header-logo" onclick="showTab('home'); return false;">
-      <img src="assets/trust.svg" alt="TRUST">
-      <span>TRUST</span>
-    </a>
-    <nav class="tab-nav">
-      <a href="#home" class="active" data-tab="home">Home</a>
-      <a href="#tools" data-tab="tools">Tools</a>
-      <a href="#demo" data-tab="demo">Demo</a>
-      <a href="try/" class="try-link">Try →</a>
-      <a href="#compare" data-tab="compare">Compare</a>
-      <a href="#background" data-tab="background">Background</a>
-      <a href="#links" data-tab="links">Links</a>
-    </nav>
-  </div>
-</header>
-
-<!-- ===== Home ===== -->
-<main>
-<section id="home" class="tab-panel active">
-  <div class="container">
-    <div class="hero">
-      <img src="assets/trust.svg" alt="TRUST logo" class="hero-logo">
-      <h1>Evaluating AI search tools with confidence</h1>
-      <p>A practical framework for assessing AI-based information search tools in academic settings — Transparent, Reliable, User-centric, Sound, and Traceable.</p>
-      <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;align-items:center">
-        <a href="https://chromewebstore.google.com/detail/trust-review/leclhemhkfmogioabkfcboddalmlncjg" class="badge">⬇ Install the extension</a>
-        <a href="try/" class="badge" style="background:var(--ut-white);color:var(--trust-magenta);border:1px solid var(--trust-magenta)">▶ Try in browser</a>
-      </div>
+  <!-- ===== Header / sticky anchor nav ===== -->
+  <header class="site-header">
+    <div class="container">
+      <a href="#top" class="header-logo" aria-label="TRUST home">
+        <img src="assets/trust.svg" alt="">
+        <span>TRUST</span>
+      </a>
+      <nav class="tab-nav" aria-label="Page sections">
+        <a href="#how">How it works</a>
+        <a href="#tools">Tools</a>
+        <a href="#install">Install</a>
+        <a href="#compare">Compare</a>
+        <a href="#references">References</a>
+        <a href="#contact">Contact</a>
+        <a href="try/" class="cta" aria-label="Try the TRUST extension in your browser">Try →</a>
+      </nav>
     </div>
+  </header>
 
-    <!-- Principles -->
-    <div class="principles-grid">
-      <div class="principle-card" data-principle="tr">
-        <div class="letter" style="color:var(--tr)">T</div>
-        <div class="name">Transparent</div>
-        <div class="desc">Methodology, data sources, and limitations are clearly documented.</div>
-      </div>
-      <div class="principle-card" data-principle="re">
-        <div class="letter" style="color:var(--re)">R</div>
-        <div class="name">Reliable</div>
-        <div class="desc">Outputs are accurate, verifiable, and consistent. Sources are real — not hallucinated.</div>
-      </div>
-      <div class="principle-card" data-principle="uc">
-        <div class="letter" style="color:var(--uc)">U</div>
-        <div class="name">User-centric</div>
-        <div class="desc">Fit for academic use and integrates with standard research workflows.</div>
-      </div>
-      <div class="principle-card" data-principle="se">
-        <div class="letter" style="color:var(--se)">S</div>
-        <div class="name">Soundness</div>
-        <div class="desc">Algorithmic fairness, bias mitigation, and accuracy of search results and rankings.</div>
-      </div>
-      <div class="principle-card" data-principle="tc">
-        <div class="letter" style="color:var(--tc)">T</div>
-        <div class="name">Traceable</div>
-        <div class="desc">All information generated and/or used can be traced back to a primary source.</div>
-      </div>
-    </div>
-
-    <!-- Authors -->
-    <div class="section">
-      <div class="section-title" style="text-align:center">Authors</div>
-      <div class="authors">
-        <span class="author-chip">S. Mok</span>
-        <span class="author-chip">S.A. Kruit</span>
-        <span class="author-chip">G. de Jonge</span>
-        <span class="author-chip">K.I.H. Mingoti Poague</span>
-        <span class="author-chip">L. van Ewijk</span>
-        <span class="author-chip">J.M. van Eck</span>
-      </div>
-      <p style="text-align:center;color:var(--ut-muted);font-size:0.9rem">
-        Embedded Information Services, Library, ICT Services &amp; Archive — University of Twente
+  <main id="main">
+  <!-- ===== Hero ===== -->
+  <section id="top" class="hero" aria-labelledby="hero-title">
+    <div class="container">
+      <img src="assets/trust.svg" alt="TRUST" class="hero-logo" width="240" height="72">
+      <h1 id="hero-title">Evaluating AI search tools with confidence</h1>
+      <p class="lede">
+        A practical framework and browser extension for assessing AI-based information
+        search tools in academic settings: Transparent, Reliable, User-centric, Sound,
+        and Traceable.
       </p>
-    </div>
 
-    <!-- Badges -->
-    <div class="badges">
-      <span class="badge">v0.8.0</span>
-      <a href="https://github.com/utsmok/review-extension/blob/main/LICENSE" class="badge">Apache-2.0</a>
-      <a href="https://github.com/utsmok/review-extension/releases" class="badge">Releases</a>
-    </div>
-  </div>
-</section>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/trust-review/leclhemhkfmogioabkfcboddalmlncjg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Install the extension
+        </a>
+        <a class="btn btn-ghost" href="try/">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Try in browser
+        </a>
+      </div>
 
-<!-- ===== Tools ===== -->
-<section id="tools" class="tab-panel">
-  <div class="container">
-    <div class="section">
-      <div class="section-title">Evaluated Tools</div>
-      <p style="color:var(--ut-muted);margin-bottom:var(--space-md)">
-        Tools reviewed using the TRUST framework. Status indicates review completion.
-        <a href="https://github.com/utsmok/review-extension/issues" style="color:var(--trust-magenta)">Nominate a tool →</a>
-      </p>
-      <div class="card" style="overflow-x:auto">
-        <table class="tools-table">
+      <!-- Principles (the TRUST acronym) -->
+      <div class="principles-grid" role="list">
+        <div class="principle-card" data-principle="tr" role="listitem">
+          <div class="letter">T</div>
+          <div class="name">Transparent</div>
+          <div class="desc">Methodology, data sources, and limitations are clearly documented.</div>
+        </div>
+        <div class="principle-card" data-principle="re" role="listitem">
+          <div class="letter">R</div>
+          <div class="name">Reliable</div>
+          <div class="desc">Outputs are accurate, verifiable, and consistent. Sources are real, not hallucinated.</div>
+        </div>
+        <div class="principle-card" data-principle="uc" role="listitem">
+          <div class="letter">U</div>
+          <div class="name">User-centric</div>
+          <div class="desc">Fit for academic use and integrates with standard research workflows.</div>
+        </div>
+        <div class="principle-card" data-principle="se" role="listitem">
+          <div class="letter">S</div>
+          <div class="name">Soundness</div>
+          <div class="desc">Algorithmic fairness, bias mitigation, and accuracy of search results and rankings.</div>
+        </div>
+        <div class="principle-card" data-principle="tc" role="listitem">
+          <div class="letter">T</div>
+          <div class="name">Traceable</div>
+          <div class="desc">All information generated and used can be traced back to a primary source.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== How it works ===== -->
+  <section id="how" class="section" aria-labelledby="how-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="how-title" class="section-title">How TRUST works</h2>
+        <p class="section-lede">
+          The TRUST framework evaluates AI-based search tools across five core principles,
+          inspired by the FAIR principles for data management.
+        </p>
+      </div>
+
+      <div class="prose">
+        <p>Each review grades a tool on:</p>
+        <ul>
+          <li><strong>Quality gates</strong>: pass/fail checks for critical criteria.</li>
+          <li><strong>Scoring questions</strong>: 10 questions per principle, scored 0 to 3.</li>
+          <li><strong>Structured evidence</strong>: screenshots and annotations captured in-browser.</li>
+          <li><strong>HTML reports and nutrition labels</strong>: shareable, self-contained outputs.</li>
+        </ul>
+      </div>
+
+      <div class="section-head mt-8">
+        <h3 class="section-title section-title--sub">Evaluation examples</h3>
+      </div>
+      <div class="table-wrap">
+        <table class="comparison-table">
+          <caption class="visually-hidden">Example TRUST evaluations of representative tools.</caption>
           <thead>
-            <tr>
-              <th>Tool</th>
-              <th>Category</th>
-              <th>Verdict</th>
-              <th>TR</th>
-              <th>RE</th>
-              <th>US</th>
-              <th>SE</th>
-              <th>TC</th>
-              <th>Status</th>
-            </tr>
+            <tr><th scope="col">Tool</th><th scope="col">Verdict</th><th scope="col">Key finding</th></tr>
           </thead>
-          <tbody id="tools-tbody">
-            <tr><td colspan="9" style="text-align:center;color:var(--ut-muted)">Loading…</td></tr>
+          <tbody>
+            <tr>
+              <td>ai2 Asta</td>
+              <td><span class="verdict verdict-recommended">Recommended</span></td>
+              <td>Restricts outputs to the Semantic Scholar corpus and exposes its reasoning chain, excelling in Traceability and Reliability.</td>
+            </tr>
+            <tr>
+              <td>Elicit</td>
+              <td><span class="verdict verdict-provisional">Needs review</span></td>
+              <td>Valuable for abstract summarization, but the ranking algorithm is not fully disclosed, limiting Transparency.</td>
+            </tr>
+            <tr>
+              <td>ChatGPT, Gemini, Perplexity</td>
+              <td><span class="verdict verdict-not-recommended">Not recommended</span></td>
+              <td>Prone to citation errors and lacking rigorous, verifiable academic sources, failing Reliability and Traceability.</td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ===== Demo ===== -->
-<section id="demo" class="tab-panel">
-  <div class="container">
-    <div class="section">
-      <div class="section-title">Install the Browser Extension</div>
+  <!-- ===== Tools ===== -->
+  <section id="tools" class="section" aria-labelledby="tools-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="tools-title" class="section-title">Evaluated tools</h2>
+        <p class="section-lede">
+          Tools reviewed using the TRUST framework. Column scores average the 10 questions
+          per principle on a 0 to 3 scale:
+          <abbr title="Transparent">TR</abbr>,
+          <abbr title="Reliable">RE</abbr>,
+          <abbr title="User-centric">US</abbr>,
+          <abbr title="Soundness">SE</abbr>,
+          <abbr title="Traceable">TC</abbr>.
+          <a href="https://github.com/utsmok/review-extension/issues">Nominate a tool</a>.
+        </p>
+      </div>
+      <div class="table-wrap">
+        <table class="tools-table">
+          <thead>
+            <tr>
+              <th scope="col">Tool</th>
+              <th scope="col">Category</th>
+              <th scope="col">Verdict</th>
+              <th scope="col" class="num"><abbr title="Transparent">TR</abbr></th>
+              <th scope="col" class="num"><abbr title="Reliable">RE</abbr></th>
+              <th scope="col" class="num"><abbr title="User-centric">US</abbr></th>
+              <th scope="col" class="num"><abbr title="Soundness">SE</abbr></th>
+              <th scope="col" class="num"><abbr title="Traceable">TC</abbr></th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody id="tools-tbody">
+            <tr><td colspan="9" class="muted center">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Install ===== -->
+  <section id="install" class="section" aria-labelledby="install-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="install-title" class="section-title">Install the browser extension</h2>
+        <p class="section-lede">
+          See it in action first: <a href="try/">try the live in-browser demo</a> with no install.
+        </p>
+      </div>
+
       <div class="install-grid">
         <div class="card install-card">
-          <h3>🧊 Chrome / Edge</h3>
-          <p style="margin-bottom:var(--space-sm)">
-            <a href="https://chromewebstore.google.com/detail/trust-review/leclhemhkfmogioabkfcboddalmlncjg" style="color:var(--trust-magenta);font-weight:600">
-              Add to Chrome →
-            </a>
+          <h3>
+            <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="1"/><line x1="2" y1="8" x2="22" y2="8"/><line x1="6" y1="12" x2="10" y2="12"/></svg>
+            Chrome and Edge
+          </h3>
+          <p>
+            <a href="https://chromewebstore.google.com/detail/trust-review/leclhemhkfmogioabkfcboddalmlncjg">Add to Chrome</a>
+            from the Chrome Web Store; it auto-updates on new releases.
           </p>
-          <p style="color:var(--ut-muted);font-size:0.9rem">
-            Installs from the Chrome Web Store and auto-updates on new releases.
+          <p class="muted text-sm mt-2">
             For manual installs or other Chromium browsers, see the
             <a href="https://github.com/utsmok/review-extension/releases">GitHub Releases</a>.
           </p>
         </div>
         <div class="card install-card">
-          <h3>🦊 Firefox</h3>
+          <h3>
+            <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
+            Firefox
+          </h3>
           <ol>
-            <li>Download the latest <code>firefox.zip</code> from <a href="https://github.com/utsmok/review-extension/releases">GitHub Releases</a></li>
-            <li>Unzip the file</li>
-            <li>Open <code>about:debugging#/runtime/this-firefox</code></li>
-            <li>Click <strong>Load Temporary Add-on</strong></li>
-            <li>Select any file inside the unzipped folder (e.g. <code>manifest.json</code>)</li>
+            <li>Download the latest <code>firefox.zip</code> from <a href="https://github.com/utsmok/review-extension/releases">GitHub Releases</a>.</li>
+            <li>Unzip the file.</li>
+            <li>Open <code>about:debugging#/runtime/this-firefox</code>.</li>
+            <li>Click <strong>Load Temporary Add-on</strong>.</li>
+            <li>Select any file inside the unzipped folder (e.g. <code>manifest.json</code>).</li>
           </ol>
         </div>
       </div>
     </div>
+  </section>
 
-
-    <!-- Screenshots placeholder -->
-    <div class="section">
-      <div class="section-title">Screenshots</div>
-      <p style="color:var(--ut-muted);font-style:italic">Screenshots of the extension in action will appear here.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ===== Compare ===== -->
-<section id="compare" class="tab-panel">
-  <div class="container">
-    <div class="section">
-      <div class="section-title">Compare Reviews</div>
-      <p style="color:var(--ut-muted);margin-bottom:var(--space-md)">
-        Upload multiple TRUST review ZIP files to compare scores, evidence, and verdicts side by side.
-      </p>
+  <!-- ===== Compare ===== -->
+  <section id="compare" class="section" aria-labelledby="compare-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="compare-title" class="section-title">Compare reviews</h2>
+        <p class="section-lede">
+          Upload multiple TRUST review ZIP files to compare scores, evidence, and verdicts
+          side by side.
+        </p>
+      </div>
       <div class="card">
         <div class="upload-zone" id="compare-drop">
-          <p>Drop ZIP files here or <label for="compare-input" style="color:var(--trust-magenta);cursor:pointer">browse</label></p>
-          <input type="file" id="compare-input" multiple accept=".zip" style="display:none">
+          <p>Drop ZIP files here or <label for="compare-input">browse</label></p>
+          <input type="file" id="compare-input" multiple accept=".zip" hidden>
         </div>
-        <div id="compare-results" style="display:none">
+        <div id="compare-results" hidden>
           <div class="compare-controls">
             <button class="compare-btn" id="compare-clear" type="button">Clear all</button>
           </div>
           <div class="compare-grid" id="compare-grid"></div>
-          <div class="card" style="margin-top:var(--space-md);overflow-x:auto">
+          <div class="table-wrap mt-4">
             <table class="compare-table" id="compare-table">
               <thead id="compare-thead"></thead>
               <tbody id="compare-tbody"></tbody>
@@ -199,146 +249,114 @@
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ===== Background ===== -->
-<section id="background" class="tab-panel">
-  <div class="container">
-    <div class="section">
-      <div class="section-title">How TRUST Works</div>
-      <div class="card">
-        <p>The TRUST framework evaluates AI-based search tools across five core principles, inspired by the FAIR principles for data management. Each review grades the tool on:</p>
-        <ul style="margin:var(--space-md) 0; padding-left:var(--space-lg); color:var(--ut-muted)">
-          <li><strong>Quality gates</strong> — pass/fail checks for critical criteria</li>
-          <li><strong>Scoring questions</strong> — 10 questions per principle, scored 0–3</li>
-          <li><strong>Structured evidence</strong> — screenshots and annotations captured in-browser</li>
-          <li><strong>HTML reports</strong> &amp; <strong>nutrition labels</strong> — shareable, self-contained outputs</li>
-        </ul>
+  <!-- ===== References ===== -->
+  <section id="references" class="section" aria-labelledby="refs-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="refs-title" class="section-title">References</h2>
       </div>
-    </div>
+      <ol class="ref-list">
+        <li>Nogueira LA, et al. IFLA J 2025;51:735 to 749. doi: 10.1177/03400352241304121</li>
+        <li>AI HLEG. 2020. <a href="https://digital.strategy.ec.europa.eu/en/library/assessment-list-trustworthy-artificial-intelligence-altai-self-assessment">Assessment List for Trustworthy AI (ALTAI)</a>.</li>
+        <li>McCormack L, et al. AI Ethics 2025;5:1973 to 1994. doi: 10.1007/s43681-024-00590-8</li>
+        <li>GO FAIR. <a href="https://www.go-fair.org/fair-principles/">FAIR Principles</a>.</li>
+        <li>Buçinca Z, et al. ToCHI 2024;31(3). doi: 10.1145/3635372</li>
+        <li>Wang L, et al. arXiv 2024. doi: 10.48550/arXiv.2402.06409</li>
+        <li>Liu J, et al. arXiv 2023. doi: 10.48550/arXiv.2305.11435</li>
+      </ol>
 
-    <!-- Comparison table -->
-    <div class="section">
-      <div class="section-title">Evaluation Examples</div>
-      <div class="card" style="overflow-x:auto">
-        <table class="comparison-table">
-          <thead>
-            <tr><th>Tool</th><th>Verdict</th><th>Key finding</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>ai2 Asta</td>
-              <td class="verdict-recommended">Recommended</td>
-              <td>Restricts outputs to Semantic Scholar corpus, exposes reasoning chain, excels in Traceability and Reliability.</td>
-            </tr>
-            <tr>
-              <td>Elicit</td>
-              <td class="verdict-provisional">Needs review</td>
-              <td>Valuable for abstract summarization, but ranking algorithm not fully disclosed, limiting Transparency.</td>
-            </tr>
-            <tr>
-              <td>ChatGPT / Gemini / Perplexity</td>
-              <td class="verdict-not-recommended">Not recommended</td>
-              <td>Prone to citation errors and lack rigorous, verifiable academic sources — failing Reliability and Traceability.</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="section-head mt-8">
+        <h3 class="section-title section-title--sub">Authors</h3>
       </div>
-    </div>
-
-    <!-- References -->
-    <div class="section">
-      <div class="section-title">References</div>
-      <div class="card">
-        <ol class="ref-list">
-          <li>Nogueira LA, et al. IFLA J 2025;51:735–49. doi: 10.1177/03400352241304121</li>
-          <li>AI HLEG. 2020. <a href="https://digital.strategy.ec.europa.eu/en/library/assessment-list-trustworthy-artificial-intelligence-altai-self-assessment">Assessment List for Trustworthy AI (ALTAI)</a></li>
-          <li>McCormack L, et al. AI Ethics 2025;5:1973–94. doi: 10.1007/s43681-024-00590-8</li>
-          <li>GO FAIR. <a href="https://www.go-fair.org/fair-principles/">FAIR Principles</a></li>
-          <li>Buçinca Z, et al. ToCHI 2024;31(3). doi: 10.1145/3635372</li>
-          <li>Wang L, et al. arXiv 2024. doi: 10.48550/arXiv.2402.06409</li>
-          <li>Liu J, et al. arXiv 2023. doi: 10.48550/arXiv.2305.11435</li>
-        </ol>
+      <div class="authors">
+        <span class="author-chip">S. Mok</span>
+        <span class="author-chip">S.A. Kruit</span>
+        <span class="author-chip">G. de Jonge</span>
+        <span class="author-chip">K.I.H. Mingoti Poague</span>
+        <span class="author-chip">L. van Ewijk</span>
+        <span class="author-chip">J.M. van Eck</span>
       </div>
+      <p class="attribution">
+        Embedded Information Services, Library, ICT Services and Archive, University of Twente
+        <br>
+        <span class="pill">v0.8.0</span>
+        <a class="pill" href="https://github.com/utsmok/review-extension/blob/main/LICENSE">Apache-2.0</a>
+        <a class="pill" href="https://github.com/utsmok/review-extension/releases">Releases</a>
+      </p>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ===== Links ===== -->
-<section id="links" class="tab-panel">
-  <div class="container">
-    <div class="section">
-      <div class="section-title">Links &amp; Resources</div>
+  <!-- ===== Contact ===== -->
+  <section id="contact" class="section" aria-labelledby="contact-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="contact-title" class="section-title">Links and contact</h2>
+      </div>
+
       <div class="links-grid">
-        <a href="https://github.com/utsmok/review-extension" class="link-card">
-          <span class="link-icon">📦</span>
+        <a class="link-card" href="https://github.com/utsmok/review-extension">
+          <svg class="link-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
           <div>
             <div class="link-label">GitHub Repository</div>
             <div class="link-url">github.com/utsmok/review-extension</div>
           </div>
         </a>
-        <a href="https://github.com/utsmok/review-extension/issues" class="link-card">
-          <span class="link-icon">🐛</span>
+        <a class="link-card" href="https://github.com/utsmok/review-extension/issues">
+          <svg class="link-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <div>
             <div class="link-label">Issue Tracker</div>
-            <div class="link-url">Report bugs &amp; request features</div>
+            <div class="link-url">Report bugs and request features</div>
           </div>
         </a>
-        <a href="https://liberconference.eu/" class="link-card">
-          <span class="link-icon">🏛</span>
+        <a class="link-card" href="https://liberconference.eu/">
+          <svg class="link-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
           <div>
             <div class="link-label">LIBER 2026 Conference</div>
-            <div class="link-url">1–3 July · NTNU Trondheim, Norway</div>
+            <div class="link-url">1 to 3 July, NTNU Trondheim, Norway</div>
           </div>
         </a>
-        <a href="https://www.utwente.nl/en/lisa-eis/" class="link-card">
-          <span class="link-icon">🎓</span>
+        <a class="link-card" href="https://www.utwente.nl/en/lisa-eis/">
+          <svg class="link-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
           <div>
-            <div class="link-label">University of Twente — LISA EIS</div>
+            <div class="link-label">University of Twente, LISA-EIS</div>
             <div class="link-url">Embedded Information Services</div>
           </div>
         </a>
       </div>
-    </div>
 
-    <!-- Contact -->
-    <div class="section">
-      <div class="section-title">Contact</div>
-      <div class="card" style="text-align:center">
-        <p>Samuel Mok — <a href="mailto:s.mok@utwente.nl">s.mok@utwente.nl</a></p>
-        <p style="color:var(--ut-muted);font-size:0.85rem;margin-top:var(--space-xs)">Embedded Information Services, University of Twente</p>
+      <div class="contact mt-8">
+        <div class="section-head">
+        <h3 class="section-title section-title--sub">Contact</h3>
+        </div>
+        <p>Samuel Mok, <a href="mailto:s.mok@utwente.nl">s.mok@utwente.nl</a></p>
+        <p class="muted text-sm">Embedded Information Services, University of Twente</p>
+      </div>
+
+      <div class="qr-section">
+        <div class="section-head">
+        <h3 class="section-title section-title--sub">Scan to visit</h3>
+        </div>
+        <img src="assets/qr-code.svg" alt="QR code for trust.samuelmok.cc" width="140" height="140">
+        <p class="muted text-xs">trust.samuelmok.cc</p>
       </div>
     </div>
+  </section>
+  </main>
 
-    <!-- QR Code -->
-    <div class="qr-section">
-      <div class="section-title">Scan to visit this page</div>
-      <img src="assets/qr-code.svg" alt="QR code for trust.samuelmok.cc" width="160" height="160">
-      <p style="margin-top:var(--space-sm);color:var(--ut-muted);font-size:0.85rem">trust.samuelmok.cc</p>
+  <!-- ===== Footer ===== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-logos">
+        <img src="assets/trust.svg" alt="TRUST">
+        <img src="assets/lisa-eis.svg" alt="LISA-EIS">
+        <img src="assets/ut-logo.png" alt="University of Twente">
+      </div>
+      <p>TRUST Framework, LIBER 2026, Trondheim · <a href="https://github.com/utsmok/review-extension">GitHub</a></p>
     </div>
-  </div>
-</section>
-</main>
+  </footer>
 
-<!-- ===== Footer ===== -->
-<footer class="site-footer">
-  <div class="container">
-    <p>
-      <img src="assets/trust.svg" alt="TRUST" style="height:20px">
-      ·
-      <img src="assets/lisa-eis.svg" alt="LISA-EIS" style="height:20px">
-      ·
-      <img src="assets/ut-logo.png" alt="University of Twente" style="height:20px">
-    </p>
-    <p style="margin-top:var(--space-sm)">
-      TRUST Framework — LIBER 2026, Trondheim
-      ·
-      <a href="https://github.com/utsmok/review-extension" style="color:var(--trust-magenta)">GitHub</a>
-    </p>
-  </div>
-</footer>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
