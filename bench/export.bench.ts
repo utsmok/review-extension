@@ -1,6 +1,6 @@
 import { bench, describe } from "vitest";
 import { sanitizeFilename } from "@/lib/export";
-import { minifyCss, minifyHtml } from "@/lib/minify";
+import { minifyHtml } from "@/lib/minify";
 
 // ── HTML samples ──────────────────────────────────────────────────────
 
@@ -54,69 +54,6 @@ const SAMPLE_HTML = `<!DOCTYPE html>
 </html>`;
 
 const LARGE_HTML = SAMPLE_HTML.repeat(20);
-
-// ── CSS samples ──────────────────────────────────────────────────────
-
-const SAMPLE_CSS = `
-/* TRUST Report Styles */
-:root {
-  --magenta: #8e036c;
-  --muted: #6c757d;
-  --text: #212529;
-  --ff-heading: "Inter", sans-serif;
-  --spacing: 16px;
-  --radius: 8px;
-  --bg: #f8f9fa;
-  --border: #dee2e6;
-}
-
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  color: var(--text);
-  background: #fff;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: var(--spacing);
-}
-
-h1 {
-  color: var(--magenta);
-  font-family: var(--ff-heading);
-  margin-bottom: var(--spacing);
-}
-
-.card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--spacing);
-  color: var(--text);
-}
-
-.muted {
-  color: var(--muted);
-  font-size: 0.875rem;
-}
-
-.dist-bar {
-  display: flex;
-  height: 10px;
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.dist-seg {
-  height: 100%;
-}
-
-// Line comment
-.footer {
-  margin-top: var(--spacing);
-  color: var(--muted);
-}
-`;
-
-const LARGE_CSS = SAMPLE_CSS.repeat(10);
 
 // ── sanitizeFilename inputs ──────────────────────────────────────────
 
@@ -180,15 +117,5 @@ describe("minifyHtml", () => {
 
   bench("large report document (20x)", () => {
     minifyHtml(LARGE_HTML);
-  });
-});
-
-describe("minifyCss", () => {
-  bench("report stylesheet with variables", () => {
-    minifyCss(SAMPLE_CSS);
-  });
-
-  bench("large stylesheet (10x)", () => {
-    minifyCss(LARGE_CSS);
   });
 });

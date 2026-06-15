@@ -1,6 +1,4 @@
 import { bench, describe } from "vitest";
-import { REPORT_CSS } from "@/lib/html-report";
-import { minifyCss } from "@/lib/minify";
 import { principleAverage, qualityGateResults, scoreColor } from "@/lib/rubric";
 import type { Evaluation, EvaluationScore } from "@/lib/types";
 import { makeEvaluation, RUBRIC } from "@/tests/fixtures";
@@ -38,12 +36,6 @@ function buildReportEvaluations(): Evaluation[] {
 const evals = buildReportEvaluations();
 
 // ── Benchmarks ────────────────────────────────────────────────────────
-
-describe("minifyCss on REPORT_CSS", () => {
-  bench("production CSS (16KB+)", () => {
-    minifyCss(REPORT_CSS);
-  });
-});
 
 describe("scoreColor", () => {
   bench("numeric scores 0–3", () => {

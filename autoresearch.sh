@@ -55,9 +55,6 @@ val=$(extract_mean "base64ToUint8Array" "large payload")
 val=$(extract_mean "minifyHtml" "large document")
 [ -n "$val" ] && echo "METRIC minify_html_large_ms=${val}"
 
-val=$(extract_mean "minifyCss" "large stylesheet")
-[ -n "$val" ] && echo "METRIC minify_css_large_ms=${val}"
-
 val=$(extract_mean "computeReportScores" "with finalization")
 [ -n "$val" ] && echo "METRIC compute_scores_ms=${val}"
 
