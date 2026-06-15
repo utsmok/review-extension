@@ -25,7 +25,8 @@
     "test:e2e": "playwright test",
     "bench": "vitest bench --config vitest.bench.config.ts",
     "release": "node scripts/release.mjs",
-    "sync-registry": "node scripts/sync-registry.mjs"
+    "sync-registry": "node scripts/sync-registry.mjs",
+    "prebuild": "node scripts/sync-registry.mjs"
   },
   "dependencies": {
     "jszip": "^3.10.1",
