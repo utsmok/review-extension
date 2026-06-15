@@ -18,22 +18,12 @@ TRUST Review is a Chrome/Firefox extension for conducting structured evaluations
 
 ## What it looks like
 
-<!-- Screenshots need to be captured from the running extension and saved to docs/assets/ -->
-
-| Side panel — evaluation rubric | Capture & annotation |
-|:---:|:---:|
-| ![TRUST side panel — evaluation view](docs/assets/sidepanel-evaluation.png) | ![Evidence capture with tldraw annotation](docs/assets/capture-annotation.png) |
-
-| Session manager | HTML export report |
-|:---:|:---:|
-| ![Session manager with progress indicators](docs/assets/session-manager.png) | ![Generated HTML evaluation report](docs/assets/html-report.png) |
-
-_Screenshots coming soon — the images above show the four main views of the extension._
+_Screenshots coming soon — to be captured from the running extension._
 
 ## What it does
 
 - **Capture evidence** — screenshot the active tab, archive the page HTML, annotate captures with a built-in drawing tool (tldraw). All screenshots are stored as lossless PNG at native resolution.
-- **Score against the rubric** — four quality gates (pass/fail) plus a 0–3 scoring rubric across the five TRUST principles: Transparent, Reliable, User-centric, Secure, Traceable.
+- **Score against the rubric** — four quality gates (pass/fail) plus a 0–3 scoring rubric across the five TRUST principles: Transparent, Reliable, User-centric, Sound, Traceable.
 - **Export a complete review package** — generates a ZIP with an HTML evaluation report, a standalone nutrition-label summary, CSV data files, and an `evidence/` folder containing all screenshots and archived pages.
 ## Install
 ### Chrome & chromium-based browsers
