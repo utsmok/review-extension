@@ -91,6 +91,8 @@ function computeSignature(state: SessionState): string {
 }
 let lastSaveTime = 0;
 let rateLimitTimer: ReturnType<typeof setTimeout> | undefined;
+let persistedForSessionId: string | null = null;
+let persistedScreenshotIds = new Set<string>();
 async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = false): Promise<void> {
   // Rate limit: 3-second hard minimum between saves (debounced calls only)
   if (!bypassRateLimit) {
@@ -111,6 +113,12 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
 
   const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
   const activeId = useRegistryStore.getState().activeSessionId;
+  // Reset the persisted-screenshot cache when the active session changes, so a
+  // stale flush for a previous session never suppresses persistence for the new one.
+  if (activeId !== persistedForSessionId) {
+    persistedForSessionId = activeId;
+    persistedScreenshotIds = new Set();
+  }
   // Guard: skip if session switched between schedule and flush to prevent
   // a stale debounced save from overwriting the new session's data.
   if (scheduledId && activeId !== scheduledId) {
@@ -120,8 +128,9 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
   if (s && activeId) {
     // Persist screenshots to separate IDB store, then strip from session data
     for (const cap of c) {
-      if (cap.screenshotBase64) {
+      if (cap.screenshotBase64 && !persistedScreenshotIds.has(cap.id)) {
         await saveScreenshot(cap);
+        persistedScreenshotIds.add(cap.id);
       }
     }
     const strippedCaptures = stripScreenshots(c);
@@ -169,9 +178,13 @@ export function initAutoSave(): void {
   // Flush on panel close / tab switch (single listener)
   autoSaveVisibilityHandler = () => {
     if (document.visibilityState === "hidden") {
-      // Cancel pending debounce — we're flushing now
+      // Cancel pending debounce + rate-limit timer — we're flushing now
       if (autoSaveTimerRef !== undefined) clearTimeout(autoSaveTimerRef);
       autoSaveTimerRef = undefined;
+      if (rateLimitTimer !== undefined) {
+        clearTimeout(rateLimitTimer);
+        rateLimitTimer = undefined;
+      }
       autoSaveFlush(autoSaveScheduledSessionId, true);
     }
   };
@@ -201,6 +214,8 @@ export function teardownAutoSave(): void {
   autoSaveScheduledSessionId = null;
   lastSaveSignature = null;
   lastSaveTime = 0;
+  persistedForSessionId = null;
+  persistedScreenshotIds = new Set();
 }
 
 /** Save all captures' screenshots to the separate screenshot IDB store. */

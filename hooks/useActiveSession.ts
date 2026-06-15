@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import * as lifecycle from "@/lib/session-lifecycle";
-import { getRepository } from "@/lib/session-repository";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
 import { toastError } from "@/stores/toast";
@@ -32,20 +31,15 @@ export function useActiveSession() {
           useSessionStore.setState({ status: "empty" });
         });
     } else if (!activeSessionId && (data.status === "active" || data.status === "loading")) {
-      const {
-        session: curSession,
-        captures: curCaptures,
-        evaluations: curEvaluations,
-        finalization: curFinalization,
-      } = useSessionStore.getState();
-      if (curSession) {
-        getRepository()
-          .save(curSession.id, {
-            metadata: curSession,
-            captures: curCaptures,
-            evaluations: curEvaluations,
-            finalization: curFinalization,
-          })
+      const { session } = useSessionStore.getState();
+      if (session) {
+        // Route through saveCurrentSession so screenshots are persisted to the
+        // separate screenshot store and stripped from the session record —
+        // matching autoSaveFlush and the explicit save paths. Saving raw captures
+        // here left screenshots only in the session record, so export (which reads
+        // the screenshot store) missed them.
+        lifecycle
+          .saveCurrentSession()
           .catch((err) => {
             console.error("Failed to save session before clearing:", err);
           })
