@@ -346,7 +346,7 @@ describe("importSessionFromZipFile error handling", () => {
     // Mock saveScreenshot to succeed
     const saveScreenshotSpy = vi
       .spyOn(await import("@/lib/screenshot-store"), "saveScreenshot")
-      .mockResolvedValue(undefined);
+      .mockResolvedValue(true);
 
     // Spy on deleteScreenshotsForCaptures
     const cleanupSpy = vi

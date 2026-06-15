@@ -14,7 +14,7 @@ import { useSessionStore } from "@/stores/session";
 // useActiveSession now routes through saveCurrentSession, which must persist each
 // capture's screenshot to the separate screenshot store (the store export/UI read
 // from) and save the session record with screenshots stripped.
-const { saveScreenshot } = vi.hoisted(() => ({ saveScreenshot: vi.fn() }));
+const { saveScreenshot } = vi.hoisted(() => ({ saveScreenshot: vi.fn().mockResolvedValue(true) }));
 vi.mock("@/lib/screenshot-store", () => ({
   saveScreenshot: (...args: unknown[]) => saveScreenshot(...(args as [Capture])),
   deleteScreenshotsForCaptures: vi.fn().mockResolvedValue(undefined),

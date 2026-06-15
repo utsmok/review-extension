@@ -129,8 +129,9 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
     // Persist screenshots to separate IDB store, then strip from session data
     for (const cap of c) {
       if (cap.screenshotBase64 && !persistedScreenshotIds.has(cap.id)) {
-        await saveScreenshot(cap);
-        persistedScreenshotIds.add(cap.id);
+        if (await saveScreenshot(cap)) {
+          persistedScreenshotIds.add(cap.id);
+        }
       }
     }
     const strippedCaptures = stripScreenshots(c);

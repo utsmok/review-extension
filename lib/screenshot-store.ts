@@ -20,8 +20,8 @@ const getDB = openIDBStore(DB_NAME, STORE_NAME, DB_VERSION, (db) => {
   }
 });
 
-/** Persist a capture's screenshot (and optional annotation) to the separate IDB store. Silently fails if IDB is unavailable. */
-export async function saveScreenshot(capture: Capture): Promise<void> {
+/** Persist a capture's screenshot (and optional annotation) to the separate IDB store. Returns false (without throwing) if IDB is unavailable or the write fails (e.g. quota). */
+export async function saveScreenshot(capture: Capture): Promise<boolean> {
   try {
     const db = await getDB();
     const blob: ScreenshotBlob = {
@@ -37,8 +37,10 @@ export async function saveScreenshot(capture: Capture): Promise<void> {
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
     await promise;
+    return true;
   } catch {
-    // IDB unavailable (e.g. jsdom test environment) — screenshots stay in-memory only
+    // IDB unavailable (e.g. jsdom test environment), or write rejected (e.g. quota) — screenshots stay in-memory only
+    return false;
   }
 }
 
