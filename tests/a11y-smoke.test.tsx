@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AllProviders, seedActiveSession } from "@/tests/helpers/render-utils";
 
@@ -112,6 +112,26 @@ describe("Accessibility smoke tests", () => {
         expect(btn?.tagName).toBe("BUTTON");
         expect(btn?.getAttribute("type")).toBe("button");
       }
+    });
+    it("moves selection and focus with arrow/Home/End keys", () => {
+      const onChange = vi.fn();
+      render(<GradeSelector grade="" onGradeChange={onChange} />);
+      const group = screen.getByRole("radiogroup");
+      const radios = screen.getAllByRole("radio");
+
+      // First radio is the roving tab stop when nothing is selected.
+      expect(radios[0].tabIndex).toBe(0);
+
+      // ArrowRight advances selection to the next grade and moves focus to it.
+      fireEvent.keyDown(group, { key: "ArrowRight" });
+      expect(onChange).toHaveBeenLastCalledWith("conditional");
+      expect(document.activeElement).toBe(radios[1]);
+
+      // Home selects the first grade, End the last.
+      fireEvent.keyDown(group, { key: "Home" });
+      expect(onChange).toHaveBeenLastCalledWith("pass");
+      fireEvent.keyDown(group, { key: "End" });
+      expect(onChange).toHaveBeenLastCalledWith("fail");
     });
   });
 
