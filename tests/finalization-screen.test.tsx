@@ -71,7 +71,7 @@ describe("FinalizationScreen", () => {
     seedActiveSession();
     renderFinalization();
 
-    const buttons = screen.getAllByRole("button");
+    const buttons = screen.getAllByRole("radio");
     const gradeButtons = buttons.filter((b) =>
       ["Pass", "Conditional", "Fail"].some((label) => b.textContent?.startsWith(label)),
     );
@@ -82,7 +82,7 @@ describe("FinalizationScreen", () => {
     seedActiveSession();
     renderFinalization();
 
-    const passBtn = screen.getAllByRole("button").find((b) => b.textContent?.startsWith("Pass"));
+    const passBtn = screen.getAllByRole("radio").find((b) => b.textContent?.startsWith("Pass"));
     expect(passBtn).toBeDefined();
     fireEvent.click(passBtn!);
 
@@ -105,7 +105,7 @@ describe("FinalizationScreen", () => {
     renderFinalization();
 
     // Select a grade
-    const passBtn = screen.getAllByRole("button").find((b) => b.textContent?.startsWith("Pass"));
+    const passBtn = screen.getAllByRole("radio").find((b) => b.textContent?.startsWith("Pass"));
     fireEvent.click(passBtn!);
 
     // Click Lock & Finalize
@@ -128,7 +128,7 @@ describe("FinalizationScreen", () => {
     renderFinalization();
 
     // Select grade and save
-    const passBtn = screen.getAllByRole("button").find((b) => b.textContent?.startsWith("Pass"));
+    const passBtn = screen.getAllByRole("radio").find((b) => b.textContent?.startsWith("Pass"));
     fireEvent.click(passBtn!);
 
     const finalizeBtn = screen
@@ -145,7 +145,7 @@ describe("FinalizationScreen", () => {
 
     // Grade buttons should no longer have is-selected
     const passBtnAfter = screen
-      .getAllByRole("button")
+      .getAllByRole("radio")
       .find((b) => b.textContent?.startsWith("Pass"));
     expect(passBtnAfter!.className).not.toContain("is-selected");
 

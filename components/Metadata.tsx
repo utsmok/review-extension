@@ -281,13 +281,17 @@ export default function Metadata() {
         </label>
 
         <div className="flex flex-col gap-1">
-          <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          <span
+            id="meta-logo-label"
+            className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy"
+          >
             Logo
           </span>
           <div className="flex items-center gap-ut-2">
             <input
               type="url"
               className="meta-input meta-url-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue flex-1 min-w-0 overflow-hidden text-ellipsis"
+              aria-labelledby="meta-logo-label"
               maxLength={MAX_URL_LENGTH}
               placeholder="e.g. https://example.com/logo.png"
               value={session.toolLogoUrl ?? ""}
@@ -341,7 +345,12 @@ export default function Metadata() {
                   <p className="text-ut-xs text-ut-muted">No logo captured yet.</p>
                 )}
                 <div className="meta-capture-actions">
-                  <button type="button" disabled={logoCapturing} onClick={handleCaptureLogo}>
+                  <button
+                    type="button"
+                    disabled={logoCapturing}
+                    onClick={handleCaptureLogo}
+                    aria-label="Capture page for logo"
+                  >
                     Capture Page
                   </button>
                 </div>
@@ -377,11 +386,15 @@ export default function Metadata() {
         </label>
 
         <div className="flex flex-col gap-1">
-          <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          <span
+            id="meta-tc-label"
+            className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy"
+          >
             Terms &amp; Conditions
           </span>
           <input
             type="url"
+            aria-labelledby="meta-tc-label"
             className="meta-input meta-url-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
             maxLength={MAX_URL_LENGTH}
             placeholder="e.g. https://example.com/terms"
@@ -424,7 +437,12 @@ export default function Metadata() {
                   </div>
                 )}
                 <div className="meta-capture-actions">
-                  <button type="button" disabled={tcCapturing} onClick={handleCaptureTc}>
+                  <button
+                    type="button"
+                    disabled={tcCapturing}
+                    onClick={handleCaptureTc}
+                    aria-label="Capture page for terms and conditions"
+                  >
                     Capture Page
                   </button>
                 </div>

@@ -60,6 +60,7 @@ export default function EvidenceThumbnails({
               <button
                 type="button"
                 className="btn-remove"
+                aria-label="Remove evidence"
                 title="Remove"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -74,6 +75,7 @@ export default function EvidenceThumbnails({
               <button
                 type="button"
                 className="btn-view"
+                aria-label="View and annotate evidence"
                 title="View & annotate"
                 onClick={(e) => {
                   e.stopPropagation();

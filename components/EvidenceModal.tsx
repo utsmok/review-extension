@@ -8,6 +8,7 @@ import { useTldrawEditor } from "@/hooks/useTldrawEditor";
 import { getAccentKey, getCategoryLabel, getLinkedRubricIdsForCapture } from "@/lib/rubric";
 import type { Capture } from "@/lib/types";
 import RubricChipGroup from "./RubricChipGroup";
+import { IconClose } from "./svgs/ToolbarIcons";
 import TldrawCanvas from "./TldrawCanvas";
 
 const LazyActionBar = lazy(() =>
@@ -98,6 +99,14 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
+        <button
+          type="button"
+          className="absolute top-ut-2 right-ut-2 z-10 rounded-ut-sm p-ut-1 text-ut-muted hover:text-ut-navy hover:bg-ut-grey"
+          aria-label="Close evidence viewer"
+          onClick={animateClose}
+        >
+          <IconClose />
+        </button>
         {/* Action bar — Save / Clear / Zoom */}
         {editor && (
           <LazyActionBar
@@ -189,7 +198,7 @@ export default function EvidenceModal({ capture, onClose }: EvidenceModalProps) 
           {capture.pageTitle && (
             <p className="text-ut-xs font-bold text-ut-text mb-ut-1">{capture.pageTitle}</p>
           )}
-          <p className="text-ut-xs font-mono text-ut-muted mb-ut-1 break-all">
+          <p className="text-ut-xs font-mono text-ut-muted mb-ut-1 break-words">
             {capture.sourceUrl}
           </p>
           <p className="text-ut-xs text-ut-slate mb-ut-2">

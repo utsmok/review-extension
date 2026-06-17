@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useAutoFocus, useFocusTrap } from "@/hooks/useFocus";
 import { PRINCIPLES } from "@/lib/principles";
 import type { ComparisonEntry } from "@/lib/types";
 
@@ -9,6 +10,8 @@ interface CompareModalProps {
 
 export default function CompareModal({ entries, onClose }: CompareModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(panelRef);
+  useAutoFocus(panelRef);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -78,7 +81,7 @@ export default function CompareModal({ entries, onClose }: CompareModalProps) {
               <td className="p-1.5 text-ut-muted">Verdict</td>
               {entries.map((e) => (
                 <td key={e.id} className="p-1.5 text-ut-text">
-                  {e.conclusion || "\u2014"}
+                  {e.conclusion || "—"}
                 </td>
               ))}
             </tr>
@@ -93,7 +96,7 @@ export default function CompareModal({ entries, onClose }: CompareModalProps) {
                     key={e.id}
                     className={`p-1.5 text-ut-text ${isBest ? "font-bold underline" : ""}`}
                   >
-                    {e.total[1] > 0 ? `${e.total[0]}/${e.total[1]}` : "\u2014"}
+                    {e.total[1] > 0 ? `${e.total[0]}/${e.total[1]}` : "—"}
                   </td>
                 );
               })}
@@ -118,7 +121,7 @@ export default function CompareModal({ entries, onClose }: CompareModalProps) {
                       className={`p-1.5 text-ut-text ${isBest ? "font-bold underline" : ""}`}
                       data-testid={`cell-${e.toolName}-${p.id}`}
                     >
-                      {val !== null ? val.toFixed(1) : "\u2014"}
+                      {val !== null ? val.toFixed(1) : "—"}
                     </td>
                   );
                 })}
@@ -137,7 +140,7 @@ export default function CompareModal({ entries, onClose }: CompareModalProps) {
                       ))}
                     </ul>
                   ) : (
-                    "\u2014"
+                    "—"
                   )}
                 </td>
               ))}
@@ -155,7 +158,7 @@ export default function CompareModal({ entries, onClose }: CompareModalProps) {
                       ))}
                     </ul>
                   ) : (
-                    "\u2014"
+                    "—"
                   )}
                 </td>
               ))}
