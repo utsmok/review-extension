@@ -244,7 +244,7 @@ body {
   clip: rect(0, 0, 0, 0);
 }
 
-.judgment-label:focus-within {
+.judgment-label:focus-visible {
   outline: var(--focus-ring) solid 2px;
   outline-offset: 2px;
 }
@@ -264,6 +264,12 @@ body {
 }
 
 .judgment-label[data-judgment="na"][data-active="true"] {
+  background: var(--neutral-active-tint);
+  border: 2px solid var(--ut-slate);
+  color: var(--ut-muted);
+  font-weight: 700;
+}
+.judgment-label[data-judgment="unsure"][data-active="true"] {
   background: var(--neutral-active-tint);
   border: 2px solid var(--ut-slate);
   color: var(--ut-muted);
@@ -1373,13 +1379,12 @@ body {
   background: var(--ut-border);
   flex-shrink: 0;
 }
-
 /* Per-question badge */
 .score-overview-bar__badge {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  padding: 2px 4px;
+  min-height: 24px;
   font-family: var(--ff-mono);
   font-size: var(--text-badge);
   line-height: 1.2;
@@ -1450,7 +1455,7 @@ body {
   background: var(--neutral-active-tint);
 }
 .score-overview-bar__badge[data-score="unsure"].is-complete {
-  border-color: var(--ut-slate);
+  border: 1px dashed var(--ut-slate);
   background: var(--neutral-active-tint);
 }
 /* Badge code text — colored by section accent */
@@ -1463,23 +1468,23 @@ body {
 }
 
 .score-overview-bar__badge[data-accent="tr"] .score-overview-bar__code {
-  color: var(--section-tr-accent);
+  color: var(--section-tr-accent-strong);
 }
 
 .score-overview-bar__badge[data-accent="re"] .score-overview-bar__code {
-  color: var(--section-re-accent);
+  color: var(--section-re-accent-strong);
 }
 
 .score-overview-bar__badge[data-accent="uc"] .score-overview-bar__code {
-  color: var(--section-uc-accent);
+  color: var(--section-uc-accent-strong);
 }
 
 .score-overview-bar__badge[data-accent="se"] .score-overview-bar__code {
-  color: var(--section-se-accent);
+  color: var(--section-se-accent-strong);
 }
 
 .score-overview-bar__badge[data-accent="tc"] .score-overview-bar__code {
-  color: var(--section-tc-accent);
+  color: var(--section-tc-accent-strong);
 }
 
 /* Badge state indicator */
@@ -2377,7 +2382,7 @@ body {
 .tab-empty-state__title {
   font-family: var(--ff-heading);
   font-size: var(--text-sm);
-  font-weight: var(--weight-bold);
+  text-transform: uppercase;
   color: var(--ut-text);
   margin-bottom: var(--space-1);
 }
