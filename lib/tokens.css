@@ -19,7 +19,7 @@
   --ut-offwhite: color-mix(in srgb, var(--ut-navy) 3%, var(--ut-white));
   --ut-border: #bfc6cf;
   --ut-text: #172033;
-  --ut-muted: #4f5e73; /* DESIGN.md says #576578; intentionally darker for WCAG AAA contrast (~7:1 on white) */
+  --ut-muted: #4f5e73; /* intentionally darker for WCAG AAA contrast (~7:1 on white) */
   --ut-slate: #4c5e74; /* WCAG AAA: ~6.5:1 against white. Was #5f7088 (5.05:1). R=76,G=94,B=116 */
 
   --ut-panel-bg: var(--ut-offwhite);

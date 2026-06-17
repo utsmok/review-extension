@@ -70,7 +70,7 @@ export class ErrorBoundary extends Component<Props, State> {
             Unexpected Error
           </h2>
           <p className="text-ut-sm text-ut-muted mb-ut-4">
-            An error occurred while loading the review. Reload to continue.
+            An unexpected error occurred. Reload to continue.
           </p>
           <button
             type="button"

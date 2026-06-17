@@ -322,7 +322,7 @@ export default function SessionManager() {
       {/* Delete confirmation */}
       {deleteTargetId && deleteTargetMeta && (
         <ConfirmDialog
-          message={`Permanently delete the review of "${deleteTargetMeta.toolName}"? All scores, evidence captures, and notes will be lost.`}
+          message={`Permanently delete the review of “${deleteTargetMeta.toolName}”? All scores, evidence captures, and notes will be lost.`}
           actions={[
             { label: "Cancel", handler: () => setDeleteTargetId(null), variant: "cancel" },
             { label: "Delete", handler: confirmDelete, variant: "danger" },

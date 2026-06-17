@@ -783,6 +783,7 @@ body {
 }
 
 .modal-panel {
+  position: relative;
   background: var(--ut-white);
 
   border-radius: var(--radius-md);
@@ -1385,6 +1386,7 @@ body {
   align-items: center;
   gap: 2px;
   min-height: 24px;
+  padding: 2px 4px;
   font-family: var(--ff-mono);
   font-size: var(--text-badge);
   line-height: 1.2;
@@ -2382,6 +2384,7 @@ body {
 .tab-empty-state__title {
   font-family: var(--ff-heading);
   font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   color: var(--ut-text);
   margin-bottom: var(--space-1);
