@@ -101,11 +101,17 @@ export default function GradeSelector({ grade, onGradeChange }: GradeSelectorPro
         next = (idx + 1) % grades.length;
       } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         next = (idx - 1 + grades.length) % grades.length;
+      } else if (e.key === "Home") {
+        next = 0;
+      } else if (e.key === "End") {
+        next = grades.length - 1;
       } else {
         return;
       }
       e.preventDefault();
       onGradeChange(grades[next].value);
+      const radios = e.currentTarget.querySelectorAll('[role="radio"]');
+      (radios[next] as HTMLElement | undefined)?.focus();
     },
     [grade, grades, onGradeChange],
   );
