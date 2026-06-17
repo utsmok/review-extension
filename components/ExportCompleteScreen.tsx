@@ -191,7 +191,7 @@ export default function ExportCompleteScreen({
             className="w-full bg-trust-magenta text-white rounded-ut-sm px-ut-4 py-ut-3 text-ut-sm font-heading font-bold uppercase tracking-ut-uppercase hover:bg-trust-magenta-strong transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={onRetry}
           >
-            {loading ? "Retrying\u2026" : "Retry Export"}
+            {loading ? "Retrying…" : "Retry Export"}
           </button>
         )}
         <button
