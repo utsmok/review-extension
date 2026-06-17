@@ -67,10 +67,10 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="flex flex-col items-center justify-center h-full p-ut-4 text-center">
           <h2 className="font-heading text-ut-body font-bold uppercase tracking-ut-heading text-trust-magenta mb-ut-2">
-            Something went wrong
+            Unexpected Error
           </h2>
           <p className="text-ut-sm text-ut-muted mb-ut-4">
-            Something went wrong. Please try refreshing the page.
+            An error occurred while loading the review. Reload to continue.
           </p>
           <button
             type="button"

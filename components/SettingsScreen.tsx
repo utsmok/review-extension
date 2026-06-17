@@ -45,7 +45,9 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
           </p>
           <div className="space-y-ut-2">
             <label className="flex flex-col gap-0.5">
-              <span className="text-ut-xs text-ut-muted">Name</span>
+              <span className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+                Name
+              </span>
               <input
                 className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-xs text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
                 value={settings.reviewerName}
@@ -54,7 +56,9 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
               />
             </label>
             <label className="flex flex-col gap-0.5">
-              <span className="text-ut-xs text-ut-muted">Email</span>
+              <span className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+                Email
+              </span>
               <input
                 type="email"
                 className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-xs text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
@@ -87,7 +91,7 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
                 }
               />
               <div>
-                <span className="text-ut-xs font-semibold text-ut-navy block">
+                <span className="text-ut-xs font-heading font-bold text-ut-navy block">
                   Enhanced Recommendation
                 </span>
                 <span className="text-ut-xs text-ut-muted block leading-relaxed">

@@ -16,14 +16,14 @@ export default function ExportActions({
   return (
     <>
       {/* Actions */}
-      <div className="border-t-2 border-ut-border pt-ut-3 mt-1 flex items-center gap-ut-2">
+      <div className="border-t-2 border-ut-border pt-ut-3 mt-ut-1 flex items-center gap-ut-2">
         <button
           type="button"
           className="flex-1 rounded-ut-sm px-ut-4 py-ut-4 text-ut-body font-heading font-bold uppercase tracking-ut-uppercase disabled:opacity-50 bg-trust-magenta text-white hover:bg-trust-magenta-strong transition-colors"
           disabled={!canFinalize}
           onClick={onFinalize}
         >
-          {saved ? "Re-finalize Review" : "Lock \u0026 Finalize Review"}
+          {saved ? "Re-finalize Review" : "Lock & Finalize Review"}
         </button>
         {saved && (
           <span className="flex items-center gap-1 text-ut-green text-ut-xs font-heading font-bold uppercase tracking-ut-label shrink-0">
@@ -47,7 +47,7 @@ export default function ExportActions({
       {showClear && (
         <button
           type="button"
-          className="w-full rounded-ut-sm px-ut-4 py-2 text-ut-sm transition-colors font-heading font-bold uppercase tracking-ut-uppercase text-ut-slate hover:text-ut-red"
+          className="w-full rounded-ut-sm px-ut-4 py-ut-2 text-ut-sm transition-colors font-heading font-bold uppercase tracking-ut-uppercase text-ut-slate hover:text-ut-red"
           onClick={onClear}
         >
           Clear Finalization

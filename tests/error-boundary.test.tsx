@@ -44,9 +44,11 @@ describe("ErrorBoundary", () => {
       </ErrorBoundary>,
     );
 
-    expect(screen.getByText("Something went wrong")).toBeDefined();
+    expect(screen.getByText("Unexpected Error")).toBeDefined();
     // Generic message is shown in the DOM
-    expect(screen.getByText("Something went wrong. Please try refreshing the page.")).toBeDefined();
+    expect(
+      screen.getByText("An error occurred while loading the review. Reload to continue."),
+    ).toBeDefined();
     // The raw error message should NOT be in the DOM (only logged to console)
     expect(screen.queryByText("test explosion")).toBeNull();
     // No GoodChild was rendered in this tree
@@ -76,7 +78,9 @@ describe("ErrorBoundary", () => {
       </ErrorBoundary>,
     );
     // Generic message shown, raw error NOT in DOM
-    expect(screen.getByText("Something went wrong. Please try refreshing the page.")).toBeDefined();
+    expect(
+      screen.getByText("An error occurred while loading the review. Reload to continue."),
+    ).toBeDefined();
     expect(screen.queryByText("first error")).toBeNull();
     unmount1();
 
@@ -87,8 +91,10 @@ describe("ErrorBoundary", () => {
       </ErrorBoundary>,
     );
     // Generic message shown for second error too
-    expect(screen.getByText("Something went wrong. Please try refreshing the page.")).toBeDefined();
+    expect(
+      screen.getByText("An error occurred while loading the review. Reload to continue."),
+    ).toBeDefined();
     expect(screen.queryByText("second error")).toBeNull();
-    expect(screen.getByText("Something went wrong")).toBeDefined();
+    expect(screen.getByText("Unexpected Error")).toBeDefined();
   });
 });

@@ -102,7 +102,9 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <h2 className="font-display text-ut-lg font-bold text-ut-navy mb-ut-3">New Review</h2>
+        <h2 className="text-ut-sub font-heading font-bold uppercase tracking-ut-uppercase text-ut-navy mb-ut-3">
+          New Review
+        </h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-ut-3">
           <label className="flex flex-col gap-1">
@@ -133,6 +135,7 @@ export default function NewSessionModal({ onClose }: NewSessionModalProps) {
               required
               aria-required="true"
             />
+            <p className="inline-hint">Auto-filled from your current browser tab.</p>
           </label>
 
           <label
