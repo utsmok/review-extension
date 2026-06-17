@@ -23,7 +23,7 @@
   --ut-offwhite: color-mix(in srgb, var(--ut-navy) 3%, var(--ut-white));
   --ut-border: #bfc6cf;
   --ut-text: #172033;
-  --ut-muted: #4f5e73; /* WCAG AAA on white (~7:1) */
+  --ut-muted: #4f5e73; /* WCAG AA on white (~6.4:1) */
   --ut-slate: #4c5e74;
   --ut-panel-bg: var(--ut-offwhite);
   --ut-white: #fafbfc;
@@ -57,6 +57,17 @@
   --score-1-tint: color-mix(in srgb, var(--score-1) 14%, var(--ut-white));
   --score-2-tint: color-mix(in srgb, var(--score-2) 14%, var(--ut-white));
   --score-3-tint: color-mix(in srgb, var(--score-3) 14%, var(--ut-white));
+
+  /* Darkened text variants — AA-compliant on white/tints. Base colors stay for decorative borders/fills. */
+  --tr-strong: color-mix(in srgb, var(--tr) 85%, #000);
+  --re-strong: color-mix(in srgb, var(--re) 75%, #000);
+  --uc-strong: color-mix(in srgb, var(--uc) 85%, #000);
+  --se-strong: color-mix(in srgb, var(--se) 77%, #000);
+  --tc-strong: color-mix(in srgb, var(--tc) 80%, #000);
+  --score-1-strong: color-mix(in srgb, var(--score-1) 90%, #000);
+  --score-2-strong: color-mix(in srgb, var(--score-2) 90%, #000);
+  --score-3-strong: color-mix(in srgb, var(--score-3) 88%, #000);
+  --ut-green-strong: var(--score-3-strong);
 
   /* Radius — regimented functionalism: 0–2px (pills the only exception) */
   --radius-lg: 0px;
@@ -625,17 +636,17 @@ code {
   color: var(--ut-slate);
 }
 .score-pill[data-score="3"] {
-  color: var(--score-3);
+  color: var(--score-3-strong);
   background: var(--score-3-tint);
   border-color: color-mix(in srgb, var(--score-3) 32%, var(--ut-border));
 }
 .score-pill[data-score="2"] {
-  color: var(--score-2);
+  color: var(--score-2-strong);
   background: var(--score-2-tint);
   border-color: color-mix(in srgb, var(--score-2) 32%, var(--ut-border));
 }
 .score-pill[data-score="1"] {
-  color: var(--score-1);
+  color: var(--score-1-strong);
   background: var(--score-1-tint);
   border-color: color-mix(in srgb, var(--score-1) 32%, var(--ut-border));
 }
@@ -658,12 +669,12 @@ code {
   white-space: nowrap;
 }
 .verdict-recommended {
-  color: var(--ut-green);
+  color: var(--ut-green-strong);
   background: color-mix(in srgb, var(--ut-green) 12%, var(--ut-white));
   border-color: color-mix(in srgb, var(--ut-green) 32%, var(--ut-border));
 }
 .verdict-provisional {
-  color: var(--score-1);
+  color: var(--score-1-strong);
   background: var(--score-1-tint);
   border-color: color-mix(in srgb, var(--score-1) 32%, var(--ut-border));
 }
@@ -682,12 +693,12 @@ code {
   color: var(--ut-muted);
 }
 .status-badge.done {
-  color: var(--ut-green);
+  color: var(--ut-green-strong);
   background: color-mix(in srgb, var(--ut-green) 12%, var(--ut-white));
   border-color: color-mix(in srgb, var(--ut-green) 32%, var(--ut-border));
 }
 .status-badge.in-progress {
-  color: var(--score-1);
+  color: var(--score-1-strong);
   background: var(--score-1-tint);
 }
 .status-badge.nominated {
@@ -1026,23 +1037,23 @@ code {
 }
 /* Principle-color label inside the compare table (data-code driven, no inline style) */
 .compare-table td[data-code="tr"] {
-  color: var(--tr);
+  color: var(--tr-strong);
   font-weight: 700;
 }
 .compare-table td[data-code="re"] {
-  color: var(--re);
+  color: var(--re-strong);
   font-weight: 700;
 }
 .compare-table td[data-code="uc"] {
-  color: var(--uc);
+  color: var(--uc-strong);
   font-weight: 700;
 }
 .compare-table td[data-code="se"] {
-  color: var(--se);
+  color: var(--se-strong);
   font-weight: 700;
 }
 .compare-table td[data-code="tc"] {
-  color: var(--tc);
+  color: var(--tc-strong);
   font-weight: 700;
 }
 .compare-table .cell-prose {
