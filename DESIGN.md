@@ -21,11 +21,11 @@ colors:
   neutral-canvas: "#eef0f3"
   neutral-panel: "#f3f4f6"
   neutral-text: "#172033"
-  neutral-muted: "#576578"
-  neutral-slate: "#8b9bb0"
+  neutral-muted: "#4f5e73"
+  neutral-slate: "#4c5e74"
   neutral-border: "#bfc6cf"
   score-fail: "#c60c30"
-  score-poor: "#ea580c"
+  score-poor: "#c2410c"
   score-fair: "#0e7490"
   score-good: "#4a8355"
 typography:
@@ -134,8 +134,8 @@ Each TRUST color generates a full family via `color-mix()`: accent (base), accen
 
 ### Neutral
 - **Deep Navy Text** (#172033): Body text color. Tinted toward navy, not pure black.
-- **Muted Steel** (#576578): Secondary text, descriptions, helper copy.
-- **Slate** (#8b9bb0): Tertiary text, disabled states, subtle labels.
+- **Muted Steel** (#4f5e73): Secondary text, descriptions, helper copy.
+- **Slate** (#4c5e74): Tertiary text, disabled states, subtle labels.
 - **Steel Border** (#bfc6cf): Structural borders and dividers.
 - **Canvas Grey** (#eef0f3): Page/canvas background.
 - **Panel Off-White** (#f3f4f6): Card and panel backgrounds.
@@ -143,7 +143,7 @@ Each TRUST color generates a full family via `color-mix()`: accent (base), accen
 
 ### Score Semantics
 - **Score 0 Fail** (#c60c30): Red. Bottom score, critical failure.
-- **Score 1 Poor** (#ea580c): Orange. Below expectations.
+- **Score 1 Poor** (#c2410c): Orange. Below expectations.
 - **Score 2 Fair** (#0e7490): Dark teal. Meets baseline.
 - **Score 3 Good** (#4a8355): Green. Exceeds expectations.
 
