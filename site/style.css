@@ -90,8 +90,8 @@
   --ff-heading:
     "Arial Narrow", "Roboto Condensed", "Open Sans Condensed", Arial, "Helvetica Neue", sans-serif;
   --ff-mono:
-    "JetBrains Mono", "Cascadia Code", "Fira Code", DejaVu Sans Mono, Menlo, Consolas,
-    ui-monospace, monospace;
+    "JetBrains Mono", "Cascadia Code", "Fira Code", DejaVu Sans Mono, Menlo, Consolas, ui-monospace,
+    monospace;
   --ff-display: "Nunito Sans", "Inter", "Segoe UI", system-ui, sans-serif;
 
   /* Motion */
@@ -238,7 +238,7 @@ a:hover {
     #000 calc(100% - 36px),
     transparent 100%
   );
-          mask-image: linear-gradient(
+  mask-image: linear-gradient(
     to right,
     transparent 0,
     #000 32px,
@@ -260,7 +260,8 @@ a:hover {
   text-transform: uppercase;
   letter-spacing: var(--ls-label);
   border: 1px solid transparent;
-  transition: color var(--duration-fast) var(--ease-out-quart),
+  transition:
+    color var(--duration-fast) var(--ease-out-quart),
     background var(--duration-fast) var(--ease-out-quart);
 }
 .tab-nav a:hover {
@@ -337,7 +338,8 @@ a:hover {
   border-radius: var(--radius-md);
   border: var(--border-default) solid transparent;
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-out-quart),
+  transition:
+    background var(--duration-fast) var(--ease-out-quart),
     border-color var(--duration-fast) var(--ease-out-quart),
     color var(--duration-fast) var(--ease-out-quart);
 }
@@ -455,11 +457,21 @@ a.pill:hover {
   color: var(--ut-muted);
   margin-top: var(--space-2);
 }
-.principle-card[data-principle="tr"] { --card-color: var(--tr); }
-.principle-card[data-principle="re"] { --card-color: var(--re); }
-.principle-card[data-principle="uc"] { --card-color: var(--uc); }
-.principle-card[data-principle="se"] { --card-color: var(--se); }
-.principle-card[data-principle="tc"] { --card-color: var(--tc); }
+.principle-card[data-principle="tr"] {
+  --card-color: var(--tr);
+}
+.principle-card[data-principle="re"] {
+  --card-color: var(--re);
+}
+.principle-card[data-principle="uc"] {
+  --card-color: var(--uc);
+}
+.principle-card[data-principle="se"] {
+  --card-color: var(--se);
+}
+.principle-card[data-principle="tc"] {
+  --card-color: var(--tc);
+}
 
 /* =====================================================================
    Authors
@@ -699,7 +711,8 @@ code {
   padding: var(--space-8);
   text-align: center;
   color: var(--ut-muted);
-  transition: border-color var(--duration-fast) var(--ease-out-quart),
+  transition:
+    border-color var(--duration-fast) var(--ease-out-quart),
     background var(--duration-fast) var(--ease-out-quart);
 }
 .upload-zone:hover,
@@ -836,7 +849,8 @@ code {
   border: 1px solid var(--ut-border);
   border-radius: var(--radius-md);
   padding: var(--space-4);
-  transition: border-color var(--duration-fast) var(--ease-out-quart),
+  transition:
+    border-color var(--duration-fast) var(--ease-out-quart),
     background var(--duration-fast) var(--ease-out-quart);
 }
 .link-card:hover {
@@ -1011,11 +1025,26 @@ code {
   font-size: 0.8rem;
 }
 /* Principle-color label inside the compare table (data-code driven, no inline style) */
-.compare-table td[data-code="tr"] { color: var(--tr); font-weight: 700; }
-.compare-table td[data-code="re"] { color: var(--re); font-weight: 700; }
-.compare-table td[data-code="uc"] { color: var(--uc); font-weight: 700; }
-.compare-table td[data-code="se"] { color: var(--se); font-weight: 700; }
-.compare-table td[data-code="tc"] { color: var(--tc); font-weight: 700; }
+.compare-table td[data-code="tr"] {
+  color: var(--tr);
+  font-weight: 700;
+}
+.compare-table td[data-code="re"] {
+  color: var(--re);
+  font-weight: 700;
+}
+.compare-table td[data-code="uc"] {
+  color: var(--uc);
+  font-weight: 700;
+}
+.compare-table td[data-code="se"] {
+  color: var(--se);
+  font-weight: 700;
+}
+.compare-table td[data-code="tc"] {
+  color: var(--tc);
+  font-weight: 700;
+}
 .compare-table .cell-prose {
   text-align: left;
   font-size: 0.8rem;
