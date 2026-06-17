@@ -118,6 +118,13 @@
   --state-warning-tint: color-mix(in srgb, var(--state-warning) 10%, var(--ut-white));
   --state-error: var(--ut-red);
   --state-error-tint: color-mix(in srgb, var(--state-error) 10%, var(--ut-white));
+  --state-error-border: color-mix(in srgb, var(--state-error) 30%, var(--ut-border));
+  --state-success-border: color-mix(in srgb, var(--state-success) 30%, var(--ut-border));
+  --state-warning-border: color-mix(in srgb, var(--state-warning) 30%, var(--ut-border));
+
+  /* Badge status tints (20% — session cards, fallback avatars) */
+  --badge-pass-tint: color-mix(in srgb, var(--ut-green) 20%, var(--ut-white));
+  --badge-magenta-tint: color-mix(in srgb, var(--trust-magenta) 20%, var(--ut-white));
 
   /* Type scale — fixed rem steps tuned for a dense evaluation instrument.
      Lower rungs (< --text-body) cluster tightly by design: this is a data-

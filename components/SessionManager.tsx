@@ -21,7 +21,7 @@ function FaviconOrFallback({ url, toolName }: { url?: string; toolName: string }
   const [failed, setFailed] = useState(false);
   if (!url || failed) {
     return (
-      <span className="inline-flex items-center justify-center shrink-0 w-4 h-4 rounded-full bg-[color-mix(in_srgb,var(--trust-magenta)_20%,var(--ut-white))] text-trust-magenta text-[9px] font-bold leading-none">
+      <span className="inline-flex items-center justify-center shrink-0 w-4 h-4 rounded-full bg-badge-magenta-tint text-trust-magenta text-[9px] font-bold leading-none">
         {toolName.charAt(0).toUpperCase()}
       </span>
     );
@@ -191,7 +191,7 @@ export default function SessionManager() {
           onClick={() => fileInputRef.current?.click()}
           disabled={importing}
         >
-          {importing ? "Importing\u2026" : "Import Review"}
+          {importing ? "Importing…" : "Import Review"}
         </button>
         {sessions.length > 1 && (
           <button
@@ -200,7 +200,7 @@ export default function SessionManager() {
             onClick={handleExportAll}
             disabled={exportingAll}
           >
-            {exportingAll ? "Exporting\u2026" : "Export All Reviews"}
+            {exportingAll ? "Exporting…" : "Export All Reviews"}
           </button>
         )}
         {sessions.length >= 2 && (
@@ -322,7 +322,7 @@ export default function SessionManager() {
       {/* Delete confirmation */}
       {deleteTargetId && deleteTargetMeta && (
         <ConfirmDialog
-          message={`Permanently delete the review of \u201C${deleteTargetMeta.toolName}\u201D? All scores, evidence captures, and notes will be lost.`}
+          message={`Permanently delete the review of "${deleteTargetMeta.toolName}"? All scores, evidence captures, and notes will be lost.`}
           actions={[
             { label: "Cancel", handler: () => setDeleteTargetId(null), variant: "cancel" },
             { label: "Delete", handler: confirmDelete, variant: "danger" },
@@ -429,14 +429,14 @@ function SessionCard({
           <span
             className={`text-ut-xs font-heading font-bold uppercase tracking-ut-label px-1.5 py-0.5 rounded ${
               isComplete
-                ? "bg-[color-mix(in_srgb,var(--ut-green)_20%,var(--ut-white))] text-ut-green"
-                : "bg-[color-mix(in_srgb,var(--trust-magenta)_20%,var(--ut-white))] text-trust-magenta-strong"
+                ? "bg-badge-pass-tint text-ut-green"
+                : "bg-badge-magenta-tint text-trust-magenta-strong"
             }`}
           >
             {isComplete ? "Complete" : "In Progress"}
           </span>
           {s.finalizedAt && (
-            <span className="text-ut-xs font-heading font-bold uppercase tracking-ut-label px-1.5 py-0.5 rounded bg-[color-mix(in_srgb,var(--trust-magenta)_20%,var(--ut-white))] text-trust-magenta">
+            <span className="text-ut-xs font-heading font-bold uppercase tracking-ut-label px-1.5 py-0.5 rounded bg-badge-magenta-tint text-trust-magenta">
               Finalized
             </span>
           )}
@@ -455,7 +455,7 @@ function SessionCard({
             </div>
             <p className="session-progress-text">
               {progress.scored}/{progress.total} questions scored
-              {progress.pct === 100 ? " \u2713" : ""}
+              {progress.pct === 100 ? " ✓" : ""}
             </p>
           </div>
         )}
