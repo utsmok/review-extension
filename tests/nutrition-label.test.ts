@@ -109,14 +109,25 @@ describe("buildNutritionLabel", () => {
     expect(html).toContain("CAUTION");
   });
 
-  it("contains Quality Gate Notes section when gates fail", async () => {
+  it("renders all quality gates as a 2x2 grid, flagged by result", async () => {
     const html = await buildNutritionLabel(makeMetadata(), failQGEvaluations(), RUBRIC);
-    expect(html).toContain("Quality Gate Notes");
+    // The grid is always shown; each gate is a result-flagged cell.
+    expect(html).toContain('class="nutrition-gate-grid"');
+    expect(html).toContain('class="nutrition-gate"');
+    // The failing gate is flagged and its label is rendered.
+    expect(html).toContain('data-result="fail"');
+    expect(html).toContain("Data privacy policy");
+    // The legacy callout/notes block is gone.
+    expect(html).not.toContain("Quality Gate Notes");
+    expect(html).not.toContain("gate-fail-callout");
   });
 
-  it("shows all-pass message when all gates pass", async () => {
+  it("marks every gate as pass when all quality gates pass", async () => {
     const html = await buildNutritionLabel(makeMetadata(), allHighScoringEvaluations(), RUBRIC);
-    expect(html).toContain("All quality gates passed");
+    expect(html).toContain('data-result="pass"');
+    expect(html).not.toContain('data-result="fail"');
+    // The legacy all-pass summary line is gone.
+    expect(html).not.toContain("All quality gates passed");
   });
 
   it("contains principle scores table with principle codes (TR, RE, US, SE, TC)", async () => {

@@ -505,21 +505,6 @@ img {
   padding: var(--rs-lg) 0;
   background: color-mix(in srgb, var(--verdict-color, transparent) 8%, var(--white));
 }
-/* Prominent (non-verdict-changing) warning when a quality gate has failed. */
-.gate-fail-callout {
-  background: color-mix(in srgb, var(--score-0) 8%, var(--white));
-  border: 1px solid color-mix(in srgb, var(--score-0) 35%, var(--white));
-  color: var(--text);
-  padding: var(--rs-xs) var(--rs-sm);
-  border-radius: 2px;
-  margin: var(--rs-xs) 0;
-  font-size: 0.85rem;
-  print-color-adjust: exact;
-  -webkit-print-color-adjust: exact;
-}
-.gate-fail-callout strong {
-  color: var(--score-0);
-}
 /* Spacer row so the nutrition Overall cell's score circles align with the principle columns. */
 .nutrition-overall-spacer {
   height: 1.15rem;
@@ -931,7 +916,7 @@ img {
   }
 }
 .qpop-ev {
-  max-width: min(760px, 96vw);
+  max-width: min(960px, 96vw);
 }
 .qpop-head {
   position: sticky;
@@ -1094,11 +1079,12 @@ img {
   background: var(--score-0-tint);
 }
 .evidence-item img {
-  width: 200px;
-  max-width: 40%;
+  width: 360px;
+  max-width: 55%;
+  max-height: 64vh;
   height: auto;
   flex-shrink: 0;
-  object-fit: cover;
+  object-fit: contain;
   border: 1px solid var(--border);
   border-radius: 2px;
 }
@@ -1113,6 +1099,12 @@ img {
 .evidence-meta strong {
   display: block;
   margin-bottom: var(--rs-2xs);
+}
+.evidence-meta p {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 .evidence-time {
   color: var(--muted);
@@ -1236,6 +1228,9 @@ img {
 #trust-lightbox {
   position: fixed;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
   z-index: 9999;
   display: none;
   background: color-mix(in srgb, var(--text) 85%, transparent);
@@ -1245,6 +1240,9 @@ img {
   cursor: zoom-out;
 }
 #trust-lightbox.open {
+  display: flex;
+}
+#trust-lightbox:popover-open {
   display: flex;
 }
 #trust-lightbox img {
@@ -1328,122 +1326,111 @@ h1.part-title {
 .nutrition-label {
   border: 3px solid var(--text);
   padding: 0;
-  margin-bottom: var(--rs-lg);
+  margin: 0 auto var(--rs-lg);
+  max-width: 620px;
   overflow: hidden;
 }
-.trust-branding {
-  text-align: center;
-  padding: var(--rs-lg) var(--rs-lg) var(--rs-sm);
-}
-.trust-branding img {
-  height: 28px;
-}
-.trust-branding-tagline {
-  font-family: var(--ff-heading);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--magenta);
-  margin-top: 4px;
-}
-.nutrition-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+
+/* ── Row 1: title (left) · description (centre) · tool lockup (right) ── */
+.nutrition-top {
   padding: var(--rs-md) var(--rs-lg) var(--rs-sm);
 }
-.nutrition-header-center {
+.nutrition-top-row {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  gap: var(--rs-sm);
+  flex-wrap: wrap;
 }
-.nutrition-header-line {
+.nutrition-top-id {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
 }
-.nutrition-header a {
-  color: inherit;
-  text-decoration: none;
+.nl-brand-logo {
+  height: 24px;
 }
-.nutrition-header a:hover {
-  text-decoration: underline;
+.nl-title {
+  font-family: var(--ff-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--magenta);
+}
+.nutrition-description {
+  max-width: 460px;
+  margin: var(--rs-xs) auto 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.4;
+  text-align: center;
+}
+.nutrition-tool-lockup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.nutrition-tool-id {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  min-width: 0;
 }
 .nutrition-tool-name {
   font-family: var(--ff-heading);
-  font-size: 1.3rem;
   font-weight: 700;
   color: var(--magenta);
   text-transform: uppercase;
   letter-spacing: var(--ls-heading);
 }
+.nutrition-tool-lockup .nutrition-tool-name {
+  font-size: 1rem;
+}
 .nutrition-tool-url {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--muted);
   overflow-wrap: anywhere;
 }
 .nutrition-tool-url a {
   color: var(--muted);
 }
-.nutrition-sep {
-  color: var(--muted);
-  font-size: 1rem;
-}
 .nutrition-tool-logo {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
   border-radius: 2px;
   flex-shrink: 0;
 }
-.nutrition-description {
-  font-size: 0.85rem;
-  color: var(--muted);
-  line-height: 1.45;
-  font-style: italic;
-  text-align: center;
-  max-width: 400px;
+.nutrition-top a {
+  color: inherit;
+  text-decoration: none;
 }
+.nutrition-top a:hover {
+  text-decoration: underline;
+}
+
+/* In-progress indicator — only for unfinished evaluations */
 .nutrition-status {
   font-size: 0.7rem;
   color: var(--slate);
   text-align: center;
-  margin-top: 2px;
+  padding: 0 var(--rs-lg) var(--rs-xs);
   font-style: italic;
 }
-.nutrition-score-number {
-  font-family: var(--ff-heading);
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--magenta);
-  margin-top: var(--rs-xs);
-  font-variant-numeric: tabular-nums;
-}
-.nutrition-score-unit {
-  font-family: var(--ff-body);
-  font-size: 0.5em;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: var(--ls-label);
-  margin-left: 0.3em;
-}
-.nutrition-divider {
-  height: 2px;
-  background: var(--text);
-  margin: 0;
-}
+
 .nutrition-divider-thin {
   height: 1px;
   background: var(--border);
   margin: 0;
 }
+
+/* ── Row 2: the verdict stamp, alone ── */
 .nutrition-verdict {
-  padding: var(--rs-xl) var(--rs-lg);
+  padding: var(--rs-lg) var(--rs-lg) var(--rs-md);
   text-align: center;
 }
 /* Verdict seal — the report's most authoritative output. Double-rule frame
@@ -1476,69 +1463,77 @@ h1.part-title {
 .nutrition-verdict-sub img {
   vertical-align: middle;
 }
-.nutrition-gates {
-  padding: var(--rs-sm) var(--rs-lg) var(--rs-xs);
+
+/* ── Row 3: all scores — quality gates (2×2) + subjects + overall ── */
+.nutrition-scores {
+  display: flex;
+  align-items: stretch;
+  gap: var(--rs-sm);
+  padding: var(--rs-xs) var(--rs-lg) var(--rs-sm);
 }
-.nutrition-gates-title {
+.nutrition-score-block {
+  min-width: 0;
+}
+.nutrition-score-block--gates {
+  flex: 0 0 152px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.nutrition-score-block--subjects {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+.nutrition-overall-label {
   font-family: var(--ff-heading);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text);
-  margin-bottom: 4px;
-}
-.nutrition-gate-item {
-  font-size: 0.8rem;
+  line-height: 1.25;
   color: var(--muted);
-  margin-bottom: 2px;
-  padding-left: 12px;
 }
-.nutrition-gate-item .fail {
-  color: var(--score-0);
-  font-weight: 700;
+.nutrition-gate-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
 }
-.nutrition-gate-item .unsure {
-  color: var(--score-unsure);
-  font-weight: 700;
-}
-/* Flagged gate chip rows — restyled with left accent border + inline badge. */
-.nutrition-gate-item[data-result] {
+.nutrition-gate {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  gap: var(--rs-sm);
-  padding: var(--rs-2xs) var(--rs-sm);
-  border: 1px solid color-mix(in srgb, var(--gc) 32%, var(--border));
-  border-left: 3px solid var(--gc);
+  gap: 2px;
+  padding: 4px 3px;
+  border: 1px solid color-mix(in srgb, var(--gc, var(--border)) 30%, var(--border));
+  border-left: 3px solid var(--gc, var(--border));
   border-radius: 2px;
-  background: color-mix(in srgb, var(--gc) 8%, var(--white));
-  margin-bottom: var(--rs-2xs);
+  background: color-mix(in srgb, var(--gc, var(--border)) 7%, var(--white));
+  text-align: center;
 }
-.nutrition-gate-item[data-result="fail"] {
+.nutrition-gate[data-result="pass"] {
+  --gc: var(--score-3);
+}
+.nutrition-gate[data-result="fail"] {
   --gc: var(--score-0);
 }
-.nutrition-gate-item[data-result="unsure"] {
+.nutrition-gate[data-result="unsure"] {
   --gc: var(--score-unsure);
 }
-.nutrition-gate-label {
-  font-size: 0.78rem;
-  color: var(--text);
+.nutrition-gate[data-result="na"],
+.nutrition-gate[data-result="none"] {
+  --gc: var(--muted);
 }
-.nutrition-gate-badge {
-  font-family: var(--ff-mono);
+.nutrition-gate-icon {
+  font-size: 0.95rem;
   font-weight: 700;
-  font-size: 0.62rem;
-  letter-spacing: var(--ls-label);
-  text-transform: uppercase;
-  color: var(--white);
-  background: var(--gc);
-  border-radius: 2px;
-  padding: 1px 6px;
+  line-height: 1;
+  color: var(--gc, var(--muted));
 }
-.nutrition-principles {
-  padding: var(--rs-xs) var(--rs-lg) var(--rs-sm);
-  overflow-x: auto;
+.nutrition-gate-name {
+  font-size: 0.58rem;
+  line-height: 1.18;
+  color: var(--text);
 }
 .nutrition-principles-table {
   width: 100%;
@@ -1558,11 +1553,13 @@ h1.part-title {
   line-height: 1.1;
 }
 .nutrition-principle-name {
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  line-height: 1.25;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .nutrition-overall-cell {
   text-align: center;
@@ -1570,15 +1567,8 @@ h1.part-title {
   padding-left: var(--rs-md);
   border-left: 2px solid var(--text);
 }
-.nutrition-overall-label {
-  font-family: var(--ff-heading);
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  line-height: 1.25;
-  color: var(--muted);
-  margin-bottom: 0;
+.nutrition-overall-spacer {
+  height: 1.15rem;
 }
 .circles {
   display: inline-flex;
@@ -1600,12 +1590,16 @@ h1.part-title {
 .circle.empty {
   color: var(--muted);
 }
-.nutrition-sw {
+
+/* ── Rows 4 & 5: conclusion/recommendation and strengths/weaknesses ── */
+.nutrition-sw,
+.nutrition-cr {
   display: flex;
   padding: var(--rs-sm) var(--rs-lg);
   gap: 0;
 }
-.nutrition-sw-col {
+.nutrition-sw-col,
+.nutrition-cr-col {
   flex: 1;
   min-width: 0;
 }
@@ -1628,6 +1622,12 @@ h1.part-title {
 .nutrition-sw-list li {
   margin-bottom: 2px;
 }
+.nutrition-cr-col p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
 .nutrition-sw-empty {
   color: var(--muted);
   font-size: 0.8rem;
@@ -1644,6 +1644,8 @@ h1.part-title {
   margin: 0 16px;
   flex-shrink: 0;
 }
+
+/* ── Row 6: footer (in its own cell) ── */
 .nutrition-footer {
   padding: var(--rs-xs) var(--rs-lg);
   display: flex;
@@ -1824,19 +1826,22 @@ h1.part-title {
   .nutrition-label {
     border-width: 2px;
   }
-  .trust-branding {
-    padding: 12px 12px 8px;
-  }
-  .trust-branding img {
-    height: 22px;
-  }
-  .nutrition-header {
-    padding: 12px;
+  .nutrition-top {
     flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px;
+  }
+  .nutrition-description {
+    max-width: none;
+    order: 3;
+  }
+  .nutrition-tool-lockup {
+    justify-content: center;
   }
   .nutrition-tool-logo {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
   }
   .nutrition-tool-name {
     font-size: 1.1rem;
@@ -1848,9 +1853,13 @@ h1.part-title {
     padding: 0.3em 0.6em;
   }
 
-  /* Principles table: stack on very narrow screens */
-  .nutrition-principles {
+  /* Scores stack: gates above subjects */
+  .nutrition-scores {
+    flex-direction: column;
     padding: 6px 12px 8px;
+  }
+  .nutrition-score-block--gates {
+    flex-basis: auto;
   }
   .nutrition-principles-table {
     table-layout: auto;
@@ -1870,8 +1879,9 @@ h1.part-title {
     padding-left: 8px;
   }
 
-  /* Strengths/weaknesses stack vertically */
-  .nutrition-sw {
+  /* Conclusion/rec + strengths/weaknesses stack vertically */
+  .nutrition-sw,
+  .nutrition-cr {
     flex-direction: column;
     padding: 8px 12px;
   }
@@ -1887,11 +1897,6 @@ h1.part-title {
     flex-direction: column;
     gap: 4px;
     text-align: center;
-  }
-
-  /* Nutrition gates & header padding */
-  .nutrition-gates {
-    padding: 3px 12px 6px;
   }
 
   /* Verdict block tighter */
@@ -1982,7 +1987,7 @@ h1.part-title {
   /* Black text for readability */
   .header-tool,
   .block-heading,
-  .trust-branding-tagline,
+  .nl-title,
   .nutrition-tool-name {
     color: var(--text);
   }
@@ -2056,9 +2061,8 @@ h1.part-title {
   }
   .nutrition-principles-table th,
   .nutrition-verdict-stamp,
-  .nutrition-score-number,
-  .nutrition-gate-item .fail,
-  .nutrition-gate-item .unsure {
+  .nutrition-gate,
+  .nutrition-gate-icon {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }

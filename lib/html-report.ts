@@ -2,7 +2,12 @@ import { PRINCIPLES } from "./principles";
 import type { ReportScores } from "./report/compute-scores";
 import type { CaptureInfo, PrincipleScoreRow, QualityGateRow } from "./report-model";
 import { buildReportModel } from "./report-model";
-import { principleAverage, qualityGateResults, reportScoreColor } from "./rubric";
+import {
+  getVisibleRubricQuestionIds,
+  principleAverage,
+  qualityGateResults,
+  reportScoreColor,
+} from "./rubric";
 import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
 
 // Cached dynamic import for logos (used by buildHtmlReport and buildNutritionLabel)
@@ -448,6 +453,30 @@ function buildNutritionLabelHtml(
   const weaknessesHtml = finalization?.weaknesses?.length
     ? finalization.weaknesses.map((w) => `<li>${esc(w)}</li>`).join("")
     : "";
+
+  const visibleIds = new Set(getVisibleRubricQuestionIds(rubric, metadata.usesAi ?? true));
+  const gates = qualityGateResults(evaluations, rubric, evalMap).filter((g) =>
+    visibleIds.has(g.id),
+  );
+  const gateGrid =
+    gates.length > 0
+      ? `<div class="nutrition-gate-grid">${gates
+          .map((g) => {
+            const icon =
+              g.result === "pass"
+                ? "\u2713"
+                : g.result === "fail"
+                  ? "\u2715"
+                  : g.result === "unsure"
+                    ? "?"
+                    : g.result === "na"
+                      ? "\u2013"
+                      : "\u25CB";
+            return `<div class="nutrition-gate" data-result="${g.result ?? "none"}" title="${esc(g.label)}"><span class="nutrition-gate-icon" aria-hidden="true">${icon}</span><span class="nutrition-gate-name">${esc(g.label)}</span></div>`;
+          })
+          .join("")}</div>`
+      : "";
+
   const swRow =
     strengthsHtml || weaknessesHtml
       ? `<div class="nutrition-divider-thin"></div>
@@ -478,35 +507,50 @@ function buildNutritionLabelHtml(
 </div>`
       : "";
 
-  const failedGates = qualityGateResults(evaluations, rubric, evalMap).filter(
-    (g) => g.result === "fail",
-  );
-  const gateFailCallout = failedGates.length
-    ? `<div class="gate-fail-callout"><strong>\u26a0\ufe0f Quality gate failed:</strong> ${failedGates.map((g) => esc(g.label)).join(", ")}</div>`
-    : "";
+  // Conclusion + recommendation (peer to strengths/weaknesses)
+  const conclusion = finalization?.conclusion?.trim() ?? "";
+  const recommendation = finalization?.recommendations?.trim() ?? "";
+  const conclRecRow =
+    conclusion || recommendation
+      ? `<div class="nutrition-divider-thin"></div>
+<div class="nutrition-cr">
+  <div class="nutrition-cr-col">
+    <div class="nutrition-sw-title">Conclusion</div>
+    ${conclusion ? `<p>${esc(conclusion)}</p>` : `<div class="nutrition-sw-empty">Not specified</div>`}
+  </div>
+  <div class="nutrition-sw-divider"></div>
+  <div class="nutrition-cr-col">
+    <div class="nutrition-sw-title">Recommendation</div>
+    ${recommendation ? `<p>${esc(recommendation)}</p>` : `<div class="nutrition-sw-empty">Not specified</div>`}
+  </div>
+</div>`
+      : "";
+
+  // In-progress indicator (finalized reports show no status line)
+  const statusLine =
+    !scores.noEvaluation && !scores.isComplete
+      ? `<div class="nutrition-status">${scores.answeredQuestions}/${scores.totalQuestions} questions answered</div>`
+      : "";
 
   return `
 <div class="nutrition-label">
-  <div class="trust-branding">
-    <img src="${TRUST_LOGO}" alt="TRUST" />
-    <div class="trust-branding-tagline">Information Tool Reviews</div>
-  </div>
-  <div class="nutrition-divider"></div>
-
-  <div class="nutrition-header">
-    <div class="nutrition-header-center">
-      <div class="nutrition-header-line">
-        ${logo ? `${toolLink}<img class="nutrition-tool-logo" src="${esc(logo)}" alt="${toolName}" />${toolLinkClose}` : ""}
-        ${logo ? '<span class="nutrition-sep">&middot;</span>' : ""}
-        ${toolLink}<span class="nutrition-tool-name">${toolName}</span>${toolLinkClose}
-        <span class="nutrition-sep">&middot;</span>
-        <span class="nutrition-tool-url">${safeLink(metadata.toolUrl)}</span>
+  <div class="nutrition-top">
+    <div class="nutrition-top-row">
+      <div class="nutrition-top-id">
+        <img src="${TRUST_LOGO}" alt="TRUST" class="nl-brand-logo" />
+        <span class="nl-title">Information Tool Reviews</span>
       </div>
-      ${metadata.description ? `<div class="nutrition-description">${esc(metadata.description)}</div>` : ""}
+      <div class="nutrition-tool-lockup">
+        ${logo ? `${toolLink}<img class="nutrition-tool-logo" src="${esc(logo)}" alt="${toolName}" />${toolLinkClose}` : ""}
+        <div class="nutrition-tool-id">
+          ${toolLink}<span class="nutrition-tool-name">${toolName}</span>${toolLinkClose}
+          <span class="nutrition-tool-url">${safeLink(metadata.toolUrl)}</span>
+        </div>
+      </div>
     </div>
+    ${metadata.description ? `<div class="nutrition-description">${esc(metadata.description)}</div>` : ""}
   </div>
-
-  <div class="nutrition-divider"></div>
+  ${statusLine}
 
   <div class="nutrition-verdict">
     <div class="nutrition-verdict-stamp" style="color:${scores.verdictColor};border-color:${scores.verdictColor}">
@@ -516,73 +560,49 @@ function buildNutritionLabelHtml(
         Framework Verdict
       </span>
     </div>
-    ${gateFailCallout}
-    ${scores.totalMax > 0 && (finalization || scores.isComplete) ? `<div class="nutrition-score-number">${scores.totalActual}/${scores.totalMax} <span class="nutrition-score-unit">points</span></div>` : ""}
-    ${!scores.noEvaluation && !scores.isComplete ? `<div class="nutrition-status">${scores.answeredQuestions}/${scores.totalQuestions} questions answered</div>` : ""}
   </div>
-
-  ${(() => {
-    const gates = qualityGateResults(evaluations, rubric, evalMap);
-    const flagged = gates.filter((g) => g.result === "fail" || g.result === "unsure");
-    const items = flagged
-      .map(
-        (g) =>
-          `<div class="nutrition-gate-item" data-result="${g.result === "fail" ? "fail" : "unsure"}"><span class="nutrition-gate-label">${esc(g.label)}</span><span class="nutrition-gate-badge">${g.result === "fail" ? "FAIL" : "UNSURE"}</span></div>`,
-      )
-      .join("");
-    if (items) {
-      return (
-        '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gates-title">Quality Gate Notes</div>' +
-        items +
-        "</div>"
-      );
-    }
-    const passed = gates.filter((g) => g.result === "pass").length;
-    const allAnsweredPass = gates.length > 0 && passed === gates.length;
-    const summary = allAnsweredPass
-      ? "All quality gates passed \u2713"
-      : `${passed} of ${gates.length} quality gates passed`;
-    return (
-      '<div class="nutrition-divider-thin"></div><div class="nutrition-gates"><div class="nutrition-gate-item" style="color:var(--muted)">' +
-      summary +
-      "</div></div>"
-    );
-  })()}
 
   <div class="nutrition-divider-thin"></div>
 
-  <div class="nutrition-principles">
-    <table class="nutrition-principles-table" aria-label="Principle scores">
-      <tr>
-        ${PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
-          .map((p) => {
-            const reportColor = REPORT_COLORS[p.id] ?? p.color;
-            const avg = principleAverage(p.id, evaluations, rubric, evalMap);
-            return (
-              '<th scope="col" style="color:' +
-              reportColor +
-              '"><div class="nutrition-principle-code">' +
-              p.code +
-              '</div><div class="nutrition-principle-name">' +
-              (PRINCIPLE_NAMES[p.id] ?? "") +
-              "</div><div>" +
-              scoreCircles(avg) +
-              "</div></th>"
-            );
-          })
-          .join("")}
-        <th scope="col" class="nutrition-overall-cell" style="color:var(--magenta)">
-          <div class="nutrition-overall-spacer" aria-hidden="true"></div>
-          <div class="nutrition-overall-label">Overall</div>
-          <div>${scoreCircles(scores.totalMax > 0 ? (scores.totalActual / scores.totalMax) * 3 : null)}</div>
-        </th>
-      </tr>
-    </table>
+  <div class="nutrition-scores">
+    ${
+      gateGrid
+        ? `<div class="nutrition-score-block nutrition-score-block--gates"><div class="nutrition-overall-label">Quality Gates</div>${gateGrid}</div>`
+        : ""
+    }
+    <div class="nutrition-score-block nutrition-score-block--subjects">
+      <table class="nutrition-principles-table" aria-label="Principle scores">
+        <tr>
+          ${PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
+            .map((p) => {
+              const reportColor = REPORT_COLORS[p.id] ?? p.color;
+              const avg = principleAverage(p.id, evaluations, rubric, evalMap);
+              return (
+                '<th scope="col" style="color:' +
+                reportColor +
+                '"><div class="nutrition-principle-code">' +
+                p.code +
+                '</div><div class="nutrition-principle-name">' +
+                (PRINCIPLE_NAMES[p.id] ?? "") +
+                "</div><div>" +
+                scoreCircles(avg) +
+                "</div></th>"
+              );
+            })
+            .join("")}
+          <th scope="col" class="nutrition-overall-cell" style="color:var(--magenta)">
+            <div class="nutrition-overall-spacer" aria-hidden="true"></div>
+            <div class="nutrition-overall-label">Overall</div>
+            <div>${scoreCircles(scores.totalMax > 0 ? (scores.totalActual / scores.totalMax) * 3 : null)}</div>
+          </th>
+        </tr>
+      </table>
+    </div>
   </div>
 
-  ${swRow}
+  ${conclRecRow}
 
-  <div class="nutrition-divider"></div>
+  ${swRow}
 
   <div class="nutrition-footer">
     <img src="${LISA_EIS_LOGO}" alt="LISA-EIS" style="height:24px" />
@@ -890,6 +910,7 @@ ${unlinkedSection}
 (function () {
   var box = document.createElement("div");
   box.id = "trust-lightbox";
+  box.setAttribute("popover", "manual");
   box.setAttribute("role", "dialog");
   box.setAttribute("aria-modal", "true");
   box.setAttribute("aria-label", "Full-size screenshot");
@@ -902,10 +923,20 @@ ${unlinkedSection}
     lastFocus = document.activeElement;
     boxImg.src = src;
     boxImg.alt = alt || "";
-    box.classList.add("open");
+    // Top-layer popover so the lightbox renders above any open evidence
+    // popover (native popovers sit above normal fixed elements). Class fallback
+    // for browsers without the Popover API.
+    if (typeof box.showPopover === "function") {
+      try { box.showPopover(); } catch (e) { box.classList.add("open"); }
+    } else {
+      box.classList.add("open");
+    }
     box.focus();
   }
   function close() {
+    if (typeof box.hidePopover === "function") {
+      try { box.hidePopover(); } catch (e) {}
+    }
     box.classList.remove("open");
     boxImg.src = "";
     if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
