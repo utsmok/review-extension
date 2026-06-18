@@ -1,6 +1,21 @@
 # Changelog
 
 
+
+## v0.9.2 — 2026-06-18
+
+### Fixed
+
+- **Report summary widened.** The summary card was too narrow on desktop (~50% of the viewport); it now spans ~60–70% so the principle scores render cleanly with no column wrapping or horizontal scroll.
+- **Evidence lightbox (really) fixed.** Clicking a screenshot still did nothing because the open-details popover's native light-dismiss cancelled the synchronous `showPopover()`. The click handler now runs in the capture phase and defers the open to the next frame, so zoom works reliably.
+- **Firefox `data_collection_permissions`.** AMO requires this key to be a nested object, not a boolean; it now declares `{ "required": ["none"] }` (the extension collects no data), which passes validation.
+
+### Changed
+
+- **"Details" popover.** The separate *Rubric* and *Evidence* buttons are merged into a single **Details** popover that mirrors the extension's question view: the full option list (0–3, N/A, Unsure) with the selected level highlighted, plus background, examples, the reviewer note, and the linked evidence — click any screenshot to zoom.
+- **Tinted summary sections.** Conclusion / Recommendation / Strengths / Weaknesses now carry subtle background tints so each area is easy to spot at a glance.
+- **Simpler report structure.** With the verdict content moved into the summary, the separate Verdict section and the top navigation bar are removed, leaving two parts: Summary and Detailed Scores.
+
 ## v0.9.1 — 2026-06-18
 
 ### Fixed
