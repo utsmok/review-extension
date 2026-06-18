@@ -26,6 +26,15 @@ export interface ScoringRow {
   isNa: boolean;
   isUnsure: boolean;
   levelDescription: string;
+  /** The rubric question title (what is being evaluated). */
+  title: string;
+  /** All four level descriptions (0–3), so the Details popover can mirror the tool's option list. */
+  levels: {
+    readonly "0": string;
+    readonly "1": string;
+    readonly "2": string;
+    readonly "3": string;
+  };
   notes: string;
   customReasoning: string | undefined;
   evidenceIds: string[];
@@ -188,6 +197,13 @@ export function buildReportModel(
         isNa,
         isUnsure,
         levelDescription,
+        title: (levels as { title?: string }).title ?? "",
+        levels: {
+          "0": (levels as unknown as Record<string, string>)["0"] ?? "",
+          "1": (levels as unknown as Record<string, string>)["1"] ?? "",
+          "2": (levels as unknown as Record<string, string>)["2"] ?? "",
+          "3": (levels as unknown as Record<string, string>)["3"] ?? "",
+        },
         notes: ev?.notes ?? "",
         customReasoning,
         evidenceIds: ev?.explicitEvidenceIds ?? [],

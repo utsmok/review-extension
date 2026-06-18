@@ -101,47 +101,25 @@ function categoryAvgIndicator(p: PrincipleScoreRow): string {
   return `<span class="cat-score" style="color:${color}" title="Average ${avgNum.toFixed(1)} / 3"><span class="circles">${FILLED_CIRCLE.repeat(filled)}${EMPTY_CIRCLE.repeat(3 - filled)}</span><span class="cat-score-label">${label}</span></span>`;
 }
 
-// ── Popover builders (rubric + evidence) ───────────────────────────────
+// ── Popover builders (Details: rubric + evidence, merged) ─────────────
 // Native `popover` elements: light-dismiss + Esc for free, render in the
 // top layer (no page reflow → no "snap"). One open at a time (popover=auto).
+// Each finding has a single "Details" popover that mirrors the extension's
+// question view: the full option list (0–3 + N/A + Unsure, selected
+// highlighted), background, examples, the reviewer note, and evidence.
 
-/** Build a rubric popover (requirement/level + background + examples). Empty if nothing to show. */
-function rubricPopover(
-  code: string,
-  main: { label: string; text: string } | null,
-  background?: string,
-  examples?: Record<string, string>,
-): string {
-  const exEntries = examples ? Object.entries(examples) : [];
-  if (!main?.text && !background && exEntries.length === 0) return "";
-  const mainBlock = main?.text
-    ? `<section class="rb-sec"><h4 class="rb-label">${esc(main.label)}</h4><p>${esc(main.text)}</p></section>`
-    : "";
-  const bgBlock = background
-    ? `<section class="rb-sec"><h4 class="rb-label">Background</h4><p>${esc(background)}</p></section>`
-    : "";
-  const exBlock = exEntries.length
-    ? `<section class="rb-sec"><h4 class="rb-label">Examples</h4><dl class="rb-ex">${exEntries
-        .map(([k, v]) => `<div class="rb-ex-row"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`)
-        .join("")}</dl></section>`
-    : "";
-  return `<div popover="auto" id="rb-${esc(code)}" class="qpop" aria-label="Rubric: ${esc(code)}"><div class="qpop-head"><strong>${esc(code)}</strong><span class="qpop-head-sub">Rubric</span></div><div class="qpop-body">${mainBlock}${bgBlock}${exBlock}</div></div>`;
-}
+type EvidenceItem = {
+  img: string;
+  alt: string;
+  title: string;
+  time: string;
+  notes?: string;
+  weak?: boolean;
+};
 
-/** Build an evidence popover from resolved capture items. Reuses .evidence-item so the lightbox still zooms on click. */
-function evidencePopover(
-  code: string,
-  items: {
-    img: string;
-    alt: string;
-    title: string;
-    time: string;
-    notes?: string;
-    weak?: boolean;
-  }[],
-): string {
-  if (!items.length) return "";
-  const figs = items
+/** Thumbnails for an evidence set — reuses .evidence-item so the lightbox zooms on click. */
+function evidenceThumbnailsHtml(items: EvidenceItem[]): string {
+  return items
     .map(
       (it) => `
         <figure class="evidence-item${it.weak ? " evidence-weak" : ""}">
@@ -150,7 +128,76 @@ function evidencePopover(
         </figure>`,
     )
     .join("");
-  return `<div popover="auto" id="ev-${esc(code)}" class="qpop qpop-ev" aria-label="Evidence: ${esc(code)}"><div class="qpop-head"><strong>${esc(code)}</strong><span class="qpop-head-sub">Evidence (${items.length})</span></div><div class="qpop-body evidence-list">${figs}</div></div>`;
+}
+
+/** Build the merged Details popover for a scoring question: the full option
+ *  list (0–3 + N/A + Unsure, selected highlighted — mirrors the tool), the
+ *  rubric background/examples, the reviewer note, and linked evidence. */
+function detailsPopover(
+  code: string,
+  title: string,
+  selected: { score: number; isNa: boolean; isUnsure: boolean },
+  levels: {
+    readonly "0": string;
+    readonly "1": string;
+    readonly "2": string;
+    readonly "3": string;
+  },
+  background: string | undefined,
+  examples: Record<string, string> | undefined,
+  notes: string | undefined,
+  evidenceItems: EvidenceItem[],
+): string {
+  const optionRow = (val: 0 | 1 | 2 | 3) => {
+    const isSel = !selected.isNa && !selected.isUnsure && selected.score === val;
+    const color = reportScoreColor(val);
+    return `<li class="det-option" data-score="${val}"${isSel ? ' data-selected="true"' : ""} style="--opt-color:${color}"><span class="det-option-num">${val}</span><span class="det-option-desc">${esc((levels as Record<string, string>)[val])}</span></li>`;
+  };
+  const metaRow = (score: "na" | "unsure", num: string, desc: string, isSel: boolean) =>
+    `<li class="det-option det-option--meta" data-score="${score}"${isSel ? ' data-selected="true"' : ""}><span class="det-option-num">${num}</span><span class="det-option-desc">${esc(desc)}</span></li>`;
+  const options = `<ul class="det-options" role="list">${optionRow(0)}${optionRow(1)}${optionRow(2)}${optionRow(3)}${metaRow("na", "N/A", "Not applicable", selected.isNa)}${metaRow("unsure", "?", "Insufficient information", selected.isUnsure)}</ul>`;
+
+  const bgBlock = background
+    ? `<section class="rb-sec"><h4 class="rb-label">Background</h4><p>${esc(background)}</p></section>`
+    : "";
+  const exEntries = examples ? Object.entries(examples) : [];
+  const exBlock = exEntries.length
+    ? `<section class="rb-sec"><h4 class="rb-label">Examples</h4><dl class="rb-ex">${exEntries.map(([k, v]) => `<div class="rb-ex-row"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl></section>`
+    : "";
+  const noteBlock = notes
+    ? `<section class="rb-sec"><h4 class="rb-label">Reviewer note</h4><p>${esc(notes)}</p></section>`
+    : "";
+  const evBlock = evidenceItems.length
+    ? `<section class="rb-sec"><h4 class="rb-label">Evidence (${evidenceItems.length})</h4><div class="evidence-list">${evidenceThumbnailsHtml(evidenceItems)}</div></section>`
+    : "";
+
+  return `<div popover="auto" id="dt-${esc(code)}" class="qpop qpop-det" aria-label="Details: ${esc(code)}"><div class="qpop-head"><strong>${esc(code)}</strong><span class="qpop-head-sub">Details</span></div><div class="qpop-body">${title ? `<p class="det-title">${esc(title)}</p>` : ""}${options}${bgBlock}${exBlock}${noteBlock}${evBlock}</div></div>`;
+}
+
+/** Build the Details popover for a quality-gate question: requirement +
+ *  background + examples + reviewer note (gates have no 0–3 scale). */
+function gateDetailsPopover(
+  code: string,
+  requirement: string | undefined,
+  background: string | undefined,
+  examples: Record<string, string> | undefined,
+  notes: string | undefined,
+): string {
+  if (!requirement && !background && !examples && !notes) return "";
+  const reqBlock = requirement
+    ? `<section class="rb-sec"><h4 class="rb-label">Requirement</h4><p>${esc(requirement)}</p></section>`
+    : "";
+  const bgBlock = background
+    ? `<section class="rb-sec"><h4 class="rb-label">Background</h4><p>${esc(background)}</p></section>`
+    : "";
+  const exEntries = examples ? Object.entries(examples) : [];
+  const exBlock = exEntries.length
+    ? `<section class="rb-sec"><h4 class="rb-label">Examples</h4><dl class="rb-ex">${exEntries.map(([k, v]) => `<div class="rb-ex-row"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl></section>`
+    : "";
+  const noteBlock = notes
+    ? `<section class="rb-sec"><h4 class="rb-label">Reviewer note</h4><p>${esc(notes)}</p></section>`
+    : "";
+  return `<div popover="auto" id="dt-${esc(code)}" class="qpop qpop-det" aria-label="Details: ${esc(code)}"><div class="qpop-head"><strong>${esc(code)}</strong><span class="qpop-head-sub">Details</span></div><div class="qpop-body">${reqBlock}${bgBlock}${exBlock}${noteBlock}</div></div>`;
 }
 
 // ── Section builders (render from ReportModel slices) ──────────────────
@@ -177,22 +224,7 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
                 : "";
           const hasScore = q.score >= 0 || q.isNa || q.isUnsure;
           const lead = hasScore ? q.levelDescription || "" : "";
-          const rubric = rubricPopover(
-            q.code,
-            hasScore && q.levelDescription
-              ? { label: `Level ${scoreText}`, text: q.levelDescription }
-              : null,
-            q.background,
-            q.examples,
-          );
-          const evItems: {
-            img: string;
-            alt: string;
-            title: string;
-            time: string;
-            notes?: string;
-            weak?: boolean;
-          }[] = [];
+          const evItems: EvidenceItem[] = [];
           for (const cid of q.evidenceIds) {
             const c = captureMap.get(cid);
             if (!c) continue;
@@ -205,14 +237,17 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
               weak: q.isWeakEvidence,
             });
           }
-          const evidence = evidencePopover(q.code, evItems);
-          const actions =
-            (rubric
-              ? `<button type="button" class="qpop-btn" popovertarget="rb-${esc(q.code)}" aria-haspopup="true">Rubric</button>`
-              : "") +
-            (evItems.length
-              ? `<button type="button" class="qpop-btn qpop-btn-ev" popovertarget="ev-${esc(q.code)}" aria-haspopup="true">Evidence (${evItems.length})</button>`
-              : "");
+          const details = detailsPopover(
+            q.code,
+            q.title,
+            { score: q.score, isNa: q.isNa, isUnsure: q.isUnsure },
+            q.levels,
+            q.background,
+            q.examples,
+            q.notes || undefined,
+            evItems,
+          );
+          const actions = `<button type="button" class="qpop-btn" popovertarget="dt-${esc(q.code)}" aria-haspopup="true">Details</button>`;
 
           return `
     <li class="qrow" id="q-${esc(q.code)}" style="--pc:${esc(q.badgeColor)}">
@@ -223,7 +258,7 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
         <div class="qrow-actions">${actions}</div>
       </div>
       <p class="qrow-note">${q.notes ? esc(q.notes) : `<em class="qrow-note-empty">No reviewer note</em>`}</p>
-      ${rubric}${evidence}
+      ${details}
     </li>`;
         })
         .join("");
@@ -274,11 +309,12 @@ function renderGateRows(gates: QualityGateRow[]): string {
     .map((g) => {
       const resultLabel = g.result === "pass" ? "PASS" : g.result === "fail" ? "FAIL" : "—";
       const lead = g.requirement || g.label;
-      const rubric = rubricPopover(
+      const details = gateDetailsPopover(
         g.code,
-        g.requirement ? { label: "Requirement", text: g.requirement } : null,
+        g.requirement,
         g.background,
         g.examples,
+        g.notes || undefined,
       );
       return `
     <li class="qrow" id="qg-${esc(g.code)}" style="--pc:${esc(g.color)}">
@@ -286,64 +322,13 @@ function renderGateRows(gates: QualityGateRow[]): string {
         <span class="qrow-code">${esc(g.code)}</span>
         <span class="qrow-chip" data-result="${esc(g.result ?? "")}">${resultLabel}</span>
         <p class="qrow-lead">${esc(lead)}</p>
-        <div class="qrow-actions">${rubric ? `<button type="button" class="qpop-btn" popovertarget="rb-${esc(g.code)}" aria-haspopup="true">Rubric</button>` : ""}</div>
+        <div class="qrow-actions">${details ? `<button type="button" class="qpop-btn" popovertarget="dt-${esc(g.code)}" aria-haspopup="true">Details</button>` : ""}</div>
       </div>
       <p class="qrow-note">${g.notes ? esc(g.notes) : `<em class="qrow-note-empty">No reviewer note</em>`}</p>
-      ${rubric}
+      ${details}
     </li>`;
     })
     .join("");
-}
-
-function buildFinalizationSection(
-  finalization: ReviewFinalization | null,
-  verdict: string,
-  verdictColor: string,
-): string {
-  if (!finalization) return "";
-
-  const strengthsList = finalization.strengths.map((s) => `<li>${esc(s)}</li>`).join("");
-  const weaknessesList = finalization.weaknesses.map((w) => `<li>${esc(w)}</li>`).join("");
-
-  return `
-    <section class="finalization-section">
-      <div class="fin-grade" style="color:${verdictColor};background:color-mix(in srgb, ${verdictColor} 8%, var(--white))">
-        ${verdict}
-      </div>
-      ${finalization.conclusion ? `<div class="fin-block fin-block--conclusion" style="--fin-accent:${verdictColor}"><h3>Conclusion</h3><p>${esc(finalization.conclusion)}</p></div>` : ""}
-      ${
-        strengthsList
-          ? `
-        <div class="fin-block">
-          <h3 style="color:var(--score-3)">Strengths</h3>
-          <ul>${strengthsList}</ul>
-        </div>
-      `
-          : ""
-      }
-      ${
-        weaknessesList
-          ? `
-        <div class="fin-block">
-          <h3 style="color:var(--score-0)">Weaknesses</h3>
-          <ul>${weaknessesList}</ul>
-        </div>
-      `
-          : ""
-      }
-      ${
-        finalization.recommendations
-          ? `
-        <div class="fin-block">
-          <h3>Recommendations</h3>
-          <p>${esc(finalization.recommendations)}</p>
-        </div>
-      `
-          : ""
-      }
-      <div class="fin-timestamp">Finalized ${formatDate(finalization.finalizedAt)}</div>
-    </section>
-  `;
 }
 
 function buildUnlinkedSection(captures: CaptureInfo[], linkedCaptureIds: Set<string>): string {
@@ -483,11 +468,11 @@ function buildNutritionLabelHtml(
 <div class="nutrition-sw">
   ${
     strengthsHtml
-      ? `<div class="nutrition-sw-col">
+      ? `<div class="nutrition-sw-col nutrition-sw-col--strength">
     <div class="nutrition-sw-title">Strengths</div>
     <ul class="nutrition-sw-list">${strengthsHtml}</ul>
   </div>`
-      : `<div class="nutrition-sw-col">
+      : `<div class="nutrition-sw-col nutrition-sw-col--strength">
     <div class="nutrition-sw-title">Strengths</div>
     <div class="nutrition-sw-empty">Not specified</div>
   </div>`
@@ -495,11 +480,11 @@ function buildNutritionLabelHtml(
   <div class="nutrition-sw-divider"></div>
   ${
     weaknessesHtml
-      ? `<div class="nutrition-sw-col">
+      ? `<div class="nutrition-sw-col nutrition-sw-col--weakness">
     <div class="nutrition-sw-title">Weaknesses</div>
     <ul class="nutrition-sw-list">${weaknessesHtml}</ul>
   </div>`
-      : `<div class="nutrition-sw-col">
+      : `<div class="nutrition-sw-col nutrition-sw-col--weakness">
     <div class="nutrition-sw-title">Weaknesses</div>
     <div class="nutrition-sw-empty">Not specified</div>
   </div>`
@@ -514,12 +499,12 @@ function buildNutritionLabelHtml(
     conclusion || recommendation
       ? `<div class="nutrition-divider-thin"></div>
 <div class="nutrition-cr">
-  <div class="nutrition-cr-col">
+  <div class="nutrition-cr-col nutrition-cr-col--conclusion">
     <div class="nutrition-sw-title">Conclusion</div>
     ${conclusion ? `<p>${esc(conclusion)}</p>` : `<div class="nutrition-sw-empty">Not specified</div>`}
   </div>
   <div class="nutrition-sw-divider"></div>
-  <div class="nutrition-cr-col">
+  <div class="nutrition-cr-col nutrition-cr-col--recommendation">
     <div class="nutrition-sw-title">Recommendation</div>
     ${recommendation ? `<p>${esc(recommendation)}</p>` : `<div class="nutrition-sw-empty">Not specified</div>`}
   </div>
@@ -797,11 +782,6 @@ export async function buildHtmlReport(
 
   const gateRows = renderGateRows(model.qualityGateRows);
   const categorySections = renderCategorySections(model.principleScores, model.captures);
-  const finalizationSection = buildFinalizationSection(
-    finalization,
-    model.verdict.label,
-    model.verdict.color,
-  );
   const unlinkedSection = buildUnlinkedSection(model.captures, model.linkedCaptureIds);
   const overviewBar = buildOverviewBar(model.qualityGateRows, model.principleScores);
 
@@ -818,11 +798,6 @@ export async function buildHtmlReport(
 
 <main id="report-content">
 <h1 class="sr-only">TRUST Review: ${esc(metadata.toolName)}</h1>
-<nav class="part-nav" aria-label="Report sections">
-  <a class="part-nav-btn" data-part="summary" href="#part-summary">Summary</a>
-  <a class="part-nav-btn" data-part="scores" href="#part-scores">Detailed Scores</a>
-  <a class="part-nav-btn" data-part="verdict" href="#part-verdict">Verdict</a>
-</nav>
 
 <section class="report-part" id="part-summary" data-part="summary">
   <header class="part-band"><h2 class="part-title">Summary</h2></header>
@@ -885,12 +860,6 @@ ${categorySections}
   </div>
 </section>
 
-<section class="report-part" id="part-verdict" data-part="verdict">
-  <header class="part-band"><h2 class="part-title">Verdict</h2></header>
-  <div class="part-body part-body--narrow">
-    ${finalizationSection}
-  </div>
-</section>
 ${unlinkedSection}
 </main>
 <div class="bottom-bar"></div>
@@ -945,34 +914,27 @@ ${unlinkedSection}
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") close();
   });
-  // Event delegation: click any evidence/unlinked screenshot to view it full-size.
+  // Event delegation (capture phase): click any evidence/unlinked screenshot
+  // to view it full-size. Capture + stopPropagation lets us run before the
+  // native popover light-dismiss consumes the gesture; deferring showPopover
+  // to the next frame avoids the re-entrancy that cancels a synchronous show
+  // when the image lives inside an open popover=auto.
   document.addEventListener("click", function (e) {
     var t = e.target;
     if (!t || typeof t.closest !== "function") return;
     var img = t.closest(".evidence-item img, .unlinked-item img");
     if (!img) return;
     e.preventDefault();
-    open(img.getAttribute("src") || "", img.getAttribute("alt") || "");
-  });
-  // Highlight the active part in the segmented nav.
-  var navBtns = document.querySelectorAll(".part-nav-btn");
-  var parts = document.querySelectorAll(".report-part");
-  if (navBtns.length && parts.length && "IntersectionObserver" in window) {
-    var navObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          var id = entry.target.getAttribute("data-part");
-          navBtns.forEach(function (btn) {
-            var isActive = btn.getAttribute("data-part") === id;
-            btn.classList.toggle("is-active", isActive);
-            if (isActive) btn.setAttribute("aria-current", "true");
-            else btn.removeAttribute("aria-current");
-          });
-        }
-      });
-    }, { rootMargin: "-45% 0px -50% 0px", threshold: 0 });
-    parts.forEach(function (p) { navObserver.observe(p); });
-  }
+    e.stopPropagation();
+    // Close any open Details popover so the lightbox is unobstructed.
+    document.querySelectorAll(".qpop").forEach(function (p) {
+      try { if (p.matches(":popover-open")) p.hidePopover(); } catch (x) {}
+      p.classList.remove("is-open");
+    });
+    var src = img.getAttribute("src") || "";
+    var alt = img.getAttribute("alt") || "";
+    requestAnimationFrame(function () { open(src, alt); });
+  }, true);
   // Popover API fallback for browsers without native popover support
   if (typeof document.createElement('div').showPopover !== 'function') {
     var openPop = null;
