@@ -43,13 +43,13 @@ export default defineConfig({
           "script-src 'self'; object-src 'self'; connect-src 'self' https://cdn.tldraw.com",
       },
       // Firefox add-on identity + the AMO-required data-collection declaration.
-      // The extension is fully local (IndexedDB, no telemetry) → false.
+      // The extension is fully local (IndexedDB, no telemetry) → none.
       ...(isFirefox
         ? {
             browser_specific_settings: {
               gecko: {
                 id: "trust-review@utwente.nl",
-                data_collection_permissions: false,
+                data_collection_permissions: { required: ["none"] },
               },
             },
           }
