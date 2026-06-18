@@ -227,3 +227,75 @@ describe("sanitizeArchiveHtml", () => {
     expect(out).toContain("data:image/png;base64,ABC");
   });
 });
+
+describe("sanitizeArchiveHtml — embedded-whitespace scheme bypass (Gap 1)", () => {
+  it("strips javascript: URL with embedded TAB", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><body><a href="java\tscript:alert(1)">xss</a></body></html>`,
+    );
+    expect(out).not.toContain("javascript:");
+    expect(out).not.toContain("alert");
+    expect(out).not.toContain("href=");
+  });
+
+  it("strips javascript: URL with embedded LF", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><body><a href="java\nscript:alert(1)">xss</a></body></html>`,
+    );
+    expect(out).not.toContain("javascript:");
+    expect(out).not.toContain("href=");
+  });
+
+  it("still blocks plain javascript: URLs", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><body><a href="javascript:alert(1)">xss</a></body></html>`,
+    );
+    expect(out).not.toContain("javascript:");
+    expect(out).not.toContain("href=");
+  });
+
+  it("still blocks data:text/html URLs", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><body><a href="data:text/html,<script>alert(1)</script>">xss</a></body></html>`,
+    );
+    expect(out).not.toContain("data:text/html");
+  });
+
+  it("preserves benign https URLs", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><body><a href="https://example.com">safe</a></body></html>`,
+    );
+    expect(out).toContain("https://example.com");
+    expect(out).toContain("safe");
+  });
+});
+
+describe("sanitizeArchiveHtml — inline style url() stripping (Gap 2)", () => {
+  it("strips external url() from inline style attributes", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><body><div style="background:url(http://attacker/track.png)">ok</div></body></html>`,
+    );
+    expect(out).not.toContain("attacker");
+    expect(out).toContain("stripped external URL");
+    expect(out).toContain("ok");
+  });
+
+  it("preserves data:image url() in inline style attributes", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><body><div style="background:url(data:image/png;base64,ABC)">ok</div></body></html>`,
+    );
+    expect(out).toContain("data:image/png;base64,ABC");
+    expect(out).toContain("ok");
+  });
+
+  it("strips relative url() from inline style attributes (treated as external)", () => {
+    const out = sanitizeArchiveHtml(
+      `<html><body><div style="background:url(image.png)">ok</div></body></html>`,
+    );
+    // The regex strips all non-data: url() references, including relative ones,
+    // matching the existing behavior for <style> elements.
+    expect(out).not.toContain("url(image.png)");
+    expect(out).toContain("stripped external URL");
+    expect(out).toContain("ok");
+  });
+});

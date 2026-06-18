@@ -128,8 +128,22 @@ export async function prepareExportArtifacts(
     }
   }
 
-  // Captures pass through with original base64 data URLs (inline in HTML)
-  const capturesForReport = capturesWithScreenshots;
+  // Downscale screenshots for the INLINE HTML report to a max edge of 1280px
+  // (JPEG q0.9). Full-resolution PNGs are still written as standalone files in
+  // the ZIP (imageFiles above), so evidence fidelity is preserved — only the
+  // report's inlined copies are reduced to keep the single-file HTML small.
+  const capturesForReport = await Promise.all(
+    capturesWithScreenshots.map(async (c) => {
+      const src = c.annotatedScreenshotBase64 ?? c.screenshotBase64;
+      if (!src) return c;
+      try {
+        const { dataUrl } = await pngToJpeg(src, 0.9, 1280);
+        return { ...c, screenshotBase64: dataUrl, annotatedScreenshotBase64: undefined };
+      } catch {
+        return c;
+      }
+    }),
+  );
 
   // ── CSV generation ────────────────────────────────────────────────────
 
@@ -319,8 +333,27 @@ export async function prepareExportArtifacts(
     const base64 = jpegUrl.split(",")[1] ?? "";
     imageFiles.set(name, base64);
   }
-  // ── Inline remote images — already converted to data URLs at capture time ──
+  // ── Inline remote tool logo / favicon as data URLs ───────────────────
+  // The standalone report CSP is img-src data:, so any http(s) logo/favicon
+  // would render broken. Fetch each via the background service worker (which
+  // holds the <all_urls> host permission and is not bound by the side panel's
+  // connect-src 'self' CSP) and substitute the data URL for the HTML reports
+  // only — session.json and the CSVs keep the original URLs.
   const reportMetadata = { ...metadata };
+  for (const field of ["toolLogoUrl", "faviconUrl"] as const) {
+    const val = reportMetadata[field];
+    if (val && /^https?:\/\//i.test(val)) {
+      try {
+        const res = (await browser.runtime.sendMessage({
+          type: "trust:fetch-data-url",
+          url: val,
+        })) as { dataUrl: string | null } | undefined;
+        if (res?.dataUrl) reportMetadata[field] = res.dataUrl;
+      } catch {
+        // fetch unavailable (e.g. tests) — keep the original URL
+      }
+    }
+  }
   // ── HTML reports (fully standalone — all images inline) ─────────────
   const htmlReport = await buildHtmlReport(
     reportMetadata,
@@ -329,6 +362,7 @@ export async function prepareExportArtifacts(
     rubric,
     finalization,
     reviewer,
+    quickNotes,
   );
   const labelHtml = await buildNutritionLabel(reportMetadata, evaluations, rubric, finalization);
   const cardHtml = await buildBusinessCardLabel(reportMetadata, evaluations, rubric, finalization);

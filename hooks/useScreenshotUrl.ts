@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { loadScreenshot } from "@/lib/screenshot-store";
+import { useSessionStore } from "@/stores/session";
 
 /**
  * Load a capture's screenshot base64 from the separate IDB screenshot store.
@@ -8,6 +9,13 @@ import { loadScreenshot } from "@/lib/screenshot-store";
 export function useScreenshotUrl(captureId: string | null): string | null {
   const [url, setUrl] = useState<string | null>(null);
 
+  // Re-fetch from the screenshot store whenever this capture's annotation is
+  // saved (annotatedScreenshotBase64 changes), so grid/modal previews update
+  // live instead of only after a remount/tab-switch.
+  const annotationRevision = useSessionStore(
+    (s) => s.captures.find((c) => c.id === captureId)?.annotatedScreenshotBase64 ?? null,
+  );
+  // biome-ignore lint/correctness/useExhaustiveDependencies: annotationRevision is an intentional reactive trigger — its value is not read in the body, but it must re-run the fetch when the capture's annotation is saved.
   useEffect(() => {
     if (!captureId) {
       setUrl(null);
@@ -25,7 +33,7 @@ export function useScreenshotUrl(captureId: string | null): string | null {
     return () => {
       cancelled = true;
     };
-  }, [captureId]);
+  }, [captureId, annotationRevision]);
 
   return url;
 }

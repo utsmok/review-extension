@@ -121,6 +121,25 @@ describe("auto-save", () => {
     });
   });
 
+  it("persists quickNotes through the debounced auto-save", () => {
+    const note = { id: "n1", text: "a note", timestamp: "2026-01-01T00:00:00.000Z" };
+    sessionGetState.mockReturnValue(defaultSessionState({ quickNotes: [note] }));
+    registryGetState.mockReturnValue({ activeSessionId: "sess-1" });
+    mockSave.mockResolvedValue(true);
+
+    initAutoSave();
+    listener();
+    advanceTimer(1000);
+
+    expect(mockSave).toHaveBeenCalledExactlyOnceWith("sess-1", {
+      metadata: expect.any(Object),
+      captures: [],
+      evaluations: [],
+      finalization: null,
+      quickNotes: [note],
+    });
+  });
+
   it("debounces rapid changes — only one saveToIDB call", () => {
     // subscribe listener setup
     sessionGetState.mockReturnValue(defaultSessionState());

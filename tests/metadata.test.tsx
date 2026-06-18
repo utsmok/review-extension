@@ -482,6 +482,26 @@ describe("Metadata", () => {
     expect(session2?.discipline).not.toContain("Computer Science");
   });
 
+  it("stays collapsed after selecting a non-default discipline (fewer options)", () => {
+    seedActiveSession();
+    renderMetadata();
+
+    // Expand and select a non-default discipline
+    fireEvent.click(screen.getByText(/more options/i));
+    fireEvent.click(screen.getByText("Computer Science").closest("button") as HTMLElement);
+
+    // Collapse via "fewer options"
+    fireEvent.click(screen.getByText(/fewer options/i));
+
+    // Regression: the accordion must STAY collapsed. Previously a useEffect
+    // re-expanded it on every render once any non-default discipline was
+    // selected, so "fewer options" never collapsed the list.
+    const toggle = screen.getByRole("button", { name: /more options|fewer options/i });
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    // Non-default options are hidden when collapsed
+    expect(screen.queryByText("Computer Science")).toBeNull();
+  });
+
   it("adds a custom discipline and removes it on deselect", () => {
     seedActiveSession();
     renderMetadata();

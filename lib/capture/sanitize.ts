@@ -1,3 +1,10 @@
+/** Strip control characters that browsers silently remove from URL attribute
+ * values before resolving the scheme. This closes the embedded-whitespace
+ * bypass where `java\tscript:` or `java\nscript:` would execute.
+ * Only TAB, LF, and CR are removed by browsers per the URL spec. */
+function normalizeUrlForSchemeCheck(val: string): string {
+  return val.replace(/[\t\n\r]/g, "");
+}
 /** Clone the current page DOM, inline CSS, strip scripts/dangerous elements, resolve URLs, and return a self-contained HTML archive. */
 export async function archivePageHtml(): Promise<{ html: string; title: string }> {
   const doc = document;
@@ -83,11 +90,11 @@ export async function archivePageHtml(): Promise<{ html: string; title: string }
     for (const attr of dangerousUrlAttrs) {
       const val = el.getAttribute(attr);
       if (val) {
-        const trimmed = val.trim().toLowerCase();
+        const cleaned = normalizeUrlForSchemeCheck(val).toLowerCase();
         if (
-          trimmed.startsWith("javascript:") ||
-          trimmed.startsWith("vbscript:") ||
-          trimmed.startsWith("data:text/html")
+          cleaned.startsWith("javascript:") ||
+          cleaned.startsWith("vbscript:") ||
+          cleaned.startsWith("data:text/html")
         ) {
           el.removeAttribute(attr);
         }
@@ -183,11 +190,14 @@ export function sanitizeArchiveHtml(html: string): string {
     el.remove();
   });
   const urlAttrs = /^(href|src|srcset|action|formaction|xlink:href)$/i;
-  const badScheme = /^\s*(javascript|vbscript|data:text\/html)/i;
+  const badSchemeClean = /^\s*(javascript|vbscript|data:text\/html)/i;
   doc.querySelectorAll("*").forEach((el) => {
     for (const attr of Array.from(el.attributes)) {
       if (attr.name.startsWith("on")) el.removeAttribute(attr.name);
-      else if (urlAttrs.test(attr.name) && badScheme.test(attr.value))
+      else if (
+        urlAttrs.test(attr.name) &&
+        badSchemeClean.test(normalizeUrlForSchemeCheck(attr.value))
+      )
         el.removeAttribute(attr.name);
     }
   });
@@ -204,6 +214,16 @@ export function sanitizeArchiveHtml(html: string): string {
         "/* stripped external URL */",
       );
     }
+  });
+
+  // Strip external url() references in inline [style] attributes (prevent network requests)
+  doc.querySelectorAll("[style]").forEach((el) => {
+    const style = el.getAttribute("style") ?? "";
+    const cleaned = style.replace(
+      /url\(\s*['"]?(?!data:)[^)]*\)\s*/gi,
+      "/* stripped external URL */",
+    );
+    if (cleaned !== style) el.setAttribute("style", cleaned);
   });
   return doc.documentElement.outerHTML;
 }

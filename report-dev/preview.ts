@@ -26,6 +26,7 @@ function makeMetadata(overrides?: Partial<SessionMetadata>): SessionMetadata {
     id: crypto.randomUUID(),
     toolName: "ScholarAI",
     toolUrl: "https://scholarai.example.com/search",
+    faviconUrl: "https://asta.allen.ai/favicon.ico",
     startTime: "2025-11-15T10:00:00.000Z",
     status: "done",
     description: "AI-powered academic search engine that synthesizes research papers.",
@@ -67,6 +68,7 @@ interface DataState {
   captures: Capture[];
   evaluations: Evaluation[];
   finalization: ReviewFinalization | null;
+  quickNotes?: { id: string; text: string; timestamp: string }[];
 }
 
 function allQgIds(): string[] {
@@ -89,14 +91,25 @@ function allScoringIds(): string[] {
   return ids;
 }
 
+// Small solid screenshot data URLs so evidence + the lightbox render in the preview.
+const SHOTS = [
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAYAAABU1PscAAAAS0lEQVR4AdXBAQEAIAyAME4XkxnfED4H25z7PmESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3EStxZaArLmCZTIAAAAAElFTkSuQmCC",
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAYAAABU1PscAAAAS0lEQVR4AdXBAQEAIAyAME4IQ1nToD4H25x3P2ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESt4knAkJZMDZ0AAAAAElFTkSuQmCC",
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAYAAABU1PscAAAAS0lEQVR4AdXBAQEAIAyAME4lo9rSEj4H29zzPmESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESJ3ESt9Y6Au9GOyggAAAAAElFTkSuQmCC",
+];
 function buildDataStates(): Map<string, DataState> {
   const captures = [
     makeCapture({
       pageTitle: "Search results page",
       notes: "Default search for 'machine learning'",
+      screenshotBase64: SHOTS[0],
     }),
-    makeCapture({ pageTitle: "Paper detail view", notes: "Clicked on first result" }),
-    makeCapture({ pageTitle: "Settings panel" }),
+    makeCapture({
+      pageTitle: "Paper detail view",
+      notes: "Clicked on first result",
+      screenshotBase64: SHOTS[1],
+    }),
+    makeCapture({ pageTitle: "Settings panel", screenshotBase64: SHOTS[2] }),
   ];
   // Link captures to evaluations
   const captureIds = captures.map((c) => c.id);
@@ -118,6 +131,18 @@ function buildDataStates(): Map<string, DataState> {
       label: "Complete",
       metadata: makeMetadata(),
       captures,
+      quickNotes: [
+        {
+          id: "qn-1",
+          text: "Re-ranking looks opaque — no transparency controls exposed.",
+          timestamp: "2025-11-15T11:25:00.000Z",
+        },
+        {
+          id: "qn-2",
+          text: "Citations are present but some link to a paywall.",
+          timestamp: "2025-11-15T11:31:00.000Z",
+        },
+      ],
       evaluations,
       finalization: {
         grade: "pass",
@@ -152,6 +177,13 @@ function buildDataStates(): Map<string, DataState> {
       label: "Partial",
       metadata: makeMetadata(),
       captures,
+      quickNotes: [
+        {
+          id: "qn-1",
+          text: "Only partially evaluated — need a second pass on attribution.",
+          timestamp: "2025-11-15T10:48:00.000Z",
+        },
+      ],
       evaluations,
       finalization: null,
     });
@@ -255,6 +287,7 @@ async function renderReport(variant: string, dataStateKey: string): Promise<stri
         RUBRIC,
         state.finalization,
         { name: "Dr. Jane Reviewer", email: "reviewer@university.edu" },
+        state.quickNotes ?? [],
       );
     case "nutrition":
       return await buildNutritionLabel(

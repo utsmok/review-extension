@@ -377,9 +377,10 @@ describe("exportSession", () => {
     // & and ' are valid in filenames — only <, >, " are stripped
     expect(reportFile!).not.toContain('"');
 
-    // HTML report should not contain raw injection from tool name
+    // HTML report should not contain raw (unescaped) tool-name injection.
+    // The report's own lightbox <script> is expected, so check the tool name specifically.
     const html = files.get(reportFile!) as string;
-    expect(html).not.toContain("<script>");
+    expect(html).not.toContain("Tool<>&");
     expect(html).toContain("Tool");
   });
 
@@ -434,7 +435,7 @@ describe("exportSession", () => {
 
     // Metadata should indicate AI-powered: No
     expect(html).toContain("AI-powered");
-    expect(html).toContain('muted">No</');
+    expect(html).toContain("AI-powered<dd>No");
   });
 });
 
@@ -489,7 +490,8 @@ describe("buildHtmlReport", () => {
       [],
       RUBRIC,
     );
-    expect(html).not.toContain("<script>");
+    // The injected payload must be escaped; the report's own lightbox <script> is expected.
+    expect(html).not.toContain('<script>alert("xss")</script>');
     expect(html).toContain("&lt;script&gt;");
   });
 });

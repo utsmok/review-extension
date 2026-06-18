@@ -74,13 +74,78 @@ function formatDate(isoString: string): string {
 const EMPTY_CIRCLE = '<span class="circle empty">&#9675;</span>';
 const FILLED_CIRCLE = '<span class="circle filled">&#9679;</span>';
 const ALL_EMPTY_CIRCLES = `<span class="circles">${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}</span><span class="circle-label">0/3</span>`;
-const EXAMPLE_LEVELS = ["0", "1", "2", "3"] as const;
 
 function scoreCircles(avg: number | null): string {
   if (avg === null) return ALL_EMPTY_CIRCLES;
   const filled = Math.min(3, Math.floor(avg));
   const label = avg % 1 === 0 ? `${filled}/3` : `${avg.toFixed(1)}/3`;
   return `<span class="circles">${FILLED_CIRCLE.repeat(filled)}${EMPTY_CIRCLE.repeat(3 - filled)}</span><span class="circle-label">${label}</span>`;
+}
+
+/** Per-category average indicator for subsection headings: 3 circles coloured
+ *  to the average grade + an "N/3" label (mirrors the nutrition label, without
+ *  the extra number underneath). Empty when the category is unscored. */
+function categoryAvgIndicator(p: PrincipleScoreRow): string {
+  const avgNum = p.avg?.trim() ? Number.parseFloat(p.avg) : null;
+  if (avgNum === null || Number.isNaN(avgNum)) {
+    return `<span class="cat-score" aria-label="No average score"><span class="circles">${EMPTY_CIRCLE.repeat(3)}</span></span>`;
+  }
+  const filled = Math.min(3, Math.floor(avgNum));
+  const color = reportScoreColor(Math.round(avgNum));
+  const label = avgNum % 1 === 0 ? `${filled}/3` : `${avgNum.toFixed(1)}/3`;
+  return `<span class="cat-score" style="color:${color}" title="Average ${avgNum.toFixed(1)} / 3"><span class="circles">${FILLED_CIRCLE.repeat(filled)}${EMPTY_CIRCLE.repeat(3 - filled)}</span><span class="cat-score-label">${label}</span></span>`;
+}
+
+// ── Popover builders (rubric + evidence) ───────────────────────────────
+// Native `popover` elements: light-dismiss + Esc for free, render in the
+// top layer (no page reflow → no "snap"). One open at a time (popover=auto).
+
+/** Build a rubric popover (requirement/level + background + examples). Empty if nothing to show. */
+function rubricPopover(
+  code: string,
+  main: { label: string; text: string } | null,
+  background?: string,
+  examples?: Record<string, string>,
+): string {
+  const exEntries = examples ? Object.entries(examples) : [];
+  if (!main?.text && !background && exEntries.length === 0) return "";
+  const mainBlock = main?.text
+    ? `<section class="rb-sec"><h4 class="rb-label">${esc(main.label)}</h4><p>${esc(main.text)}</p></section>`
+    : "";
+  const bgBlock = background
+    ? `<section class="rb-sec"><h4 class="rb-label">Background</h4><p>${esc(background)}</p></section>`
+    : "";
+  const exBlock = exEntries.length
+    ? `<section class="rb-sec"><h4 class="rb-label">Examples</h4><dl class="rb-ex">${exEntries
+        .map(([k, v]) => `<div class="rb-ex-row"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`)
+        .join("")}</dl></section>`
+    : "";
+  return `<div popover="auto" id="rb-${esc(code)}" class="qpop" aria-label="Rubric: ${esc(code)}"><div class="qpop-head"><strong>${esc(code)}</strong><span class="qpop-head-sub">Rubric</span></div><div class="qpop-body">${mainBlock}${bgBlock}${exBlock}</div></div>`;
+}
+
+/** Build an evidence popover from resolved capture items. Reuses .evidence-item so the lightbox still zooms on click. */
+function evidencePopover(
+  code: string,
+  items: {
+    img: string;
+    alt: string;
+    title: string;
+    time: string;
+    notes?: string;
+    weak?: boolean;
+  }[],
+): string {
+  if (!items.length) return "";
+  const figs = items
+    .map(
+      (it) => `
+        <figure class="evidence-item${it.weak ? " evidence-weak" : ""}">
+          ${it.img ? `<img src="${it.img}" alt="${esc(it.alt)}" loading="lazy" />` : `<div class="evidence-placeholder">No evidence captured</div>`}
+          <figcaption class="evidence-meta"><strong>${esc(it.title)}</strong><span class="evidence-time">${esc(it.time)}</span>${it.notes ? `<p>${esc(it.notes)}</p>` : ""}</figcaption>
+        </figure>`,
+    )
+    .join("");
+  return `<div popover="auto" id="ev-${esc(code)}" class="qpop qpop-ev" aria-label="Evidence: ${esc(code)}"><div class="qpop-head"><strong>${esc(code)}</strong><span class="qpop-head-sub">Evidence (${items.length})</span></div><div class="qpop-body evidence-list">${figs}</div></div>`;
 }
 
 // ── Section builders (render from ReportModel slices) ──────────────────
@@ -91,67 +156,70 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
     .map((p, sectionIdx) => {
       const rows = p.questions
         .map((q) => {
-          const evidenceImgs =
-            q.evidenceIds.length > 0
-              ? q.evidenceIds
-                  .map((cid) => {
-                    const c = captureMap.get(cid);
-                    if (!c) return "";
-                    const imgSrc = c.compressedScreenshot ?? c.screenshotBase64;
-                    const imgHtml = imgSrc
-                      ? `<img src="${imgSrc}" alt="Evidence for ${q.code}: ${esc(c.pageTitle || "screenshot")}" loading="lazy" />`
-                      : `<div class="evidence-placeholder">No screenshot available</div>`;
-                    return `
-        <div class="evidence-item${q.isWeakEvidence ? " evidence-weak" : ""}">
-          ${imgHtml}
-          <div class="evidence-meta">
-            <strong>${esc(c.pageTitle || "Capture")}</strong>
-            <span class="evidence-time">${formatDate(c.timestamp)}</span>
-            ${c.notes ? `<p>${esc(c.notes)}</p>` : ""}
-          </div>
-        </div>
-      `;
-                  })
-                  .join("")
-              : "";
-
-          const backgroundRow = q.background
-            ? `
-    <tr class="sr"><td colspan="4" class="sc">
-      <details><summary class="ss">Background</summary>
-      <p>${esc(q.background)}</p></details>
-    </td></tr>
-  `
-            : "";
-
-          const examplesRow = q.examples
-            ? `
-    <tr class="sr"><td colspan="4" class="sc">
-      <details><summary class="ss">Examples</summary>
-      <table class="et">
-        ${EXAMPLE_LEVELS.map((lvl) => {
-          const ex = q.examples?.[lvl];
-          return ex ? `<tr><td class="el">${lvl}</td><td>${esc(ex)}</td></tr>` : "";
-        }).join("")}
-      </table></details>
-    </td></tr>
-  `
-            : "";
+          const scoreText = q.isNa
+            ? "N/A"
+            : q.isUnsure
+              ? "?"
+              : q.score >= 0
+                ? String(q.score)
+                : "—";
+          const scoreVal = q.isNa
+            ? "na"
+            : q.isUnsure
+              ? "unsure"
+              : q.score >= 0
+                ? String(q.score)
+                : "";
+          const hasScore = q.score >= 0 || q.isNa || q.isUnsure;
+          const lead = hasScore ? q.levelDescription || "" : "";
+          const rubric = rubricPopover(
+            q.code,
+            hasScore && q.levelDescription
+              ? { label: `Level ${scoreText}`, text: q.levelDescription }
+              : null,
+            q.background,
+            q.examples,
+          );
+          const evItems: {
+            img: string;
+            alt: string;
+            title: string;
+            time: string;
+            notes?: string;
+            weak?: boolean;
+          }[] = [];
+          for (const cid of q.evidenceIds) {
+            const c = captureMap.get(cid);
+            if (!c) continue;
+            evItems.push({
+              img: c.compressedScreenshot ?? c.screenshotBase64,
+              alt: `Evidence for ${q.code}: ${c.pageTitle || "screenshot"}`,
+              title: c.pageTitle || "Capture",
+              time: formatDate(c.timestamp),
+              notes: c.notes,
+              weak: q.isWeakEvidence,
+            });
+          }
+          const evidence = evidencePopover(q.code, evItems);
+          const actions =
+            (rubric
+              ? `<button type="button" class="qpop-btn" popovertarget="rb-${esc(q.code)}" aria-haspopup="true">Rubric</button>`
+              : "") +
+            (evItems.length
+              ? `<button type="button" class="qpop-btn qpop-btn-ev" popovertarget="ev-${esc(q.code)}" aria-haspopup="true">Evidence (${evItems.length})</button>`
+              : "");
 
           return `
-    <tr class="score-row">
-      <td class="code" style="color:${p.reportColor}">${q.code}</td>
-      <td class="score-cell">
-        <span class="score-badge" style="background:color-mix(in srgb, ${q.badgeColor} 12%, var(--white));color:${q.badgeColor}">
-          ${q.isNa ? "N/A" : q.isUnsure ? "?" : q.score >= 0 ? q.score : "—"}${q.customReasoning ? "*" : ""}
-        </span>
-      </td>
-      <td class="level">${esc(q.levelDescription)}</td>
-      <td class="notes">${esc(q.notes)}</td>
-    </tr>
-    ${backgroundRow}${examplesRow}
-    ${evidenceImgs ? `<tr class="evidence-row"><td colspan="4"><div class="evidence-list">${evidenceImgs}</div></td></tr>` : ""}
-  `;
+    <li class="qrow" id="q-${esc(q.code)}" style="--pc:${esc(q.badgeColor)}">
+      <div class="qrow-main">
+        <span class="qrow-code">${esc(q.code)}</span>
+        <span class="qrow-chip" data-score="${scoreVal}">${scoreText}${q.customReasoning ? "*" : ""}</span>
+        <p class="qrow-lead">${esc(lead)}</p>
+        <div class="qrow-actions">${actions}</div>
+      </div>
+      <p class="qrow-note">${q.notes ? esc(q.notes) : `<em class="qrow-note-empty">No reviewer note</em>`}</p>
+      ${rubric}${evidence}
+    </li>`;
         })
         .join("");
 
@@ -160,10 +228,9 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
       <div class="category-header">
         <div class="category-letter-block">
           <div class="category-letter">${p.code}</div>
-          <div class="category-letter-name">${p.fullName}</div>
         </div>
         <div class="category-info">
-          <h2 id="heading-${p.id}">${esc(p.fullName)}</h2>
+          <h3 id="heading-${p.id}"><span class="category-title">${esc(p.fullName)}</span>${categoryAvgIndicator(p)}</h3>
           <div class="principle-chips" role="list" aria-label="Question status overview">
             ${p.questions
               .map((q) => {
@@ -191,17 +258,8 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
           </div>
         </div>
       </div>
-      <div class="category-table-wrap">
-        <table>
-          <caption class="sr-only">Scoring for ${esc(p.fullName)}</caption>
-          <thead>
-            <tr><th scope="col">Code</th><th scope="col">Score</th><th scope="col">Level</th><th scope="col">Notes</th></tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-    </section>
-  `;
+      <ul class="qlist">${rows}</ul>
+    </section>`;
     })
     .join("");
 }
@@ -209,40 +267,25 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
 function renderGateRows(gates: QualityGateRow[]): string {
   return gates
     .map((g) => {
-      const qgBackgroundRow = g.background
-        ? `
-    <tr class="sr"><td colspan="4" class="sc">
-      <details><summary class="ss">Background</summary>
-      <p>${esc(g.background)}</p></details>
-    </td></tr>
-  `
-        : "";
-
-      const qgExamplesRow = g.examples
-        ? `
-    <tr class="sr"><td colspan="4" class="sc">
-      <details><summary class="ss">Examples</summary>
-      <table class="et">
-        ${Object.keys(g.examples)
-          .map((key) => {
-            const desc = g.examples?.[key];
-            return `<tr><td class="el">${key === "pass" ? "Pass" : key === "fail" ? "Fail" : key === "na" ? "N/A" : esc(key)}</td><td>${esc(desc ?? "")}</td></tr>`;
-          })
-          .join("")}
-      </table></details>
-    </td></tr>
-  `
-        : "";
-
+      const resultLabel = g.result === "pass" ? "PASS" : g.result === "fail" ? "FAIL" : "—";
+      const lead = g.requirement || g.label;
+      const rubric = rubricPopover(
+        g.code,
+        g.requirement ? { label: "Requirement", text: g.requirement } : null,
+        g.background,
+        g.examples,
+      );
       return `
-    <tr>
-      <td class="code">${g.code}</td>
-      <td><span class="gate-badge" style="background:color-mix(in srgb, ${g.color} 12%, var(--white));color:${g.color}">${g.label}</span></td>
-      <td>${esc(g.requirement)}</td>
-      <td class="notes">${esc(g.notes)}</td>
-    </tr>
-    ${qgBackgroundRow}${qgExamplesRow}
-  `;
+    <li class="qrow" id="qg-${esc(g.code)}" style="--pc:${esc(g.color)}">
+      <div class="qrow-main">
+        <span class="qrow-code">${esc(g.code)}</span>
+        <span class="qrow-chip" data-result="${esc(g.result ?? "")}">${resultLabel}</span>
+        <p class="qrow-lead">${esc(lead)}</p>
+        <div class="qrow-actions">${rubric ? `<button type="button" class="qpop-btn" popovertarget="rb-${esc(g.code)}" aria-haspopup="true">Rubric</button>` : ""}</div>
+      </div>
+      <p class="qrow-note">${g.notes ? esc(g.notes) : `<em class="qrow-note-empty">No reviewer note</em>`}</p>
+      ${rubric}
+    </li>`;
     })
     .join("");
 }
@@ -259,11 +302,9 @@ function buildFinalizationSection(
 
   return `
     <section class="finalization-section">
-      <div class="fin-bar" style="background:${verdictColor}"></div>
       <div class="fin-grade" style="color:${verdictColor};background:color-mix(in srgb, ${verdictColor} 8%, var(--white))">
         ${verdict}
       </div>
-      <p class="fin-detail-note">Detailed evidence and per-principle scoring appear in the sections above.</p>
       ${finalization.conclusion ? `<div class="fin-block fin-block--conclusion" style="--fin-accent:${verdictColor}"><h3>Conclusion</h3><p>${esc(finalization.conclusion)}</p></div>` : ""}
       ${
         strengthsList
@@ -307,7 +348,7 @@ function buildUnlinkedSection(captures: CaptureInfo[], linkedCaptureIds: Set<str
       const imgSrc = c.compressedScreenshot ?? c.screenshotBase64;
       const imgHtml = imgSrc
         ? `<img src="${imgSrc}" alt="Additional evidence: ${esc(c.pageTitle || "screenshot")}" loading="lazy" />`
-        : `<div class="evidence-placeholder">No screenshot available</div>`;
+        : `<div class="evidence-placeholder">No evidence captured</div>`;
       return `
         <div class="unlinked-item">
           ${imgHtml}
@@ -332,12 +373,52 @@ function buildUnlinkedSection(captures: CaptureInfo[], linkedCaptureIds: Set<str
   `;
 }
 
-function buildToc(principles: PrincipleScoreRow[]): string {
-  return principles
-    .map((p) => {
-      return `<a href="#category-${p.id}" class="toc-item" style="color:${p.reportColor}"><span class="toc-code">${p.code}</span> ${esc(p.fullName)}</a>`;
+function buildOverviewBar(gates: QualityGateRow[], principles: PrincipleScoreRow[]): string {
+  const gateBadges = gates
+    .map((g) => {
+      const answered = g.result === "pass" || g.result === "fail";
+      const state = answered ? "complete" : "empty";
+      const indicator = g.result === "pass" ? "\u2713" : g.result === "fail" ? "\u2717" : "\u25cb";
+      const statusText =
+        g.result === "pass" ? "pass" : g.result === "fail" ? "fail" : "not evaluated";
+      return `<a class="ro-badge" data-state="${state}" data-score="${g.result ?? ""}" style="--pc:${g.color}" href="#qg-${esc(g.code)}" title="${esc(g.code)}: ${esc(g.label)} \u2014 ${statusText}"><span class="ro-badge-code">${g.code}</span><span class="ro-badge-indicator" aria-hidden="true">${indicator}</span></a>`;
     })
     .join("");
+  const principleGroups = principles
+    .map((p) => {
+      const badges = p.questions
+        .map((q) => {
+          const ev = q.evidenceIds.length;
+          const answered = q.score >= 0 || q.isNa || q.isUnsure;
+          const state = answered ? (ev > 0 ? "complete" : "partial") : "empty";
+          const indicator =
+            state === "complete" ? "\u2713" : state === "partial" ? "\u25cf" : "\u25cb";
+          const scoreVal = q.isNa
+            ? "na"
+            : q.isUnsure
+              ? "unsure"
+              : q.score >= 0
+                ? String(q.score)
+                : "";
+          const statusText =
+            state === "complete"
+              ? "answered with evidence"
+              : state === "partial"
+                ? "answered"
+                : "unanswered";
+          return `<a class="ro-badge" data-state="${state}" data-score="${scoreVal}" style="--pc:${q.badgeColor}" href="#q-${esc(q.code)}" title="${esc(q.code)}: ${statusText}${ev > 0 ? ` \u00b7 ${ev} evidence` : ""}"><span class="ro-badge-code">${q.code}</span><span class="ro-badge-indicator" aria-hidden="true">${indicator}</span>${ev > 0 ? `<span class="ro-badge-ev">${ev}</span>` : ""}</a>`;
+        })
+        .join("");
+      return `<span class="ro-group"><a class="ro-cat" href="#category-${p.id}" style="--pc:${p.reportColor}" title="${esc(p.fullName)}">${p.code}</a>${badges}</span>`;
+    })
+    .join("");
+  const allQuestions = principles.flatMap((p) => p.questions);
+  const total = gates.length + allQuestions.length;
+  const scored =
+    gates.filter((g) => g.result === "pass" || g.result === "fail").length +
+    allQuestions.filter((q) => q.score >= 0 || q.isNa || q.isUnsure).length;
+  const pct = total > 0 ? Math.round((scored / total) * 100) : 0;
+  return `<span class="ro-fraction"><span class="ro-scored">${scored}</span><span class="ro-div">/</span><span class="ro-total">${total}</span></span><span class="ro-track" role="progressbar" aria-label="Questions answered" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span class="ro-fill" style="width:${pct}%"></span></span><span class="ro-sep" aria-hidden="true"></span>${gateBadges ? `<span class="ro-group">${gateBadges}</span>` : ""}${principleGroups}`;
 }
 
 // ── Main report ────────────────────────────────────────────────────────
@@ -446,13 +527,7 @@ function buildNutritionLabelHtml(
     const items = flagged
       .map(
         (g) =>
-          '<div class="nutrition-gate-item">' +
-          esc(g.label) +
-          ': <span class="' +
-          (g.result === "fail" ? "fail" : "unsure") +
-          '">' +
-          (g.result === "fail" ? "FAIL" : "UNSURE") +
-          "</span></div>",
+          `<div class="nutrition-gate-item" data-result="${g.result === "fail" ? "fail" : "unsure"}"><span class="nutrition-gate-label">${esc(g.label)}</span><span class="nutrition-gate-badge">${g.result === "fail" ? "FAIL" : "UNSURE"}</span></div>`,
       )
       .join("");
     if (items) {
@@ -492,11 +567,7 @@ function buildNutritionLabelHtml(
               (PRINCIPLE_NAMES[p.id] ?? "") +
               "</div><div>" +
               scoreCircles(avg) +
-              "</div>" +
-              (avg !== null
-                ? `<div class="nutrition-principle-fraction">${avg.toFixed(1)}</div>`
-                : "") +
-              "</th>"
+              "</div></th>"
             );
           })
           .join("")}
@@ -507,7 +578,6 @@ function buildNutritionLabelHtml(
         </th>
       </tr>
     </table>
-    <div class="nutrition-circle-legend">Each \u25cf = one point of the average score (out of 3)</div>
   </div>
 
   ${swRow}
@@ -520,7 +590,6 @@ function buildNutritionLabelHtml(
       <span class="nutrition-footer-text">LISA-EIS / University of Twente / ${date}</span>
     </a>
     <img src="${UT_LOGO}" alt="University of Twente" style="height:22px" />
-    <div class="nutrition-footer-ref">See the detailed Evaluation Report for full analysis.</div>
   </div>
 </div>`;
 }
@@ -550,7 +619,6 @@ export async function buildNutritionLabel(
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:;">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -665,7 +733,6 @@ export async function buildBusinessCardLabel(
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:;">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>TRUST Card: ${esc(metadata.toolName)}</title>
@@ -687,6 +754,7 @@ export async function buildHtmlReport(
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
   reviewer?: { name?: string; email?: string },
+  quickNotes: { id: string; text: string; timestamp: string }[] = [],
 ): Promise<string> {
   // Compress all screenshots in parallel
   if (!_logos) _logos = await import("./logos");
@@ -715,12 +783,11 @@ export async function buildHtmlReport(
     model.verdict.color,
   );
   const unlinkedSection = buildUnlinkedSection(model.captures, model.linkedCaptureIds);
-  const tocItems = buildToc(model.principleScores);
+  const overviewBar = buildOverviewBar(model.qualityGateRows, model.principleScores);
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:;">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -730,84 +797,174 @@ export async function buildHtmlReport(
 <body class="report">
 
 <main id="report-content">
-
-${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, model.scores, TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO, model.evalMap)}
-
-<!-- Full Report -->
-
-<div class="report-header">
-  <div class="trust-branding">
-    <img src="${TRUST_LOGO}" alt="TRUST" />
-    <div class="trust-branding-tagline">Information Tool Reviews</div>
-  </div>
-  <h1>Detailed Report</h1>
-  <div class="report-meta-value report-meta-value--muted">
-    ${esc(metadata.toolName)} &middot; ${safeLink(metadata.toolUrl, "report-meta-url")} &middot; Evaluated ${formatDate(metadata.startTime)}
-  </div>
-  <dl class="report-meta">
-    ${metadata.description ? `<dt class="report-meta-label">Description</dt><dd class="report-meta-value report-meta-value--italic">${esc(metadata.description)}</dd>` : ""}
-    ${(() => {
-      const a = ensureArray(metadata.dataSources);
-      return a.length
-        ? `<dt class="report-meta-label">Data sources</dt><dd class="report-meta-value report-meta-value--muted">${esc(a.join(", "))}</dd>`
-        : "";
-    })()}
-    ${(() => {
-      const a = ensureArray(metadata.searchMethods);
-      return a.length
-        ? `<dt class="report-meta-label">Search methods</dt><dd class="report-meta-value report-meta-value--muted">${esc(a.join(", "))}</dd>`
-        : "";
-    })()}
-    ${(() => {
-      const a = ensureArray(metadata.discipline);
-      return a.length
-        ? `<dt class="report-meta-label">Discipline</dt><dd class="report-meta-value report-meta-value--muted">${esc(a.join(", "))}</dd>`
-        : "";
-    })()}
-    ${metadata.company ? `<dt class="report-meta-label">Publisher</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.company)}</dd>` : ""}
-    ${metadata.pricing ? `<dt class="report-meta-label">Pricing</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.pricing)}</dd>` : ""}
-    ${metadata.availability ? `<dt class="report-meta-label">Availability</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.availability)}</dd>` : ""}
-    ${metadata.authenticationMethod ? `<dt class="report-meta-label">Authentication</dt><dd class="report-meta-value report-meta-value--muted">${esc(metadata.authenticationMethod)}</dd>` : ""}
-    ${metadata.termsConditionsUrl ? `<dt class="report-meta-label">Terms</dt><dd class="report-meta-value report-meta-value--muted">${safeLink(metadata.termsConditionsUrl)}</dd>` : ""}
-    <dt class="report-meta-label">AI-powered</dt><dd class="report-meta-value report-meta-value--muted">${(metadata.usesAi ?? true) ? "Yes" : "No"}</dd>
-    ${metadata.notes ? `<dt class="report-meta-label">Notes</dt><dd class="report-meta-value report-meta-value--muted report-meta-value--italic">${esc(metadata.notes)}</dd>` : ""}
-    ${
-      reviewer?.name || reviewer?.email
-        ? `<dt class="report-meta-label">Reviewer</dt><dd class="report-meta-value report-meta-value--muted">${[
-            reviewer.name,
-            reviewer.email,
-          ]
-            .filter((s): s is string => Boolean(s))
-            .map(esc)
-            .join(" &middot; ")}</dd>`
-        : ""
-    }
-  </dl>
-</div>
-
-<nav class="toc">
-  <span class="toc-label">Contents</span>
-  ${tocItems}
+<h1 class="sr-only">TRUST Review: ${esc(metadata.toolName)}</h1>
+<nav class="part-nav" aria-label="Report sections">
+  <a class="part-nav-btn" data-part="summary" href="#part-summary">Summary</a>
+  <a class="part-nav-btn" data-part="scores" href="#part-scores">Detailed Scores</a>
+  <a class="part-nav-btn" data-part="verdict" href="#part-verdict">Verdict</a>
 </nav>
 
-<h2 class="section-heading">Quality Gates</h2>
-<table class="qg-table">
-  <caption class="sr-only">Quality gates</caption>
-  <thead><tr><th scope="col">Code</th><th scope="col">Result</th><th scope="col">Requirement</th><th scope="col">Notes</th></tr></thead>
-  <tbody>${gateRows}</tbody>
-</table>
+<section class="report-part" id="part-summary" data-part="summary">
+  <header class="part-band"><h2 class="part-title">Summary</h2></header>
+    ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, model.scores, TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO, model.evalMap)}
+  </div>
+</section>
 
-<div class="score-legend"><span class="legend-label">Score levels:</span> <span style="color:${reportScoreColor(0)}">0 = Inadequate</span> · <span style="color:${reportScoreColor(1)}">1 = Poor</span> · <span style="color:${reportScoreColor(2)}">2 = Adequate</span> · <span style="color:${reportScoreColor(3)}">3 = Good</span></div>
+<section class="report-part" id="part-scores" data-part="scores">
+  <header class="part-band"><h2 class="part-title">Detailed Scores</h2></header>
+  <header class="scores-head"><div class="scores-head-tool"><a href="${esc(metadata.toolUrl)}" target="_blank" rel="noopener noreferrer"><span class="scores-head-name">${esc(metadata.toolName)}</span></a><span class="scores-head-url">${safeLink(metadata.toolUrl)}</span></div><div class="scores-head-meta">Detailed Evaluation Report &middot; ${formatDate(metadata.startTime)} &middot; ${model.scores.totalQuestions} questions</div></header>
+  <div class="part-body">
+    <div class="report-meta-groups">
+    ${(() => {
+      const groups: string[] = [];
+      const profile: string[] = [];
+      if (metadata.description)
+        profile.push(`<dt>Description</dt><dd>${esc(metadata.description)}</dd>`);
+      if (metadata.company) profile.push(`<dt>Publisher</dt><dd>${esc(metadata.company)}</dd>`);
+      const disc = ensureArray(metadata.discipline);
+      if (disc.length) profile.push(`<dt>Discipline</dt><dd>${esc(disc.join(", "))}</dd>`);
+      const coverage: string[] = [];
+      const ds = ensureArray(metadata.dataSources);
+      if (ds.length) coverage.push(`<dt>Data sources</dt><dd>${esc(ds.join(", "))}</dd>`);
+      const sm = ensureArray(metadata.searchMethods);
+      if (sm.length) coverage.push(`<dt>Search methods</dt><dd>${esc(sm.join(", "))}</dd>`);
+      const access: string[] = [];
+      if (metadata.pricing) access.push(`<dt>Pricing</dt><dd>${esc(metadata.pricing)}</dd>`);
+      if (metadata.availability)
+        access.push(`<dt>Availability</dt><dd>${esc(metadata.availability)}</dd>`);
+      if (metadata.authenticationMethod)
+        access.push(`<dt>Authentication</dt><dd>${esc(metadata.authenticationMethod)}</dd>`);
+      if (metadata.termsConditionsUrl)
+        access.push(`<dt>Terms</dt><dd>${safeLink(metadata.termsConditionsUrl)}</dd>`);
+      access.push(`<dt>AI-powered</dt><dd>${(metadata.usesAi ?? true) ? "Yes" : "No"}</dd>`);
+      if (profile.length)
+        groups.push(
+          `<section class="report-meta-group"><h3>Profile</h3><dl>${profile.join("")}</dl></section>`,
+        );
+      if (access.length)
+        groups.push(
+          `<section class="report-meta-group"><h3>Access</h3><dl>${access.join("")}</dl></section>`,
+        );
+      if (coverage.length)
+        groups.push(
+          `<section class="report-meta-group"><h3>Coverage</h3><dl>${coverage.join("")}</dl></section>`,
+        );
+      return groups.join("");
+    })()}
+  </div>
+  ${metadata.notes ? `<p class="report-meta-foot">${esc(metadata.notes)}</p>` : ""}
+  ${quickNotes.length > 0 ? `<section class="report-quick-notes"><h3>Quick Notes</h3><ul>${quickNotes.map((n) => `<li class="quick-note"><time class="quick-note-time" datetime="${esc(n.timestamp)}">${esc(formatDate(n.timestamp))}</time><span class="quick-note-text">${esc(n.text)}</span></li>`).join("")}</ul></section>` : ""}
+    <nav class="report-overview" aria-label="Report overview">
+      ${overviewBar}
+    </nav>
+    <h3 class="block-heading">Quality Gates</h3>
+    <ul class="qlist qg-list">${gateRows}</ul>
+    <div class="categories">
 ${categorySections}
-${finalizationSection}
+</div>
+  </div>
+</section>
+
+<section class="report-part" id="part-verdict" data-part="verdict">
+  <header class="part-band"><h2 class="part-title">Verdict</h2></header>
+  <div class="part-body part-body--narrow">
+    ${finalizationSection}
+  </div>
+</section>
 ${unlinkedSection}
 </main>
 <div class="bottom-bar"></div>
 <footer class="footer">
   <span class="footer-wordmark">TRUST Framework<span class="footer-edition">v1.1</span></span>
-  <span class="footer-meta">${esc(metadata.toolName)} · ${model.scores.totalQuestions} questions · ${finalization?.finalizedAt ? "Finalized" : "Evaluated"} ${formatDate(finalization?.finalizedAt ?? metadata.startTime)}</span>
+  <span class="footer-meta">${esc(metadata.toolName)} · ${model.scores.totalQuestions} questions · ${finalization?.finalizedAt ? "Finalized" : "Evaluated"} ${formatDate(finalization?.finalizedAt ?? metadata.startTime)}${
+    reviewer?.name || reviewer?.email
+      ? ` · Reviewed by ${[reviewer?.name, reviewer?.email]
+          .filter((s): s is string => Boolean(s))
+          .map(esc)
+          .join(" &middot; ")}`
+      : ""
+  }</span>
 </footer>
 
+<script>
+(function () {
+  var box = document.createElement("div");
+  box.id = "trust-lightbox";
+  box.setAttribute("role", "dialog");
+  box.setAttribute("aria-modal", "true");
+  box.setAttribute("aria-label", "Full-size screenshot");
+  box.setAttribute("tabindex", "-1");
+  box.innerHTML = '<img alt="" />';
+  document.body.appendChild(box);
+  var boxImg = box.querySelector("img");
+  var lastFocus = null;
+  function open(src, alt) {
+    lastFocus = document.activeElement;
+    boxImg.src = src;
+    boxImg.alt = alt || "";
+    box.classList.add("open");
+    box.focus();
+  }
+  function close() {
+    box.classList.remove("open");
+    boxImg.src = "";
+    if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+  }
+  box.addEventListener("click", close);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") close();
+  });
+  // Event delegation: click any evidence/unlinked screenshot to view it full-size.
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    if (!t || typeof t.closest !== "function") return;
+    var img = t.closest(".evidence-item img, .unlinked-item img");
+    if (!img) return;
+    e.preventDefault();
+    open(img.getAttribute("src") || "", img.getAttribute("alt") || "");
+  });
+  // Highlight the active part in the segmented nav.
+  var navBtns = document.querySelectorAll(".part-nav-btn");
+  var parts = document.querySelectorAll(".report-part");
+  if (navBtns.length && parts.length && "IntersectionObserver" in window) {
+    var navObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          var id = entry.target.getAttribute("data-part");
+          navBtns.forEach(function (btn) {
+            var isActive = btn.getAttribute("data-part") === id;
+            btn.classList.toggle("is-active", isActive);
+            if (isActive) btn.setAttribute("aria-current", "true");
+            else btn.removeAttribute("aria-current");
+          });
+        }
+      });
+    }, { rootMargin: "-45% 0px -50% 0px", threshold: 0 });
+    parts.forEach(function (p) { navObserver.observe(p); });
+  }
+  // Popover API fallback for browsers without native popover support
+  if (typeof document.createElement('div').showPopover !== 'function') {
+    var openPop = null;
+    document.querySelectorAll('.qpop-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var id = btn.getAttribute('popovertarget');
+        var pop = id ? document.getElementById(id) : null;
+        if (!pop) return;
+        if (openPop && openPop !== pop) { openPop.classList.remove('is-open'); }
+        pop.classList.toggle('is-open');
+        openPop = pop.classList.contains('is-open') ? pop : null;
+      });
+    });
+    document.addEventListener('click', function(e) {
+      if (openPop && !openPop.contains(e.target) && !e.target.closest('.qpop-btn')) {
+        openPop.classList.remove('is-open');
+        openPop = null;
+      }
+    });
+  }
+})();
+</script>
 </body>
 </html>`;
 }

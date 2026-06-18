@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DISCIPLINE_DEFAULT,
   DISCIPLINE_OPTIONS,
@@ -35,11 +35,18 @@ function DisciplineField({
     }
   };
 
-  // Auto-expand if user has selected non-default options
+  // Auto-expand ONCE on mount if the session already has non-default disciplines
+  // (e.g. imported data). After that the user's collapse choice is respected —
+  // previously the effect re-expanded on every render once any non-default
+  // discipline was present, making "fewer options" impossible to collapse.
   const hasNonDefault = selected.some((s) => s !== DISCIPLINE_DEFAULT);
+  const didAutoExpand = useRef(false);
   useEffect(() => {
-    if (hasNonDefault && !expanded) setExpanded(true);
-  }, [hasNonDefault, expanded]);
+    if (!didAutoExpand.current && hasNonDefault) {
+      setExpanded(true);
+      didAutoExpand.current = true;
+    }
+  }, [hasNonDefault]);
   const isOpen = expanded;
 
   return (

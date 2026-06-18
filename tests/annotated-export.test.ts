@@ -151,3 +151,36 @@ describe("HTML report uses annotated images (§3e)", () => {
     expect(html).toContain(TINY_PNG_ANNOTATED);
   });
 });
+
+describe("inline report screenshots are downscaled (§3e)", () => {
+  it("downscales inline evidence image to JPEG while keeping standalone PNG full-res", async () => {
+    const capture = makeCapture({
+      id: "cap-0001-abcd",
+      screenshotBase64: TINY_PNG,
+      pageTitle: "Downscale Me",
+    });
+    const evaluations: Evaluation[] = [
+      {
+        rubricId: "TR.data_source_clarity",
+        score: 2,
+        notes: "",
+        explicitEvidenceIds: ["cap-0001-abcd"],
+      },
+    ];
+
+    const blob = await exportSession(makeMetadata(), [capture], evaluations, RUBRIC);
+    const files = await unzipToFiles(blob);
+
+    // Standalone image keeps the original full-resolution PNG
+    expect(files.has("cap0001a.png")).toBe(true);
+
+    // The inline HTML report downscales the evidence screenshot to JPEG (≤1280px)
+    const reportHtml = [...files.values()].find(
+      (v): v is string => typeof v === "string" && v.includes("evidence-item"),
+    );
+    expect(reportHtml).toBeDefined();
+    expect(reportHtml).toContain("data:image/jpeg");
+    // The original PNG payload must not be inlined verbatim (it was re-encoded)
+    expect(reportHtml).not.toContain(TINY_PNG.split(",")[1] as string);
+  });
+});

@@ -183,6 +183,8 @@ Depth is conveyed through three mechanisms:
 
 **The Flat Surface Rule.** No `box-shadow` anywhere in the system. If an element needs visual prominence, use background tint, border weight, or color saturation, never shadow.
 
+**Exported-report exception.** The generated evaluation report (nutrition label, business card, and full HTML/PDF report) is a *publication artifact*, not the instrument UI. Its hero verdict seals, fold-out rubric/evidence popovers, and the screenshot lightbox use restrained `box-shadow` and a verdict-color accent bar to read as an authoritative, shareable document. This is the sole sanctioned use of elevation in the system; the extension sidepanel and the marketing site remain strictly flat.
+
 ## 5. Components
 
 Components are structured but approachable: flat borders, tinted backgrounds, and deliberate color accents provide visual structure without austerity.

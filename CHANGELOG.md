@@ -1,6 +1,59 @@
 # Changelog
 
 
+## v0.9.0 — 2026-06-17
+
+### New: Rebuilt evaluation report
+
+The generated report is now a three-part publication — **Summary**, **Detailed Scores**, and **Verdict** — divided by clear part-band headers, each reachable from a sticky segmented nav at the top that highlights the section you're reading.
+
+- **Three clear parts.** Summary (the "nutrition label" scorecard), Detailed Scores (metadata, per-principle overview, quality gates, full rubric), and Verdict (finalization) are now visually separated.
+- **Per-principle overview chips** replace the old distribution bar — every question shows a state indicator (○ unanswered · ● answered · ✓ answered with evidence), its score colour, and an evidence count.
+- **Two-line question rows with fold-outs.** Each finding is a compact row; click **Rubric** for the requirement/level/background/examples, or **Evidence (N)** to view the linked screenshots. Uses the native popover API (light-dismiss + Esc).
+- **Click-to-zoom evidence.** Any screenshot — in a fold-out or the Additional Evidence gallery — opens full-size in a lightbox.
+
+### Improved: Report polish
+
+- **Detailed Scores header restored** in a compact form (tool name, URL, date, question count).
+- **Quick Notes now render in the report** with timestamps and styling (previously absent).
+- **Cleaner Summary scorecard:** removed the duplicate per-principle number, the redundant circle legend, and the "see the detailed report" footer line.
+- **Quality-gate flags restyled** as colour-coded FAIL / UNSURE chips instead of plain text.
+- **Cleaner Verdict:** removed the doubled accent bars and the redundant "details above" note; the verdict seal and finalization blocks sit cleanly under the section header.
+- **Print/PDF fidelity:** finding descriptions are no longer truncated to one line when printed, and rubric/evidence fold-out content appears inline in the PDF; the part-nav is hidden in print.
+
+### Fixed
+
+- **Report lightbox** — clicking a screenshot in the report now opens it full-size (a dropped variable declaration meant the click handler threw before opening).
+- **Metadata "fewer options" toggle** — the Discipline accordion can be collapsed again after selecting a non-default discipline (a `useEffect` was re-expanding it every render).
+- **Quick Notes persistence** — toolbar quick notes are now saved by the debounced auto-save (previously vanished on reload).
+- **Annotation previews update live** — saving annotations now refreshes the Captures grid immediately.
+- **Evaluation "jump to first incomplete"** no longer traps the viewport or pushes the header off-screen.
+- **Sidebar tab tooltips** now anchor correctly (were rendering below the viewport).
+- **Exported report tool logo** — remote logos/favicons are inlined as data URLs so the standalone report renders correctly offline.
+- **Exported report screenshot sizing + click-to-view** — inline screenshots downscaled for sharing (full-res PNGs still ship in the ZIP) with a click-to-view lightbox.
+- **Auto-save metadata robustness** — the change-detection signature now covers every `SessionMetadata` field.
+
+### Accessibility
+
+- Finalization grade selector is a proper radiogroup: arrow-key navigation, focus moves with selection, Home/End support.
+- Report part-nav exposes the active section to screen readers (`aria-current`); the evidence lightbox manages focus on open/close.
+- Popover API fallback so rubric/evidence fold-outs stay reachable in older browsers; print stylesheet reveals fold-out content inline.
+
+### Security
+
+- **Hardened archive import.** A crafted review ZIP could previously smuggle a live `javascript:` URL past the import sanitizer using embedded tab/newline characters (browsers strip these before resolving the scheme). Imported URLs are now normalized before scheme checks. External `url()` references in inline `style` attributes are also stripped on import (previously only `<style>` blocks were).
+
+### Improved
+
+- **Standalone report CSP removed** — the exported HTML report, nutrition label, and business card no longer ship a CSP meta tag, so the inline lightbox script runs; logos remain inlined as data URLs so the file is fully self-contained offline.
+- Marketing site and in-browser trial redesigned to match the instrument's design system.
+- Score and principle text darkened for WCAG-AA contrast; design tokens unified.
+
+### Tests
+
+- +11 regression tests (archive-import sanitization, quick-notes/discipline/screenshot autosave). 797 total.
+
+
 ## v0.8.2 — 2026-06-14
 
 ### New

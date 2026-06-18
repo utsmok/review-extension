@@ -401,19 +401,26 @@ export default function ScoreOverviewBar({
               : "color-mix(in srgb, var(--score-0) 70%, var(--score-1))",
   } as React.CSSProperties;
 
-  // Navigate to question
+  // Navigate to question. Scroll ONLY the tab-panel-content container, not the
+  // whole document: scrollIntoView({ block: "start" }) cascades to every
+  // scrollable ancestor and pushes the TRUST header off-screen, leaving the
+  // user unable to scroll back up.
   const navigateTo = (rubricId: string) => {
     const el = document.getElementById(`question-${rubricId}`);
-    if (el) {
-      try {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-      } catch {
-        el.scrollIntoView({ block: "start" });
-      }
-      if (el instanceof HTMLDetailsElement && !el.open) {
-        el.open = true;
-      }
+    if (!el) return;
+    if (el instanceof HTMLDetailsElement && !el.open) el.open = true;
+    const container = el.closest<HTMLElement>(".tab-panel-content");
+    if (!container) {
+      el.scrollIntoView({ block: "start" });
+      return;
     }
+    // Offset by the sticky score-overview-bar height so the target row is not
+    // hidden beneath it.
+    const sticky = container.querySelector<HTMLElement>(".score-overview-bar");
+    const stickyH = sticky ? sticky.getBoundingClientRect().height : 0;
+    const delta =
+      el.getBoundingClientRect().top - container.getBoundingClientRect().top - stickyH - 8;
+    container.scrollTo({ top: Math.max(0, container.scrollTop + delta), behavior: "smooth" });
   };
 
   // Find QG/scoring split index

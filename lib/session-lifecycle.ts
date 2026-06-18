@@ -46,27 +46,11 @@ function computeSignature(state: SessionState): string {
   // Capture content (exclude heavy screenshot fields)
   const captureDigest = state.captures.map((c) => [c.id, c.notes, c.metadataField ?? ""]);
 
-  // Session metadata (user-editable text fields)
+  // Session metadata — stringify the ENTIRE object so any field change
+  // (faviconUrl, status, and future additions) triggers a save. A hand-
+  // maintained field list would silently miss new SessionMetadata fields.
   const s = state.session;
-  const metadataDigest = s
-    ? JSON.stringify({
-        toolName: s.toolName,
-        toolUrl: s.toolUrl,
-        company: s.company ?? "",
-        pricing: s.pricing ?? "",
-        availability: s.availability ?? "",
-        authenticationMethod: s.authenticationMethod ?? "",
-        dataSources: s.dataSources ?? [],
-        searchMethods: s.searchMethods ?? [],
-        discipline: s.discipline ?? [],
-        notes: s.notes ?? "",
-        usesAi: s.usesAi ?? false,
-        termsConditionsUrl: s.termsConditionsUrl ?? "",
-        toolLogoUrl: s.toolLogoUrl ?? "",
-        description: s.description ?? "",
-        finalizedAt: s.finalizedAt ?? "",
-      })
-    : "";
+  const metadataDigest = s ? JSON.stringify(s) : "";
 
   // Full finalization (not just grade)
   const fin = state.finalization;
@@ -111,7 +95,13 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
   }
   lastSaveTime = Date.now();
 
-  const { session: s, captures: c, evaluations: e, finalization: f } = useSessionStore.getState();
+  const {
+    session: s,
+    captures: c,
+    evaluations: e,
+    finalization: f,
+    quickNotes: qn,
+  } = useSessionStore.getState();
   const activeId = useRegistryStore.getState().activeSessionId;
   // Reset the persisted-screenshot cache when the active session changes, so a
   // stale flush for a previous session never suppresses persistence for the new one.
@@ -140,6 +130,7 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
       captures: strippedCaptures,
       evaluations: e,
       finalization: f,
+      quickNotes: qn,
     });
     if (ok) {
       document.dispatchEvent(

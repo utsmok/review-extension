@@ -37,6 +37,7 @@ test-results/
 playwright-report/
 report-dev/audit/
 report-dev/fonts/
+report-dev/standalone-report.html
 coverage/
 
 # Agent/tooling artifacts
