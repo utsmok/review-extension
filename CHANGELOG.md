@@ -1,6 +1,14 @@
 # Changelog
 
 
+## v0.9.1 — 2026-06-18
+
+### Fixed
+
+- **Report summary redesign.** The "nutrition label" summary is rebuilt as a compact, centered card (capped near the verdict-stamp width): a single bordered cell with title · tool · verdict stamp · a unified scores row (all quality gates shown as a 2×2 pass/fail grid inlined with the TR/RE/US/SE/TC + Overall columns) · conclusion & recommendation · strengths & weaknesses · footer. The separate "quality gates failed" warning under the verdict is removed.
+- **Report evidence lightbox.** Clicking a screenshot now opens a full-screen lightbox. It was hidden behind native evidence popovers (which render in the top layer); it is now a top-layer `popover=manual` with a class fallback where the Popover API is unavailable. Evidence images are larger and non-cropped, and per-evidence reviewer notes are shown.
+- **Firefox add-on validation.** The Firefox build failed AMO validation. Added the required `browser_specific_settings.gecko.data_collection_permissions` declaration (the extension is fully local — no telemetry), a stable gecko add-on id, and omitted the Chrome-only `sidePanel` permission for Firefox.
+
 ## v0.9.0 — 2026-06-17
 
 ### New: Rebuilt evaluation report
