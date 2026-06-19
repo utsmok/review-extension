@@ -21,8 +21,12 @@
         if (on) active = link;
       }
       // On narrow viewports the nav scrolls horizontally: keep the active link in view.
+      // Scroll the NAV only (via scrollLeft) — never the page. Calling scrollIntoView
+      // here makes the browser animate the document back to the active anchor and
+      // fights the user's touch-scroll on mobile (the "ping back to anchor" bug).
       if (active && nav && nav.scrollWidth > nav.clientWidth) {
-        active.scrollIntoView({ inline: "center", block: "nearest" });
+        const center = active.offsetLeft + active.offsetWidth / 2;
+        nav.scrollLeft = center - nav.clientWidth / 2;
       }
     };
 
