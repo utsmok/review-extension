@@ -2,6 +2,20 @@
 
 
 
+## v0.9.3 — 2026-06-19
+
+### Fixed
+
+- **Report evidence zoom — actually fixed.** Clicking a screenshot in the *exported* report still did nothing: the minifier collapsed whitespace inside the inline `<script>`, deleting its newlines so the first `//` line-comment ran to end-of-input and the whole script failed to parse — silently disabling the lightbox click handler. (The Details popovers kept working because they use the native Popover API, no JS.) `minifyHtml` now preserves `<script>`, `<pre>`, and `<textarea>` verbatim while still collapsing the surrounding markup and `<style>`. This hid for two releases because the standalone-report generator doesn't minify — only the real export path does.
+
+### Changed
+
+- **Report summary refinements.** Removed the redundant "Summary" header; added the reviewed tool's logo to the Detailed Scores masthead; vertically centered the quality-gates grid with the principle scores (dropping the "Quality Gates" label that offset it); and replaced the table rules around the conclusion/recommendation and strengths/weaknesses block with the colored tints and accent stripes alone.
+
+### Tests
+
+- +4 `minifyHtml` regression tests (script line-comment survival, `<pre>` whitespace, space-before-`<` inside `<pre>`). 801 total.
+
 ## v0.9.2 — 2026-06-18
 
 ### Fixed
