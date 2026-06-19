@@ -74,4 +74,43 @@ describe("minifyHtml", () => {
     const result = minifyHtml(input);
     expect(result).toBe(result.trim());
   });
+
+  it("preserves <script> content — a // line comment must not swallow following code", () => {
+    // Reproduces the production lightbox bug: newline collapse turned the
+    // first `//` into a run-to-end comment, causing a SyntaxError.
+    const input = [
+      "<html><body>",
+      "<script>",
+      "var x = 1; // a comment",
+      "var y = x + 1;",
+      "window.__result = y;",
+      "</script>",
+      "</body></html>",
+    ].join("\n");
+    const result = minifyHtml(input);
+    // The statement after the line comment survives on its own line.
+    expect(result).toMatch(/\/\/ a comment\n/);
+    expect(result).toContain("var y = x + 1;");
+    // The full script body must still parse without a SyntaxError.
+    const body = result.slice(
+      result.indexOf("<script>") + "<script>".length,
+      result.indexOf("</script>"),
+    );
+    expect(() => new Function(body)).not.toThrow();
+  });
+
+  it("preserves <pre> rendered whitespace", () => {
+    const input = "<div>text</div><pre>line1\n   indented\nline3</pre>";
+    const result = minifyHtml(input);
+    expect(result).toContain("<pre>line1\n   indented\nline3</pre>");
+    // Surrounding markup is still collapsed.
+    expect(result).toContain("<div>text</div>");
+  });
+
+  it("still collapses whitespace in surrounding markup around a preserved <script>", () => {
+    const input = "<div>\n\n  <p>hi</p>\n\n<script>var a = 1;\nvar b = 2;</script>\n\n</div>";
+    const result = minifyHtml(input);
+    expect(result).not.toMatch(/\n\s*\n/);
+    expect(result).toContain("var a = 1;\nvar b = 2;");
+  });
 });
