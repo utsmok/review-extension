@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TRUST: Evaluating AI Search Tools</title>
-  <meta name="description" content="A practical framework and browser extension for assessing AI-based academic search tools against the TRUST principles: Transparent, Reliable, User-centric, Sound, and Traceable. From the University of Twente, debuting at LIBER 2026.">
+  <meta name="description" content="A practical framework and browser extension for assessing AI-based academic search tools against the TRUST principles: Transparent, Reliable, User-centric, Sound, and Traceable. From the University of Twente, presented at LIBER 2026.">
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,14 +18,15 @@
   <header class="site-header">
     <div class="container">
       <a href="#top" class="header-logo" aria-label="TRUST home">
-        <img src="assets/trust.svg" alt="">
-        <span>TRUST</span>
+        <img src="assets/trust.svg" alt="TRUST">
       </a>
       <nav class="tab-nav" aria-label="Page sections">
-        <a href="#how">How it works</a>
-        <a href="#tools">Tools</a>
+        <a href="#abstract">Abstract</a>
+        <a href="#try">Try</a>
+        <a href="#example">Example</a>
         <a href="#install">Install</a>
         <a href="#compare">Compare</a>
+        <a href="#tools">Tools</a>
         <a href="#references">References</a>
         <a href="#contact">Contact</a>
         <a href="try/" class="cta" aria-label="Try the TRUST extension in your browser">Try →</a>
@@ -87,101 +88,123 @@
     </div>
   </section>
 
-  <!-- ===== How it works ===== -->
-  <section id="how" class="section" aria-labelledby="how-title">
+  <!-- ===== Conference poster ===== -->
+  <section id="poster" class="section" aria-labelledby="poster-title">
     <div class="container">
-      <div class="section-head">
-        <h2 id="how-title" class="section-title">How TRUST works</h2>
-        <p class="section-lede">
-          The TRUST framework evaluates AI-based search tools across five core principles,
-          inspired by the FAIR principles for data management.
-        </p>
-      </div>
-
-      <div class="prose">
-        <p>Each review grades a tool on:</p>
-        <ul>
-          <li><strong>Quality gates</strong>: pass/fail checks for critical criteria.</li>
-          <li><strong>Scoring questions</strong>: 10 questions per principle, scored 0 to 3.</li>
-          <li><strong>Structured evidence</strong>: screenshots and annotations captured in-browser.</li>
-          <li><strong>HTML reports and nutrition labels</strong>: shareable, self-contained outputs.</li>
-        </ul>
-      </div>
-
-      <div class="section-head mt-8">
-        <h3 class="section-title section-title--sub">Evaluation examples</h3>
-      </div>
-      <div class="table-wrap">
-        <table class="comparison-table">
-          <caption class="visually-hidden">Example TRUST evaluations of representative tools.</caption>
-          <thead>
-            <tr><th scope="col">Tool</th><th scope="col">Verdict</th><th scope="col">Key finding</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>ai2 Asta</td>
-              <td><span class="verdict verdict-recommended">Recommended</span></td>
-              <td>Restricts outputs to the Semantic Scholar corpus and exposes its reasoning chain, excelling in Traceability and Reliability.</td>
-            </tr>
-            <tr>
-              <td>Elicit</td>
-              <td><span class="verdict verdict-provisional">Needs review</span></td>
-              <td>Valuable for abstract summarization, but the ranking algorithm is not fully disclosed, limiting Transparency.</td>
-            </tr>
-            <tr>
-              <td>ChatGPT, Gemini, Perplexity</td>
-              <td><span class="verdict verdict-not-recommended">Not recommended</span></td>
-              <td>Prone to citation errors and lacking rigorous, verifiable academic sources, failing Reliability and Traceability.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="prose mt-4">
+      <div class="notice">
+        <h2 id="poster-title" class="section-title">Conference poster</h2>
         <p>
-          <a class="btn btn-ghost" href="example/ai2-asta-report.html" target="_blank" rel="noopener">View a complete example report</a>
-          — a full v0.9.3 export of the ai2 Asta review (opens in a new tab).<br>
-          Or <a href="example/trust-review-ai2-asta.zip" download>download the example .zip</a>
-          to import into the extension or the Compare tool below.
+          We are preparing a poster for the LIBER 2026 conference (1–3 July, NTNU Trondheim).
+          It summarises the TRUST framework, the evaluation protocol, and our pilot results.
         </p>
+        <p class="hero-cta">
+          <a class="btn btn-primary" href="poster/trust-liber-2026-poster.pdf">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Download the poster (PDF)
+          </a>
+          <span class="muted text-sm" id="poster-zenodo" data-doi="placeholder">A Zenodo DOI will appear here once published.</span>
+        </p>
+        <p class="muted text-xs">PDF will be available here shortly; the link is already in place.</p>
       </div>
     </div>
   </section>
 
-  <!-- ===== Tools ===== -->
-  <section id="tools" class="section" aria-labelledby="tools-title">
+  <!-- ===== Abstract (conference proposal) ===== -->
+  <section id="abstract" class="section" aria-labelledby="abstract-title">
     <div class="container">
       <div class="section-head">
-        <h2 id="tools-title" class="section-title">Evaluated tools</h2>
+        <p class="kicker">Conference abstract · proposed for LIBER 2026</p>
+        <h2 id="abstract-title" class="section-title">TRUST framework for evaluating AI-based information search tools</h2>
+        <p class="section-lede muted">S. Mok, S.A. Kruit, G. de Jonge, J.M. van Eck — Embedded Information Services, Library, ICT Services &amp; Archive, University of Twente.</p>
+      </div>
+
+      <div class="prose">
+        <p>Novel information search tools are changing how academics access knowledge. These AI-driven systems should augment, not replace, users’ critical thinking and information-literacy skills. As information specialists, our role is to act as informed intermediaries, guiding the scientific community toward tools that enhance research without compromising academic integrity <a href="#ref-1">[1]</a>. Several principles and guidelines for designing and using trustworthy AI have been developed <a href="#ref-2">[2]</a> alongside metrics for assessing these principles <a href="#ref-3">[3]</a>. However, no current specific, rigorous methods to evaluate AI-based search tools exist. This abstract introduces the TRUST framework, a practical tool designed to evaluate AI-based search tools. It measures whether recommended tools are reliable, ethical, and effective, and match scholarly and governmental standards of rigor and transparency.</p>
+
+        <p>The TRUST framework is built on five core principles, inspired by the FAIR principles for data management <a href="#ref-4">[4]</a>. Each tool review grades the subject on these aspects:</p>
+        <ul class="principle-list">
+          <li><strong>Transparent:</strong> Methodology, data sources, and limitations are clearly documented.</li>
+          <li><strong>Reliable:</strong> Outputs are accurate, verifiable, and consistent. Sources exist and are not hallucinated.</li>
+          <li><strong>User-centric:</strong> Fit for academic use and integrates with standard research workflows.</li>
+          <li><strong>Soundness:</strong> Algorithmic fairness, bias mitigation, and accuracy of search results and rankings.</li>
+          <li><strong>Traceable:</strong> All information generated and used can be traced back to a primary source.</li>
+        </ul>
+
+        <p>Literature stresses that AI models operate as “black boxes,” making documentation alone insufficient for deep trust and transparency <a href="#ref-5">[5]</a>. The TRUST evaluation protocol addresses challenges such as “consistent and reproducible results” from AI-based literature searches. However, this remains a critical point of failure in the current AI landscape due to the methods of retrieval and synthesis of information AI tools use <a href="#ref-6">[6]</a>. Similarly, the framework checks if output is “factually accurate and verifiable” and “faithful to source material”, which especially generic large language models (LLMs) consistently fail to provide <a href="#ref-7">[7]</a>. These evaluation protocol items are the main reason general LLMs are mostly categorized as “not recommended” for AI-based literature search. In order for these tools to pass these checks, they must evolve beyond keyword retrieval toward a nuanced understanding of academic context and hierarchy <a href="#ref-8">[8]</a>.</p>
+
+        <p>Our team of information specialists piloted the TRUST evaluation protocol. Examples of results include:</p>
+        <ul>
+          <li><strong>Recommended:</strong> ai2 Asta — restricts outputs to the Semantic Scholar corpus, exposes its reasoning chain, and is free and mostly open-sourced. It excels in Traceability and Reliability.</li>
+          <li><strong>Needs review / provisional:</strong> Elicit — valuable for abstract summarization, but its ranking algorithm is not fully disclosed, limiting its Transparency. The free version is capped, affecting its User-centric score.</li>
+          <li><strong>Not recommended:</strong> generic LLM interfaces (e.g. ChatGPT, Gemini) and general search-focused AI (e.g. Perplexity) — prone to citation errors and lacking rigorous, verifiable academic sources, failing the Reliability and Traceability criteria.</li>
+        </ul>
+
+        <p>In the coming months, the TRUST framework will be refined into a standardized evaluation protocol with an interactive, integrated workflow — structured data entry coupled with automatic processing, ending in a database that can serve a public-facing list of approved tools accompanied by user guides. In the longer term, TRUST could be extended beyond search tools to assess AI features embedded in existing platforms, and integrate into institutional AI policies and initiatives.</p>
+      </div>
+
+      <div class="card flush mt-8 at-a-glance">
+        <h3 class="section-title section-title--sub">How a review works</h3>
+        <ul class="prose">
+          <li><strong>Quality gates</strong> — four pass/fail checks for privacy &amp; security, intellectual property, and accessibility.</li>
+          <li><strong>Scoring</strong> — two questions per principle across five principles (ten total), scored 0 to 3.</li>
+          <li><strong>Structured evidence</strong> — screenshots and annotations captured in-browser and tagged to questions.</li>
+          <li><strong>Output</strong> — a self-contained HTML report with a nutrition-label summary and click-to-zoom evidence.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Try it in your browser ===== -->
+  <section id="try" class="section" aria-labelledby="try-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="try-title" class="section-title">Try it in your browser</h2>
         <p class="section-lede">
-          Tools reviewed using the TRUST framework. Column scores average the 10 questions
-          per principle on a 0 to 3 scale:
-          <abbr title="Transparent">TR</abbr>,
-          <abbr title="Reliable">RE</abbr>,
-          <abbr title="User-centric">US</abbr>,
-          <abbr title="Soundness">SE</abbr>,
-          <abbr title="Traceable">TC</abbr>.
-          <a href="https://github.com/utsmok/review-extension/issues">Nominate a tool</a>.
+          The full extension runs as an in-browser demo — no install required. It opens
+          preloaded with a complete, real review (ai2 Asta) so you can click through the
+          evaluation, inspect the captured evidence, and read the generated report. New
+          screenshots you capture in the demo are mocked, but everything else is live.
         </p>
       </div>
-      <div class="table-wrap">
-        <table class="tools-table">
-          <thead>
-            <tr>
-              <th scope="col">Tool</th>
-              <th scope="col">Category</th>
-              <th scope="col">Verdict</th>
-              <th scope="col" class="num"><abbr title="Transparent">TR</abbr></th>
-              <th scope="col" class="num"><abbr title="Reliable">RE</abbr></th>
-              <th scope="col" class="num"><abbr title="User-centric">US</abbr></th>
-              <th scope="col" class="num"><abbr title="Soundness">SE</abbr></th>
-              <th scope="col" class="num"><abbr title="Traceable">TC</abbr></th>
-              <th scope="col">Status</th>
-            </tr>
-          </thead>
-          <tbody id="tools-tbody">
-            <tr><td colspan="9" class="muted center">Loading…</td></tr>
-          </tbody>
-        </table>
+      <div class="screenshot-row">
+        <img src="assets/screenshots/try-evaluation.png" alt="The TRUST web demo showing the evaluation tab: a split view with a simulated browser pane and the review sidebar scoring ai2 Asta against quality gates and rubric questions.">
+        <img src="assets/screenshots/try-captures.png" alt="The TRUST web demo showing the captures tab with a grid of evidence screenshots tagged to rubric questions.">
+      </div>
+      <p class="hero-cta">
+        <a class="btn btn-primary" href="try/">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Open the demo
+        </a>
+        <span class="muted text-sm">Best on a desktop browser.</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ===== Example report ===== -->
+  <section id="example" class="section" aria-labelledby="example-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="example-title" class="section-title">See a complete example</h2>
+        <p class="section-lede">
+          A full, real TRUST review exported straight from the extension — the ai2 Asta
+          evaluation referenced in the abstract. Every screenshot is click-to-zoom.
+        </p>
+      </div>
+      <div class="card">
+        <div class="example-actions">
+          <a class="btn btn-primary" href="example/ai2-asta-report.html" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            View the example report
+          </a>
+          <a class="btn btn-ghost" href="example/trust-review-ai2-asta.zip" download>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download the .zip
+          </a>
+        </div>
+        <p class="muted text-sm mt-4">
+          The report is a self-contained HTML file. The .zip is the importable review package —
+          load it into the extension, or drop it into the Compare tool below.
+        </p>
       </div>
     </div>
   </section>
@@ -192,7 +215,7 @@
       <div class="section-head">
         <h2 id="install-title" class="section-title">Install the browser extension</h2>
         <p class="section-lede">
-          See it in action first: <a href="try/">try the live in-browser demo</a> with no install.
+          Or <a href="try/">try the live in-browser demo</a> first, with no install.
         </p>
       </div>
 
@@ -264,6 +287,52 @@
     </div>
   </section>
 
+  <!-- ===== Tools (illustrative) ===== -->
+  <section id="tools" class="section" aria-labelledby="tools-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="tools-title" class="section-title">Tools under review</h2>
+        <p class="section-lede">
+          Tools we are evaluating with the TRUST framework. Column scores average each
+          principle’s two questions on a 0 to 3 scale:
+          <abbr title="Transparent">TR</abbr>,
+          <abbr title="Reliable">RE</abbr>,
+          <abbr title="User-centric">US</abbr>,
+          <abbr title="Soundness">SE</abbr>,
+          <abbr title="Traceable">TC</abbr>.
+          <a href="https://github.com/utsmok/review-extension/issues">Nominate a tool</a>.
+        </p>
+      </div>
+
+      <div class="notice notice--muted">
+        <strong>Illustrative draft data.</strong> The scores below are placeholders while
+        reviews are in progress — not completed evaluations. The only finished review so far is
+        <a href="example/ai2-asta-report.html" target="_blank" rel="noopener">ai2 Asta</a>.
+      </div>
+
+      <div class="table-wrap mt-4">
+        <table class="tools-table">
+          <thead>
+            <tr>
+              <th scope="col">Tool</th>
+              <th scope="col">Category</th>
+              <th scope="col">Verdict</th>
+              <th scope="col" class="num"><abbr title="Transparent">TR</abbr></th>
+              <th scope="col" class="num"><abbr title="Reliable">RE</abbr></th>
+              <th scope="col" class="num"><abbr title="User-centric">US</abbr></th>
+              <th scope="col" class="num"><abbr title="Soundness">SE</abbr></th>
+              <th scope="col" class="num"><abbr title="Traceable">TC</abbr></th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody id="tools-tbody">
+            <tr><td colspan="9" class="muted center">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- ===== References ===== -->
   <section id="references" class="section" aria-labelledby="refs-title">
     <div class="container">
@@ -271,28 +340,27 @@
         <h2 id="refs-title" class="section-title">References</h2>
       </div>
       <ol class="ref-list">
-        <li>Nogueira LA, et al. IFLA J 2025;51:735 to 749. doi: 10.1177/03400352241304121</li>
-        <li>AI HLEG. 2020. <a href="https://digital.strategy.ec.europa.eu/en/library/assessment-list-trustworthy-artificial-intelligence-altai-self-assessment">Assessment List for Trustworthy AI (ALTAI)</a>.</li>
-        <li>McCormack L, et al. AI Ethics 2025;5:1973 to 1994. doi: 10.1007/s43681-024-00590-8</li>
-        <li>GO FAIR. <a href="https://www.go-fair.org/fair-principles/">FAIR Principles</a>.</li>
-        <li>Buçinca Z, et al. ToCHI 2024;31(3). doi: 10.1145/3635372</li>
-        <li>Wang L, et al. arXiv 2024. doi: 10.48550/arXiv.2402.06409</li>
-        <li>Liu J, et al. arXiv 2023. doi: 10.48550/arXiv.2305.11435</li>
+        <li id="ref-1">Nogueira LA, et al. IFLA J 2025;51:735–49. doi: 10.1177/03400352241304121</li>
+        <li id="ref-2">AI HLEG. 2020. <a href="https://digital.strategy.ec.europa.eu/en/library/assessment-list-trustworthy-artificial-intelligence-altai-self-assessment">Assessment List for Trustworthy AI (ALTAI)</a>.</li>
+        <li id="ref-3">McCormack L, et al. AI Ethics 2025;5:1973–94. doi: 10.1007/s43681-024-00590-8</li>
+        <li id="ref-4">GO FAIR. <a href="https://www.go-fair.org/fair-principles/">FAIR Principles</a>.</li>
+        <li id="ref-5">Mersha M, et al. Neurocomputing 2024;599:128111. doi: 10.1016/j.neucom.2024.128111</li>
+        <li id="ref-6">Hsien ATC. Katina 2025. doi: 10.1146/katina-052025-1</li>
+        <li id="ref-7">Cabezas-Clavijo Á, et al. arXiv 2025. doi: 10.48550/arXiv.2505.18059</li>
+        <li id="ref-8">Seth I, et al. Plast Aesthet Res 2025;12:1. doi: 10.20517/2347-9264.2024.99</li>
       </ol>
 
       <div class="section-head mt-8">
         <h3 class="section-title section-title--sub">Authors</h3>
       </div>
       <div class="authors">
-        <span class="author-chip">S. Mok</span>
+        <a class="author-chip author-chip--lead" href="mailto:s.mok@utwente.nl">S. Mok</a>
         <span class="author-chip">S.A. Kruit</span>
         <span class="author-chip">G. de Jonge</span>
-        <span class="author-chip">K.I.H. Mingoti Poague</span>
-        <span class="author-chip">L. van Ewijk</span>
         <span class="author-chip">J.M. van Eck</span>
       </div>
       <p class="attribution">
-        Embedded Information Services, Library, ICT Services and Archive, University of Twente
+        <a href="https://www.utwente.nl/en/library">Embedded Information Services, Library, ICT Services and Archive, University of Twente</a>
         <br>
         <span class="pill">v0.9.3</span>
         <a class="pill" href="https://github.com/utsmok/review-extension/blob/main/LICENSE">Apache-2.0</a>
@@ -330,7 +398,7 @@
             <div class="link-url">1 to 3 July, NTNU Trondheim, Norway</div>
           </div>
         </a>
-        <a class="link-card" href="https://www.utwente.nl/en/lisa-eis/">
+        <a class="link-card" href="https://www.utwente.nl/en/library">
           <svg class="link-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
           <div>
             <div class="link-label">University of Twente, LISA-EIS</div>
@@ -344,15 +412,7 @@
         <h3 class="section-title section-title--sub">Contact</h3>
         </div>
         <p>Samuel Mok, <a href="mailto:s.mok@utwente.nl">s.mok@utwente.nl</a></p>
-        <p class="muted text-sm">Embedded Information Services, University of Twente</p>
-      </div>
-
-      <div class="qr-section">
-        <div class="section-head">
-        <h3 class="section-title section-title--sub">Scan to visit</h3>
-        </div>
-        <img src="assets/qr-code.svg" alt="QR code for trust.samuelmok.cc" width="140" height="140">
-        <p class="muted text-xs">trust.samuelmok.cc</p>
+        <p class="muted text-sm"><a href="https://www.utwente.nl/en/library">Embedded Information Services, University of Twente</a></p>
       </div>
     </div>
   </section>
@@ -363,8 +423,8 @@
     <div class="container">
       <div class="footer-logos">
         <img src="assets/trust.svg" alt="TRUST">
-        <img src="assets/lisa-eis.svg" alt="LISA-EIS">
-        <img src="assets/ut-logo.png" alt="University of Twente">
+        <a href="https://www.utwente.nl/en/library"><img src="assets/lisa-eis.svg" alt="LISA-EIS — University of Twente"></a>
+        <a href="https://www.utwente.nl/en/library"><img src="assets/ut-logo.png" alt="University of Twente"></a>
       </div>
       <p>TRUST Framework, LIBER 2026, Trondheim · <a href="https://github.com/utsmok/review-extension">GitHub</a></p>
     </div>

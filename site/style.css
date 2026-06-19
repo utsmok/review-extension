@@ -1061,3 +1061,107 @@ code {
   font-size: 0.8rem;
   line-height: 1.4;
 }
+/* =====================================================================
+   Callouts, kickers, screenshots — abstract / try / poster / example
+   ===================================================================== */
+.kicker {
+  font-family: var(--ff-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: var(--ls-kicker);
+  text-transform: uppercase;
+  color: var(--trust-magenta);
+  margin-bottom: var(--space-2);
+}
+
+/* Notice / callout — flat, left accent, no shadow */
+.notice {
+  border-left: 4px solid var(--trust-magenta);
+  background: var(--trust-magenta-tint);
+  padding: var(--space-5) var(--space-6);
+  border-radius: var(--radius-md);
+}
+.notice--muted {
+  border-left-color: var(--ut-border);
+  background: var(--ut-offwhite);
+  padding: var(--space-4) var(--space-5);
+}
+.notice p + p {
+  margin-top: var(--space-3);
+}
+.notice .section-title {
+  margin-bottom: var(--space-2);
+}
+
+/* Abstract principle list — color-keyed square markers */
+.principle-list {
+  list-style: none;
+  padding: 0;
+}
+.principle-list li {
+  position: relative;
+  padding-left: var(--space-5);
+  margin-bottom: var(--space-2);
+}
+.principle-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--trust-magenta);
+}
+
+/* At-a-glance facts card */
+.at-a-glance ul {
+  margin: 0;
+}
+
+/* Try-section screenshot grid */
+.screenshot-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  margin: var(--space-4) 0;
+}
+.screenshot-row img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--ut-border);
+  border-radius: var(--radius-sm);
+  display: block;
+}
+
+/* Example report action row */
+.example-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+/* Lead author chip — a link that keeps the chip shape */
+a.author-chip {
+  text-decoration: none;
+  color: var(--trust-magenta);
+  border-color: var(--trust-magenta-border);
+}
+a.author-chip:hover {
+  background: var(--trust-magenta-tint);
+  color: var(--trust-magenta-strong);
+}
+
+@media (max-width: 720px) {
+  .screenshot-row {
+    grid-template-columns: 1fr;
+  }
+  .example-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .example-actions .btn {
+    width: 100%;
+  }
+}
