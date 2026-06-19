@@ -55,3 +55,6 @@ skills-lock.json
 
 # Generated autoresearch outputs
 tools/output/
+
+# Local reference data (real exported reviews used for QA — not project source)
+.example_data/
