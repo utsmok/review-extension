@@ -419,6 +419,9 @@ a.pill:hover {
 .prose {
   max-width: var(--prose-measure);
 }
+.prose--wide {
+  max-width: none;
+}
 .prose p + p {
   margin-top: var(--space-3);
 }
