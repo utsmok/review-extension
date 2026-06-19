@@ -316,6 +316,7 @@ a:hover {
   color: var(--ut-primary);
   max-width: 18ch;
   margin: 0 auto var(--space-4);
+  text-wrap: balance;
 }
 .hero .lede {
   font-size: 1.15rem;
@@ -400,7 +401,6 @@ a.pill:hover {
 }
 .section-head {
   margin-bottom: var(--space-6);
-}
 .section-title {
   font-family: var(--ff-heading);
   font-weight: 700;
@@ -409,6 +409,8 @@ a.pill:hover {
   letter-spacing: var(--ls-heading);
   color: var(--ut-primary);
   line-height: 1.15;
+  text-wrap: balance;
+}
 }
 .section-lede {
   margin-top: var(--space-3);
@@ -419,8 +421,11 @@ a.pill:hover {
 .prose {
   max-width: var(--prose-measure);
 }
+.prose p {
+  text-wrap: pretty;
+}
 .prose--wide {
-  max-width: none;
+  max-width: 75ch;
 }
 .prose p + p {
   margin-top: var(--space-3);
@@ -539,6 +544,7 @@ a.pill:hover {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  text-wrap: balance;
 }
 .card h3 .icon {
   color: var(--trust-magenta);
@@ -969,6 +975,25 @@ code {
   .header-logo span {
     display: none; /* wordmark glyph is enough on the narrow bar */
   }
+  /* Touch targets: ensure ≥44px tap height on mobile */
+  .tab-nav a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .btn {
+    min-height: 44px;
+  }
+  .compare-btn {
+    min-height: 44px;
+    padding: var(--space-3) var(--space-4);
+  }
+  .upload-zone label {
+    display: inline-block;
+    min-height: 44px;
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+  }
   .site-footer .container {
     flex-direction: column;
     align-items: flex-start;
@@ -1029,9 +1054,9 @@ code {
 .mt-8 {
   margin-top: var(--space-8);
 }
-/* Smaller section-title variant for sub-headings within a section */
 .section-title--sub {
   font-size: 1.15rem;
+  text-wrap: balance;
 }
 .compare-card .compare-points {
   color: var(--ut-muted);
@@ -1077,15 +1102,19 @@ code {
   margin-bottom: var(--space-2);
 }
 
-/* Notice / callout — flat, left accent, no shadow */
+/* Notice / callout — flat, top accent bar (mirrors the principle-card accent),
+   no shadow. Uses a top accent rather than border-left to avoid the side-stripe
+   tell banned by the impeccable system; DESIGN.md sanctions a top accent bar. */
 .notice {
-  border-left: 4px solid var(--trust-magenta);
+  border: 1px solid var(--trust-magenta-border);
+  border-top: var(--border-accent) solid var(--trust-magenta);
   background: var(--trust-magenta-tint);
   padding: var(--space-5) var(--space-6);
   border-radius: var(--radius-md);
 }
 .notice--muted {
-  border-left-color: var(--ut-border);
+  border: 1px solid var(--ut-border);
+  border-top: var(--border-accent) solid var(--ut-slate);
   background: var(--ut-offwhite);
   padding: var(--space-4) var(--space-5);
 }
@@ -1166,5 +1195,67 @@ a.author-chip:hover {
   }
   .example-actions .btn {
     width: 100%;
+  }
+}
+
+/* =====================================================================
+   Print — clean ink-on-paper (navy-tinted neutrals per DESIGN.md), hide interactive chrome
+   ===================================================================== */
+@media print {
+  .site-header,
+  .tab-nav,
+  .site-footer,
+  .upload-zone,
+  .compare-controls,
+  .hero-cta,
+  .example-actions,
+  .btn,
+  .btn-primary,
+  .btn-ghost,
+  .compare-btn {
+    display: none !important;
+  }
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+    color: var(--ut-text);
+    background: var(--ut-white);
+  }
+  .prose,
+  .prose--wide {
+    max-width: 100%;
+  }
+  a {
+    color: var(--ut-text);
+    text-decoration: underline;
+  }
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: var(--ut-muted);
+  }
+  a[href^="#"]::after {
+    content: none;
+  }
+  img {
+    max-width: 100%;
+    page-break-inside: avoid;
+  }
+  .section {
+    padding: 12pt 0;
+    border-bottom: 1pt solid var(--ut-border);
+  }
+  .card,
+  .principle-card,
+  .notice {
+    break-inside: avoid;
+  }
+  .table-wrap {
+    overflow-x: visible;
+  }
+  .tools-table,
+  .comparison-table,
+  .compare-table {
+    font-size: 9pt;
   }
 }

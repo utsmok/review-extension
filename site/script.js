@@ -52,6 +52,7 @@
     if (!tbody) return;
     try {
       const res = await fetch("data/tools/registry.json");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const entries = await res.json();
       if (!Array.isArray(entries) || !entries.length) {
         tbody.innerHTML = '<tr><td colspan="9" class="muted center">No tools yet.</td></tr>';
@@ -115,6 +116,16 @@
     const input = document.getElementById("compare-input");
     if (!drop || !input) return;
 
+    // Make the drop zone keyboard-operable (it's a div, not a native control).
+    drop.setAttribute("tabindex", "0");
+    drop.setAttribute("role", "button");
+    drop.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        input.click();
+      }
+    });
+
     drop.addEventListener("click", () => input.click());
     drop.addEventListener("dragover", (e) => {
       e.preventDefault();
@@ -128,6 +139,16 @@
     });
     input.addEventListener("change", () => handleFiles(input.files));
 
+    // Aria-live polite region for compare results announcements.
+    const results = document.getElementById("compare-results");
+    if (results && !results.querySelector("[aria-live]")) {
+      const status = document.createElement("div");
+      status.setAttribute("aria-live", "polite");
+      status.className = "sr-only";
+      status.id = "compare-status";
+      results.insertBefore(status, results.firstChild);
+    }
+
     const clear = document.getElementById("compare-clear");
     if (clear) {
       clear.addEventListener("click", () => {
@@ -136,15 +157,43 @@
       });
     }
   }
+  function showFileError(msg) {
+    let el = document.getElementById("compare-error");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "compare-error";
+      el.setAttribute("role", "alert");
+      el.className = "compare-error muted";
+      const drop = document.getElementById("compare-drop");
+      if (drop) drop.parentNode.insertBefore(el, drop.nextSibling);
+    }
+    el.textContent = msg;
+    // Auto-dismiss after 6 seconds.
+    clearTimeout(el._tid);
+    el._tid = setTimeout(() => {
+      el.textContent = "";
+    }, 6000);
+  }
 
   async function handleFiles(files) {
+    let errors = 0;
     for (const file of files) {
       try {
         const data = await parseZip(file);
         if (data) compareData.push(data);
+        else errors++;
       } catch (e) {
         console.warn("Failed to parse", file.name, e);
+        errors++;
       }
+    }
+    if (errors > 0) {
+      const total = files.length;
+      showFileError(
+        total === 1
+          ? "Could not read that file — it may not be a valid TRUST session archive."
+          : `${errors} of ${total} file${errors > 1 ? "s" : ""} could not be read.`,
+      );
     }
     renderCompare();
   }
@@ -225,11 +274,16 @@
     const tbody = document.getElementById("compare-tbody");
     if (!results || !grid || !thead || !tbody) return;
 
+    const status = document.getElementById("compare-status");
+
     if (compareData.length === 0) {
       results.hidden = true;
+      if (status) status.textContent = "Comparison results cleared.";
       return;
     }
     results.hidden = false;
+    if (status)
+      status.textContent = `Comparison results updated — ${compareData.length} session${compareData.length > 1 ? "s" : ""} loaded.`;
 
     grid.innerHTML = compareData
       .map((d, i) => {
