@@ -107,6 +107,13 @@ describe("minifyHtml", () => {
     expect(result).toContain("<div>text</div>");
   });
 
+  it("preserves a space before '<' inside <pre> (no global space-strip on preserved blocks)", () => {
+    // A code snippet like `if (i < len)` must keep the space before `<`.
+    const input = "<pre>if (i &lt; len)\n  return x;</pre>";
+    const result = minifyHtml(input);
+    expect(result).toContain("<pre>if (i &lt; len)\n  return x;</pre>");
+  });
+
   it("still collapses whitespace in surrounding markup around a preserved <script>", () => {
     const input = "<div>\n\n  <p>hi</p>\n\n<script>var a = 1;\nvar b = 2;</script>\n\n</div>";
     const result = minifyHtml(input);

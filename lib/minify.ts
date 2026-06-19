@@ -42,5 +42,9 @@ export function minifyHtml(html: string): string {
     m = PRESERVE_BLOCKS.exec(html);
   }
   out.push(minifyChunk(html.slice(last)));
-  return out.join("").replace(HTML_SPACE_BEFORE_TAG, "").trim();
+  // No global space-before-tag pass here: it would also run over the verbatim
+  // preserved blocks and corrupt rendered whitespace inside <pre>/<textarea>
+  // (e.g. a code snippet `if (i < len)` would lose the space). minifyChunk
+  // already strips markup spaces per chunk; boundary spaces are insignificant.
+  return out.join("").trim();
 }
