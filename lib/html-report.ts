@@ -464,8 +464,7 @@ function buildNutritionLabelHtml(
 
   const swRow =
     strengthsHtml || weaknessesHtml
-      ? `<div class="nutrition-divider-thin"></div>
-<div class="nutrition-sw">
+      ? `<div class="nutrition-sw">
   ${
     strengthsHtml
       ? `<div class="nutrition-sw-col nutrition-sw-col--strength">
@@ -477,7 +476,6 @@ function buildNutritionLabelHtml(
     <div class="nutrition-sw-empty">Not specified</div>
   </div>`
   }
-  <div class="nutrition-sw-divider"></div>
   ${
     weaknessesHtml
       ? `<div class="nutrition-sw-col nutrition-sw-col--weakness">
@@ -497,13 +495,11 @@ function buildNutritionLabelHtml(
   const recommendation = finalization?.recommendations?.trim() ?? "";
   const conclRecRow =
     conclusion || recommendation
-      ? `<div class="nutrition-divider-thin"></div>
-<div class="nutrition-cr">
+      ? `<div class="nutrition-cr">
   <div class="nutrition-cr-col nutrition-cr-col--conclusion">
     <div class="nutrition-sw-title">Conclusion</div>
     ${conclusion ? `<p>${esc(conclusion)}</p>` : `<div class="nutrition-sw-empty">Not specified</div>`}
   </div>
-  <div class="nutrition-sw-divider"></div>
   <div class="nutrition-cr-col nutrition-cr-col--recommendation">
     <div class="nutrition-sw-title">Recommendation</div>
     ${recommendation ? `<p>${esc(recommendation)}</p>` : `<div class="nutrition-sw-empty">Not specified</div>`}
@@ -552,7 +548,7 @@ function buildNutritionLabelHtml(
   <div class="nutrition-scores">
     ${
       gateGrid
-        ? `<div class="nutrition-score-block nutrition-score-block--gates"><div class="nutrition-overall-label">Quality Gates</div>${gateGrid}</div>`
+        ? `<div class="nutrition-score-block nutrition-score-block--gates">${gateGrid}</div>`
         : ""
     }
     <div class="nutrition-score-block nutrition-score-block--subjects">
@@ -784,6 +780,7 @@ export async function buildHtmlReport(
   const categorySections = renderCategorySections(model.principleScores, model.captures);
   const unlinkedSection = buildUnlinkedSection(model.captures, model.linkedCaptureIds);
   const overviewBar = buildOverviewBar(model.qualityGateRows, model.principleScores);
+  const toolLogo = metadata.toolLogoUrl || metadata.faviconUrl;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -800,14 +797,12 @@ export async function buildHtmlReport(
 <h1 class="sr-only">TRUST Review: ${esc(metadata.toolName)}</h1>
 
 <section class="report-part" id="part-summary" data-part="summary">
-  <header class="part-band"><h2 class="part-title">Summary</h2></header>
-    ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, model.scores, TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO, model.evalMap)}
-  </div>
+  ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, model.scores, TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO, model.evalMap)}
 </section>
 
 <section class="report-part" id="part-scores" data-part="scores">
   <header class="part-band"><h2 class="part-title">Detailed Scores</h2></header>
-  <header class="scores-head"><div class="scores-head-tool"><a href="${esc(metadata.toolUrl)}" target="_blank" rel="noopener noreferrer"><span class="scores-head-name">${esc(metadata.toolName)}</span></a><span class="scores-head-url">${safeLink(metadata.toolUrl)}</span></div><div class="scores-head-meta">Detailed Evaluation Report &middot; ${formatDate(metadata.startTime)} &middot; ${model.scores.totalQuestions} questions</div></header>
+  <header class="scores-head"><div class="scores-head-tool">${toolLogo ? `<img class="scores-head-logo" src="${esc(toolLogo)}" alt="" />` : ""}<a href="${esc(metadata.toolUrl)}" target="_blank" rel="noopener noreferrer"><span class="scores-head-name">${esc(metadata.toolName)}</span></a><span class="scores-head-url">${safeLink(metadata.toolUrl)}</span></div><div class="scores-head-meta">Detailed Evaluation Report &middot; ${formatDate(metadata.startTime)} &middot; ${model.scores.totalQuestions} questions</div></header>
   <div class="part-body">
     <div class="report-meta-groups">
     ${(() => {

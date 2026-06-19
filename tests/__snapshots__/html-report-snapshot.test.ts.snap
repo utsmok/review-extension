@@ -16,8 +16,7 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 1`] = 
 <h1 class="sr-only">TRUST Review: SnapshotTestTool</h1>
 
 <section class="report-part" id="part-summary" data-part="summary">
-  <header class="part-band"><h2 class="part-title">Summary</h2></header>
-    
+  
 <div class="nutrition-label">
   <div class="nutrition-top">
     <div class="nutrition-top-row">
@@ -50,7 +49,7 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 1`] = 
   <div class="nutrition-divider-thin"></div>
 
   <div class="nutrition-scores">
-    <div class="nutrition-score-block nutrition-score-block--gates"><div class="nutrition-overall-label">Quality Gates</div><div class="nutrition-gate-grid"><div class="nutrition-gate" data-result="pass" title="Data privacy policy"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Data privacy policy</span></div><div class="nutrition-gate" data-result="pass" title="AI model training policy"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">AI model training policy</span></div><div class="nutrition-gate" data-result="pass" title="Intellectual property preservation"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Intellectual property preservation</span></div><div class="nutrition-gate" data-result="pass" title="Accessibility"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Accessibility</span></div></div></div>
+    <div class="nutrition-score-block nutrition-score-block--gates"><div class="nutrition-gate-grid"><div class="nutrition-gate" data-result="pass" title="Data privacy policy"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Data privacy policy</span></div><div class="nutrition-gate" data-result="pass" title="AI model training policy"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">AI model training policy</span></div><div class="nutrition-gate" data-result="pass" title="Intellectual property preservation"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Intellectual property preservation</span></div><div class="nutrition-gate" data-result="pass" title="Accessibility"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Accessibility</span></div></div></div>
     <div class="nutrition-score-block nutrition-score-block--subjects">
       <table class="nutrition-principles-table" aria-label="Principle scores">
         <tr>
@@ -65,26 +64,22 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 1`] = 
     </div>
   </div>
 
-  <div class="nutrition-divider-thin"></div>
-<div class="nutrition-cr">
+  <div class="nutrition-cr">
   <div class="nutrition-cr-col nutrition-cr-col--conclusion">
     <div class="nutrition-sw-title">Conclusion</div>
     <p>Test conclusion</p>
   </div>
-  <div class="nutrition-sw-divider"></div>
   <div class="nutrition-cr-col nutrition-cr-col--recommendation">
     <div class="nutrition-sw-title">Recommendation</div>
     <p>Improve</p>
   </div>
 </div>
 
-  <div class="nutrition-divider-thin"></div>
-<div class="nutrition-sw">
+  <div class="nutrition-sw">
   <div class="nutrition-sw-col nutrition-sw-col--strength">
     <div class="nutrition-sw-title">Strengths</div>
     <ul class="nutrition-sw-list"><li>Good</li></ul>
   </div>
-  <div class="nutrition-sw-divider"></div>
   <div class="nutrition-sw-col nutrition-sw-col--weakness">
     <div class="nutrition-sw-title">Weaknesses</div>
     <ul class="nutrition-sw-list"><li>Bad</li></ul>
@@ -99,7 +94,6 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 1`] = 
     <img src="data:image/png;base64,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" alt="University of Twente" style="height:22px" />
   </div>
 </div>
-  </div>
 </section>
 
 <section class="report-part" id="part-scores" data-part="scores">
@@ -511,7 +505,7 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 2`] = 
   <div class="nutrition-divider-thin"></div>
 
   <div class="nutrition-scores">
-    <div class="nutrition-score-block nutrition-score-block--gates"><div class="nutrition-overall-label">Quality Gates</div><div class="nutrition-gate-grid"><div class="nutrition-gate" data-result="pass" title="Data privacy policy"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Data privacy policy</span></div><div class="nutrition-gate" data-result="pass" title="AI model training policy"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">AI model training policy</span></div><div class="nutrition-gate" data-result="pass" title="Intellectual property preservation"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Intellectual property preservation</span></div><div class="nutrition-gate" data-result="pass" title="Accessibility"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Accessibility</span></div></div></div>
+    <div class="nutrition-score-block nutrition-score-block--gates"><div class="nutrition-gate-grid"><div class="nutrition-gate" data-result="pass" title="Data privacy policy"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Data privacy policy</span></div><div class="nutrition-gate" data-result="pass" title="AI model training policy"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">AI model training policy</span></div><div class="nutrition-gate" data-result="pass" title="Intellectual property preservation"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Intellectual property preservation</span></div><div class="nutrition-gate" data-result="pass" title="Accessibility"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Accessibility</span></div></div></div>
     <div class="nutrition-score-block nutrition-score-block--subjects">
       <table class="nutrition-principles-table" aria-label="Principle scores">
         <tr>
@@ -526,26 +520,22 @@ exports[`HTML report snapshot > matches snapshot for fully-scored session 2`] = 
     </div>
   </div>
 
-  <div class="nutrition-divider-thin"></div>
-<div class="nutrition-cr">
+  <div class="nutrition-cr">
   <div class="nutrition-cr-col nutrition-cr-col--conclusion">
     <div class="nutrition-sw-title">Conclusion</div>
     <p>Test conclusion</p>
   </div>
-  <div class="nutrition-sw-divider"></div>
   <div class="nutrition-cr-col nutrition-cr-col--recommendation">
     <div class="nutrition-sw-title">Recommendation</div>
     <p>Improve</p>
   </div>
 </div>
 
-  <div class="nutrition-divider-thin"></div>
-<div class="nutrition-sw">
+  <div class="nutrition-sw">
   <div class="nutrition-sw-col nutrition-sw-col--strength">
     <div class="nutrition-sw-title">Strengths</div>
     <ul class="nutrition-sw-list"><li>Good</li></ul>
   </div>
-  <div class="nutrition-sw-divider"></div>
   <div class="nutrition-sw-col nutrition-sw-col--weakness">
     <div class="nutrition-sw-title">Weaknesses</div>
     <ul class="nutrition-sw-list"><li>Bad</li></ul>
@@ -581,8 +571,7 @@ exports[`HTML report snapshot > matches snapshot for partially-scored session 1`
 <h1 class="sr-only">TRUST Review: PartialTool</h1>
 
 <section class="report-part" id="part-summary" data-part="summary">
-  <header class="part-band"><h2 class="part-title">Summary</h2></header>
-    
+  
 <div class="nutrition-label">
   <div class="nutrition-top">
     <div class="nutrition-top-row">
@@ -615,7 +604,7 @@ exports[`HTML report snapshot > matches snapshot for partially-scored session 1`
   <div class="nutrition-divider-thin"></div>
 
   <div class="nutrition-scores">
-    <div class="nutrition-score-block nutrition-score-block--gates"><div class="nutrition-overall-label">Quality Gates</div><div class="nutrition-gate-grid"><div class="nutrition-gate" data-result="pass" title="Data privacy policy"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Data privacy policy</span></div><div class="nutrition-gate" data-result="none" title="Intellectual property preservation"><span class="nutrition-gate-icon" aria-hidden="true">○</span><span class="nutrition-gate-name">Intellectual property preservation</span></div><div class="nutrition-gate" data-result="none" title="Accessibility"><span class="nutrition-gate-icon" aria-hidden="true">○</span><span class="nutrition-gate-name">Accessibility</span></div></div></div>
+    <div class="nutrition-score-block nutrition-score-block--gates"><div class="nutrition-gate-grid"><div class="nutrition-gate" data-result="pass" title="Data privacy policy"><span class="nutrition-gate-icon" aria-hidden="true">✓</span><span class="nutrition-gate-name">Data privacy policy</span></div><div class="nutrition-gate" data-result="none" title="Intellectual property preservation"><span class="nutrition-gate-icon" aria-hidden="true">○</span><span class="nutrition-gate-name">Intellectual property preservation</span></div><div class="nutrition-gate" data-result="none" title="Accessibility"><span class="nutrition-gate-icon" aria-hidden="true">○</span><span class="nutrition-gate-name">Accessibility</span></div></div></div>
     <div class="nutrition-score-block nutrition-score-block--subjects">
       <table class="nutrition-principles-table" aria-label="Principle scores">
         <tr>
@@ -642,7 +631,6 @@ exports[`HTML report snapshot > matches snapshot for partially-scored session 1`
     <img src="data:image/png;base64,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" alt="University of Twente" style="height:22px" />
   </div>
 </div>
-  </div>
 </section>
 
 <section class="report-part" id="part-scores" data-part="scores">

@@ -660,6 +660,11 @@ img {
   gap: var(--rs-sm);
   flex-wrap: wrap;
 }
+.scores-head-logo {
+  height: 1.6rem;
+  width: auto;
+  align-self: center;
+}
 .scores-head-name {
   font-family: var(--ff-heading);
   font-weight: 700;
@@ -1558,11 +1563,15 @@ h1.part-title {
   flex: 0 0 152px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 4px;
 }
 .nutrition-score-block--subjects {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .nutrition-overall-label {
   font-family: var(--ff-heading);
@@ -1735,12 +1744,6 @@ h1.part-title {
    rather than missing data (the convention used in statistical/reference tables). */
 .nutrition-sw-empty::before {
   content: "—\00a0";
-}
-.nutrition-sw-divider {
-  width: 1px;
-  background: var(--border);
-  margin: 0 16px;
-  flex-shrink: 0;
 }
 
 /* ── Row 6: footer (in its own cell) ── */
@@ -1983,11 +1986,6 @@ h1.part-title {
     flex-direction: column;
     padding: 8px 12px;
   }
-  .nutrition-sw-divider {
-    width: auto;
-    height: 1px;
-    margin: 8px 0;
-  }
 
   /* Nutrition footer stacks */
   .nutrition-footer {
@@ -2163,9 +2161,6 @@ h1.part-title {
   .nutrition-gate-icon {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-  }
-  .nutrition-sw-divider {
-    display: none;
   }
 
   .category-section {
