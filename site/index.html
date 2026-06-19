@@ -136,6 +136,14 @@
           </tbody>
         </table>
       </div>
+      <div class="prose mt-4">
+        <p>
+          <a class="btn btn-ghost" href="example/ai2-asta-report.html" target="_blank" rel="noopener">View a complete example report</a>
+          — a full v0.9.3 export of the ai2 Asta review (opens in a new tab).<br>
+          Or <a href="example/trust-review-ai2-asta.zip" download>download the example .zip</a>
+          to import into the extension or the Compare tool below.
+        </p>
+      </div>
     </div>
   </section>
 
@@ -208,13 +216,15 @@
             <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
             Firefox
           </h3>
-          <ol>
-            <li>Download the latest <code>firefox.zip</code> from <a href="https://github.com/utsmok/review-extension/releases">GitHub Releases</a>.</li>
-            <li>Unzip the file.</li>
-            <li>Open <code>about:debugging#/runtime/this-firefox</code>.</li>
-            <li>Click <strong>Load Temporary Add-on</strong>.</li>
-            <li>Select any file inside the unzipped folder (e.g. <code>manifest.json</code>).</li>
-          </ol>
+          <p>
+            Firefox support is coming soon. The extension is pending Mozilla
+            add-on signing, which is currently blocked, and there is no
+            manually-installable zip — Firefox requires a signed add-on in all
+            cases.
+          </p>
+          <p class="muted text-sm mt-2">
+            <a href="https://github.com/utsmok/review-extension/issues">Follow progress on GitHub</a>.
+          </p>
         </div>
       </div>
     </div>
@@ -228,6 +238,9 @@
         <p class="section-lede">
           Upload multiple TRUST review ZIP files to compare scores, evidence, and verdicts
           side by side.
+        </p>
+        <p class="muted text-sm">
+          No review ZIPs handy? <a href="example/trust-review-ai2-asta.zip" download>Download the ai2 Asta example</a> to try it out.
         </p>
       </div>
       <div class="card">
@@ -281,7 +294,7 @@
       <p class="attribution">
         Embedded Information Services, Library, ICT Services and Archive, University of Twente
         <br>
-        <span class="pill">v0.8.0</span>
+        <span class="pill">v0.9.3</span>
         <a class="pill" href="https://github.com/utsmok/review-extension/blob/main/LICENSE">Apache-2.0</a>
         <a class="pill" href="https://github.com/utsmok/review-extension/releases">Releases</a>
       </p>
