@@ -453,7 +453,7 @@ a.pill:hover {
   text-wrap: pretty;
 }
 .prose--wide {
-  max-width: 75ch;
+  max-width: 68ch;
 }
 .prose p + p {
   margin-top: var(--space-3);

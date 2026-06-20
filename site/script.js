@@ -396,16 +396,9 @@
 
   const revealTargets = document.querySelectorAll("[data-reveal]");
 
-  /* ── Scroll progress + reveal (rAF-throttled, one handler) ─────────── */
-  // Reveal anything that has entered the viewport OR been scrolled past.
-  // Bulletproof against fast flings, anchor jumps, and reload-mid-page, which an
-  // IntersectionObserver alone can miss (jumped-past elements would stay hidden).
-  const revealInView = () => {
-    const vh = window.innerHeight;
-    document.querySelectorAll("[data-reveal]:not(.revealed)").forEach((el) => {
-      if (el.getBoundingClientRect().top < vh - 60) el.classList.add("revealed");
-    });
-  };
+  /* ── Scroll progress + reveal ──────────────────────────────────────── */
+  // Progress: cheap per-frame — reads scrollTop, sets a CSS var the compositor
+  // consumes via transform. No layout cost.
   const bar = document.querySelector(".scroll-progress");
   const updateProgress = () => {
     if (!bar) return;
@@ -416,24 +409,52 @@
     );
   };
 
+  // Reveal: IntersectionObserver fires on enter with NO per-frame layout reads
+  // (getBoundingClientRect inside a scroll handler janks mobile scrolling). A
+  // debounced catch-up runs ONCE after scrolling settles to recover anything a
+  // fast fling or anchor jump skipped — zero cost during the scroll itself.
+  const revealAllInView = () => {
+    const vh = window.innerHeight;
+    document.querySelectorAll("[data-reveal]:not(.revealed)").forEach((el) => {
+      if (el.getBoundingClientRect().top < vh) el.classList.add("revealed");
+    });
+  };
+
   if (prefersReduced) {
-    // No motion: show everything; leave the progress bar hidden (scaleX 0).
     revealTargets.forEach((el) => {
       el.classList.add("revealed");
     });
   } else {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed");
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0 },
+    );
+    revealTargets.forEach((el) => {
+      io.observe(el);
+    });
+
     let ticking = false;
+    let settle = null;
     const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        updateProgress();
-        revealInView();
-        ticking = false;
-      });
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          updateProgress();
+          ticking = false;
+        });
+      }
+      if (settle) clearTimeout(settle);
+      settle = setTimeout(revealAllInView, 150);
     };
     updateProgress();
-    revealInView();
+    revealAllInView();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
   }
