@@ -317,6 +317,51 @@ a:hover {
   background: var(--trust-magenta-strong);
 }
 
+/* External brand links — white chips on the navy header (github / UT / LIBER / Chrome Store) */
+.header-externals {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+.ext-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  min-width: 32px;
+  padding: var(--space-1) var(--space-2);
+  background: var(--ut-white);
+  color: var(--ut-navy);
+  border: 1px solid color-mix(in srgb, var(--ut-navy) 14%, transparent);
+  border-radius: 2px;
+  text-decoration: none;
+  transition:
+    border-color var(--duration-fast) var(--ease-out-quart),
+    color var(--duration-fast) var(--ease-out-quart);
+}
+.ext-link:hover {
+  border-color: var(--trust-magenta);
+  color: var(--trust-magenta);
+}
+.ext-link:focus-visible {
+  outline: 2px solid var(--trust-magenta);
+  outline-offset: 2px;
+}
+.ext-icon {
+  display: block;
+}
+.ext-logo {
+  display: block;
+  height: 20px;
+  width: auto;
+}
+@media (min-width: 760px) {
+  .header-externals {
+    display: flex;
+  }
+}
+
 /* =====================================================================
    Hero
    ===================================================================== */
@@ -454,6 +499,11 @@ a.pill:hover {
 }
 .prose--wide {
   max-width: 68ch;
+}
+/* Justified measure for the conference abstract — even columns, hyphenated to avoid rivers */
+.prose--wide p {
+  text-align: justify;
+  hyphens: auto;
 }
 .prose p + p {
   margin-top: var(--space-3);
@@ -968,6 +1018,7 @@ code {
 }
 .site-footer img {
   height: 22px;
+  max-width: 100%;
 }
 .site-footer a {
   color: var(--ut-white);
@@ -1182,6 +1233,7 @@ code {
 /* At-a-glance facts card */
 .at-a-glance ul {
   margin: 0;
+  list-style: none;
 }
 
 /* Try-section screenshot grid */
