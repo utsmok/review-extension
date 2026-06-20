@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TRUST — How do you trust an AI search tool?</title>
+<meta name="description" content="A practical framework and browser extension that scores AI academic-search tools against five principles — Transparent, Reliable, User-centric, Sound, Traceable. From the University of Twente, at LIBER 2026.">
+<link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@600;800;900&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#faf4ea; --paper-2:#f3ead9; --paper-3:#ece0c8;
+  --ink:#241a1f; --ink-soft:#5b4a44; --muted:#8a766c;
+  --magenta:#8e036c; --magenta-d:#6a0254;
+  --cobalt:#1f4fb4; --mustard:#f3b21b; --tangerine:#e8602c;
+  --fail:#c60c30; --poor:#c2410c; --fair:#0e7490; --good:#4a8355;
+  --line:#241a1f;
+  --maxw:1180px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  color:var(--ink);background:var(--paper);line-height:1.6;
+  overflow-x:hidden;font-size:17px;
+}
+/* riso paper grain */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9000;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.14 0 0 0 0 0.10 0 0 0 0 0.12 0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity:.06;mix-blend-mode:multiply;
+}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+.kicker{
+  font-family:'Space Mono',monospace;font-size:.72rem;font-weight:700;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--magenta);
+  display:inline-flex;align-items:center;gap:.5em;
+}
+.kicker::before{content:"";width:22px;height:2px;background:var(--magenta);display:inline-block}
+.serif{font-family:'Fraunces',Georgia,serif}
+.mono{font-family:'Space Mono',monospace}
+
+/* registration mark motif */
+.reg{position:absolute;width:16px;height:16px;color:var(--ink);opacity:.35;pointer-events:none}
+.reg::before,.reg::after{content:"";position:absolute;background:currentColor}
+.reg::before{left:50%;top:0;bottom:0;width:1.5px;transform:translateX(-50%)}
+.reg::after{top:50%;left:0;right:0;height:1.5px;transform:translateY(-50%)}
+
+/* ---------- NAV ---------- */
+.nav{
+  position:sticky;top:0;z-index:500;background:rgba(250,244,234,.86);
+  backdrop-filter:saturate(140%) blur(6px);
+  border-bottom:1.5px solid var(--ink);
+}
+.nav-in{display:flex;align-items:center;gap:18px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-family:'Archivo';letter-spacing:.04em}
+.brand img{height:30px;width:auto}
+.nav-links{display:flex;gap:22px;margin-left:8px;flex:1}
+.nav-links a{font-size:.86rem;font-weight:600;color:var(--ink-soft);position:relative;padding:4px 0;transition:color .15s}
+.nav-links a:hover{color:var(--magenta)}
+.nav-links a::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;background:var(--cobalt);transform:scaleX(0);transform-origin:left;transition:transform .2s ease}
+.nav-links a:hover::after{transform:scaleX(1)}
+.btn{display:inline-flex;align-items:center;gap:.5em;font-family:'Archivo';font-weight:700;font-size:.9rem;padding:.7em 1.15em;border:1.5px solid var(--ink);cursor:pointer;transition:transform .12s ease,background .15s,color .15s;text-align:center;line-height:1}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--magenta);color:#fff;border-color:var(--magenta)}
+.btn-primary:hover{background:var(--magenta-d);border-color:var(--magenta-d)}
+.btn-ghost{background:transparent;color:var(--ink)}
+.btn-ghost:hover{background:var(--ink);color:var(--paper)}
+.btn-cobalt{border-color:var(--cobalt);color:var(--cobalt)}
+.btn-cobalt:hover{background:var(--cobalt);color:#fff}
+.nav-cta{padding:.55em 1em}
+.nav-burger{display:none}
+
+/* ---------- HERO ---------- */
+.hero{position:relative;overflow:hidden;border-bottom:1.5px solid var(--ink)}
+.hero-blobs{position:absolute;inset:0;z-index:0;pointer-events:none}
+.blob{position:absolute;border-radius:48% 52% 60% 40%/50% 45% 55% 50%;mix-blend-mode:multiply;filter:blur(2px)}
+.blob.b1{width:46vw;height:46vw;max-width:540px;max-height:540px;background:var(--magenta);top:-14%;right:-10%;left:auto;opacity:.72}
+.blob.b2{width:38vw;height:38vw;max-width:440px;max-height:440px;background:var(--cobalt);bottom:-24%;left:-14%;top:auto;opacity:.62;transform:rotate(-8deg)}
+.blob.b3{width:32vw;height:32vw;max-width:400px;max-height:400px;background:var(--mustard);bottom:-14%;right:8%;opacity:.82}
+.hero-inner{position:relative;z-index:2;padding:84px 0 64px}
+.hero h1{
+  font-family:'Anton',Impact,sans-serif;font-weight:400;
+  font-size:clamp(2.9rem,9.2vw,7.6rem);line-height:.92;letter-spacing:-.01em;
+  text-transform:uppercase;margin:18px 0 0;max-width:14ch;
+  text-shadow:0 0 26px rgba(250,244,234,.85);
+}
+.hero .kicker{background:var(--paper);padding:6px 12px 6px 9px;border:1.5px solid var(--ink)}
+.hero h1 .trust{
+  display:inline-block;color:var(--paper);-webkit-text-stroke:0;
+  background:linear-gradient(transparent 0);position:relative;
+}
+.hero h1 .trust span{
+  background:var(--ink);color:var(--mustard);padding:0 .08em;
+  display:inline-block;transform:rotate(-1.5deg);box-shadow:6px 6px 0 var(--magenta);
+}
+.hero .lede{
+  font-family:'Fraunces',serif;font-weight:400;font-style:italic;
+  font-size:clamp(1.15rem,2.4vw,1.6rem);line-height:1.4;max-width:46ch;
+  margin:26px 0 0;color:var(--ink-soft);
+}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+.hero-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin-top:24px;font-size:.84rem;color:var(--ink-soft)}
+.hero-meta .qr{display:flex;align-items:center;gap:8px}
+.hero-meta .qr img{width:38px;height:38px;background:#fff;padding:3px;border:1.5px solid var(--ink)}
+.poster-chip{display:inline-flex;align-items:center;gap:8px;font-weight:600;border-bottom:2px solid var(--cobalt);padding-bottom:1px}
+.poster-chip:hover{color:var(--cobalt)}
+
+/* signature entrance (one-shot, gated) */
+.reveal-line{display:block;overflow:hidden}
+.reveal-line>span{display:block;transform:translateY(108%);transition:transform .7s cubic-bezier(.16,.84,.3,1)}
+.is-loaded .reveal-line>span{transform:translateY(0)}
+.is-loaded .reveal-line:nth-child(2)>span{transition-delay:.08s}
+.is-loaded .reveal-line:nth-child(3)>span{transition-delay:.16s}
+.fade-up{opacity:0;transform:translateY(14px);transition:opacity .6s ease .28s,transform .6s ease .28s}
+.is-loaded .fade-up{opacity:1;transform:none}
+
+/* ---------- STAT STRIP ---------- */
+.stats{border-bottom:1.5px solid var(--ink);background:var(--paper-2)}
+.stats-in{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.stat{padding:26px 18px;border-right:1.5px solid var(--ink);position:relative}
+.stat:last-child{border-right:0}
+.stat .n{font-family:'Anton',sans-serif;font-size:clamp(2.4rem,5vw,3.6rem);line-height:1;color:var(--magenta)}
+.stat .l{font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-top:8px}
+.stat:nth-child(2) .n{color:var(--cobalt)}
+.stat:nth-child(3) .n{color:var(--tangerine)}
+.stat:nth-child(4) .n{color:var(--ink)}
+
+/* ---------- SECTION SHELL ---------- */
+section.block{padding:84px 0;border-bottom:1.5px solid var(--ink);position:relative}
+.sec-head{max-width:60ch;margin-bottom:42px}
+.sec-head h2{font-family:'Anton',sans-serif;font-weight:400;text-transform:uppercase;font-size:clamp(2rem,5vw,3.4rem);line-height:.98;letter-spacing:-.01em;margin:14px 0 0}
+.sec-head p{font-size:1.05rem;color:var(--ink-soft);margin-top:14px}
+
+/* ---------- PRINCIPLES ---------- */
+.princ-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.princ{position:relative;border:1.5px solid var(--ink);background:var(--paper-2);padding:22px 18px 20px;overflow:hidden;transition:transform .16s ease}
+.princ:hover{transform:translate(-3px,-3px)}
+.princ:hover .bigletter{transform:rotate(-4deg) scale(1.04)}
+.princ .bigletter{font-family:'Anton',sans-serif;font-size:clamp(3.2rem,6vw,5rem);line-height:.8;margin-bottom:10px;transition:transform .2s ease}
+.princ .pname{font-family:'Archivo';font-weight:800;font-size:1.05rem;letter-spacing:.02em;text-transform:uppercase}
+.princ .pdesc{font-size:.86rem;color:var(--ink-soft);margin-top:8px;line-height:1.45}
+.princ .tag{position:absolute;top:0;right:0;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.1em;background:var(--ink);color:var(--paper);padding:3px 7px}
+.princ[data-c="m"] .bigletter,.princ[data-c="m"] .pname{color:var(--magenta)}
+.princ[data-c="m"]{box-shadow:5px 5px 0 var(--magenta)}
+.princ[data-c="b"] .bigletter,.princ[data-c="b"] .pname{color:var(--cobalt)}
+.princ[data-c="b"]{box-shadow:5px 5px 0 var(--cobalt)}
+.princ[data-c="y"] .bigletter,.princ[data-c="y"] .pname{color:var(--tangerine)}
+.princ[data-c="y"]{box-shadow:5px 5px 0 var(--tangerine)}
+.princ[data-c="g"] .bigletter,.princ[data-c="g"] .pname{color:var(--good)}
+.princ[data-c="g"]{box-shadow:5px 5px 0 var(--good)}
+.princ[data-c="t"] .bigletter,.princ[data-c="t"] .pname{color:var(--fair)}
+.princ[data-c="t"]{box-shadow:5px 5px 0 var(--fair)}
+.princ:hover{box-shadow:8px 8px 0 currentColor}
+.princ-acronym{display:flex;gap:8px;margin-top:22px;font-family:'Space Mono',monospace;font-size:.78rem;color:var(--ink-soft);flex-wrap:wrap}
+
+/* ---------- HOW IT WORKS ---------- */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:40px}
+.step{border-top:2px solid var(--ink);padding-top:16px}
+.step .num{font-family:'Space Mono',monospace;font-weight:700;font-size:.8rem;color:var(--magenta);letter-spacing:.1em}
+.step h3{font-family:'Archivo';font-weight:800;font-size:1.15rem;margin:8px 0 6px;text-transform:uppercase;letter-spacing:.02em}
+.step p{font-size:.9rem;color:var(--ink-soft)}
+.ramp{display:flex;border:1.5px solid var(--ink);overflow:hidden}
+.ramp .seg{flex:1;padding:16px 14px;color:#fff;position:relative}
+.ramp .seg .v{font-family:'Anton',sans-serif;font-size:2rem;line-height:1}
+.ramp .seg .lb{font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;margin-top:4px;opacity:.92}
+.ramp .s0{background:var(--fail)}
+.ramp .s1{background:var(--poor)}
+.ramp .s2{background:var(--fair)}
+.ramp .s3{background:var(--good)}
+
+/* ---------- TOOL / SCREENSHOTS ---------- */
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.shot{position:relative;border:1.5px solid var(--ink);background:#fff;padding:10px;transform:rotate(-.6deg);transition:transform .2s ease}
+.shot:last-child{transform:rotate(.8deg)}
+.shot:hover{transform:rotate(0)}
+.shot figcaption{font-family:'Space Mono',monospace;font-size:.74rem;color:var(--ink-soft);padding:8px 4px 2px;letter-spacing:.04em}
+.shot picture img{width:100%;height:auto;border:1px solid var(--paper-3)}
+.tape{position:absolute;top:-14px;left:50%;transform:translateX(-50%) rotate(-3deg);width:90px;height:26px;background:rgba(243,178,27,.55);border:1px dashed rgba(36,26,31,.4)}
+.tool-cta{margin-top:30px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+
+/* ---------- FINDINGS ---------- */
+.findings{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.find{border:1.5px solid var(--ink);padding:24px 22px;background:var(--paper-2);position:relative;display:flex;flex-direction:column}
+.find .verdict{display:inline-flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-weight:700;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;color:#fff;width:fit-content}
+.find .vname{font-family:'Archivo';font-weight:800;font-size:1.4rem;margin:14px 0 8px;text-transform:uppercase;letter-spacing:.01em}
+.find p{font-size:.92rem;color:var(--ink-soft);flex:1}
+.find .fmeta{margin-top:16px;font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.04em}
+.find.rec .verdict{background:var(--good)}
+.find.rec{box-shadow:6px 6px 0 var(--good)}
+.find.mid .verdict{background:var(--mustard);color:var(--ink)}
+.find.mid{box-shadow:6px 6px 0 var(--mustard)}
+.find.no .verdict{background:var(--fail)}
+.find.no{box-shadow:6px 6px 0 var(--fail)}
+.find a.lnk{color:var(--cobalt);font-weight:600;border-bottom:2px solid var(--cobalt);margin-top:14px;width:fit-content}
+.illus-note{font-family:'Space Mono',monospace;font-size:.74rem;color:var(--muted);margin-top:18px;max-width:60ch}
+
+/* ---------- MARQUEE ---------- */
+.marquee-wrap{overflow:hidden;border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);background:var(--ink);color:var(--paper);padding:18px 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.marquee{display:flex;gap:0;width:max-content;animation:scrollx 34s linear infinite}
+.marquee-wrap:hover .marquee{animation-play-state:paused}
+.marquee span{font-family:'Anton',sans-serif;font-size:1.5rem;text-transform:uppercase;letter-spacing:.02em;padding:0 22px;white-space:nowrap;display:flex;align-items:center;gap:22px}
+.marquee span::after{content:"●";color:var(--mustard);font-size:.8rem}
+@keyframes scrollx{to{transform:translateX(-50%)}}
+
+/* ---------- ROADMAP ---------- */
+.road{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+.road .r{padding:24px;border-right:1.5px solid var(--ink);position:relative}
+.road .r:last-child{border-right:0}
+.road .when{font-family:'Space Mono',monospace;font-weight:700;font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--magenta);display:inline-block;padding:4px 10px}
+.road .r:nth-child(2) .when{background:var(--cobalt)}
+.road .r:nth-child(3) .when{background:var(--tangerine)}
+.road h3{font-family:'Archivo';font-weight:800;font-size:1.2rem;margin:14px 0 8px;text-transform:uppercase}
+.road p{font-size:.92rem;color:var(--ink-soft)}
+
+/* ---------- CTA ---------- */
+.cta-band{padding:72px 0;background:var(--ink);color:var(--paper);border-bottom:1.5px solid var(--ink);position:relative;overflow:hidden}
+.cta-band::before{content:"";position:absolute;width:60vw;height:60vw;max-width:600px;max-height:600px;background:var(--magenta);border-radius:48% 52% 60% 40%/50% 45% 55% 50%;top:-30%;right:-10%;opacity:.4;mix-blend-mode:screen}
+.cta-band-in{position:relative;z-index:2}
+.cta-band h2{font-family:'Anton',sans-serif;text-transform:uppercase;font-size:clamp(2rem,6vw,4rem);line-height:.95;max-width:16ch}
+.cta-band p{font-family:'Fraunces',serif;font-style:italic;font-size:1.2rem;margin:16px 0 28px;color:#f3ead9;max-width:42ch}
+.cta-row{display:flex;flex-wrap:wrap;gap:14px}
+.cta-band .btn-primary{background:var(--mustard);color:var(--ink);border-color:var(--mustard)}
+.cta-band .btn-primary:hover{background:#fff;border-color:#fff}
+.cta-band .btn-ghost{border-color:#f3ead9;color:#f3ead9}
+.cta-band .btn-ghost:hover{background:#f3ead9;color:var(--ink)}
+
+/* ---------- REFERENCES ---------- */
+.refs details{border:1.5px solid var(--ink);background:var(--paper-2)}
+.refs summary{cursor:pointer;padding:16px 20px;font-family:'Archivo';font-weight:800;text-transform:uppercase;letter-spacing:.03em;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.refs summary::-webkit-details-marker{display:none}
+.refs summary::after{content:"+";font-family:'Space Mono',monospace;font-size:1.2rem;transition:transform .2s}
+.refs details[open] summary::after{transform:rotate(45deg)}
+.refs ol{padding:0 20px 18px;counter-reset:r}
+.refs li{padding:10px 0 10px 28px;position:relative;font-size:.88rem;color:var(--ink-soft);border-top:1px solid var(--paper-3);counter-increment:r}
+.refs li::before{content:counter(r);position:absolute;left:0;top:10px;font-family:'Space Mono',monospace;font-weight:700;color:var(--magenta);font-size:.78rem}
+.refs a{color:var(--cobalt);border-bottom:1px solid var(--cobalt)}
+
+/* ---------- FOOTER ---------- */
+footer{padding:54px 0 40px;background:var(--paper-2)}
+.foot-top{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:center}
+.foot-logos{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.foot-logos img{height:34px;width:auto}
+.foot-logos .ut{background:#fff;padding:6px 10px;border:1px solid var(--ink)}
+.foot-meta{font-size:.84rem;color:var(--ink-soft);max-width:var(--maxw)}
+.foot-meta a{color:var(--cobalt);border-bottom:1px solid var(--cobalt)}
+.foot-line{margin-top:22px;padding-top:18px;border-top:1.5px solid var(--ink);display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:space-between;font-family:'Space Mono',monospace;font-size:.74rem;color:var(--muted)}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:980px){
+  .princ-grid{grid-template-columns:repeat(2,1fr)}
+  .steps{grid-template-columns:repeat(2,1fr)}
+  .findings{grid-template-columns:1fr}
+  .road{grid-template-columns:1fr}
+  .road .r{border-right:0;border-bottom:1.5px solid var(--ink)}
+  .road .r:last-child{border-bottom:0}
+  .shots{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  body{font-size:16px}
+  .nav-links{display:none}
+  .nav-burger{display:inline-flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:.74rem;border:1.5px solid var(--ink);padding:.5em .8em;background:transparent}
+  .nav-links.open{display:flex;position:absolute;top:64px;left:0;right:0;flex-direction:column;background:var(--paper);border-bottom:1.5px solid var(--ink);padding:14px 24px;gap:14px}
+  .hero-inner{padding:56px 0 48px}
+  .stats-in{grid-template-columns:repeat(2,1fr)}
+  .stat:nth-child(2){border-right:0}
+  .stat:nth-child(1),.stat:nth-child(2){border-bottom:1.5px solid var(--ink)}
+  .princ-grid{grid-template-columns:1fr}
+  section.block{padding:58px 0}
+  .ramp{flex-wrap:wrap}
+  .ramp .seg{flex:1 1 50%}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .reveal-line>span,.fade-up{transform:none!important;opacity:1!important}
+  .marquee{animation:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="wrap nav-in">
+    <a href="#top" class="brand" aria-label="TRUST home"><img src="../assets/trust.svg" alt="TRUST"></a>
+    <div class="nav-links" id="navlinks">
+      <a href="#principles">Principles</a>
+      <a href="#how">How it works</a>
+      <a href="#demo">The tool</a>
+      <a href="#findings">Findings</a>
+      <a href="#start">Get started</a>
+    </div>
+    <a class="btn btn-primary nav-cta" href="../try/">Try the demo →</a>
+    <button class="nav-burger" id="burger" aria-label="Menu" aria-expanded="false">MENU</button>
+  </div>
+</nav>
+
+<main id="top">
+
+<!-- HERO -->
+<header class="hero">
+  <span class="reg" style="top:18px;right:24px"></span>
+  <span class="reg" style="bottom:18px;left:24px"></span>
+  <div class="hero-blobs" aria-hidden="true">
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  </div>
+  <div class="wrap hero-inner">
+    <span class="kicker fade-up">University of Twente · LIBER 2026 · Trondheim</span>
+    <h1>
+      <span class="reveal-line"><span>How do you</span></span>
+      <span class="reveal-line"><span class="trust"><span>TRUST</span></span></span>
+      <span class="reveal-line"><span>an AI search?</span></span>
+    </h1>
+    <p class="lede fade-up">A practical framework and browser extension that scores AI academic-search tools — <strong>Transparent, Reliable, User-centric, Sound, Traceable.</strong> Built by librarians, for anyone navigating AI search.</p>
+    <div class="hero-cta fade-up">
+      <a class="btn btn-primary" href="../try/">▶ Try the live demo</a>
+      <a class="btn btn-cobalt" href="https://chromewebstore.google.com/detail/trust-review/leclhemhkfmogioabkfcboddalmlncjg">Install for Chrome</a>
+    </div>
+    <div class="hero-meta fade-up">
+      <span class="qr"><img src="../assets/qr-code.svg" alt="QR code linking back to this site"></span>
+      <span>Scanned our poster? You're in the right place.</span>
+      <a class="poster-chip" href="../poster/trust-liber-2026-poster.pdf">↗ Poster (PDF)</a>
+    </div>
+  </div>
+</header>
+
+<!-- STATS -->
+<section class="stats" aria-label="At a glance">
+  <div class="wrap stats-in">
+    <div class="stat"><div class="n">5</div><div class="l">Principles</div></div>
+    <div class="stat"><div class="n">10</div><div class="l">Questions</div></div>
+    <div class="stat"><div class="n">4</div><div class="l">Quality gates</div></div>
+    <div class="stat"><div class="n">0–3</div><div class="l">Scoring scale</div></div>
+  </div>
+</section>
+
+<!-- PRINCIPLES -->
+<section class="block" id="principles">
+  <span class="reg" style="top:30px;right:30px"></span>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">The framework</span>
+      <h2>Five principles. One scorecard.</h2>
+      <p>TRUST turns a fuzzy question — "can I rely on this AI search tool?" — into something you can actually grade. Every review scores a tool against five plain-English principles.</p>
+    </div>
+    <div class="princ-grid">
+      <div class="princ" data-c="b"><span class="tag">TR</span><div class="bigletter">T</div><div class="pname">Transparent</div><div class="pdesc">How the tool works, where its data comes from, and its limitations — clearly documented.</div></div>
+      <div class="princ" data-c="m"><span class="tag">RE</span><div class="bigletter">R</div><div class="pname">Reliable</div><div class="pdesc">Outputs are accurate, verifiable, consistent. Real sources, not hallucinated.</div></div>
+      <div class="princ" data-c="y"><span class="tag">US</span><div class="bigletter">U</div><div class="pname">User-centric</div><div class="pdesc">Fit for academic use and integrates into everyday research workflows.</div></div>
+      <div class="princ" data-c="g"><span class="tag">SE</span><div class="bigletter">S</div><div class="pname">Soundness</div><div class="pdesc">Algorithmic fairness, bias mitigation, and accuracy of rankings.</div></div>
+      <div class="princ" data-c="t"><span class="tag">TC</span><div class="bigletter">T</div><div class="pname">Traceable</div><div class="pdesc">Every claim can be traced back to a primary source.</div></div>
+    </div>
+    <div class="princ-acronym">T·R·U·S·T — inspired by the FAIR principles for data management.</div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="block" id="how" style="background:var(--paper-2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">The method</span>
+      <h2>How a review works</h2>
+      <p>Four steps, from first click to a shareable report. Structured enough to be rigorous, fast enough to actually use.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">01 / GATES</div><h3>Quality gates</h3><p>Four yes/no checks covering privacy, intellectual property, and accessibility. Fail a gate, the review flags it.</p></div>
+      <div class="step"><div class="num">02 / SCORE</div><h3>Score 0–3</h3><p>Two questions per principle — ten in total — each graded from 0 (fails) to 3 (fully meets it).</p></div>
+      <div class="step"><div class="num">03 / EVIDENCE</div><h3>Capture evidence</h3><p>Screenshots and notes grabbed in the browser, tagged to the exact question they answer.</p></div>
+      <div class="step"><div class="num">04 / REPORT</div><h3>Generate report</h3><p>A standalone HTML report with a quick-read summary and click-to-zoom evidence.</p></div>
+    </div>
+    <div class="ramp" aria-label="Scoring scale from 0 to 3">
+      <div class="seg s0"><div class="v">0</div><div class="lb">Fail</div></div>
+      <div class="seg s1"><div class="v">1</div><div class="lb">Poor</div></div>
+      <div class="seg s2"><div class="v">2</div><div class="lb">Fair</div></div>
+      <div class="seg s3"><div class="v">3</div><div class="lb">Good</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- THE TOOL -->
+<section class="block" id="demo">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">The tool</span>
+      <h2>See it in action.</h2>
+      <p>The full extension runs as an in-browser demo — no install. It comes preloaded with a real review (ai2 Asta), so you can click through the evaluation, inspect the evidence, and read the generated report.</p>
+    </div>
+    <div class="shots">
+      <figure class="shot">
+        <span class="tape" aria-hidden="true"></span>
+        <picture>
+          <source type="image/avif" srcset="../assets/screenshots/try-evaluation.avif">
+          <source type="image/webp" srcset="../assets/screenshots/try-evaluation.webp">
+          <img loading="lazy" src="../assets/screenshots/try-evaluation.png" alt="TRUST demo: the evaluation tab, a split view of a simulated browser and the review sidebar scoring ai2 Asta." width="1600" height="1025">
+        </picture>
+        <figcaption>EVALUATION — score a tool against quality gates and rubric questions</figcaption>
+      </figure>
+      <figure class="shot">
+        <span class="tape" aria-hidden="true"></span>
+        <picture>
+          <source type="image/avif" srcset="../assets/screenshots/try-captures.avif">
+          <source type="image/webp" srcset="../assets/screenshots/try-captures.webp">
+          <img loading="lazy" src="../assets/screenshots/try-captures.png" alt="TRUST demo: the captures tab, a grid of evidence screenshots tagged to rubric questions." width="1600" height="1025">
+        </picture>
+        <figcaption>CAPTURES — evidence pinned straight to the question it answers</figcaption>
+      </figure>
+    </div>
+    <div class="tool-cta">
+      <a class="btn btn-primary" href="../try/">▶ Open the live demo</a>
+      <a class="btn btn-ghost" href="../example/ai2-asta-report.html" target="_blank" rel="noopener">View a real report</a>
+      <span style="font-family:'Space Mono',monospace;font-size:.78rem;color:var(--muted)">Works best on desktop.</span>
+    </div>
+  </div>
+</section>
+
+<!-- FINDINGS -->
+<section class="block" id="findings" style="background:var(--paper-2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">What we found</span>
+      <h2>Not all AI search is equal.</h2>
+      <p>Our information-specialist team piloted the protocol. Here's the shape of the results — a clear spread from recommended to not recommended.</p>
+    </div>
+    <div class="findings">
+      <div class="find rec">
+        <span class="verdict">✓ Recommended</span>
+        <div class="vname">ai2 Asta</div>
+        <p>Restricts outputs to the Semantic Scholar corpus and exposes its reasoning chain. Free and mostly open-source. Excels in Traceability and Reliability.</p>
+        <div class="fmeta">The only completed review →</div>
+        <a class="lnk" href="../example/ai2-asta-report.html" target="_blank" rel="noopener">Read the full report</a>
+      </div>
+      <div class="find mid">
+        <span class="verdict">? Needs review</span>
+        <div class="vname">Elicit</div>
+        <p>Valuable for abstract summarization, but its ranking algorithm isn't fully disclosed (limiting Transparency) and the free version is capped (affecting User-centric).</p>
+        <div class="fmeta">Provisional · illustrative</div>
+      </div>
+      <div class="find no">
+        <span class="verdict">✕ Not recommended</span>
+        <div class="vname">ChatGPT · Gemini · Perplexity</div>
+        <p>Generic LLM interfaces and general AI search are prone to citation errors and lack rigorous, verifiable academic sources — failing Reliability and Traceability.</p>
+        <div class="fmeta">Illustrative</div>
+      </div>
+    </div>
+    <p class="illus-note">▲ Pilot findings from the LIBER 2026 abstract. ai2 Asta is the only completed review; other verdicts are illustrative — full evaluations are in progress.</p>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap" aria-label="Tools under review">
+  <div class="marquee" id="marq">
+    <span>Semantic Scholar</span><span>Elicit</span><span>Consensus</span><span>ai2 Asta</span><span>Google Scholar</span><span>Web of Science AI</span><span>Scopus AI</span><span>PubMed</span><span>JSTOR</span><span>BASE</span><span>CORE</span><span>Dimensions</span><span>ProQuest</span><span>EBSCO</span><span>Perplexity AI</span><span>ChatGPT</span><span>Google Gemini</span><span>Microsoft Copilot</span><span>You.com</span>
+    <span>Semantic Scholar</span><span>Elicit</span><span>Consensus</span><span>ai2 Asta</span><span>Google Scholar</span><span>Web of Science AI</span><span>Scopus AI</span><span>PubMed</span><span>JSTOR</span><span>BASE</span><span>CORE</span><span>Dimensions</span><span>ProQuest</span><span>EBSCO</span><span>Perplexity AI</span><span>ChatGPT</span><span>Google Gemini</span><span>Microsoft Copilot</span><span>You.com</span>
+  </div>
+</div>
+
+<!-- ROADMAP -->
+<section class="block" id="roadmap">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Where it's going</span>
+      <h2>The roadmap.</h2>
+    </div>
+    <div class="road">
+      <div class="r"><span class="when">Now</span><h3>Standardise the protocol</h3><p>Refining TRUST into a standardised evaluation protocol with an interactive, integrated workflow — structured data entry plus automatic processing.</p></div>
+      <div class="r"><span class="when">Next</span><h3>A public approved-tools list</h3><p>A database that powers a public-facing list of approved tools, each accompanied by user guides.</p></div>
+      <div class="r"><span class="when">Later</span><h3>Beyond search</h3><p>Extend to AI features embedded in existing platforms, and integrate into institutional AI policies and initiatives.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-band" id="start">
+  <div class="wrap cta-band-in">
+    <h2>Take TRUST for a spin.</h2>
+    <p>No account, no install — open the demo and click through a real review in two minutes.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="../try/">▶ Try the live demo</a>
+      <a class="btn btn-ghost" href="https://chromewebstore.google.com/detail/trust-review/leclhemhkfmogioabkfcboddalmlncjg">Install the extension</a>
+      <a class="btn btn-ghost" href="../poster/trust-liber-2026-poster.pdf">↓ Poster (PDF)</a>
+    </div>
+  </div>
+</section>
+
+<!-- REFERENCES -->
+<section class="block refs" id="refs">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Underneath</span>
+      <h2>References &amp; credits</h2>
+    </div>
+    <details>
+      <summary>References (8) <span></span></summary>
+      <ol>
+        <li>Nogueira LA, et al. IFLA J 2025;51:735–49. doi:10.1177/03400352241304121</li>
+        <li>AI HLEG. 2020. <a href="https://digital.strategy.ec.europa.eu/en/library/assessment-list-trustworthy-artificial-intelligence-altai-self-assessment">Assessment List for Trustworthy AI (ALTAI)</a>.</li>
+        <li>McCormack L, et al. AI Ethics 2025;5:1973–94. doi:10.1007/s43681-024-00590-8</li>
+        <li>GO FAIR. <a href="https://www.go-fair.org/fair-principles/">FAIR Principles</a>.</li>
+        <li>Mersha M, et al. Neurocomputing 2024;599:128111. doi:10.1016/j.neucom.2024.128111</li>
+        <li>Hsien ATC. Katina 2025. doi:10.1146/katina-052025-1</li>
+        <li>Cabezas-Clavijo Á, et al. arXiv 2025. doi:10.48550/arXiv.2505.18059</li>
+        <li>Seth I, et al. Plast Aesthet Res 2025;12:1. doi:10.20517/2347-9264.2024.99</li>
+      </ol>
+    </details>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-logos">
+        <img src="../assets/trust.svg" alt="TRUST">
+        <a href="https://www.utwente.nl/library"><img class="ut" src="../assets/ut-logo.webp" alt="University of Twente" onerror="this.src='../assets/ut-logo.png'"></a>
+        <a href="https://www.utwente.nl/library"><img src="../assets/lisa-eis.svg" alt="LISA-EIS — University of Twente"></a>
+      </div>
+      <div class="foot-meta">
+        <strong>Authors:</strong> S. Mok, S.A. Kruit, G. de Jonge, J.M. van Eck — Embedded Information Services, Library, ICT Services &amp; Archive, University of Twente.<br>
+        Contact: Samuel Mok, <a href="mailto:s.mok@utwente.nl">s.mok@utwente.nl</a>
+      </div>
+    </div>
+    <div class="foot-line">
+      <span>TRUST Framework · LIBER 2026 · Trondheim · 1–3 July</span>
+      <span><a href="https://github.com/utsmok/review-extension">GitHub</a> · v0.9.3 · <a href="https://github.com/utsmok/review-extension/blob/main/LICENSE">Apache-2.0</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var d=document,w=window;
+  function ready(fn){d.readyState!=='loading'?fn():d.addEventListener('DOMContentLoaded',fn);}
+  ready(function(){
+    // signature entrance (one-shot) — disabled under reduced motion via CSS
+    requestAnimationFrame(function(){d.body.classList.add('is-loaded');});
+    // mobile nav
+    var burger=d.getElementById('burger'),nav=d.getElementById('navlinks');
+    if(burger){burger.addEventListener('click',function(){
+      var open=nav.classList.toggle('open');
+      burger.setAttribute('aria-expanded',open?'true':'false');
+    });nav.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){nav.classList.remove('open');burger.setAttribute('aria-expanded','false');});});}
+    // duplicate-safe: ensure marquee has two copies for seamless loop (already doubled in markup)
+  });
+})();
+</script>
+</body>
+</html>
