@@ -187,8 +187,15 @@ body {
   font-variant-ligatures: contextual;
   font-variant-numeric: tabular-nums;
 }
-a:hover {
+a {
   color: var(--trust-magenta);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--trust-magenta) 35%, transparent);
+  text-underline-offset: 2px;
+}
+a:hover {
+  color: var(--trust-magenta-strong);
+  text-decoration-color: currentColor;
 }
 :focus-visible {
   outline: 2px solid var(--ut-blue);
@@ -332,7 +339,7 @@ a:hover {
   min-width: 32px;
   padding: var(--space-1) var(--space-2);
   background: var(--ut-white);
-  color: var(--ut-navy);
+  color: var(--ut-text);
   border: 1px solid color-mix(in srgb, var(--ut-navy) 14%, transparent);
   border-radius: 2px;
   text-decoration: none;
@@ -355,6 +362,7 @@ a:hover {
   display: block;
   height: 20px;
   width: auto;
+  filter: grayscale(1) brightness(0.6);
 }
 @media (min-width: 760px) {
   .header-externals {
