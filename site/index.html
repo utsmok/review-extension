@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="scroll-progress" aria-hidden="true"></div>
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- ===== Header / sticky anchor nav ===== -->
@@ -38,12 +39,12 @@
   <!-- ===== Hero ===== -->
   <section id="top" class="hero" aria-labelledby="hero-title">
     <div class="container">
-      <img src="assets/trust.svg" alt="TRUST" class="hero-logo" width="240" height="72">
+      <img src="assets/trust.svg" alt="TRUST" class="hero-logo" width="240" height="72" fetchpriority="high">
       <h1 id="hero-title">Evaluating AI search tools with confidence</h1>
       <p class="lede">
-        A practical framework and browser extension for assessing AI-based information
-        search tools in academic settings: Transparent, Reliable, User-centric, Sound,
-        and Traceable.
+        A practical framework and browser extension for assessing AI search tools
+        used in academic research. Five clear principles: Transparent, Reliable,
+        User-centric, Sound, and Traceable.
       </p>
 
       <div class="hero-cta">
@@ -62,35 +63,34 @@
         <div class="principle-card" data-principle="tr" role="listitem">
           <div class="letter">T</div>
           <div class="name">Transparent</div>
-          <div class="desc">Methodology, data sources, and limitations are clearly documented.</div>
+          <div class="desc">How the tool works, where its data comes from, and what it cannot do.</div>
         </div>
         <div class="principle-card" data-principle="re" role="listitem">
           <div class="letter">R</div>
           <div class="name">Reliable</div>
-          <div class="desc">Outputs are accurate, verifiable, and consistent. Sources are real, not hallucinated.</div>
+          <div class="desc">Results are accurate and verifiable, with real sources instead of fabricated ones.</div>
         </div>
         <div class="principle-card" data-principle="uc" role="listitem">
           <div class="letter">U</div>
           <div class="name">User-centric</div>
-          <div class="desc">Fit for academic use and integrates with standard research workflows.</div>
+          <div class="desc">Works well for researchers and fits into everyday academic workflows.</div>
         </div>
         <div class="principle-card" data-principle="se" role="listitem">
           <div class="letter">S</div>
           <div class="name">Soundness</div>
-          <div class="desc">Algorithmic fairness, bias mitigation, and accuracy of search results and rankings.</div>
+          <div class="desc">Search results are fair, unbiased, and ranked accurately.</div>
         </div>
         <div class="principle-card" data-principle="tc" role="listitem">
           <div class="letter">T</div>
           <div class="name">Traceable</div>
-          <div class="desc">All information generated and used can be traced back to a primary source.</div>
+          <div class="desc">Every claim can be followed back to its original source.</div>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ===== Conference poster ===== -->
-  <section id="poster" class="section" aria-labelledby="poster-title">
-    <div class="container">
+  <section id="poster" class="section" aria-labelledby="poster-title" data-reveal>
       <div class="notice">
         <h2 id="poster-title" class="section-title">Conference poster</h2>
         <p>
@@ -109,9 +109,7 @@
   </section>
 
   <!-- ===== Abstract (conference proposal) ===== -->
-  <section id="abstract" class="section" aria-labelledby="abstract-title">
-    <div class="container">
-      <div class="section-head">
+  <section id="abstract" class="section" aria-labelledby="abstract-title" data-reveal>
         <p class="kicker">Conference abstract · proposed for LIBER 2026</p>
         <h2 id="abstract-title" class="section-title">TRUST framework for evaluating AI-based information search tools</h2>
         <p class="section-lede muted">S. Mok, S.A. Kruit, G. de Jonge, J.M. van Eck — Embedded Information Services, Library, ICT Services &amp; Archive, University of Twente.</p>
@@ -144,30 +142,35 @@
       <div class="card mt-8 at-a-glance">
         <h3 class="section-title section-title--sub">How a review works</h3>
         <ul class="prose">
-          <li><strong>Quality gates:</strong> four pass/fail checks for privacy &amp; security, intellectual property, and accessibility.</li>
-          <li><strong>Scoring:</strong> two questions per principle across five principles (ten total), scored 0 to 3.</li>
-          <li><strong>Structured evidence:</strong> screenshots and annotations captured in-browser and tagged to questions.</li>
-          <li><strong>Output:</strong> a self-contained HTML report with a nutrition-label summary and click-to-zoom evidence.</li>
+          <li><strong>Quality gates:</strong> four yes/no checks covering privacy, intellectual property, and accessibility.</li>
+          <li><strong>Scoring:</strong> two questions per principle across five principles (ten questions in total), each scored 0 to 3.</li>
+          <li><strong>Evidence:</strong> screenshots and notes captured in the browser, tagged to the question they answer.</li>
+          <li><strong>Output:</strong> a standalone HTML report with a quick-read summary and click-to-zoom evidence.</li>
         </ul>
       </div>
     </div>
   </section>
 
   <!-- ===== Try it in your browser ===== -->
-  <section id="try" class="section" aria-labelledby="try-title">
-    <div class="container">
-      <div class="section-head">
-        <h2 id="try-title" class="section-title">Try it in your browser</h2>
-        <p class="section-lede">
-          The full extension runs as an in-browser demo — no install required. It opens
-          preloaded with a complete, real review (ai2 Asta) so you can click through the
-          evaluation, inspect the captured evidence, and read the generated report. New
-          screenshots you capture in the demo are mocked, but everything else is live.
-        </p>
+  <section id="try" class="section" aria-labelledby="try-title" data-reveal>
+          <p class="section-lede">
+            The full extension runs as an in-browser demo, no install needed. It comes
+            preloaded with a real review (ai2 Asta) so you can click through the
+            evaluation, inspect the evidence, and read the generated report. New
+            screenshots you capture in the demo are simulated, but everything else is live.
+          </p>
       </div>
       <div class="screenshot-row">
-        <img loading="lazy" src="assets/screenshots/try-evaluation.png" alt="The TRUST web demo showing the evaluation tab: a split view with a simulated browser pane and the review sidebar scoring ai2 Asta against quality gates and rubric questions.">
-        <img loading="lazy" src="assets/screenshots/try-captures.png" alt="The TRUST web demo showing the captures tab with a grid of evidence screenshots tagged to rubric questions.">
+        <picture>
+          <source type="image/avif" srcset="assets/screenshots/try-evaluation.avif">
+          <source type="image/webp" srcset="assets/screenshots/try-evaluation.webp">
+          <img loading="lazy" src="assets/screenshots/try-evaluation.png" alt="The TRUST web demo showing the evaluation tab: a split view with a simulated browser pane and the review sidebar scoring ai2 Asta against quality gates and rubric questions." width="1600" height="1025">
+        </picture>
+        <picture>
+          <source type="image/avif" srcset="assets/screenshots/try-captures.avif">
+          <source type="image/webp" srcset="assets/screenshots/try-captures.webp">
+          <img loading="lazy" src="assets/screenshots/try-captures.png" alt="The TRUST web demo showing the captures tab with a grid of evidence screenshots tagged to rubric questions." width="1600" height="1025">
+        </picture>
       </div>
       <p class="hero-cta">
         <a class="btn btn-primary" href="try/">
@@ -180,7 +183,7 @@
   </section>
 
   <!-- ===== Example report ===== -->
-  <section id="example" class="section" aria-labelledby="example-title">
+  <section id="example" class="section" aria-labelledby="example-title" data-reveal>
     <div class="container">
       <div class="section-head">
         <h2 id="example-title" class="section-title">See a complete example</h2>
@@ -200,16 +203,17 @@
             Download the .zip
           </a>
         </div>
-        <p class="muted text-sm mt-4">
-          The report is a self-contained HTML file. The .zip is the importable review package —
-          load it into the extension, or drop it into the Compare tool below.
-        </p>
+          <p class="muted text-sm mt-4">
+            The report is a single HTML file that opens in any browser. The .zip holds the
+            full review package, which you can load into the extension or drop into
+            the Compare tool below.
+          </p>
       </div>
     </div>
   </section>
 
   <!-- ===== Install ===== -->
-  <section id="install" class="section" aria-labelledby="install-title">
+  <section id="install" class="section" aria-labelledby="install-title" data-reveal>
     <div class="container">
       <div class="section-head">
         <h2 id="install-title" class="section-title">Install the browser extension</h2>
@@ -239,10 +243,9 @@
             Firefox
           </h3>
           <p>
-            Firefox support is coming soon. The extension is pending Mozilla
-            add-on signing, which is currently blocked, and there is no
-            manually-installable zip — Firefox requires a signed add-on in all
-            cases.
+            Firefox support is coming soon. The extension is waiting on Mozilla
+            to sign the add-on, and Firefox does not allow unsigned extensions,
+            so there is no manual install option yet.
           </p>
           <p class="muted text-sm mt-2">
             <a href="https://github.com/utsmok/review-extension/issues">Follow progress on GitHub</a>.
@@ -253,7 +256,7 @@
   </section>
 
   <!-- ===== Compare ===== -->
-  <section id="compare" class="section" aria-labelledby="compare-title">
+  <section id="compare" class="section" aria-labelledby="compare-title" data-reveal>
     <div class="container">
       <div class="section-head">
         <h2 id="compare-title" class="section-title">Compare reviews</h2>
@@ -287,13 +290,14 @@
   </section>
 
   <!-- ===== Tools (illustrative) ===== -->
-  <section id="tools" class="section" aria-labelledby="tools-title">
+  <section id="tools" class="section" aria-labelledby="tools-title" data-reveal>
     <div class="container">
       <div class="section-head">
         <h2 id="tools-title" class="section-title">Tools under review</h2>
-        <p class="section-lede">
-          Tools we are evaluating with the TRUST framework. Column scores average each
-          principle’s two questions on a 0 to 3 scale:
+          <p class="section-lede">
+            Tools we are evaluating with the TRUST framework. Each column shows the
+            average score for one principle, rated from 0 (does not meet it) to
+            3 (fully meets it):
           <abbr title="Transparent">TR</abbr>,
           <abbr title="Reliable">RE</abbr>,
           <abbr title="User-centric">US</abbr>,
@@ -333,7 +337,7 @@
   </section>
 
   <!-- ===== References ===== -->
-  <section id="references" class="section" aria-labelledby="refs-title">
+  <section id="references" class="section" aria-labelledby="refs-title" data-reveal>
     <div class="container">
       <div class="section-head">
         <h2 id="refs-title" class="section-title">References</h2>
@@ -369,7 +373,7 @@
   </section>
 
   <!-- ===== Contact ===== -->
-  <section id="contact" class="section" aria-labelledby="contact-title">
+  <section id="contact" class="section" aria-labelledby="contact-title" data-reveal>
     <div class="container">
       <div class="section-head">
         <h2 id="contact-title" class="section-title">Links and contact</h2>
@@ -423,7 +427,7 @@
       <div class="footer-logos">
         <img src="assets/trust.svg" alt="TRUST">
         <a href="https://www.utwente.nl/en/library"><img src="assets/lisa-eis.svg" alt="LISA-EIS — University of Twente"></a>
-        <a href="https://www.utwente.nl/en/library"><img src="assets/ut-logo.png" alt="University of Twente"></a>
+        <a href="https://www.utwente.nl/en/library"><picture><source type="image/webp" srcset="assets/ut-logo.webp"><img src="assets/ut-logo.png" alt="University of Twente" width="1928" height="964"></picture></a>
       </div>
       <p>TRUST Framework, LIBER 2026, Trondheim · <a href="https://github.com/utsmok/review-extension">GitHub</a></p>
     </div>

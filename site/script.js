@@ -365,3 +365,76 @@
   loadTools();
   initCompare();
 })();
+
+/* =====================================================================
+   Motion — scroll progress, scroll reveals
+   Self-contained block; does not modify any existing functions.
+   ===================================================================== */
+(() => {
+  // Mark JS active so [data-reveal] only hides when enhancement is running.
+  // Without JS, html.js is never set and all content stays visible.
+  document.documentElement.classList.add("js");
+
+  const prefersReduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ── Auto-tag meaningful blocks for scroll reveal (hero has its own entrance) ─ */
+  document.querySelectorAll(".install-grid, .links-grid").forEach((grid) => {
+    if (grid.closest("#top")) return;
+    grid.setAttribute("data-reveal-stagger", "");
+    grid.querySelectorAll(":scope > *").forEach((c) => {
+      c.setAttribute("data-reveal", "");
+    });
+  });
+  document
+    .querySelectorAll(
+      ".section-head, .notice, .card, .at-a-glance, .screenshot-row, .ref-list, .authors, .example-actions, .table-wrap",
+    )
+    .forEach((el) => {
+      if (el.closest("#top")) return;
+      el.setAttribute("data-reveal", "");
+    });
+
+  const revealTargets = document.querySelectorAll("[data-reveal]");
+
+  /* ── Scroll progress + reveal (rAF-throttled, one handler) ─────────── */
+  // Reveal anything that has entered the viewport OR been scrolled past.
+  // Bulletproof against fast flings, anchor jumps, and reload-mid-page, which an
+  // IntersectionObserver alone can miss (jumped-past elements would stay hidden).
+  const revealInView = () => {
+    const vh = window.innerHeight;
+    document.querySelectorAll("[data-reveal]:not(.revealed)").forEach((el) => {
+      if (el.getBoundingClientRect().top < vh - 60) el.classList.add("revealed");
+    });
+  };
+  const bar = document.querySelector(".scroll-progress");
+  const updateProgress = () => {
+    if (!bar) return;
+    const max = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    bar.style.setProperty(
+      "--scroll-progress",
+      max > 0 ? document.documentElement.scrollTop / max : 0,
+    );
+  };
+
+  if (prefersReduced) {
+    // No motion: show everything; leave the progress bar hidden (scaleX 0).
+    revealTargets.forEach((el) => {
+      el.classList.add("revealed");
+    });
+  } else {
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        updateProgress();
+        revealInView();
+        ticking = false;
+      });
+    };
+    updateProgress();
+    revealInView();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+  }
+})();
