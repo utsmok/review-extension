@@ -633,9 +633,6 @@ a:hover {
 .modal-inner > .modal-byline {
   padding-right: 52px;
 }
-.modal-attribution {
-  margin-top: var(--space-6);
-}
 /* Entrance delight — opacity + slight translate, flat (no shadow) */
 .modal[open] {
   animation: modal-in var(--duration-normal) var(--ease-out-quart);
