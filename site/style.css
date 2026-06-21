@@ -150,8 +150,8 @@
 }
 html {
   scroll-behavior: smooth;
-  /* offset anchor targets so the sticky header doesn't cover them */
-  scroll-padding-top: calc(var(--nav-height) + var(--space-4));
+  /* offset anchor targets so the sticky header + sticky sub-nav don't cover them */
+  scroll-padding-top: calc(var(--nav-height) + 3.25rem + var(--space-3));
 }
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -656,6 +656,127 @@ a:hover {
   .modal[open] {
     animation: none;
   }
+}
+
+/* =====================================================================
+   Section groups — color-coded top-level chapters with sticky sub-nav.
+   Each .group carries a TRUST principle accent that drives its band and
+   sub-nav (flat: tint + accent border only, no shadow).
+   ===================================================================== */
+.group {
+  --group-accent: var(--section-default);
+}
+.group[data-accent="tr"] {
+  --group-accent: var(--tr);
+}
+.group[data-accent="re"] {
+  --group-accent: var(--re);
+}
+.group[data-accent="se"] {
+  --group-accent: var(--se);
+}
+
+.group-band {
+  border-top: var(--border-accent) solid var(--group-accent);
+  background: color-mix(in srgb, var(--group-accent) 5%, var(--ut-white));
+}
+.group-band .container {
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-6);
+}
+.group-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 1.625rem;
+  padding: 0 var(--space-2);
+  background: var(--group-accent);
+  color: var(--ut-white);
+  font-family: var(--ff-mono);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-sm);
+  vertical-align: middle;
+  margin-right: var(--space-3);
+}
+.group-name {
+  display: inline;
+  font-family: var(--ff-heading);
+  font-weight: 700;
+  font-size: clamp(1.15rem, 2.2vw, 1.5rem);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-heading);
+  color: var(--group-accent);
+  vertical-align: middle;
+}
+.group-intro {
+  max-width: 68ch;
+  margin-top: var(--space-3);
+  line-height: 1.55;
+  color: var(--ut-text);
+}
+
+/* Sticky secondary nav — pins under the header for the duration of its group. */
+.sub-nav {
+  position: sticky;
+  top: var(--nav-height);
+  z-index: 5;
+  background: var(--ut-white);
+  border-bottom: 1px solid var(--ut-border);
+}
+.sub-nav .container {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-top: var(--space-2);
+  padding-bottom: 0;
+}
+.sub-nav .container::-webkit-scrollbar {
+  display: none;
+}
+.sub-nav a {
+  flex: 0 0 auto;
+  font-family: var(--ff-heading);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  color: var(--ut-muted);
+  padding: var(--space-2) var(--space-3) calc(var(--space-2) + 3px);
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  transition:
+    color var(--duration-fast) var(--ease-out-quart),
+    border-color var(--duration-fast) var(--ease-out-quart);
+}
+.sub-nav a:hover {
+  color: var(--group-accent);
+}
+.sub-nav a.active {
+  color: var(--group-accent);
+  border-bottom-color: var(--group-accent);
+}
+.sub-nav a:focus-visible {
+  outline: 2px solid var(--ut-blue);
+  outline-offset: -2px;
+}
+/* The sub-nav sits inside each group, so --group-accent cascades down. */
+
+/* Small button + modal refs header (download .bib) */
+.btn-sm {
+  font-size: 0.8125rem;
+  padding: var(--space-1) var(--space-3);
+}
+.modal-refs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 /* =====================================================================

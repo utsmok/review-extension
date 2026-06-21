@@ -2,37 +2,46 @@
 (() => {
   // ── Scroll-spy: highlight the nav link for the section in view ────
   function initScrollSpy() {
-    const nav = document.querySelector(".tab-nav");
-    const links = Array.from(document.querySelectorAll(".tab-nav a[href^='#']"));
-    if (!links.length) return;
-    const map = new Map();
-    for (const link of links) {
-      const id = link.getAttribute("href").slice(1);
-      const sec = document.getElementById(id);
-      if (sec) map.set(sec, link);
+    const topNav = document.querySelector(".tab-nav");
+    const topLinks = Array.from(document.querySelectorAll(".tab-nav a[href^='#']"));
+    const subLinks = Array.from(document.querySelectorAll(".sub-nav a[href^='#']"));
+    if (!topLinks.length) return;
+
+    // Leaf sections that carry a sub-nav link, plus Contact (a top-level target
+    // with no sub-nav of its own). Each leaf resolves to its parent .group.
+    const subMap = new Map();
+    for (const link of subLinks) {
+      const sec = document.getElementById(link.getAttribute("href").slice(1));
+      if (sec) subMap.set(sec, link);
     }
-    const sections = [...map.keys()];
+    const leaves = [...subMap.keys()];
+    const contact = document.getElementById("contact");
+    if (contact && !subMap.has(contact)) leaves.push(contact);
 
     const setActive = (id) => {
-      let active = null;
-      for (const link of links) {
-        const on = link.getAttribute("href") === `#${id}`;
+      const sec = document.getElementById(id);
+      const group = sec?.closest(".group");
+      const groupId = group ? group.id : id; // Contact resolves to itself
+      let activeTop = null;
+      for (const link of topLinks) {
+        const on = link.getAttribute("href") === `#${groupId}`;
         link.classList.toggle("active", on);
-        if (on) active = link;
+        if (on) activeTop = link;
       }
-      // On narrow viewports the nav scrolls horizontally: keep the active link in view.
-      // Scroll the NAV only (via scrollLeft) — never the page. Calling scrollIntoView
-      // here makes the browser animate the document back to the active anchor and
-      // fights the user's touch-scroll on mobile (the "ping back to anchor" bug).
-      if (active && nav && nav.scrollWidth > nav.clientWidth) {
-        const center = active.offsetLeft + active.offsetWidth / 2;
-        nav.scrollLeft = center - nav.clientWidth / 2;
+      // On narrow viewports the top nav scrolls horizontally: keep the active
+      // group link in view (scrollLeft only — never scroll the page).
+      if (activeTop && topNav && topNav.scrollWidth > topNav.clientWidth) {
+        const center = activeTop.offsetLeft + activeTop.offsetWidth / 2;
+        topNav.scrollLeft = center - topNav.clientWidth / 2;
+      }
+      // Sub-nav: highlight only the active section's own pill.
+      for (const link of subLinks) {
+        link.classList.toggle("active", link.getAttribute("href") === `#${id}`);
       }
     };
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Pick the topmost intersecting section.
         const visible = entries
           .filter((e) => e.isIntersecting)
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
@@ -40,10 +49,8 @@
       },
       { rootMargin: "-45% 0px -50% 0px", threshold: 0 },
     );
-    for (const sec of sections) observer.observe(sec);
-
-    // Default to first section.
-    if (sections[0]) setActive(sections[0].id);
+    for (const sec of leaves) observer.observe(sec);
+    if (leaves[0]) setActive(leaves[0].id);
   }
 
   // ── Tools Table ──────────────────────────────────────────────────
