@@ -542,6 +542,9 @@ a:hover {
   border-top: 1px solid var(--ut-border);
   padding-top: var(--space-6);
 }
+.refs .ref-list {
+  max-width: 68ch;
+}
 /* Citation markers ([1], [2] …) — themed to the surrounding group accent. */
 .prose a[href^="#ref-"] {
   color: var(--group-accent, var(--trust-magenta));
