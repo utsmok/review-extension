@@ -10,6 +10,7 @@ site/try/
 # OS files
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
 
 # Editor directories
 .idea/
@@ -58,9 +59,3 @@ tools/output/
 
 # Local reference data (real exported reviews used for QA — not project source)
 .example_data/
-# site-alt: standalone deployable experiment. Only index.html is tracked;
-# asset/demo/poster/example subfolders are local copies mirrored from site/.
-site-alt/assets/
-site-alt/poster/
-site-alt/example/
-site-alt/try/
