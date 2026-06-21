@@ -378,7 +378,7 @@
   const prefersReduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /* ── Auto-tag meaningful blocks for scroll reveal (hero has its own entrance) ─ */
-  document.querySelectorAll(".install-grid, .links-grid").forEach((grid) => {
+  document.querySelectorAll(".install-grid, .links-grid, .roadmap-grid").forEach((grid) => {
     if (grid.closest("#top")) return;
     grid.setAttribute("data-reveal-stagger", "");
     grid.querySelectorAll(":scope > *").forEach((c) => {
@@ -457,5 +457,66 @@
     revealAllInView();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
+  }
+})();
+
+/* =====================================================================
+   Nav toggle (mobile dropdown) + abstract modal
+   Self-contained; does not touch scroll-spy or motion logic.
+   ===================================================================== */
+(() => {
+  // ── Mobile nav dropdown ───────────────────────────────────────────
+  const toggle = document.getElementById("nav-toggle");
+  const nav = document.getElementById("tab-nav");
+  const closeNav = () => {
+    if (!nav || !toggle) return;
+    nav.classList.remove("open");
+    toggle.setAttribute("aria-expanded", "false");
+  };
+  if (toggle && nav) {
+    toggle.addEventListener("click", () => {
+      const open = nav.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    // Close after following a section link so the menu doesn't strand open.
+    nav.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeNav));
+    // Close when a click lands outside the header.
+    document.addEventListener("click", (e) => {
+      if (nav.classList.contains("open") && !e.target.closest(".site-header")) closeNav();
+    });
+  }
+
+  // ── Abstract & references modal (<dialog>) ───────────────────────
+  const modal = document.getElementById("abstract-modal");
+  const openModal = (e) => {
+    e?.preventDefault();
+    closeNav(); // don't strand the mobile menu open behind the modal
+    if (modal && typeof modal.showModal === "function") modal.showModal();
+    else if (modal) modal.setAttribute("open", "");
+  };
+  const closeModal = () => {
+    if (modal && typeof modal.close === "function") modal.close();
+    else if (modal) modal.removeAttribute("open");
+  };
+  document
+    .querySelectorAll("[data-open-abstract]")
+    .forEach((b) => b.addEventListener("click", openModal));
+  document
+    .querySelectorAll("[data-close-abstract]")
+    .forEach((b) => b.addEventListener("click", closeModal));
+  if (modal) {
+    // Backdrop click: native <dialog> makes the dialog itself the click target
+    // for clicks on the backdrop area.
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+    // [N] citation markers: scroll the reference into view within the modal.
+    modal.querySelectorAll('a[href^="#ref-"]').forEach((a) => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const target = modal.querySelector(a.getAttribute("href"));
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
   }
 })();

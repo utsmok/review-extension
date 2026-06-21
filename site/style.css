@@ -396,6 +396,231 @@ a:hover {
 }
 
 /* =====================================================================
+   Mobile nav toggle — the horizontal scroll strip collapses into a
+   dropdown panel below 760px (matches the external-links breakpoint).
+   ===================================================================== */
+.nav-toggle {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--ut-white) 30%, transparent);
+  color: var(--ut-white);
+  font-family: var(--ff-heading);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  min-height: 40px;
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--duration-fast) var(--ease-out-quart),
+    border-color var(--duration-fast) var(--ease-out-quart);
+}
+.nav-toggle:hover {
+  background: color-mix(in srgb, var(--ut-white) 10%, transparent);
+}
+.nav-toggle[aria-expanded="true"] {
+  background: var(--trust-magenta);
+  border-color: var(--trust-magenta-strong);
+}
+.nav-toggle:focus-visible {
+  outline: 2px solid var(--ut-white);
+  outline-offset: 2px;
+}
+@media (max-width: 759px) {
+  .tab-nav {
+    display: none;
+  }
+  .tab-nav.open {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--ut-primary);
+    border-top: 1px solid color-mix(in srgb, var(--ut-white) 16%, transparent);
+    border-bottom: var(--border-default) solid color-mix(in srgb, var(--ut-navy) 70%, black);
+    padding: var(--space-2) var(--space-6) var(--space-3);
+    margin: 0;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+    scroll-snap-type: none;
+  }
+  .tab-nav.open a {
+    width: 100%;
+    min-height: 44px;
+    justify-content: flex-start;
+    border-bottom: 1px solid color-mix(in srgb, var(--ut-white) 12%, transparent);
+  }
+  .tab-nav.open a:last-child {
+    border-bottom: 0;
+  }
+  .tab-nav.open a.cta {
+    margin-top: var(--space-2);
+    border-bottom: 0;
+  }
+  .nav-toggle {
+    display: inline-flex;
+    margin-left: auto;
+  }
+}
+
+/* =====================================================================
+   Roadmap — next steps checklist (flat cards, framework-magenta accent)
+   ===================================================================== */
+.roadmap-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+.roadmap-item {
+  background: var(--ut-white);
+  border: 1px solid var(--ut-border);
+  border-top: var(--border-accent) solid var(--trust-magenta);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+.roadmap-num {
+  display: inline-block;
+  font-family: var(--ff-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: var(--ls-kicker);
+  color: var(--trust-magenta);
+  margin-bottom: var(--space-2);
+}
+.roadmap-item h3 {
+  font-family: var(--ff-heading);
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  color: var(--ut-primary);
+  margin-bottom: var(--space-2);
+}
+.roadmap-item p {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ut-muted);
+}
+
+/* =====================================================================
+   Modal — abstract & references (native <dialog>, flat: no shadow)
+   ===================================================================== */
+.modal {
+  background: var(--ut-white);
+  color: var(--ut-text);
+  border: var(--border-default) solid var(--ut-border);
+  border-top: var(--border-accent) solid var(--trust-magenta);
+  border-radius: var(--radius-md);
+  padding: 0;
+  max-width: min(760px, 94vw);
+  width: 100%;
+  max-height: 88vh;
+  overflow: hidden;
+}
+.modal::backdrop {
+  background: color-mix(in srgb, var(--ut-primary) 64%, transparent);
+}
+.modal-inner {
+  position: relative;
+  padding: var(--space-8) var(--space-8) var(--space-6);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+/* keep header lines clear of the close button */
+.modal-inner > .kicker,
+.modal-inner > .modal-title,
+.modal-inner > .modal-byline {
+  padding-right: 48px;
+}
+.modal-close {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: var(--ut-primary);
+  color: var(--ut-white);
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out-quart);
+}
+.modal-close:hover {
+  background: var(--trust-magenta);
+}
+.modal-close:focus-visible {
+  outline: 2px solid var(--ut-blue);
+  outline-offset: 2px;
+}
+.modal-title {
+  font-family: var(--ff-heading);
+  font-weight: 700;
+  font-size: clamp(1.3rem, 2.6vw, 1.65rem);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-heading);
+  color: var(--ut-primary);
+  line-height: 1.2;
+  margin-top: var(--space-2);
+  text-wrap: balance;
+}
+.modal-byline {
+  color: var(--ut-muted);
+  margin-top: var(--space-2);
+  font-size: 1rem;
+}
+.modal-refs {
+  margin-top: var(--space-8);
+  border-top: 1px solid var(--ut-border);
+  padding-top: var(--space-6);
+}
+.modal-refs .section-title--sub {
+  display: inline-block;
+  margin-bottom: var(--space-4);
+}
+.modal-refs .ref-list {
+  max-width: 100%;
+}
+.modal-refs .ref-list em {
+  font-style: italic;
+}
+.modal-attribution {
+  margin-top: var(--space-6);
+}
+/* Entrance delight — opacity + slight translate, flat (no shadow) */
+.modal[open] {
+  animation: modal-in var(--duration-normal) var(--ease-out-quart);
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal[open] {
+    animation: none;
+  }
+}
+
+/* =====================================================================
    Hero
    ===================================================================== */
 .hero {
@@ -1110,6 +1335,12 @@ code {
     flex-direction: column;
     align-items: flex-start;
   }
+  .modal-inner {
+    padding: var(--space-6) var(--space-4) var(--space-5);
+  }
+  .roadmap-grid {
+    grid-template-columns: 1fr;
+  }
 }
 @media (max-width: 400px) {
   .principles-grid {
@@ -1476,6 +1707,11 @@ a.author-chip:hover {
   .btn-primary,
   .btn-ghost,
   .compare-btn {
+  }
+  /* New interactive chrome — never print */
+  .nav-toggle,
+  .modal {
+    display: none;
   }
   body {
     font-size: 12pt;
