@@ -62,6 +62,8 @@
   --trust-magenta: #8e036c;
   --trust-magenta-strong: #6a0254;
   --trust-magenta-tint: #fbeef5;
+  /* Active-section accent — driven by scroll-spy: purple → blue → green → orange → purple */
+  --active-accent: var(--trust-magenta);
   --trust-magenta-border: #c991ab;
 
   /* Organizational secondary */
@@ -330,8 +332,11 @@ a:hover {
 }
 .tab-nav a.active {
   color: var(--ut-white);
-  background: var(--trust-magenta);
-  border-color: var(--trust-magenta-strong);
+  background: var(--active-accent);
+  border-color: color-mix(in srgb, var(--active-accent) 82%, #000);
+  transition:
+    background var(--duration-normal) var(--ease-out-quart),
+    border-color var(--duration-normal) var(--ease-out-quart);
 }
 .tab-nav a.cta {
   background: var(--trust-magenta);
@@ -530,132 +535,29 @@ a:hover {
 }
 
 /* =====================================================================
-   Modal — abstract & references (native <dialog>, flat: no shadow)
+   References — citation markers in prose link to the reference list.
    ===================================================================== */
-.modal {
-  background: var(--ut-white);
-  color: var(--ut-text);
-  border: var(--border-default) solid var(--ut-border);
-  border-top: var(--border-accent) solid var(--trust-magenta);
-  border-radius: var(--radius-md);
-  padding: 0;
-  max-width: min(760px, 94vw);
-  width: 100%;
-  max-height: 88vh;
-  overflow: hidden;
-  position: fixed;
-  inset: 0;
-  margin: auto;
-}
-.modal::backdrop {
-  background: color-mix(in srgb, var(--ut-primary) 64%, transparent);
-}
-.modal-inner {
-  position: relative;
-  padding: var(--space-8) var(--space-8) var(--space-6);
-  max-height: 88vh;
-  overflow-y: auto;
-}
-.modal-close {
-  position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
-  z-index: 10;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  background: var(--ut-primary);
-  color: var(--ut-white);
-  border: 0;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-out-quart);
-}
-.modal-close:hover {
-  background: var(--trust-magenta);
-}
-.modal-close:focus-visible {
-  outline: 2px solid var(--ut-blue);
-  outline-offset: 2px;
-}
-.modal-title {
-  font-family: var(--ff-heading);
-  font-weight: 700;
-  font-size: clamp(1.3rem, 2.6vw, 1.65rem);
-  text-transform: uppercase;
-  letter-spacing: var(--ls-heading);
-  color: var(--ut-primary);
-  line-height: 1.2;
-  margin-top: var(--space-3);
-  text-wrap: balance;
-}
-.modal-byline {
-  color: var(--ut-muted);
-  margin-top: var(--space-2);
-  font-size: 1rem;
-}
-/* Keep the kicker/title/byline clear of the close button (top-right). */
-.modal-inner > .kicker,
-.modal-inner > .modal-title,
-.modal-inner > .modal-byline {
-  padding-right: 52px;
-}
-.modal-refs {
+.refs {
   margin-top: var(--space-8);
   border-top: 1px solid var(--ut-border);
   padding-top: var(--space-6);
 }
-.modal-refs .section-title--sub {
-  display: inline-block;
-  margin-bottom: var(--space-4);
-}
-.modal-refs .ref-list {
-  max-width: 100%;
-}
-.modal-refs .ref-list em {
-  font-style: italic;
-}
-.modal-attribution {
-  margin-top: var(--space-6);
-}
-/* Citation link interactive states */
-.modal-refs a[href^="#ref-"] {
-  color: var(--trust-magenta);
+/* Citation markers ([1], [2] …) — themed to the surrounding group accent. */
+.prose a[href^="#ref-"] {
+  color: var(--group-accent, var(--trust-magenta));
   text-decoration: none;
   transition:
     color var(--duration-fast) var(--ease-out-quart),
     text-decoration-color var(--duration-fast) var(--ease-out-quart);
 }
-.modal-refs a[href^="#ref-"]:hover {
-  color: var(--ut-primary);
+.prose a[href^="#ref-"]:hover {
   text-decoration: underline;
   text-decoration-thickness: 1px;
 }
-.modal-refs a[href^="#ref-"]:focus-visible {
+.prose a[href^="#ref-"]:focus-visible {
   outline: 2px solid var(--ut-blue);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
-}
-/* Entrance delight — opacity + slight translate, flat (no shadow) */
-.modal[open] {
-  animation: modal-in var(--duration-normal) var(--ease-out-quart);
-}
-@keyframes modal-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .modal[open] {
-    animation: none;
-  }
 }
 
 /* =====================================================================
@@ -683,23 +585,6 @@ a:hover {
 .group-band .container {
   padding-top: var(--space-6);
   padding-bottom: var(--space-6);
-}
-.group-letter {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2.25rem;
-  height: 1.625rem;
-  padding: 0 var(--space-2);
-  background: var(--group-accent);
-  color: var(--ut-white);
-  font-family: var(--ff-mono);
-  font-weight: 700;
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-  border-radius: var(--radius-sm);
-  vertical-align: middle;
-  margin-right: var(--space-3);
 }
 .group-name {
   display: inline;
@@ -765,12 +650,12 @@ a:hover {
 }
 /* The sub-nav sits inside each group, so --group-accent cascades down. */
 
-/* Small button + modal refs header (download .bib) */
+/* Small button + references header (download .bib) */
 .btn-sm {
   font-size: 0.8125rem;
   padding: var(--space-1) var(--space-3);
 }
-.modal-refs-head {
+.refs-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -899,7 +784,7 @@ a.pill:hover {
   line-height: 1.15;
   text-wrap: balance;
   /* Magenta accent — top-border trick */
-  border-top: var(--border-accent) solid var(--trust-magenta);
+  border-top: var(--border-accent) solid var(--group-accent, var(--trust-magenta));
   padding-top: var(--space-2);
   display: inline-block;
 }
@@ -1505,9 +1390,6 @@ code {
     flex-direction: column;
     align-items: flex-start;
   }
-  .modal-inner {
-    padding: var(--space-6) var(--space-4) var(--space-5);
-  }
   .roadmap-grid {
     grid-template-columns: 1fr;
   }
@@ -1583,7 +1465,7 @@ code {
 .section-title--sub {
   font-size: clamp(1.15rem, 1.5vw, 1.3rem);
   text-wrap: balance;
-  color: var(--trust-magenta);
+  color: var(--group-accent, var(--trust-magenta));
   font-family: var(--ff-heading);
   font-weight: 700;
   text-transform: uppercase;
@@ -1727,7 +1609,8 @@ code {
   content: "";
   display: block;
   height: 100%;
-  background: var(--trust-magenta);
+  background: var(--active-accent);
+  transition: background var(--duration-normal) var(--ease-out-quart);
   /* JS sets --scroll-progress as a 0..1 value; transform avoids layout thrash */
   transform: scaleX(var(--scroll-progress, 0));
   transform-origin: left center;
@@ -1869,7 +1752,7 @@ html.js [data-reveal].revealed {
   left: 0;
   width: 100%;
   height: var(--border-accent);
-  background: var(--trust-magenta);
+  background: var(--group-accent, var(--trust-magenta));
   animation: accent-slide 0.4s var(--ease-out-quart) both;
   animation-delay: 0.15s;
   opacity: 0;
@@ -1922,8 +1805,7 @@ a.author-chip:hover {
     display: none !important;
   }
   /* New interactive chrome — never print */
-  .nav-toggle,
-  .modal {
+  .nav-toggle {
     display: none;
   }
   body {

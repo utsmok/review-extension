@@ -9,7 +9,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Nunito+Sans:wght@800;900&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Nunito+Sans:wght@800;900&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Nunito+Sans:wght@800;900&display=swap"></noscript>
-  <link rel="stylesheet" href="style.css?v=20260623">
+  <link rel="stylesheet" href="style.css?v=20260624">
   <script>document.documentElement.classList.add("js");</script>
 </head>
 <body>
@@ -125,12 +125,11 @@
 
   
   <div class="group-band"><div class="container">
-      <span class="group-letter" aria-hidden="true">TR</span>
       <p class="group-name">Background</p>
       <p class="group-intro">The TRUST framework and its five principles, presented at LIBER 2026.</p>
     </div></div>
 
-  <nav class="sub-nav" aria-label="Background — sections"><div class="container"><a href="#poster">Poster</a></div></nav>
+  <nav class="sub-nav" aria-label="Background — sections"><div class="container"><a href="#poster">Poster</a><a href="#abstract">Abstract</a></div></nav>
 
 <!-- ===== Poster + abstract (LIBER 2026) ===== -->
   <section id="poster" class="section" aria-labelledby="poster-title">
@@ -139,28 +138,70 @@
         <h2 id="poster-title" class="section-title">Poster</h2>
         <p class="section-lede">
           We're presenting the TRUST framework at LIBER 2026
-          (Trondheim, 1–3 July 2026). Download the poster, or open the
-          conference abstract and reference list.
+          (Trondheim, 1–3 July 2026). Download the poster, or read the
+          conference abstract and reference list below.
         </p>
         <p class="hero-cta mt-4">
           <a class="btn btn-primary" href="poster/trust-liber-2026-poster.pdf">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             Download the poster (PDF)
           </a>
-          <button class="btn btn-ghost" type="button" data-open-abstract>
+          <a class="btn btn-ghost" href="#abstract">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             Read the conference abstract &amp; references
-          </button>
+          </a>
         </p>
         <p class="muted text-sm center mt-2" id="poster-zenodo">Zenodo DOI will be added after publication.</p>
       </div>
     </div>
   </section>
+  <!-- ===== Conference abstract (LIBER 2026) ===== -->
+  <section id="abstract" class="section" aria-labelledby="abstract-title">
+    <div class="container">
+      <div class="section-head">
+        <p class="kicker">Proposed for LIBER 2026 · Trondheim</p>
+        <h2 id="abstract-title" class="section-title">Conference abstract</h2>
+        <p class="section-lede"><strong>TRUST framework for evaluating AI-based information search tools.</strong> S. Mok, S.A. Kruit, G. de Jonge, J.M. van Eck — Embedded Information Services, Library, ICT Services &amp; Archive, University of Twente.</p>
+      </div>
+      <div class="prose prose--wide">
+        <p>Novel information search tools are changing how academics access knowledge. These AI-driven systems should augment, not replace, users’ critical thinking and information-literacy skills. As information specialists, our role is to act as informed intermediaries, guiding the scientific community toward tools that enhance research without compromising academic integrity <a href="#ref-1">[1]</a>. Several principles and guidelines for designing and using trustworthy AI have been developed <a href="#ref-2">[2]</a> alongside metrics for assessing these principles <a href="#ref-3">[3]</a>. However, no current specific, rigorous methods to evaluate AI-based search tools exist. This abstract introduces the TRUST framework, a practical tool designed to evaluate AI-based search tools. It measures whether recommended tools are reliable, ethical, and effective, and match scholarly and governmental standards of rigor and transparency.</p>
+        <p>The TRUST framework is built on five core principles, inspired by the FAIR principles for data management <a href="#ref-4">[4]</a>. Each tool review grades the subject on these aspects:</p>
+        <ul class="principle-list">
+          <li><strong>Transparent:</strong> Methodology, data sources, and limitations are clearly documented.</li>
+          <li><strong>Reliable:</strong> Outputs are accurate, verifiable, and consistent. Sources exist and are not hallucinated.</li>
+          <li><strong>User-centric:</strong> Fit for academic use and integrates with standard research workflows.</li>
+          <li><strong>Soundness:</strong> Algorithmic fairness, bias mitigation, and accuracy of search results and rankings.</li>
+          <li><strong>Traceable:</strong> All information generated and used can be traced back to a primary source.</li>
+        </ul>
+        <p>Literature stresses that AI models operate as “black boxes,” making documentation alone insufficient for deep trust and transparency <a href="#ref-5">[5]</a>. The TRUST evaluation protocol addresses challenges such as “consistent and reproducible results” from AI-based literature searches. However, this remains a critical point of failure in the current AI landscape due to the methods of retrieval and synthesis of information AI tools use <a href="#ref-6">[6]</a>. Similarly, the framework checks if output is “factually accurate and verifiable” and “faithful to source material”, which especially generic large language models (LLMs) consistently fail to provide <a href="#ref-7">[7]</a>. These evaluation protocol items are the main reason general LLMs are mostly categorized as “not recommended” for AI-based literature search. In order for these tools to pass these checks, they must evolve beyond keyword retrieval toward a nuanced understanding of academic context and hierarchy <a href="#ref-8">[8]</a>.</p>
+        <p>Our team of information specialists piloted the TRUST evaluation protocol. Examples of results include:</p>
+        <ul>
+          <li><strong>Recommended:</strong> ai2 Asta — restricts outputs to the Semantic Scholar corpus, exposes its reasoning chain, and is free and mostly open-sourced. It excels in Traceability and Reliability.</li>
+          <li><strong>Needs review / provisional:</strong> Elicit — valuable for abstract summarization, but its ranking algorithm is not fully disclosed, limiting its Transparency. The free version is capped, affecting its User-centric score.</li>
+          <li><strong>Not recommended:</strong> generic LLM interfaces (e.g. ChatGPT, Gemini) and general search-focused AI (e.g. Perplexity) — prone to citation errors and lacking rigorous, verifiable academic sources, failing the Reliability and Traceability criteria.</li>
+        </ul>
+        <p>In the coming months, the TRUST framework will be refined into a standardized evaluation protocol with an interactive, integrated workflow — structured data entry coupled with automatic processing, ending in a database that can serve a public-facing list of approved tools accompanied by user guides. In the longer term, TRUST could be extended beyond search tools to assess AI features embedded in existing platforms, and integrate into institutional AI policies and initiatives.</p>
+      </div>
+      <div class="refs">
+        <div class="refs-head"><h3 class="section-title--sub">References</h3><a class="btn btn-ghost btn-sm" href="refs.bib" download>Download sources as .bib</a></div>
+        <ol class="ref-list">
+          <li id="ref-1">L. A. Nogueira, S. T. Moltubakk, A. Fagervik, and I. B. Langfeldt, “Cutting through the noise: Assessing tools that employ artificial intelligence,” <em>IFLA Journal</em>, vol. 51, no. 3, pp. 735–749, 2025, <a href="https://doi.org/10.1177/03400352241304121">doi: 10.1177/03400352241304121</a>.</li>
+          <li id="ref-2">European Commission, “Assessment list for trustworthy artificial intelligence (ALTAI) for self-assessment,” High-Level Expert Group on AI, 2020. [Online]. Available: <a href="https://digital.strategy.ec.europa.eu/en/library/assessment-list-trustworthy-artificial-intelligence-altai-self-assessment">https://digital.strategy.ec.europa.eu/en/library/assessment-list-trustworthy-artificial-intelligence-altai-self-assessment</a>.</li>
+          <li id="ref-3">L. McCormack and M. Bendechache, “A comprehensive survey and classification of evaluation criteria for trustworthy artificial intelligence,” <em>AI and Ethics</em>, vol. 5, no. 3, pp. 1973–1994, 2024, <a href="https://doi.org/10.1007/s43681-024-00590-8">doi: 10.1007/s43681-024-00590-8</a>.</li>
+          <li id="ref-4">GO FAIR Foundation, “FAIR principles,” 2016. [Online]. Available: <a href="https://www.go-fair.org/fair-principles/">https://www.go-fair.org/fair-principles/</a>.</li>
+          <li id="ref-5">M. Mersha, K. Lam, J. Wood, A. K. AlShami, and J. Kalita, “Explainable artificial intelligence: A survey of needs, techniques, applications, and future direction,” <em>Neurocomputing</em>, vol. 599, art. no. 128111, 2024, <a href="https://doi.org/10.1016/j.neucom.2024.128111">doi: 10.1016/j.neucom.2024.128111</a>.</li>
+          <li id="ref-6">A. Tay, “A Librarian’s Guide to AI in Academic Search Tools,” <em>Katina Magazine</em>, 2025, <a href="https://doi.org/10.1146/katina-052025-1">doi: 10.1146/katina-052025-1</a>.</li>
+          <li id="ref-7">Á. Cabezas-Clavijo and P. Sidorenko-Bautista, “Assessing the performance of 8 AI chatbots in bibliographic reference retrieval: Grok and DeepSeek outperform ChatGPT, but none are fully accurate,” arXiv:2505.18059, 2025, <a href="https://doi.org/10.48550/arXiv.2505.18059">doi: 10.48550/arXiv.2505.18059</a>.</li>
+          <li id="ref-8">I. Seth, B. Lim, Y. Xie, R. J. Ross, R. Cuomo, and W. M. Rozen, “Artificial intelligence versus human researcher performance for systematic literature searches: a study focusing on the surgical management of base of thumb arthritis,” <em>Plastic and Aesthetic Research</em>, vol. 12, 2025, <a href="https://doi.org/10.20517/2347-9264.2024.99">doi: 10.20517/2347-9264.2024.99</a>.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
   
 </section>
 <section class="group" id="extension" data-accent="re" aria-label="The extension">
   <div class="group-band"><div class="container">
-      <span class="group-letter" aria-hidden="true">RE</span>
       <p class="group-name">The extension</p>
       <p class="group-intro">A bench-side review instrument — capture evidence in the browser, score systematically against the five principles, and export an auditable report.</p>
     </div></div>
@@ -328,7 +369,6 @@
 </section>
 <section class="group" id="next" data-accent="se" aria-label="What next">
   <div class="group-band"><div class="container">
-      <span class="group-letter" aria-hidden="true">SE</span>
       <p class="group-name">What’s next</p>
       <p class="group-intro">Tools under review today, and where the framework is heading — from a single pilot toward an institution-wide evaluation workflow.</p>
     </div></div>
@@ -479,57 +519,6 @@
     </div>
   </section>
   </main>
-  <!-- ===== Abstract + references modal ===== -->
-  <dialog id="abstract-modal" class="modal" aria-labelledby="abstract-title">
-    <button class="modal-close" type="button" data-close-abstract aria-label="Close abstract">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-    <div class="modal-inner">
-      <p class="kicker">Conference abstract · proposed for LIBER 2026</p>
-      <h2 id="abstract-title" class="modal-title">TRUST framework for evaluating AI-based information search tools</h2>
-      <p class="modal-byline">S. Mok, S.A. Kruit, G. de Jonge, J.M. van Eck — Embedded Information Services, Library, ICT Services &amp; Archive, University of Twente.</p>
-      <div class="prose prose--wide">
-        <p>Novel information search tools are changing how academics access knowledge. These AI-driven systems should augment, not replace, users’ critical thinking and information-literacy skills. As information specialists, our role is to act as informed intermediaries, guiding the scientific community toward tools that enhance research without compromising academic integrity <a href="#ref-1">[1]</a>. Several principles and guidelines for designing and using trustworthy AI have been developed <a href="#ref-2">[2]</a> alongside metrics for assessing these principles <a href="#ref-3">[3]</a>. However, no current specific, rigorous methods to evaluate AI-based search tools exist. This abstract introduces the TRUST framework, a practical tool designed to evaluate AI-based search tools. It measures whether recommended tools are reliable, ethical, and effective, and match scholarly and governmental standards of rigor and transparency.</p>
-        <p>The TRUST framework is built on five core principles, inspired by the FAIR principles for data management <a href="#ref-4">[4]</a>. Each tool review grades the subject on these aspects:</p>
-        <ul class="principle-list">
-          <li><strong>Transparent:</strong> Methodology, data sources, and limitations are clearly documented.</li>
-          <li><strong>Reliable:</strong> Outputs are accurate, verifiable, and consistent. Sources exist and are not hallucinated.</li>
-          <li><strong>User-centric:</strong> Fit for academic use and integrates with standard research workflows.</li>
-          <li><strong>Soundness:</strong> Algorithmic fairness, bias mitigation, and accuracy of search results and rankings.</li>
-          <li><strong>Traceable:</strong> All information generated and used can be traced back to a primary source.</li>
-        </ul>
-        <p>Literature stresses that AI models operate as “black boxes,” making documentation alone insufficient for deep trust and transparency <a href="#ref-5">[5]</a>. The TRUST evaluation protocol addresses challenges such as “consistent and reproducible results” from AI-based literature searches. However, this remains a critical point of failure in the current AI landscape due to the methods of retrieval and synthesis of information AI tools use <a href="#ref-6">[6]</a>. Similarly, the framework checks if output is “factually accurate and verifiable” and “faithful to source material”, which especially generic large language models (LLMs) consistently fail to provide <a href="#ref-7">[7]</a>. These evaluation protocol items are the main reason general LLMs are mostly categorized as “not recommended” for AI-based literature search. In order for these tools to pass these checks, they must evolve beyond keyword retrieval toward a nuanced understanding of academic context and hierarchy <a href="#ref-8">[8]</a>.</p>
-        <p>Our team of information specialists piloted the TRUST evaluation protocol. Examples of results include:</p>
-        <ul>
-          <li><strong>Recommended:</strong> ai2 Asta — restricts outputs to the Semantic Scholar corpus, exposes its reasoning chain, and is free and mostly open-sourced. It excels in Traceability and Reliability.</li>
-          <li><strong>Needs review / provisional:</strong> Elicit — valuable for abstract summarization, but its ranking algorithm is not fully disclosed, limiting its Transparency. The free version is capped, affecting its User-centric score.</li>
-          <li><strong>Not recommended:</strong> generic LLM interfaces (e.g. ChatGPT, Gemini) and general search-focused AI (e.g. Perplexity) — prone to citation errors and lacking rigorous, verifiable academic sources, failing the Reliability and Traceability criteria.</li>
-        </ul>
-        <p>In the coming months, the TRUST framework will be refined into a standardized evaluation protocol with an interactive, integrated workflow — structured data entry coupled with automatic processing, ending in a database that can serve a public-facing list of approved tools accompanied by user guides. In the longer term, TRUST could be extended beyond search tools to assess AI features embedded in existing platforms, and integrate into institutional AI policies and initiatives.</p>
-      </div>
-
-      <div class="modal-refs">
-        <div class="modal-refs-head"><h3 class="section-title--sub">References</h3><a class="btn btn-ghost btn-sm" href="refs.bib" download>Download sources as .bib</a></div>
-        <ol class="ref-list">
-          <li id="ref-1">L. A. Nogueira, S. T. Moltubakk, A. Fagervik, and I. B. Langfeldt, “Cutting through the noise: Assessing tools that employ artificial intelligence,” <em>IFLA Journal</em>, vol. 51, no. 3, pp. 735–749, 2025, <a href="https://doi.org/10.1177/03400352241304121">doi: 10.1177/03400352241304121</a>.</li>
-          <li id="ref-2">European Commission, “Assessment list for trustworthy artificial intelligence (ALTAI) for self-assessment,” High-Level Expert Group on AI, 2020. [Online]. Available: <a href="https://digital.strategy.ec.europa.eu/en/library/assessment-list-trustworthy-artificial-intelligence-altai-self-assessment">https://digital.strategy.ec.europa.eu/en/library/assessment-list-trustworthy-artificial-intelligence-altai-self-assessment</a>.</li>
-          <li id="ref-3">L. McCormack and M. Bendechache, “A comprehensive survey and classification of evaluation criteria for trustworthy artificial intelligence,” <em>AI and Ethics</em>, vol. 5, no. 3, pp. 1973–1994, 2024, <a href="https://doi.org/10.1007/s43681-024-00590-8">doi: 10.1007/s43681-024-00590-8</a>.</li>
-          <li id="ref-4">GO FAIR Foundation, “FAIR principles,” 2016. [Online]. Available: <a href="https://www.go-fair.org/fair-principles/">https://www.go-fair.org/fair-principles/</a>.</li>
-          <li id="ref-5">M. Mersha, K. Lam, J. Wood, A. K. AlShami, and J. Kalita, “Explainable artificial intelligence: A survey of needs, techniques, applications, and future direction,” <em>Neurocomputing</em>, vol. 599, art. no. 128111, 2024, <a href="https://doi.org/10.1016/j.neucom.2024.128111">doi: 10.1016/j.neucom.2024.128111</a>.</li>
-          <li id="ref-6">A. Tay, “A Librarian’s Guide to AI in Academic Search Tools,” <em>Katina Magazine</em>, 2025, <a href="https://doi.org/10.1146/katina-052025-1">doi: 10.1146/katina-052025-1</a>.</li>
-          <li id="ref-7">Á. Cabezas-Clavijo and P. Sidorenko-Bautista, “Assessing the performance of 8 AI chatbots in bibliographic reference retrieval: Grok and DeepSeek outperform ChatGPT, but none are fully accurate,” arXiv:2505.18059, 2025, <a href="https://doi.org/10.48550/arXiv.2505.18059">doi: 10.48550/arXiv.2505.18059</a>.</li>
-          <li id="ref-8">I. Seth, B. Lim, Y. Xie, R. J. Ross, R. Cuomo, and W. M. Rozen, “Artificial intelligence versus human researcher performance for systematic literature searches: a study focusing on the surgical management of base of thumb arthritis,” <em>Plastic and Aesthetic Research</em>, vol. 12, 2025, <a href="https://doi.org/10.20517/2347-9264.2024.99">doi: 10.20517/2347-9264.2024.99</a>.</li>
-        </ol>
-      </div>
-
-      <p class="attribution modal-attribution">
-        <span class="pill">v0.9.3</span>
-        <a class="pill" href="https://github.com/utsmok/review-extension/blob/main/LICENSE">Apache-2.0</a>
-        <a class="pill" href="https://github.com/utsmok/review-extension/releases">Releases</a>
-      </p>
-    </div>
-  </dialog>
-
   <!-- ===== Footer ===== -->
   <footer class="site-footer">
     <div class="container">
@@ -542,6 +531,6 @@
     </div>
   </footer>
 
-  <script src="script.js?v=20260623" defer></script>
+  <script src="script.js?v=20260624" defer></script>
 </body>
 </html>
