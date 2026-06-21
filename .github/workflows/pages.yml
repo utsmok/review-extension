@@ -1,0 +1,61 @@
+name: Deploy site mirror to Pages
+
+# Mirrors the marketing site (site/) — including the in-browser demo built
+# from web/ — to GitHub Pages as an automatic backup of the canonical site
+# at https://trust.samuelmok.cc/.
+#
+# The mirror lives at https://utsmok.github.io/review-extension/. All site
+# links are relative (and the vite demo build uses base: "./"), so it works
+# under that subpath with no rewrites.
+#
+# Triggers when site/ or the demo source (web/) changes. If extension code
+# imported by the demo (entrypoints/, lib/, components/, …) changes in a way
+# that affects the demo, run this workflow manually via the Actions tab.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "web/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-pages:
+    runs-on: ubuntu-latest
+    environment: github-pages
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build in-browser demo (site/try)
+        run: pnpm exec vite build --config web/vite.config.ts
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+      - uses: actions/deploy-pages@v4
+        id: deployment
