@@ -346,6 +346,7 @@ a:hover {
 }
 .ext-link {
   display: inline-flex;
+  position: relative;
   align-items: center;
   justify-content: center;
   min-height: 32px;
@@ -367,6 +368,35 @@ a:hover {
 .ext-link:focus-visible {
   outline: 2px solid var(--trust-magenta);
   outline-offset: 2px;
+}
+.ext-link[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--ut-primary);
+  color: var(--ut-white);
+  font-family: var(--ff-body);
+  font-weight: 600;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 200;
+  transition:
+    opacity var(--duration-fast) var(--ease-out-quart),
+    transform var(--duration-fast) var(--ease-out-quart);
+}
+.ext-link[data-tip]:hover::after,
+.ext-link[data-tip]:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 .ext-icon {
   display: block;
@@ -789,7 +819,9 @@ a:hover {
   font-size: 1.15rem;
   line-height: 1.55;
   color: var(--ut-muted);
-  max-width: 52ch;
+  max-width: 68ch;
+  text-align: justify;
+  hyphens: auto;
   margin: 0 auto var(--space-6);
 }
 .hero-cta {
@@ -1063,6 +1095,21 @@ a.pill:hover {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--space-4);
   margin-top: var(--space-6);
+}
+.install-meta {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  margin-top: var(--space-6);
+  align-items: center;
+}
+.install-meta li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  color: var(--ut-muted);
 }
 .install-card ol {
   margin: var(--space-3) 0 0;
