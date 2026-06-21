@@ -1935,10 +1935,32 @@ a.author-chip:hover {
   .compare-btn {
     display: none !important;
   }
-  /* New interactive chrome — never print */
-  .nav-toggle,
-  .modal {
+  /* Hide the mobile menu button; reveal the abstract <dialog> as static flow
+     so the conference abstract and reference DOIs survive in print/PDF. */
+  .nav-toggle {
     display: none;
+  }
+  .modal {
+    display: block;
+    position: static;
+    inset: auto;
+    margin: 0;
+    max-width: none;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+  }
+  .modal::backdrop {
+    display: none;
+  }
+  .modal-close {
+    display: none;
+  }
+  .modal-inner {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
   }
   body {
     font-size: 12pt;
