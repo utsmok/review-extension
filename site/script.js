@@ -479,7 +479,9 @@
       toggle.setAttribute("aria-expanded", open ? "true" : "false");
     });
     // Close after following a section link so the menu doesn't strand open.
-    nav.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeNav));
+    nav.querySelectorAll("a").forEach((a) => {
+      a.addEventListener("click", closeNav);
+    });
     // Close when a click lands outside the header.
     document.addEventListener("click", (e) => {
       if (nav.classList.contains("open") && !e.target.closest(".site-header")) closeNav();
@@ -488,23 +490,35 @@
 
   // ── Abstract & references modal (<dialog>) ───────────────────────
   const modal = document.getElementById("abstract-modal");
+  // Remember the opener so focus returns to it when the dialog closes —
+  // without this, Escape/backdrop close strands keyboard users on <body>.
+  let lastTrigger = null;
   const openModal = (e) => {
     e?.preventDefault();
     closeNav(); // don't strand the mobile menu open behind the modal
+    lastTrigger = e?.currentTarget || document.activeElement;
     if (modal && typeof modal.showModal === "function") modal.showModal();
     else if (modal) modal.setAttribute("open", "");
   };
   const closeModal = () => {
     if (modal && typeof modal.close === "function") modal.close();
-    else if (modal) modal.removeAttribute("open");
+    else if (modal) modal.removeAttribute("open", "");
   };
-  document
-    .querySelectorAll("[data-open-abstract]")
-    .forEach((b) => b.addEventListener("click", openModal));
-  document
-    .querySelectorAll("[data-close-abstract]")
-    .forEach((b) => b.addEventListener("click", closeModal));
+  document.querySelectorAll("[data-open-abstract]").forEach((b) => {
+    b.addEventListener("click", openModal);
+  });
+  document.querySelectorAll("[data-close-abstract]").forEach((b) => {
+    b.addEventListener("click", closeModal);
+  });
   if (modal) {
+    // Return focus to the opener — the native "close" event fires for every
+    // dismissal path (Escape, backdrop click, close button).
+    modal.addEventListener("close", () => {
+      if (lastTrigger) {
+        lastTrigger.focus();
+        lastTrigger = null;
+      }
+    });
     // Backdrop click: native <dialog> makes the dialog itself the click target
     // for clicks on the backdrop area.
     modal.addEventListener("click", (e) => {

@@ -459,9 +459,6 @@ a:hover {
     justify-content: flex-start;
     border-bottom: 1px solid color-mix(in srgb, var(--ut-white) 12%, transparent);
   }
-  .tab-nav.open a:last-child {
-    border-bottom: 0;
-  }
   .tab-nav.open a.cta {
     margin-top: var(--space-2);
     border-bottom: 0;
