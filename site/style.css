@@ -286,7 +286,7 @@ a:hover {
   letter-spacing: 0.06em;
 }
 
-/* Anchor nav — horizontally scrollable on small screens with a fade cue */
+/* Anchor nav — horizontally scrollable on small screens */
 .tab-nav {
   display: flex;
   align-items: center;
