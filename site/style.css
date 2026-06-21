@@ -297,20 +297,6 @@ a:hover {
   overflow-x: auto;
   scroll-snap-type: x proximity;
   scrollbar-width: none;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    #000 32px,
-    #000 calc(100% - 36px),
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    #000 32px,
-    #000 calc(100% - 36px),
-    transparent 100%
-  );
 }
 .tab-nav::-webkit-scrollbar {
   display: none;
@@ -521,6 +507,13 @@ a:hover {
   letter-spacing: var(--ls-kicker);
   color: var(--group-accent, var(--se));
   margin-bottom: var(--space-2);
+}
+.roadmap-icon {
+  display: block;
+  width: 30px;
+  height: 30px;
+  color: var(--group-accent, var(--se));
+  margin: var(--space-2) 0;
 }
 .roadmap-item h3 {
   font-family: var(--ff-heading);
