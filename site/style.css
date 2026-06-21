@@ -596,6 +596,12 @@ a:hover {
   margin-top: var(--space-2);
   font-size: 1rem;
 }
+/* Keep the kicker/title/byline clear of the close button (top-right). */
+.modal-inner > .kicker,
+.modal-inner > .modal-title,
+.modal-inner > .modal-byline {
+  padding-right: 52px;
+}
 .modal-refs {
   margin-top: var(--space-8);
   border-top: 1px solid var(--ut-border);
@@ -1121,7 +1127,7 @@ code {
   border: var(--border-default) solid var(--trust-magenta);
   padding: var(--space-3) var(--space-4);
   margin: var(--space-4) 0;
-  font-size: var(--text-sm);
+  font-size: 0.9rem;
 }
 .compare-controls {
   display: flex;

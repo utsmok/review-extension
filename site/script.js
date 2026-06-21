@@ -163,7 +163,7 @@
       el = document.createElement("div");
       el.id = "compare-error";
       el.setAttribute("role", "alert");
-      el.className = "compare-error muted";
+      el.className = "compare-error";
       const drop = document.getElementById("compare-drop");
       if (drop) drop.parentNode.insertBefore(el, drop.nextSibling);
     }
