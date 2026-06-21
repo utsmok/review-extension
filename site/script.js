@@ -191,7 +191,7 @@
       const total = files.length;
       showFileError(
         total === 1
-          ? "Could not read that file — it may not be a valid TRUST session archive."
+          ? "Could not read that file — it may not be a valid TRUST review archive."
           : `${errors} of ${total} file${errors > 1 ? "s" : ""} could not be read.`,
       );
     }
@@ -306,8 +306,8 @@
     });
 
     const principleCodes = ["TR", "RE", "US", "SE", "TC"];
-    thead.innerHTML = `<tr><th>Criterion</th>${compareData
-      .map((d) => `<th>${esc(d.toolName)}</th>`)
+    thead.innerHTML = `<tr><th scope="col">Criterion</th>${compareData
+      .map((d) => `<th scope="col">${esc(d.toolName)}</th>`)
       .join("")}</tr>`;
 
     const rows = [];
@@ -443,6 +443,7 @@
     let ticking = false;
     let settle = null;
     const onScroll = () => {
+      document.body.classList.add("is-scrolling");
       if (!ticking) {
         ticking = true;
         requestAnimationFrame(() => {
@@ -451,7 +452,10 @@
         });
       }
       if (settle) clearTimeout(settle);
-      settle = setTimeout(revealAllInView, 150);
+      settle = setTimeout(() => {
+        document.body.classList.remove("is-scrolling");
+        revealAllInView();
+      }, 150);
     };
     updateProgress();
     revealAllInView();
@@ -502,7 +506,7 @@
   };
   const closeModal = () => {
     if (modal && typeof modal.close === "function") modal.close();
-    else if (modal) modal.removeAttribute("open", "");
+    else if (modal) modal.removeAttribute("open");
   };
   document.querySelectorAll("[data-open-abstract]").forEach((b) => {
     b.addEventListener("click", openModal);
@@ -529,7 +533,11 @@
       a.addEventListener("click", (e) => {
         e.preventDefault();
         const target = modal.querySelector(a.getAttribute("href"));
-        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (target)
+          target.scrollIntoView({
+            behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+            block: "start",
+          });
       });
     });
   }
