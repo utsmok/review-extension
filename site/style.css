@@ -182,6 +182,8 @@ body {
   line-height: 1.6;
   color: var(--ut-text);
   background: var(--ut-canvas);
+  /* Offset for the fixed site header (nav height + bottom border). */
+  padding-top: calc(var(--nav-height) + var(--border-default));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -252,7 +254,9 @@ a:hover {
    Header + sticky anchor navigation
    ===================================================================== */
 .site-header {
-  position: sticky;
+  position: fixed;
+  left: 0;
+  right: 0;
   top: 0;
   z-index: 100;
   background: var(--ut-primary);
@@ -494,7 +498,7 @@ a:hover {
 }
 
 /* =====================================================================
-   Roadmap — next steps checklist (flat cards, framework-magenta accent)
+   Roadmap — next steps checklist (flat cards, group-accented)
    ===================================================================== */
 .roadmap-grid {
   list-style: none;
@@ -505,7 +509,7 @@ a:hover {
 .roadmap-item {
   background: var(--ut-white);
   border: 1px solid var(--ut-border);
-  border-top: var(--border-accent) solid var(--trust-magenta);
+  border-top: var(--border-accent) solid var(--group-accent, var(--se));
   border-radius: var(--radius-lg);
   padding: var(--space-5);
 }
@@ -515,7 +519,7 @@ a:hover {
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: var(--ls-kicker);
-  color: var(--trust-magenta);
+  color: var(--group-accent, var(--se));
   margin-bottom: var(--space-2);
 }
 .roadmap-item h3 {
@@ -532,6 +536,101 @@ a:hover {
   line-height: 1.5;
   color: var(--ut-muted);
   margin-bottom: 0;
+}
+
+/* =====================================================================
+   Modal — abstract & references (native <dialog>, flat: no shadow)
+   ===================================================================== */
+.modal {
+  background: var(--ut-white);
+  color: var(--ut-text);
+  border: var(--border-default) solid var(--ut-border);
+  border-top: var(--border-accent) solid var(--trust-magenta);
+  border-radius: var(--radius-md);
+  padding: 0;
+  max-width: min(760px, 94vw);
+  width: 100%;
+  max-height: 88vh;
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+  margin: auto;
+}
+.modal::backdrop {
+  background: color-mix(in srgb, var(--ut-primary) 64%, transparent);
+}
+.modal-inner {
+  position: relative;
+  padding: var(--space-8) var(--space-8) var(--space-6);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.modal-close {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: var(--ut-primary);
+  color: var(--ut-white);
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out-quart);
+}
+.modal-close:hover {
+  background: var(--trust-magenta);
+}
+.modal-close:focus-visible {
+  outline: 2px solid var(--ut-blue);
+  outline-offset: 2px;
+}
+.modal-title {
+  font-family: var(--ff-heading);
+  font-weight: 700;
+  font-size: clamp(1.3rem, 2.6vw, 1.65rem);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-heading);
+  color: var(--ut-primary);
+  line-height: 1.2;
+  margin-top: var(--space-3);
+  text-wrap: balance;
+}
+.modal-byline {
+  color: var(--ut-muted);
+  margin-top: var(--space-2);
+  font-size: 1rem;
+}
+.modal-inner > .kicker,
+.modal-inner > .modal-title,
+.modal-inner > .modal-byline {
+  padding-right: 52px;
+}
+.modal-attribution {
+  margin-top: var(--space-6);
+}
+/* Entrance delight — opacity + slight translate, flat (no shadow) */
+.modal[open] {
+  animation: modal-in var(--duration-normal) var(--ease-out-quart);
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal[open] {
+    animation: none;
+  }
 }
 
 /* =====================================================================
@@ -626,6 +725,7 @@ a:hover {
   display: none;
 }
 .sub-nav a {
+  text-decoration: none;
   flex: 0 0 auto;
   font-family: var(--ff-heading);
   font-weight: 700;
@@ -707,6 +807,29 @@ a:hover {
   align-items: center;
 }
 
+/* Hero quick-start — prominent install / try / report actions with descriptions */
+.quickstart {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-5);
+  margin: var(--space-6) auto 0;
+  max-width: 960px;
+  text-align: left;
+}
+.quickstart-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.quickstart-item .btn {
+  align-self: flex-start;
+}
+.quickstart-desc {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ut-muted);
+}
+
 /* =====================================================================
    Buttons / badges — sharp edges, flat
    ===================================================================== */
@@ -729,6 +852,11 @@ a:hover {
     background var(--duration-fast) var(--ease-out-quart),
     border-color var(--duration-fast) var(--ease-out-quart),
     color var(--duration-fast) var(--ease-out-quart);
+}
+.btn-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
 }
 .btn-primary {
   background: var(--trust-magenta);
@@ -1808,7 +1936,8 @@ a.author-chip:hover {
     display: none !important;
   }
   /* New interactive chrome — never print */
-  .nav-toggle {
+  .nav-toggle,
+  .modal {
     display: none;
   }
   body {

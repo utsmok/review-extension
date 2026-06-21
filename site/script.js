@@ -482,7 +482,7 @@
 })();
 
 /* =====================================================================
-   Nav toggle (mobile dropdown)
+   Nav toggle (mobile dropdown) + abstract modal
    Self-contained; does not touch scroll-spy or motion logic.
    ===================================================================== */
 (() => {
@@ -506,6 +506,55 @@
     // Close when a click lands outside the header.
     document.addEventListener("click", (e) => {
       if (nav.classList.contains("open") && !e.target.closest(".site-header")) closeNav();
+    });
+  }
+  // ── Abstract & references modal (<dialog>) ───────────────────────
+  const modal = document.getElementById("abstract-modal");
+  // Remember the opener so focus returns to it when the dialog closes —
+  // without this, Escape/backdrop close strands keyboard users on <body>.
+  let lastTrigger = null;
+  const openModal = (e) => {
+    e?.preventDefault();
+    closeNav(); // don't strand the mobile menu open behind the modal
+    lastTrigger = e?.currentTarget || document.activeElement;
+    if (modal && typeof modal.showModal === "function") modal.showModal();
+    else if (modal) modal.setAttribute("open", "");
+  };
+  const closeModal = () => {
+    if (modal && typeof modal.close === "function") modal.close();
+    else if (modal) modal.removeAttribute("open");
+  };
+  document.querySelectorAll("[data-open-abstract]").forEach((b) => {
+    b.addEventListener("click", openModal);
+  });
+  document.querySelectorAll("[data-close-abstract]").forEach((b) => {
+    b.addEventListener("click", closeModal);
+  });
+  if (modal) {
+    // Return focus to the opener — the native "close" event fires for every
+    // dismissal path (Escape, backdrop click, close button).
+    modal.addEventListener("close", () => {
+      if (lastTrigger) {
+        lastTrigger.focus();
+        lastTrigger = null;
+      }
+    });
+    // Backdrop click: native <dialog> makes the dialog itself the click target
+    // for clicks on the backdrop area.
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+    // [N] citation markers: scroll the reference into view within the modal.
+    modal.querySelectorAll('a[href^="#ref-"]').forEach((a) => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const target = modal.querySelector(a.getAttribute("href"));
+        if (target)
+          target.scrollIntoView({
+            behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+            block: "start",
+          });
+      });
     });
   }
 })();
