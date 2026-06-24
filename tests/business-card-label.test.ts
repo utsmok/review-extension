@@ -151,7 +151,7 @@ describe("buildBusinessCardLabel", () => {
     );
     expect(html).toContain('<svg class="bc-qr"');
     expect(html).toContain("trust.samuelmok.cc");
-    expect(html).toContain("view full report at");
+    expect(html).toContain("bc-qrwrap");
   });
 
   it("carries the static reviewer line + hub in the footer", async () => {
