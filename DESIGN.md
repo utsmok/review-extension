@@ -153,6 +153,8 @@ Each score color also generates tint (10% + white) and border (24% + border gray
 
 **The Score Spectrum Rule.** The four score colors form a semantic ramp from red (0) through orange (1) and teal (2) to green (3). This ramp is the only place where color alone encodes evaluation state. Score tints and borders derive automatically via `color-mix()`.
 
+**The Color Precedence Rule.** Principle accent colors are the *dominant* color-as-meaning channel across the product — a category is identified by its color first, everywhere it appears. The score spectrum is the *secondary* channel, used deliberately and locally: only in contexts where a principle-identity color is not already present (e.g. the hero verdict seal, the final overall score, quality-gate ✓/✗ marks), so the two systems never compete for the same element. When identity and outcome coexist — principle score rows, the summary table — the identity color carries the principle and the outcome is read through shape and label (filled/open circles, the N/3 value) rather than a competing hue.
+
 ## 3. Typography
 
 **Display Font:** Nunito Sans (Google Fonts, humanist sans-serif, weight 800-900)

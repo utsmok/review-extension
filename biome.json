@@ -1,7 +1,15 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
   "files": {
-    "includes": ["**", "!!.agents", "!!.claude", "!!.github/skills", "!!tools"]
+    "includes": [
+      "**",
+      "!!.agents",
+      "!!.claude",
+      "!!.github/skills",
+      "!!tools",
+      "!!card-design",
+      "!!site/example"
+    ]
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "vcs": {
@@ -36,12 +44,15 @@
       },
       "complexity": {
         "noImportantStyles": "off"
+      },
+      "style": {
+        "noDescendingSpecificity": "off"
       }
     }
   },
   "overrides": [
     {
-      "includes": ["tests/**"],
+      "includes": ["tests/**", "report-dev/**", "scripts/**"],
       "linter": {
         "rules": {
           "style": {

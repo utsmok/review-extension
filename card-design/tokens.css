@@ -1,0 +1,52 @@
+/* TRUST design tokens — copied verbatim from lib/report.css :root + DESIGN.md.
+   Single source of truth for every card proposal so they stay on-brand. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Nunito+Sans:wght@800;900&display=swap');
+
+:root {
+  /* ── Identity ── */
+  --magenta: #8e036c;
+  --magenta-strong: #6a0254;
+  --magenta-tint: #fbeef5;
+  --navy: #002c5f;
+
+  /* ── Neutrals (navy-tinted, never pure black/white) ── */
+  --text: #172033;
+  --muted: #4f5e73;
+  --slate: #4c5e74;
+  --border: #bfc6cf;
+  --canvas: #eef0f3;
+  --panel: #f3f4f6;
+  --white: #fafbfc;
+
+  /* ── Interactive / org ── */
+  --link: #2563eb;
+  --teal-blue: #007d9c;
+  --lisa-red: #ab2b44;
+  --eis-teal: #005c53;
+
+  /* ── Principle accents (one color per category — never cross-use) ── */
+  --c-tr: #2563eb; /* Transparent  — blue   */
+  --c-re: #16a34a; /* Reliable     — green  */
+  --c-us: #9333ea; /* User-centric — violet */
+  --c-se: #ea580c; /* Soundness    — orange */
+  --c-tc: #0d9488; /* Traceable    — teal   */
+
+  /* ── Score ramp (report WCAG-AA variants, red→green) ── */
+  --score-0: #c20c2f;
+  --score-1: #b23c0b;
+  --score-2: #0d6d87;
+  --score-3: #3d7249;
+
+  /* ── Verdict palette (maps grade → score-ramp color) ── */
+  --v-recommended: var(--score-3); /* green  */
+  --v-caveats:     var(--score-2); /* teal   */
+  --v-caution:     var(--score-1); /* orange */
+  --v-not:         var(--score-0); /* red    */
+  --v-neutral:     var(--slate);
+
+  /* ── Fonts (four roles; display = Nunito Sans only beside wordmark) ── */
+  --ff-display: "Nunito Sans", "Arial Narrow", sans-serif;
+  --ff-heading: "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
+  --ff-body:    "Inter", "Segoe UI", system-ui, sans-serif;
+  --ff-mono:    "JetBrains Mono", "Cascadia Code", ui-monospace, monospace;
+}

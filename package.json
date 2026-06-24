@@ -1,6 +1,6 @@
 {
   "name": "trust-review-extension",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "private": true,
   "type": "module",
   "scripts": {
@@ -34,6 +34,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tldraw": "^5.0.1",
+    "uqr": "^0.1.3",
     "zustand": "^5.0.0"
   },
   "devDependencies": {

@@ -9,6 +9,9 @@ vi.mock("@/lib/html-report", () => ({
   buildHtmlReport: vi.fn().mockResolvedValue("<html>report</html>"),
   buildNutritionLabel: vi.fn().mockResolvedValue("<html>label</html>"),
   buildBusinessCardLabel: vi.fn().mockResolvedValue("<html>card</html>"),
+  buildBusinessCardSheet: vi
+    .fn()
+    .mockResolvedValue({ front: "<html>sheet-front</html>", back: "<html>sheet-back</html>" }),
 }));
 
 vi.mock("@/lib/screenshot-store", () => ({

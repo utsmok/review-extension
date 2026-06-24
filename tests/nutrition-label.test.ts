@@ -109,11 +109,11 @@ describe("buildNutritionLabel", () => {
     expect(html).toContain("CAUTION");
   });
 
-  it("renders all quality gates as a 2x2 grid, flagged by result", async () => {
+  it("renders all quality gates in a centered row, flagged by result", async () => {
     const html = await buildNutritionLabel(makeMetadata(), failQGEvaluations(), RUBRIC);
     // The grid is always shown; each gate is a result-flagged cell.
-    expect(html).toContain('class="nutrition-gate-grid"');
-    expect(html).toContain('class="nutrition-gate"');
+    expect(html).toContain('class="nl-gates"');
+    expect(html).toContain('class="nl-gate"');
     // The failing gate is flagged and its label is rendered.
     expect(html).toContain('data-result="fail"');
     expect(html).toContain("Data privacy policy");
@@ -130,10 +130,10 @@ describe("buildNutritionLabel", () => {
     expect(html).not.toContain("All quality gates passed");
   });
 
-  it("contains principle scores table with principle codes (TR, RE, US, SE, TC)", async () => {
+  it("contains principle rows with principle codes (TR, RE, US, SE, TC)", async () => {
     const html = await buildNutritionLabel(makeMetadata(), allHighScoringEvaluations(), RUBRIC);
     for (const code of ["TR", "RE", "US", "SE", "TC"]) {
-      expect(html).toContain(`nutrition-principle-code">${code}`);
+      expect(html).toContain(`nl-pcode">${code}`);
     }
   });
 

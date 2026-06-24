@@ -6,7 +6,12 @@
  * CSS loads as a proper stylesheet (HMR, source maps, DevTools).
  */
 import trustFull from "@/data/rubrics/trust-full.json";
-import { buildBusinessCardLabel, buildHtmlReport, buildNutritionLabel } from "@/lib/html-report";
+import {
+  buildBusinessCardLabel,
+  buildBusinessCardSheet,
+  buildHtmlReport,
+  buildNutritionLabel,
+} from "@/lib/html-report";
 import type {
   Capture,
   Evaluation,
@@ -303,6 +308,17 @@ async function renderReport(variant: string, dataStateKey: string): Promise<stri
         RUBRIC,
         state.finalization,
       );
+    case "sheet": {
+      const sheets = await buildBusinessCardSheet(
+        state.metadata,
+        state.evaluations,
+        RUBRIC,
+        state.finalization,
+      );
+      return new URLSearchParams(location.search).get("face") === "back"
+        ? sheets.back
+        : sheets.front;
+    }
     default:
       return "<p>Unknown variant</p>";
   }
@@ -381,5 +397,10 @@ variantSelect.addEventListener("change", update);
 dataSelect.addEventListener("change", update);
 viewportSelect.addEventListener("change", update);
 
+// Deep-link via query params: ?variant=card&data=complete&viewport=1200
+const params = new URLSearchParams(location.search);
+if (params.has("variant")) variantSelect.value = params.get("variant")!;
+if (params.has("data")) dataSelect.value = params.get("data")!;
+if (params.has("viewport")) viewportSelect.value = params.get("viewport")!;
 // Initial render
 update();

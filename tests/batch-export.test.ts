@@ -14,11 +14,15 @@ function makeArtifacts(overrides?: Partial<ExportArtifacts>): ExportArtifacts {
     htmlReport: "<html>report</html>",
     nutritionLabel: "<html>label</html>",
     businessCardLabel: "<html>card</html>",
+    businessCardSheetFront: "<html>sheet-front</html>",
+    businessCardSheetBack: "<html>sheet-back</html>",
     imageFiles: new Map(),
     captureHtmlFiles: new Map(),
     reportFilename: "Evaluation_Report_Test.html",
     labelFilename: "TRUST_Label_Test.html",
     cardFilename: "Test-card.html",
+    cardSheetFrontFilename: "Test-card-front-A3.html",
+    cardSheetBackFilename: "Test-card-back-A3.html",
     ...overrides,
   };
 }

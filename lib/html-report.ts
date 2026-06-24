@@ -1,3 +1,4 @@
+import { encode as encodeQR } from "uqr";
 import { PRINCIPLES } from "./principles";
 import type { ReportScores } from "./report/compute-scores";
 import type { CaptureInfo, PrincipleScoreRow, QualityGateRow } from "./report-model";
@@ -76,8 +77,8 @@ function formatDate(isoString: string): string {
   return `${isoString.slice(0, 10)} ${isoString.slice(11, 16)}`;
 }
 
-const EMPTY_CIRCLE = '<span class="circle empty">&#9675;</span>';
-const FILLED_CIRCLE = '<span class="circle filled">&#9679;</span>';
+const EMPTY_CIRCLE = '<span class="circle empty" aria-hidden="true"></span>';
+const FILLED_CIRCLE = '<span class="circle filled" aria-hidden="true"></span>';
 const ALL_EMPTY_CIRCLES = `<span class="circles">${EMPTY_CIRCLE}${EMPTY_CIRCLE}${EMPTY_CIRCLE}</span><span class="circle-label">0/3</span>`;
 
 function scoreCircles(avg: number | null): string {
@@ -171,7 +172,7 @@ function detailsPopover(
     ? `<section class="rb-sec"><h4 class="rb-label">Evidence (${evidenceItems.length})</h4><div class="evidence-list">${evidenceThumbnailsHtml(evidenceItems)}</div></section>`
     : "";
 
-  return `<div popover="auto" id="dt-${esc(code)}" class="qpop qpop-det" aria-label="Details: ${esc(code)}"><div class="qpop-head"><strong>${esc(code)}</strong><span class="qpop-head-sub">Details</span></div><div class="qpop-body">${title ? `<p class="det-title">${esc(title)}</p>` : ""}${options}${bgBlock}${exBlock}${noteBlock}${evBlock}</div></div>`;
+  return `<div popover="auto" id="dt-${esc(code)}" class="qpop qpop-det" aria-label="Details: ${esc(code)}"><div class="qpop-head"><strong>${esc(code)}</strong><span class="qpop-head-sub">Details</span></div><div class="qpop-body">${title ? `<p class="det-title">${esc(title)}</p>` : ""}${evBlock}${noteBlock}${options}${bgBlock}${exBlock}</div></div>`;
 }
 
 /** Build the Details popover for a quality-gate question: requirement +
@@ -255,7 +256,7 @@ function renderCategorySections(principles: PrincipleScoreRow[], captures: Captu
         <span class="qrow-code">${esc(q.code)}</span>
         <span class="qrow-chip" data-score="${scoreVal}">${scoreText}${q.customReasoning ? "*" : ""}</span>
         <p class="qrow-lead">${esc(lead)}</p>
-        <div class="qrow-actions">${actions}</div>
+        <div class="qrow-actions"><button type="button" class="qrow-ev" popovertarget="dt-${esc(q.code)}" aria-haspopup="true" title="${evItems.length} evidence item${evItems.length === 1 ? "" : "s"} tagged"><span class="qrow-ev-ic" aria-hidden="true">${evItems.length > 0 ? "\u{1F4CE}" : "\u2014"}</span>${evItems.length}</button>${actions}</div>
       </div>
       <p class="qrow-note">${q.notes ? esc(q.notes) : `<em class="qrow-note-empty">No reviewer note</em>`}</p>
       ${details}
@@ -443,24 +444,16 @@ function buildNutritionLabelHtml(
   const gates = qualityGateResults(evaluations, rubric, evalMap).filter((g) =>
     visibleIds.has(g.id),
   );
-  const gateGrid =
-    gates.length > 0
-      ? `<div class="nutrition-gate-grid">${gates
-          .map((g) => {
-            const icon =
-              g.result === "pass"
-                ? "\u2713"
-                : g.result === "fail"
-                  ? "\u2715"
-                  : g.result === "unsure"
-                    ? "?"
-                    : g.result === "na"
-                      ? "\u2013"
-                      : "\u25CB";
-            return `<div class="nutrition-gate" data-result="${g.result ?? "none"}" title="${esc(g.label)}"><span class="nutrition-gate-icon" aria-hidden="true">${icon}</span><span class="nutrition-gate-name">${esc(g.label)}</span></div>`;
-          })
-          .join("")}</div>`
-      : "";
+  const gateIcon = (g: { result?: string | null }) =>
+    g.result === "pass"
+      ? "\u2713"
+      : g.result === "fail"
+        ? "\u2715"
+        : g.result === "unsure"
+          ? "?"
+          : g.result === "na"
+            ? "\u2013"
+            : "\u25CB";
 
   const swRow =
     strengthsHtml || weaknessesHtml
@@ -517,10 +510,7 @@ function buildNutritionLabelHtml(
 <div class="nutrition-label">
   <div class="nutrition-top">
     <div class="nutrition-top-row">
-      <div class="nutrition-top-id">
-        <img src="${TRUST_LOGO}" alt="TRUST" class="nl-brand-logo" />
-        <span class="nl-title">Information Tool Reviews</span>
-      </div>
+      <span class="nl-title">Information Tool Reviews</span>
       <div class="nutrition-tool-lockup">
         ${logo ? `${toolLink}<img class="nutrition-tool-logo" src="${esc(logo)}" alt="${toolName}" />${toolLinkClose}` : ""}
         <div class="nutrition-tool-id">
@@ -528,6 +518,7 @@ function buildNutritionLabelHtml(
           <span class="nutrition-tool-url">${safeLink(metadata.toolUrl)}</span>
         </div>
       </div>
+      <img src="${TRUST_LOGO}" alt="TRUST" class="nl-brand-logo" />
     </div>
     ${metadata.description ? `<div class="nutrition-description">${esc(metadata.description)}</div>` : ""}
   </div>
@@ -545,39 +536,33 @@ function buildNutritionLabelHtml(
 
   <div class="nutrition-divider-thin"></div>
 
-  <div class="nutrition-scores">
+  <div class="nutrition-scores nl-rows" style="--vc:${scores.verdictColor}">
     ${
-      gateGrid
-        ? `<div class="nutrition-score-block nutrition-score-block--gates">${gateGrid}</div>`
+      gates.length > 0
+        ? `<div class="nl-gates">${gates
+            .map(
+              (g) =>
+                `<div class="nl-gate" data-result="${g.result ?? "none"}"><span class="nl-gate-ic" aria-hidden="true">${gateIcon(g)}</span><span class="nl-gate-name">${esc(g.label)}</span></div>`,
+            )
+            .join("")}</div>`
         : ""
     }
-    <div class="nutrition-score-block nutrition-score-block--subjects">
-      <table class="nutrition-principles-table" aria-label="Principle scores">
-        <tr>
-          ${PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
-            .map((p) => {
-              const reportColor = REPORT_COLORS[p.id] ?? p.color;
-              const avg = principleAverage(p.id, evaluations, rubric, evalMap);
-              return (
-                '<th scope="col" style="color:' +
-                reportColor +
-                '"><div class="nutrition-principle-code">' +
-                p.code +
-                '</div><div class="nutrition-principle-name">' +
-                (PRINCIPLE_NAMES[p.id] ?? "") +
-                "</div><div>" +
-                scoreCircles(avg) +
-                "</div></th>"
-              );
-            })
-            .join("")}
-          <th scope="col" class="nutrition-overall-cell" style="color:var(--magenta)">
-            <div class="nutrition-overall-spacer" aria-hidden="true"></div>
-            <div class="nutrition-overall-label">Overall</div>
-            <div>${scoreCircles(scores.totalMax > 0 ? (scores.totalActual / scores.totalMax) * 3 : null)}</div>
-          </th>
-        </tr>
-      </table>
+    <div class="nl-prows">
+      ${PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
+        .map((p) => {
+          const avg = principleAverage(p.id, evaluations, rubric, evalMap);
+          const color = REPORT_COLORS[p.id] ?? p.color;
+          const circlesHtml =
+            avg === null
+              ? `<span class="circles">${EMPTY_CIRCLE.repeat(3)}</span>`
+              : circlesOnly(scoreCircles(avg));
+          return `<div class="nl-prow" style="--pc:${color}"><span class="nl-pcode">${p.code}</span><span class="nl-pname">${esc(PRINCIPLE_NAMES[p.id] ?? "")}</span>${circlesHtml}<span class="nl-pval">${avg === null ? "\u2013" : avg.toFixed(1)}</span></div>`;
+        })
+        .join("")}
+      ${(() => {
+        const fsAvg = scores.totalMax > 0 ? (scores.totalActual / scores.totalMax) * 3 : null;
+        return `<div class="nl-prow nl-fs" style="--pc:${scores.verdictColor}"><span class="nl-pcode" aria-hidden="true"></span><span class="nl-pname">Final score</span><span class="circles" style="color:${scores.verdictColor}">${circlesOnly(scoreCircles(fsAvg))}</span><span class="nl-pval">${fsAvg === null ? "\u2013" : fsAvg.toFixed(1)}</span></div>`;
+      })()}
     </div>
   </div>
 
@@ -636,80 +621,219 @@ ${labelHtml}
 
 // ── Business Card Label ────────────────────────────────────────────────
 
+/** Month names for the card date label (UTC, to avoid TZ drift across reviewers). */
+const CARD_MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+/** Format a session start time as "Month YYYY" for the card footer. */
+function cardDateLabel(startTime: string): string {
+  const d = new Date(startTime);
+  return Number.isNaN(d.getTime())
+    ? startTime.slice(0, 10) || "—"
+    : `${CARD_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
+
+/** Extract the bare host (no www.) from a URL for compact display. */
+function cardHost(url: string): string {
+  try {
+    return new URL(url).host.replace(/^www\./i, "");
+  } catch {
+    return url;
+  }
+}
+
+/** Strip the trailing "/3" circle-label so only the circles remain (card + summary). */
+function circlesOnly(html: string): string {
+  return html.split('<span class="circle-label">')[0];
+}
+
+/** Shortened quality-gate labels for the narrow card columns. */
+const CARD_GATE_LABELS: Record<string, string> = {
+  "Data privacy policy": "Data privacy",
+  "AI model training policy": "AI training",
+  "Intellectual property preservation": "IP preservation",
+};
+
+function cardGateLabel(label: string): string {
+  return CARD_GATE_LABELS[label] ?? label;
+}
+
+/** Inline QR code as an SVG (vector — stays crisp at print resolution). */
+function cardQrSvg(url: string, color = "#172033"): string {
+  let matrix: ReturnType<typeof encodeQR>;
+  try {
+    matrix = encodeQR(url);
+  } catch {
+    return "";
+  }
+  const { size, data } = matrix;
+  const dim = size + 4;
+  let rects = "";
+  for (let r = 0; r < size; r++) {
+    const row = data[r];
+    for (let c = 0; c < size; c++) {
+      if (row[c]) rects += `<rect x="${c + 2}" y="${r + 2}" width="1.02" height="1.02"/>`;
+    }
+  }
+  return `<svg class="bc-qr" viewBox="0 0 ${dim} ${dim}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR code"><rect width="${dim}" height="${dim}" fill="#ffffff"/><g fill="${color}">${rects}</g></svg>`;
+}
+
+/** Cap a conclusion to a char budget for the card front, breaking at the
+ *  nearest sentence end (". ") when possible so it reads as a clean sentence;
+ *  otherwise hard-cut with an ellipsis. */
+function cardConclusion(text: string, max = 120): string {
+  const t = (text ?? "").trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  const lastStop = cut.lastIndexOf(". ");
+  return lastStop >= max * 0.5 ? cut.slice(0, lastStop + 1) : `${cut.trimEnd()}\u2026`;
+}
+/** Truncate text at a word boundary with ellipsis if it exceeds max chars. */
+function truncateAtWord(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${lastSpace >= max * 0.4 ? cut.slice(0, lastSpace) : cut.trimEnd()}\u2026`;
+}
+
+/** Build the two-sided TRUST business-card HTML (front + back, "The Seal").
+ *  Returns both faces; the async wrapper wraps them in a document. */
 function buildBusinessCardLabelHtml(
   metadata: SessionMetadata,
   evaluations: Evaluation[],
   rubric: RubricData,
-  _finalization: ReviewFinalization | null,
+  finalization: ReviewFinalization | null,
   scores: ReportScores,
   TRUST_LOGO: string,
   evalMap: Map<string, Evaluation>,
-): string {
-  const date = metadata.startTime.slice(0, 10);
-  const toolUrl = esc(metadata.toolUrl);
+): { front: string; back: string } {
+  const vc = scores.verdictColor;
   const toolName = esc(metadata.toolName);
-  const toolLink = `<a href="${toolUrl}" target="_blank" rel="noopener noreferrer">`;
-  const toolLinkClose = "</a>";
+  const toolHost = esc(cardHost(metadata.toolUrl));
+  const sealLogo = metadata.toolLogoUrl || metadata.faviconUrl;
+  const sealLogoHtml = sealLogo ? `<img class="bc-seal-logo" src="${esc(sealLogo)}" alt="" />` : "";
+  const dateLabel = esc(cardDateLabel(metadata.startTime));
+  const conclusion = cardConclusion(finalization?.conclusion ?? "");
 
-  // Quality gate failures only
-  const gateFailures = qualityGateResults(evaluations, rubric, evalMap).filter(
-    (g) => g.result === "fail" || g.result === "unsure",
+  // Visible quality gates (mirrors the nutrition label's filter).
+  const visibleIds = new Set(getVisibleRubricQuestionIds(rubric, metadata.usesAi ?? true));
+  const gates = qualityGateResults(evaluations, rubric, evalMap).filter((g) =>
+    visibleIds.has(g.id),
   );
-
-  const gateHtml = gateFailures.length
-    ? gateFailures
-        .map(
-          (g) =>
-            `<div class="bc-gate-fail">${esc(g.label)}: <span class="bc-gate-${g.result}">${g.result === "fail" ? "FAIL" : "UNSURE"}</span></div>`,
-        )
-        .join("")
-    : "";
-
-  // Principle indicators — just code + filled/empty circle
-  const principleHtml = PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
-    .map((p) => {
-      const avg = principleAverage(p.id, evaluations, rubric, evalMap);
-      const passed = avg !== null && avg >= 1.5;
-      const color = REPORT_COLORS[p.id] ?? p.color;
-      return `<span class="bc-principle" style="--bc-pcolor:${color}">
-        <span class="bc-pcode">${p.code}</span>
-        <span class="bc-pindicator${passed ? " bc-pass" : ""}">${passed ? "●" : "○"}</span>
-      </span>`;
+  const gatesHtml = gates
+    .map((g) => {
+      const pass = g.result === "pass";
+      const fail = g.result === "fail";
+      const cls = pass ? "pass" : fail ? "fail" : "other";
+      const ic = pass
+        ? "\u2713"
+        : fail
+          ? "\u2717"
+          : g.result === "unsure"
+            ? "?"
+            : g.result === "na"
+              ? "\u2013"
+              : "\u25CB";
+      return `<span class="bc-gate" data-result="${cls}"><span class="bc-g-ic ${cls}">${ic}</span>${esc(cardGateLabel(g.label))}</span>`;
     })
     .join("");
 
-  const scoreText = !scores.noEvaluation ? `${scores.totalActual}/${scores.totalMax}` : "—";
+  // Principle rows — first letter colored + name + score circles + numeric.
+  const principleRowsHtml = PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
+    .map((p) => {
+      const avg = principleAverage(p.id, evaluations, rubric, evalMap);
+      const color = REPORT_COLORS[p.id] ?? p.color;
+      const circles =
+        avg === null
+          ? `<span class="circles">${EMPTY_CIRCLE.repeat(3)}</span>`
+          : circlesOnly(scoreCircles(avg));
+      const val = avg === null ? "\u2013" : avg.toFixed(1);
+      return `<div class="bc-prow" style="--cc:${color}"><span class="bc-pname"><span class="bc-pinit">${esc((PRINCIPLE_NAMES[p.id] ?? "").charAt(0))}</span>${esc((PRINCIPLE_NAMES[p.id] ?? "").slice(1))}</span>${circles}<span class="bc-pval">${val}</span></div>`;
+    })
+    .join("");
+  // Findings — all strengths in one box, all weaknesses in another.
+  const strengths = (finalization?.strengths ?? []).map((s) => s.trim()).filter(Boolean);
+  const weaknesses = (finalization?.weaknesses ?? []).map((w) => w.trim()).filter(Boolean);
+  const SEP = " \u2022 ";
+  const strengthsText = truncateAtWord(strengths.join(SEP), 350);
+  const weaknessesText = truncateAtWord(weaknesses.join(SEP), 350);
+  const findingsHtml = [
+    strengthsText
+      ? `        <div class="bc-find-box up"><span class="bc-find-mk">+</span><p class="bc-find-text">${esc(strengthsText)}</p></div>`
+      : "",
+    weaknessesText
+      ? `        <div class="bc-find-box dn"><span class="bc-find-mk">!</span><p class="bc-find-text">${esc(weaknessesText)}</p></div>`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
 
-  return `
+  // QR → site hub (per-tool hub URL not yet wired).
+  const qrHtml = cardQrSvg("https://trust.samuelmok.cc");
+
+  // ── FRONT ──
+  const front = `
 <div class="bc-card">
-  <div class="bc-header">
-    <img class="bc-logo" src="${TRUST_LOGO}" alt="TRUST" />
-    <span class="bc-tagline">Information Tool Reviews</span>
-  </div>
-
-  <div class="bc-tool-row">
-    ${toolLink}<span class="bc-tool-name">${toolName}</span>${toolLinkClose}
-    <span class="bc-tool-url">${toolUrl}</span>
-  </div>
-
-  <div class="bc-divider"></div>
-
-  <div class="bc-verdict-row">
-    <span class="bc-verdict-stamp" style="color:${scores.verdictColor};border-color:${scores.verdictColor}">${esc(scores.verdict)}</span>
-    <span class="bc-score">${scoreText}</span>
-  </div>
-
-  ${gateHtml ? `<div class="bc-gates">${gateHtml}</div>` : ""}
-
-  <div class="bc-divider"></div>
-
-  <div class="bc-principles">${principleHtml}</div>
-
-  <div class="bc-footer">
-    <span>${date}</span>
-    <span>TRUST Framework v1.1</span>
+  <div class="bc-face bc-front">
+    <div class="bc-brand-row">
+      <img class="bc-brand-logo" src="${TRUST_LOGO}" alt="TRUST" />
+      <span class="bc-brand-tag">Information Tool Reviews</span>
+    </div>
+    <div class="bc-hero">
+      <div class="bc-seal" style="--vc:${vc}">
+        <div class="bc-seal-tool">
+          ${sealLogoHtml}
+          <div class="bc-seal-id">
+            <span class="bc-seal-name">${toolName}</span>
+            <span class="bc-seal-url">${toolHost}</span>
+          </div>
+        </div>
+        <div class="bc-seal-verdict">${esc(scores.verdict)}</div>
+      </div>
+      ${metadata.description ? `<div class="bc-block"><span class="bc-pill">what?</span><p class="bc-block-text">${esc(truncateAtWord(metadata.description, 130))}</p></div>` : ""}
+      ${conclusion ? `<div class="bc-block bc-block--why" style="--vc:${vc}"><span class="bc-pill">review conclusion</span><p class="bc-block-text">${esc(conclusion)}</p></div>` : ""}
+    </div>
+    <div class="bc-front-foot">
+      <div class="bc-reviewer">Reviewed by UTwente librarians<br /><span class="bc-ru">utwente.nl/library</span></div>
+      <div class="bc-qrwrap">
+        ${qrHtml}
+        <span class="bc-qr-cap">view full report at<br />trust.samuelmok.cc</span>
+      </div>
+    </div>
   </div>
 </div>`;
+
+  // ── BACK ──
+  const back = `
+<div class="bc-card">
+  <div class="bc-face bc-back">
+    <div class="bc-back-top">
+      <img class="bc-brand-logo" src="${TRUST_LOGO}" alt="TRUST" />
+      <span class="bc-back-label">Report Card</span>
+      <span class="bc-back-tool">${toolName}</span>
+    </div>
+    ${gates.length ? `<div class="bc-mid"><div class="bc-prows">${principleRowsHtml}</div><div class="bc-gates bc-gates--col">${gatesHtml}</div></div>` : `<div class="bc-prows">${principleRowsHtml}</div>`}
+    ${findingsHtml ? `    <div class="bc-findings">\n${findingsHtml}\n    </div>` : ""}
+    <div class="bc-back-foot">
+      <span>${dateLabel}</span>
+      <span>trust.samuelmok.cc</span>
+    </div>
+  </div>
+</div>`;
+
+  return { front, back };
 }
 
 /** Build a compact business-card-sized TRUST label HTML (credit-card aspect ratio). */
@@ -722,7 +846,7 @@ export async function buildBusinessCardLabel(
   if (!_logos) _logos = await import("./logos");
   const { TRUST_LOGO } = _logos;
   const model = buildReportModel(metadata, [], evaluations, rubric, finalization, new Map());
-  const cardHtml = buildBusinessCardLabelHtml(
+  const { front, back } = buildBusinessCardLabelHtml(
     metadata,
     evaluations,
     rubric,
@@ -741,10 +865,71 @@ export async function buildBusinessCardLabel(
 </head>
 <body>
 <main id="report-content">
-${cardHtml}
+${front}
+${back}
 </main>
 </body>
 </html>`;
+}
+
+/** Build a standalone A3 sheet (297×420mm) tiling one card face 3×7 = 21 times.
+ *  Card outlines double as cut guides; no pre-mirroring — the printer handles
+ *  duplex placement. Each doc is a single A3 page. */
+function buildCardSheetDoc(face: "front" | "back", cardHtml: string, toolName: string): string {
+  const label = face === "front" ? "Front" : "Back";
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TRUST Card — A3 ${label} Sheet: ${esc(toolName)}</title>
+<style>${REPORT_STYLE}
+/* ── A3 imposition (84×52.5mm cards, 3 cols × 7 rows = 21) ── */
+@page { size: 297mm 420mm; margin: 0; }
+html, body { margin: 0; padding: 0; background: #fff; }
+* { box-sizing: border-box; }
+.a3-sheet { position: relative; width: 297mm; height: 420mm; background: #fff; overflow: hidden; }
+.a3-label { position: absolute; top: 2.5mm; left: 0; right: 0; text-align: center; font: 700 2.6mm/1 var(--ff-mono); text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); z-index: 2; }
+.a3-grid { position: absolute; top: 8.25mm; left: 16.5mm; right: 16.5mm; bottom: 8.25mm; display: grid; grid-template-columns: repeat(3, minmax(0, 84mm)); grid-template-rows: repeat(7, minmax(0, 52.5mm)); gap: 6mm; }
+.a3-grid .bc-card { width: 100%; height: 100%; }
+@media screen {
+  body { background: var(--canvas); padding: 24px; }
+  .a3-sheet { box-shadow: 0 2px 18px rgba(20,32,51,.18); margin: 24px auto; }
+}
+</style>
+</head>
+<body>
+<div class="a3-sheet">
+  <div class="a3-label">${label} &middot; TRUST Report Card &middot; ${esc(toolName)}</div>
+  <div class="a3-grid">${cardHtml.repeat(21)}</div>
+</div>
+</body>
+</html>`;
+}
+
+/** Build standalone A3 front + back sheets (each a single A3 page, 21 cards). */
+export async function buildBusinessCardSheet(
+  metadata: SessionMetadata,
+  evaluations: Evaluation[],
+  rubric: RubricData,
+  finalization: ReviewFinalization | null = null,
+): Promise<{ front: string; back: string }> {
+  if (!_logos) _logos = await import("./logos");
+  const { TRUST_LOGO } = _logos;
+  const model = buildReportModel(metadata, [], evaluations, rubric, finalization, new Map());
+  const { front, back } = buildBusinessCardLabelHtml(
+    metadata,
+    evaluations,
+    rubric,
+    finalization,
+    model.scores,
+    TRUST_LOGO,
+    model.evalMap,
+  );
+  return {
+    front: buildCardSheetDoc("front", front, metadata.toolName),
+    back: buildCardSheetDoc("back", back, metadata.toolName),
+  };
 }
 
 /** Build the full standalone HTML evaluation report with all sections, scores, and embedded screenshots. */

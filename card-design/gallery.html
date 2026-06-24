@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TRUST Nutrition-Label Card — Proposals</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body { margin:0; background:var(--canvas); color:var(--text); font-family:var(--ff-body); line-height:1.55; padding:0; }
+  .top-accent { height:5px; background:var(--magenta); }
+  .wrap { max-width:1380px; margin:0 auto; padding:36px 28px 80px; }
+
+  h1 { font-family:var(--ff-display); font-weight:900; font-size:30px; letter-spacing:.01em; margin:0 0 6px; color:var(--text); }
+  .lede { font-size:15px; color:var(--muted); max-width:70ch; margin:0 0 18px; }
+  .lede code, .specs code { font-family:var(--ff-mono); font-size:13px; background:var(--panel); padding:1px 5px; border:0.5pt solid var(--border); }
+
+  .specs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+  .chip { font:700 11px/1 var(--ff-mono); text-transform:uppercase; letter-spacing:.08em; color:var(--navy); background:var(--white); border:0.5pt solid var(--border); padding:5px 9px; }
+
+  .howto { background:var(--white); border:0.5pt solid var(--border); border-left:3px solid var(--magenta); padding:12px 16px; margin:18px 0 30px; font-size:14px; }
+  .howto b { font-family:var(--ff-heading); text-transform:uppercase; letter-spacing:.04em; color:var(--magenta); font-size:12px; display:block; margin-bottom:2px; }
+
+  .props { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+  @media (max-width:1100px){ .props{ grid-template-columns:1fr; } }
+  .prop { background:var(--white); border:0.5pt solid var(--border); padding:14px; }
+  .prop img { width:100%; height:auto; display:block; border:0.5pt solid var(--border); }
+  .prop .open { display:inline-block; margin-top:10px; font:700 11px/1 var(--ff-mono); text-transform:uppercase; letter-spacing:.1em; color:var(--teal-blue); text-decoration:none; border-bottom:1.5px solid var(--teal-blue); padding-bottom:2px; }
+
+  h2 { font-family:var(--ff-heading); font-weight:700; text-transform:uppercase; letter-spacing:.05em; font-size:16px; color:var(--navy); margin:42px 0 12px; padding-bottom:6px; border-bottom:2px solid var(--navy); }
+
+  table.compare { width:100%; border-collapse:collapse; font-size:13px; background:var(--white); border:0.5pt solid var(--border); }
+  table.compare th, table.compare td { text-align:left; padding:9px 12px; border-bottom:0.5pt solid var(--border); vertical-align:top; }
+  table.compare th { font:700 11px/1.3 var(--ff-mono); text-transform:uppercase; letter-spacing:.08em; color:var(--muted); background:var(--panel); }
+  table.compare td:first-child { font:700 12px var(--ff-heading); text-transform:uppercase; letter-spacing:.03em; color:var(--navy); white-space:nowrap; }
+
+  .a3row { display:grid; grid-template-columns:1.1fr .9fr; gap:22px; align-items:start; }
+  @media (max-width:1000px){ .a3row{ grid-template-columns:1fr; } }
+  .a3row img { width:100%; height:auto; border:0.5pt solid var(--border); display:block; }
+  .legend-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px 26px; font-size:13px; }
+  .leg-item { display:flex; align-items:center; gap:8px; }
+  .sw { width:16px; height:16px; border:0.5pt solid var(--border); flex:none; }
+  .leg-item .nm { font-family:var(--ff-mono); font-size:12px; }
+
+  footer.foot { margin-top:48px; padding-top:16px; border-top:0.5pt solid var(--border); font:400 12px/1.5 var(--ff-mono); color:var(--slate); }
+  footer.foot a { color:var(--teal-blue); }
+</style>
+</head>
+<body>
+<div class="top-accent"></div>
+<div class="wrap">
+
+  <h1>TRUST Nutrition-Label Card — Design Proposals</h1>
+  <p class="lede">Three directions for the double-sided business card, all built from the same data (the AI2&nbsp;Asta review) and the same TRUST design tokens. Each shows <b>front</b> (verdict-first, glanceable) above <b>back</b> (the detail that leads to TRUST).</p>
+
+  <div class="specs">
+    <span class="chip">Two-sided</span>
+    <span class="chip">84 × 52.5 mm</span>
+    <span class="chip">A3 · 3×7 = 21 / sheet</span>
+    <span class="chip">QR → per-tool hub</span>
+    <span class="chip">Non-expert first</span>
+    <span class="chip">6 mm cut channel</span>
+  </div>
+
+  <div class="howto">
+    <b>How to review</b>
+    Open the gallery link in your browser. Compare the three below — front is the eye-catcher, back is the substance. Tell me the <b>winner</b> and what to change (or mix-and-match elements across them). Click any card to view it full-size / live.
+  </div>
+
+  <div class="props">
+    <div class="prop">
+      <img src="_shot-a-full.png" alt="Proposal A — The Seal">
+      <a class="open" href="proposal-a.html" target="_blank">Open Proposal A live ↗</a>
+    </div>
+    <div class="prop">
+      <img src="_shot-b-full.png" alt="Proposal B — The Label">
+      <a class="open" href="proposal-b.html" target="_blank">Open Proposal B live ↗</a>
+    </div>
+    <div class="prop">
+      <img src="_shot-c-full.png" alt="Proposal C — The Instrument">
+      <a class="open" href="proposal-c.html" target="_blank">Open Proposal C live ↗</a>
+    </div>
+  </div>
+
+  <h2>How they differ</h2>
+  <table class="compare">
+    <tr><th></th><th>A — The Seal</th><th>B — The Label</th><th>C — The Instrument</th></tr>
+    <tr><td>Verdict treatment</td><td>Centered floating seal, double border</td><td>Full-width green band, reversed text</td><td>Stamped field value in a data grid</td></tr>
+    <tr><td>Front feel</td><td>Certificate / authoritative</td><td>Spec-sheet / band-driven</td><td>Lab specimen / catalogued</td></tr>
+    <tr><td>Principle readout</td><td>Named bars (back)</td><td>Ruled table rows (front + back)</td><td>Segmented tick meters (back)</td></tr>
+    <tr><td>Scanning layer</td><td>Balanced display + mono</td><td>UPPER-mono ruled labels</td><td>UPPER-mono field labels dominant</td></tr>
+    <tr><td>Density</td><td>Breathing room</td><td>Highest (tabular)</td><td>High (data-card)</td></tr>
+  </table>
+
+  <h2>Actual print size — judge real legibility</h2>
+  <style>
+    .real-note { background:var(--white); border:0.5pt solid var(--border); border-top:3px solid var(--v-caution); padding:12px 16px; margin:0 0 18px; font-size:14px; color:var(--text); }
+    .real-note b { font-family:var(--ff-heading); text-transform:uppercase; letter-spacing:.04em; color:var(--v-caution); font-size:12px; }
+    .real-row { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-bottom:24px; }
+    @media (max-width:1000px){ .real-row{ grid-template-columns:1fr; } }
+    .real-card { background:var(--white); border:0.5pt solid var(--border); padding:14px; text-align:center; }
+    .real-card img { width:100%; max-width:330px; height:auto; display:block; margin:0 auto; image-rendering:auto; border:0.5pt solid var(--border); }
+    .real-card .cap { font:700 11px/1 var(--ff-mono); text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-top:8px; }
+  </style>
+  <p class="real-note"><b>Legibility check</b> These are the cards at their true 84 &times; 52.5&nbsp;mm size &mdash; how they&rsquo;ll actually print and be held. The verdict, tool name, URL and QR read clearly on all three. Across all three, the smallest fine print (the reviewer line and the &ldquo;scan for full review&rdquo; caption) sits around 6&nbsp;pt &mdash; borderline; on the winner we can bump it up or trim it.</p>
+  <div class="real-row">
+    <div class="real-card"><img src="_real-a-front.png" alt="Proposal A front, actual size"><div class="cap">A &mdash; front</div></div>
+    <div class="real-card"><img src="_real-b-front.png" alt="Proposal B front, actual size"><div class="cap">B &mdash; front</div></div>
+    <div class="real-card"><img src="_real-c-front.png" alt="Proposal C front, actual size"><div class="cap">C &mdash; front</div></div>
+  </div>
+  <div class="real-row">
+    <div class="real-card"><img src="_real-a-back.png" alt="Proposal A back, actual size"><div class="cap">A &mdash; back</div></div>
+    <div class="real-card"><img src="_real-b-back.png" alt="Proposal B back, actual size"><div class="cap">B &mdash; back</div></div>
+    <div class="real-card"><img src="_real-c-back.png" alt="Proposal C back, actual size"><div class="cap">C &mdash; back</div></div>
+  </div>
+
+  <h2>A3 print sheet</h2>
+  <div class="a3row">
+    <img src="_shot-imposition.png" alt="A3 imposition: 21 cards in a 3×7 grid with crop marks">
+    <div>
+      <p style="margin-top:0;font-size:14px;color:var(--muted);">One A3 face prints 21 cards in a 3×7 grid. Double-sided: the back face uses the mirrored grid so cut cards align front-to-back. The print centre trims the outer margin and cuts along the 6&nbsp;mm channels.</p>
+      <div class="legend-grid">
+        <div class="leg-item"><span class="sw" style="background:var(--magenta)"></span><span class="nm">Magenta — identity only</span></div>
+        <div class="leg-item"><span class="sw" style="background:var(--v-recommended)"></span><span class="nm">Verdict (recommended)</span></div>
+        <div class="leg-item"><span class="sw" style="background:var(--score-0)"></span><span class="nm">Score 0 — fail</span></div>
+        <div class="leg-item"><span class="sw" style="background:var(--score-1)"></span><span class="nm">Score 1 — poor</span></div>
+        <div class="leg-item"><span class="sw" style="background:var(--score-2)"></span><span class="nm">Score 2 — fair</span></div>
+        <div class="leg-item"><span class="sw" style="background:var(--score-3)"></span><span class="nm">Score 3 — good</span></div>
+        <div class="leg-item"><span class="sw" style="background:var(--c-tr)"></span><span class="nm">TR Transparent</span></div>
+        <div class="leg-item"><span class="sw" style="background:var(--c-re)"></span><span class="nm">RE Reliable</span></div>
+        <div class="leg-item"><span class="sw" style="background:var(--c-us)"></span><span class="nm">US User-centric</span></div>
+        <div class="leg-item"><span class="sw" style="background:var(--c-se)"></span><span class="nm">SE Soundness</span></div>
+        <div class="leg-item"><span class="sw" style="background:var(--c-tc)"></span><span class="nm">TC Traceable</span></div>
+        <div class="leg-item"><span class="sw" style="background:var(--navy)"></span><span class="nm">Navy — institutional</span></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    TRUST Framework · nutrition-label card design gallery · LIBER 2026 · Trondheim<br>
+    Live pages: <a href="proposal-a.html" target="_blank">A</a> · <a href="proposal-b.html" target="_blank">B</a> · <a href="proposal-c.html" target="_blank">C</a> · <a href="imposition.html" target="_blank">A3 sheet</a>
+  </footer>
+
+</div>
+</body>
+</html>

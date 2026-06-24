@@ -846,6 +846,28 @@ img {
   outline: 2px solid var(--magenta);
   outline-offset: 1px;
 }
+.qrow-ev {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--ff-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--white);
+  color: var(--muted);
+  cursor: pointer;
+}
+.qrow-ev:hover {
+  border-color: var(--pc);
+  color: var(--text);
+}
+.qrow-ev-ic {
+  font-size: 0.7rem;
+  line-height: 1;
+}
 .qrow-note {
   margin: 3px 0 0;
   padding-left: calc(2.6em + 17px);
@@ -1085,6 +1107,21 @@ img {
   .qpop {
     transition: none;
   }
+}
+/* Evidence grid inside the details popover — two-column layout for thumbnails */
+.qpop-det .evidence-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--rs-xs);
+}
+.qpop-det .evidence-item {
+  flex-direction: column;
+  gap: var(--rs-2xs);
+}
+.qpop-det .evidence-item img {
+  width: 100%;
+  max-width: none;
+  max-height: 26vh;
 }
 
 /* Category section */
@@ -1421,11 +1458,10 @@ h1.part-title {
   padding: var(--rs-md) var(--rs-lg) var(--rs-sm);
 }
 .nutrition-top-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: var(--rs-sm);
-  flex-wrap: wrap;
 }
 .nutrition-top-id {
   display: flex;
@@ -1434,6 +1470,7 @@ h1.part-title {
 }
 .nl-brand-logo {
   height: 24px;
+  justify-self: end;
 }
 .nl-title {
   font-family: var(--ff-heading);
@@ -1442,6 +1479,7 @@ h1.part-title {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--magenta);
+  justify-self: start;
 }
 .nutrition-description {
   max-width: 460px;
@@ -1457,6 +1495,7 @@ h1.part-title {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  justify-self: center;
 }
 .nutrition-tool-id {
   display: flex;
@@ -1549,125 +1588,34 @@ h1.part-title {
   vertical-align: middle;
 }
 
-/* ── Row 3: all scores — quality gates (2×2) + subjects + overall ── */
+/* ── Row 3: scores — V1 row layout (gates + principle rows + final score).
+   The .nl-rows modifier (below) supplies the column layout; this base rule
+   provides the shared flex/padding. The old 2×2 gate grid + principles table
+   + overall cell were removed when the row layout replaced them. */
 .nutrition-scores {
   display: flex;
   align-items: stretch;
   gap: var(--rs-sm);
   padding: var(--rs-xs) var(--rs-lg) var(--rs-sm);
 }
-.nutrition-score-block {
-  min-width: 0;
-}
-.nutrition-score-block--gates {
-  flex: 0 0 152px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-}
-.nutrition-score-block--subjects {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.nutrition-overall-label {
-  font-family: var(--ff-heading);
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  line-height: 1.25;
-  color: var(--muted);
-}
-.nutrition-gate-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-}
-.nutrition-gate {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 4px 3px;
-  border: 1px solid color-mix(in srgb, var(--gc, var(--border)) 30%, var(--border));
-  border-left: 3px solid var(--gc, var(--border));
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--gc, var(--border)) 7%, var(--white));
-  text-align: center;
-}
-.nutrition-gate[data-result="pass"] {
-  --gc: var(--score-3);
-}
-.nutrition-gate[data-result="fail"] {
-  --gc: var(--score-0);
-}
-.nutrition-gate[data-result="unsure"] {
-  --gc: var(--score-unsure);
-}
-.nutrition-gate[data-result="na"],
-.nutrition-gate[data-result="none"] {
-  --gc: var(--muted);
-}
-.nutrition-gate-icon {
-  font-size: 0.95rem;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--gc, var(--muted));
-}
-.nutrition-gate-name {
-  font-size: 0.58rem;
-  line-height: 1.18;
-  color: var(--text);
-}
-.nutrition-principles-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-.nutrition-principles-table th {
-  padding: 6px 4px;
-  vertical-align: top;
-  text-align: center;
-  font-weight: normal;
-}
-.nutrition-principle-code {
-  font-family: var(--ff-heading);
-  font-size: 1.1rem;
-  font-weight: 700;
-  line-height: 1.1;
-}
-.nutrition-principle-name {
-  font-size: 0.6rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
-  line-height: 1.2;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-.nutrition-overall-cell {
-  text-align: center;
-  vertical-align: top;
-  padding-left: var(--rs-md);
-  border-left: 2px solid var(--text);
-}
-.nutrition-overall-spacer {
-  height: 1.15rem;
-}
 .circles {
   display: inline-flex;
+  align-items: center;
   gap: 2px;
 }
+/* CSS-drawn so filled and open circles are identical in size — the Unicode
+   ●/○ glyphs render at different diameters in most fonts. */
 .circle {
+  display: inline-block;
+  width: 0.64em;
+  height: 0.64em;
+  border-radius: 50%;
+  box-sizing: border-box;
   font-size: 1rem;
   line-height: 1;
 }
 .circle.filled {
-  color: inherit;
+  background: currentColor;
 }
 .circle-label {
   font-size: 0.65rem;
@@ -1676,7 +1624,101 @@ h1.part-title {
   font-variant-numeric: tabular-nums;
 }
 .circle.empty {
+  border: 1.5px solid var(--muted);
+}
+
+/* ── Nutrition label V1 row layout (gates + principle rows + final score) ── */
+.nutrition-scores.nl-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rs-sm);
+  padding: var(--rs-xs) var(--rs-lg) var(--rs-sm);
+}
+.nl-gates {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: var(--rs-xs);
+}
+.nl-gate {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--gc) 30%, var(--border));
+  background: color-mix(in srgb, var(--gc) 7%, var(--white));
+  --gc: var(--muted);
+  border-radius: 2px;
+  font: 600 0.66rem / 1.15 var(--ff-body);
+  color: var(--text);
+}
+.nl-gate-ic {
+  font-weight: 800;
+  color: var(--gc, var(--muted));
+}
+.nl-gate[data-result="pass"] {
+  --gc: var(--score-3);
+}
+.nl-gate[data-result="fail"] {
+  --gc: var(--score-0);
+}
+.nl-gate[data-result="unsure"] {
+  --gc: var(--score-unsure);
+}
+.nl-gate[data-result="na"],
+.nl-gate[data-result="none"] {
+  --gc: var(--muted);
+}
+.nl-prows {
+  display: flex;
+  flex-direction: column;
+  max-width: 500px;
+  width: 100%;
+  margin-inline: auto;
+}
+.nl-prow {
+  display: grid;
+  grid-template-columns: 1.7rem 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 4px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.nl-prow:last-child {
+  border-bottom: 0;
+}
+.nl-pcode {
+  font: 700 0.95rem / 1 var(--ff-mono);
+  color: var(--pc);
+}
+.nl-pname {
+  font: 600 0.7rem / 1 var(--ff-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+.nl-prow .circles .circle {
+  width: 0.72em;
+  height: 0.72em;
+}
+.nl-prow .circles {
+  color: var(--pc);
+}
+.nl-pval {
+  font: 700 0.74rem / 1 var(--ff-mono);
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  margin-left: 10px;
+}
+.nl-fs {
+  background: color-mix(in srgb, var(--vc) 9%, var(--white));
+  border-bottom: 0;
+}
+.nl-fs .nl-pname {
+  font-weight: 700;
+}
+.nl-fs .nl-pval {
+  color: var(--vc);
 }
 
 /* ── Rows 4 & 5: conclusion/recommendation and strengths/weaknesses ── */
@@ -2166,7 +2208,6 @@ h1.part-title {
   .category-section {
     page-break-inside: avoid;
   }
-  /* biome-ignore lint/style/noDescendingSpecificity: print-only break guard; sets break-inside, distinct from border-top rules on tr */
   tr {
     break-inside: avoid;
   }
@@ -2194,17 +2235,26 @@ h1.part-title {
     font-size: 0.7rem;
   }
 
-  /* Business card print: exact credit-card size */
+  /* Business card print: 84×52.5mm physical card; front and back each land on their own page. */
   .bc-card {
-    width: 85.6mm;
-    height: 54mm;
-    max-width: 85.6mm;
-    aspect-ratio: auto;
+    width: 84mm;
+    height: 52.5mm;
     margin: 0;
-    padding: 2mm 3mm;
-    border: 0.5pt solid var(--text);
+    zoom: 1 !important;
+    transform: none !important;
     box-shadow: none;
     page-break-inside: avoid;
+    page-break-after: always;
+    break-after: page;
+  }
+  .bc-card:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+  .bc-stage {
+    padding: 0;
+    background: none;
+    gap: 0;
   }
   .part-nav {
     display: none;
@@ -2238,141 +2288,389 @@ h1.part-title {
     display: none !important;
   }
 }
-/* ── Business Card Label ─────────────────────────────────────────── */
-.bc-card {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 8px 12px;
-  font-family: var(--ff-body);
-  font-size: 11px;
-  line-height: 1.35;
-  color: var(--text);
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  box-sizing: border-box;
-  aspect-ratio: 85.6 / 54;
+/* ── Business Card Label — Proposal A v2 "The Seal" (84×52.5mm, two-sided) ──
+   Ported from card-design/proposal-a.html. Card/card-face classes renamed to
+   the report's bc- namespace. Score circles reuse scoreCircles' markup
+   (.circle.filled/.empty), rescoped here to the card's mm grid + per-row --cc. */
+.bc-stage {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px;
+  background: var(--canvas);
+}
+@media screen {
+  /* Show the mm cards larger on screen for readability; print resets below. */
+  .bc-stage .bc-card {
+    zoom: 2.6;
+    transform-origin: top left;
+  }
+}
+.bc-card {
+  width: 84mm;
+  height: 52.5mm;
+  background: var(--white);
+  color: var(--text);
+  font-family: var(--ff-body);
+  font-size: 8pt;
+  line-height: 1.3;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  border: 0.5pt solid var(--border);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.bc-face {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+.bc-front {
+  padding: 3.4mm 3.6mm 3.2mm;
+}
+.bc-back {
+  padding: 2.4mm 3mm 2.2mm;
+}
+.bc-brand-logo {
+  height: 4mm;
+  width: auto;
+  justify-self: start;
+}
+
+/* Score circles — reuse scoreCircles' markup (.circle.filled/.empty),
+   rescoped to the card's mm grid and a per-element --cc tint. */
+.bc-face .circles {
+  display: inline-flex;
+  gap: 0.9mm;
+  align-items: center;
+}
+.bc-face .circle {
+  width: 1.6mm;
+  height: 1.6mm;
+  border-radius: 50%;
+  box-sizing: border-box;
+  display: inline-block;
+  flex: none;
+}
+.bc-face .circle.filled {
+  background: var(--cc, currentColor);
+}
+.bc-face .circle.empty {
+  border: 0.5pt solid color-mix(in srgb, var(--cc, var(--muted)) 42%, var(--border));
+}
+
+/* ── FRONT ── */
+.bc-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 1.6mm;
   justify-content: space-between;
 }
-.bc-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 2px;
-}
-.bc-logo {
-  height: 16px;
-  width: auto;
-}
-.bc-tagline {
-  font-size: 9px;
-  color: var(--muted);
+.bc-brand-tag {
+  font: 700 5.4pt / 1 var(--ff-heading);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.06em;
+  color: var(--navy);
 }
-.bc-tool-row {
+.bc-hero {
+  flex: 1;
   display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-bottom: 3px;
-  overflow: hidden;
-  white-space: nowrap;
-}
-.bc-tool-name {
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--text);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.bc-tool-row a {
-  text-decoration: none;
-  color: inherit;
-}
-.bc-tool-url {
-  font-size: 9px;
-  color: var(--muted);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.bc-divider {
-  border-top: 1px solid var(--border);
-  margin: 3px 0;
-}
-.bc-verdict-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
-}
-.bc-verdict-stamp {
-  display: inline-block;
-  padding: 2.5px 8px;
-  border: 1.5px solid;
-  outline: 1px solid currentColor;
-  outline-offset: -2.5px;
-  border-radius: 2px;
-  font-weight: 700;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  line-height: 1.4;
-}
-.bc-score {
-  font-weight: 600;
-  font-size: 11px;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-.bc-gates {
-  margin-bottom: 2px;
-}
-.bc-gate-fail {
-  font-size: 9px;
-  color: var(--score-0);
-  line-height: 1.3;
-}
-.bc-gate-unsure {
-  color: var(--score-unsure);
-}
-.bc-principles {
-  display: flex;
-  gap: 10px;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: center;
-  margin-bottom: 2px;
+  gap: 0.5mm;
+  text-align: center;
 }
-.bc-principle {
-  display: inline-flex;
+/* The combined seal: tool lockup on top, verdict below — one credential stamp. */
+.bc-seal {
+  align-self: center;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
-  color: var(--bc-pcolor, var(--muted));
+  gap: 0.6mm;
+  padding: 0.8mm 3mm 0.9mm;
+  border: 1.6pt solid var(--vc);
+  outline: 0.8pt solid var(--vc);
+  outline-offset: -1.6mm;
+  border-radius: 1.5px;
+  background: color-mix(in srgb, var(--vc) 6%, var(--white));
+  box-shadow: 0 1.4mm 2.6mm -1mm rgba(20, 32, 51, 0.2);
 }
-.bc-pcode {
+.bc-seal-tool {
+  display: flex;
+  align-items: center;
+  gap: 1.6mm;
+}
+.bc-seal-logo {
+  height: 3.5mm;
+  width: 3.5mm;
+  object-fit: contain;
+}
+.bc-seal-id {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.05;
+}
+.bc-seal-name {
+  font-family: var(--ff-heading);
   font-weight: 700;
-  font-size: 10px;
+  font-size: 7.5pt;
+  color: var(--magenta);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-heading);
 }
-.bc-pindicator {
-  font-size: 12px;
-  line-height: 1;
+.bc-seal-url {
+  font: 400 5pt / 1 var(--ff-mono);
+  color: var(--muted);
+  margin-top: 0.4mm;
 }
-.bc-pindicator.bc-pass {
-  color: var(--bc-pcolor, var(--text));
+.bc-seal-verdict {
+  font-family: var(--ff-heading);
+  font-weight: 700;
+  font-size: 9pt;
+  letter-spacing: 0.07em;
+  color: var(--vc);
+  text-transform: uppercase;
+  line-height: 0.95;
 }
-.bc-pindicator:not(.bc-pass) {
+.bc-block {
+  border: 0.4pt solid var(--border);
+  border-radius: 1.5px;
+  padding: 0.6mm 1.4mm;
+  background: var(--white);
+}
+.bc-block--why {
+  border-color: color-mix(in srgb, var(--vc) 35%, var(--border));
+  background: color-mix(in srgb, var(--vc) 5%, var(--white));
+}
+.bc-pill {
+  display: inline-block;
+  font: 700 4pt / 1.2 var(--ff-mono);
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  padding: 0.4mm 1.3mm;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--slate) 12%, var(--white));
+  color: var(--slate);
+  margin-bottom: 0.5mm;
+}
+.bc-block--why .bc-pill {
+  background: color-mix(in srgb, var(--vc) 14%, var(--white));
+  color: var(--vc);
+}
+.bc-block-text {
+  font: 400 4.4pt / 1.18 var(--ff-body);
+  color: var(--text);
+  text-align: left;
+  margin: 0;
+}
+.bc-front-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2mm;
+}
+.bc-reviewer {
+  font: 600 5pt / 1.3 var(--ff-body);
   color: var(--slate);
 }
-.bc-footer {
+.bc-reviewer .bc-ru {
+  font-family: var(--ff-mono);
+  font-weight: 400;
+}
+.bc-qrwrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5mm;
+}
+.bc-qr {
+  width: 7mm;
+  height: 7mm;
+  display: block;
+}
+.bc-qr-cap {
+  font: 600 4pt / 1.2 var(--ff-mono);
+  color: var(--slate);
+  text-align: center;
+  margin-top: 0.5mm;
+}
+
+/* ── BACK ── */
+.bc-back-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 2mm;
+  margin-bottom: 1.6mm;
+}
+.bc-back-label {
+  font-family: var(--ff-heading);
+  font-weight: 700;
+  font-size: 7pt;
+  color: var(--magenta);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-heading);
+  justify-self: center;
+}
+.bc-back-tool {
+  text-align: right;
+  justify-self: end;
+  font-family: var(--ff-heading);
+  font-weight: 700;
+  font-size: 9pt;
+  color: var(--magenta);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-heading);
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bc-gates {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0;
+  justify-content: space-around;
+  margin: 0.9mm 0;
+}
+.bc-gate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6mm;
+  padding: 0.4mm 0.9mm;
+  border: 0.4pt solid var(--gc, var(--border));
+  border-radius: 1.5px;
+  background: var(--white);
+  font: 600 4.6pt / 1 var(--ff-body);
+  color: var(--text);
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+.bc-gate[data-result="pass"] {
+  --gc: color-mix(in srgb, var(--score-3) 26%, var(--border));
+  background: color-mix(in srgb, var(--score-3) 8%, var(--white));
+}
+.bc-gate[data-result="fail"] {
+  --gc: color-mix(in srgb, var(--score-0) 26%, var(--border));
+  background: color-mix(in srgb, var(--score-0) 8%, var(--white));
+}
+.bc-g-ic {
+  font-size: 5pt;
+  line-height: 1;
+  font-weight: 800;
+}
+.bc-g-ic.pass {
+  color: var(--score-3);
+}
+.bc-g-ic.fail {
+  color: var(--score-0);
+}
+.bc-g-ic.other {
+  color: var(--slate);
+}
+.bc-mid {
+  display: flex;
+  gap: 2mm;
+  align-items: stretch;
+  flex: 0 0 auto;
+}
+.bc-mid .bc-prows {
+  flex: 1;
+  min-width: 0;
+}
+.bc-gates--col {
+  flex-direction: column;
+  gap: 0.5mm;
+  flex: 0 0 auto;
+  min-width: 24mm;
+  margin: 0;
+}
+.bc-gates--col .bc-gate {
+  justify-content: flex-start;
+  width: 100%;
+}
+.bc-prows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4mm;
+}
+.bc-prow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 1.6mm;
+}
+.bc-pinit {
+  color: var(--cc);
+}
+.bc-pname {
+  font: 600 6pt / 1 var(--ff-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text);
+}
+.bc-pval {
+  font: 700 5.6pt / 1 var(--ff-mono);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  margin-left: 1.4mm;
+}
+.bc-findings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5mm;
+  margin-top: 0.8mm;
+  flex: 1;
+  min-height: 0;
+}
+.bc-find-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2mm;
+  padding: 0.8mm 1.2mm;
+  border: 0.4pt solid var(--border);
+  border-radius: 1.5px;
+  overflow: hidden;
+  flex: 1 1 0;
+}
+.bc-find-box.up {
+  background: color-mix(in srgb, var(--score-3) 10%, var(--white));
+}
+.bc-find-box.dn {
+  background: color-mix(in srgb, var(--score-1) 10%, var(--white));
+}
+.bc-find-mk {
+  font: 800 7pt / 1 var(--ff-mono);
+  flex: none;
+}
+.bc-find-box.up .bc-find-mk {
+  color: var(--score-3);
+}
+.bc-find-box.dn .bc-find-mk {
+  color: var(--score-1);
+}
+.bc-find-text {
+  font: 400 4.7pt / 1.2 var(--ff-body);
+  color: var(--text);
+  margin: 0;
+}
+.bc-back-foot {
   display: flex;
   justify-content: space-between;
-  font-size: 8px;
-  color: var(--muted);
+  align-items: center;
+  padding-top: 1.1mm;
+  border-top: 0.5pt solid var(--border);
+  font: 700 4.6pt / 1 var(--ff-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--slate);
 }
 
 /* Screen-reader only utility */
@@ -2468,7 +2766,7 @@ h1.part-title {
   animation: mx-rise-in var(--mx-d-reveal) var(--mx-rise) both;
   animation-delay: 0.08s;
 }
-.bc-verdict-stamp {
+.bc-seal {
   animation: mx-stamp-in var(--mx-d-stamp) var(--mx-stamp) backwards;
   animation-delay: 0.36s;
 }
@@ -2534,14 +2832,14 @@ h1.part-title {
 /* Hero seals: a quiet lift + authority glow in their own colour. */
 .nutrition-verdict-stamp,
 .fin-grade,
-.bc-verdict-stamp {
+.bc-seal {
   transition:
     transform var(--mx-d-hover) var(--mx-soft),
     box-shadow var(--mx-d-hover) var(--mx-soft);
 }
 .nutrition-verdict-stamp:hover,
 .fin-grade:hover,
-.bc-verdict-stamp:hover {
+.bc-seal:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 26px -11px color-mix(in srgb, currentColor 50%, transparent);
 }
@@ -2747,7 +3045,7 @@ body.report::before {
    for the seals and the cornerstone. */
 .nutrition-verdict-stamp:hover,
 .fin-grade:hover,
-.bc-verdict-stamp:hover {
+.bc-seal:hover {
   transform: perspective(720px) rotateX(5deg) rotateY(-5deg) translateY(-3px);
   box-shadow: 0 16px 32px -14px color-mix(in srgb, currentColor 55%, transparent);
 }

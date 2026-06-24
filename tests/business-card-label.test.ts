@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it, vi } from "vitest";
-import { buildBusinessCardLabel } from "@/lib/html-report";
+import { buildBusinessCardLabel, buildBusinessCardSheet } from "@/lib/html-report";
 import type { Evaluation } from "@/lib/types";
 import { makeEvaluation, makeFinalization, makeMetadata, RUBRIC } from "@/tests/fixtures";
 
@@ -49,7 +49,7 @@ function failQGEvaluations(): Evaluation[] {
 }
 
 describe("buildBusinessCardLabel", () => {
-  it("returns a non-empty HTML string", async () => {
+  it("returns a non-empty HTML document", async () => {
     const html = await buildBusinessCardLabel(
       makeMetadata(),
       allHighScoringEvaluations(),
@@ -60,76 +60,109 @@ describe("buildBusinessCardLabel", () => {
     expect(html).toContain("<!DOCTYPE html>");
   });
 
-  it("contains tool name in output", async () => {
+  it("renders both a front and a back face", async () => {
+    const html = await buildBusinessCardLabel(
+      makeMetadata(),
+      allHighScoringEvaluations(),
+      RUBRIC,
+      null,
+    );
+    expect(html).toContain('class="bc-face bc-front"');
+    expect(html).toContain('class="bc-face bc-back"');
+    expect((html.match(/class="bc-card"/g) || []).length).toBe(2);
+  });
+
+  it("puts the tool name in the seal and the back header", async () => {
     const html = await buildBusinessCardLabel(
       makeMetadata({ toolName: "ChatGPT" }),
       allHighScoringEvaluations(),
       RUBRIC,
       null,
     );
-    expect(html).toContain("ChatGPT");
-    expect(html).toContain('class="bc-tool-name"');
+    expect(html).toContain('class="bc-seal-name">ChatGPT');
+    expect(html).toContain('class="bc-back-tool">ChatGPT');
   });
 
-  it("contains the verdict stamp", async () => {
+  it("stamps the verdict in the seal, coloured by the verdict color", async () => {
     const html = await buildBusinessCardLabel(
       makeMetadata(),
       allHighScoringEvaluations(),
       RUBRIC,
       null,
     );
-    expect(html).toContain('class="bc-verdict-stamp"');
+    expect(html).toContain('class="bc-seal-verdict"');
     expect(html).toContain("RECOMMENDED");
+    // verdictColor flows into --vc on both seal and final-score
+    expect(html).toMatch(/class="bc-seal" style="--vc:#3d7249"/);
   });
 
-  it("contains principle codes (TR, RE, US, SE, TC)", async () => {
+  it("contains all five principle codes with score circles + numeric", async () => {
     const html = await buildBusinessCardLabel(
       makeMetadata(),
       allHighScoringEvaluations(),
       RUBRIC,
       null,
     );
-    for (const code of ["TR", "RE", "US", "SE", "TC"]) {
-      expect(html).toContain(`class="bc-pcode">${code}`);
+    // principles render as names with a coloured first letter (code merged in);
+    // the initial is wrapped in .bc-pinit so the full name is split — check tails
+    for (const tail of ["ransparency", "eliability", "sability", "oundness", "raceability"]) {
+      expect(html).toContain(tail);
     }
+    expect(html).toContain('class="bc-pinit"');
+    // every principle row carries CSS-drawn circles (no glyph reintroduced)
+    expect(html).toContain('class="circle filled"');
   });
 
-  it("contains score fraction", async () => {
+  it("does not render an average/final-score row on the back", async () => {
     const html = await buildBusinessCardLabel(
       makeMetadata(),
       allHighScoringEvaluations(),
       RUBRIC,
       null,
     );
-    expect(html).toContain('class="bc-score"');
-    expect(html).toMatch(/\d+\/\d+/);
+    // the back lists principles only — no average/total row
+    expect(html).not.toContain("bc-pavg");
+    expect(html).not.toContain(">Average<");
   });
 
-  it("shows quality gate failures when gates fail", async () => {
+  it("shows every quality gate with a pass mark when all gates pass", async () => {
+    const html = await buildBusinessCardLabel(
+      makeMetadata(),
+      allHighScoringEvaluations(),
+      RUBRIC,
+      null,
+    );
+    expect(html).toContain("bc-gates");
+    expect(html).toContain('class="bc-g-ic pass"');
+    expect(html).not.toContain('class="bc-g-ic fail"');
+  });
+
+  it("marks a failed quality gate with a red fail indicator", async () => {
     const html = await buildBusinessCardLabel(makeMetadata(), failQGEvaluations(), RUBRIC, null);
-    expect(html).toContain("bc-gate-fail");
-    expect(html).toContain("FAIL");
+    expect(html).toContain('class="bc-g-ic fail"');
   });
 
-  it("hides quality gate section when all gates pass", async () => {
+  it("embeds an inline QR svg pointing at the trust hub", async () => {
     const html = await buildBusinessCardLabel(
       makeMetadata(),
       allHighScoringEvaluations(),
       RUBRIC,
       null,
     );
-    expect(html).not.toContain("bc-gate-fail");
-    expect(html).not.toContain("bc-gates");
+    expect(html).toContain('<svg class="bc-qr"');
+    expect(html).toContain("trust.samuelmok.cc");
+    expect(html).toContain("view full report at");
   });
 
-  it("contains TRUST Framework v1.1 in footer", async () => {
+  it("carries the static reviewer line + hub in the footer", async () => {
     const html = await buildBusinessCardLabel(
       makeMetadata(),
       allHighScoringEvaluations(),
       RUBRIC,
       null,
     );
-    expect(html).toContain("TRUST Framework v1.1");
+    expect(html).toContain("Reviewed by UTwente librarians");
+    expect(html).toContain("utwente.nl/library");
   });
 
   it("contains bc-card CSS class", async () => {
@@ -157,7 +190,7 @@ describe("buildBusinessCardLabel", () => {
     expect(html).toContain("NOT EVALUATED");
   });
 
-  it("does not contain strengths or weaknesses", async () => {
+  it("shows the top strength (+) and weakness (!) on the back", async () => {
     const html = await buildBusinessCardLabel(
       makeMetadata(),
       allHighScoringEvaluations(),
@@ -168,9 +201,34 @@ describe("buildBusinessCardLabel", () => {
         weaknesses: ["Expensive"],
       }),
     );
-    expect(html).not.toContain("Great tool");
-    expect(html).not.toContain("Expensive");
-    expect(html).not.toContain("Strengths");
-    expect(html).not.toContain("Weaknesses");
+    expect(html).toContain('class="bc-find-box up"');
+    expect(html).toContain("Great tool");
+    expect(html).toContain('class="bc-find-box dn"');
+    expect(html).toContain("Expensive");
+  });
+});
+
+describe("buildBusinessCardSheet", () => {
+  it("returns separate front + back A3 documents, each tiling 21 cards of one face", async () => {
+    const result = await buildBusinessCardSheet(
+      makeMetadata(),
+      allHighScoringEvaluations(),
+      RUBRIC,
+      null,
+    );
+    const cases: Array<[string, string, string]> = [
+      ["front", result.front, "bc-front"],
+      ["back", result.back, "bc-back"],
+    ];
+    for (const [, html, face] of cases) {
+      // exactly one A3 page per document
+      expect(html).toContain("@page { size: 297mm 420mm");
+      expect((html.match(/class="a3-sheet"/g) || []).length).toBe(1);
+      // 21 cards, all of the correct face
+      expect((html.match(/class="bc-card"/g) || []).length).toBe(21);
+      expect((html.match(new RegExp(`class="bc-face ${face}"`, "g")) || []).length).toBe(21);
+      // fully standalone (report stylesheet inlined)
+      expect(html).toContain("<style>");
+    }
   });
 });

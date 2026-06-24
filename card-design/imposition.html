@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TRUST card — A3 imposition check</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body { margin:0; background:var(--canvas); font-family:var(--ff-body); color:var(--text); padding:24px; }
+  h1 { font:700 14px/1 var(--ff-mono); text-transform:uppercase; letter-spacing:.14em; color:var(--magenta); margin:0 0 4px; }
+  .sub { font:400 12px/1.4 var(--ff-body); color:var(--muted); margin:0 0 20px; }
+
+  /* the A3 sheet, scaled to fit screen */
+  .a3-wrap { zoom:.62; transform-origin:top left; width:297mm; }
+  .a3 {
+    width:297mm; height:420mm; background:#fff; position:relative;
+    box-shadow:0 2px 16px rgba(20,32,51,.15);
+  }
+  /* grid: 3 cols x 7 rows, 6mm internal cut channel, centered */
+  .grid {
+    position:absolute;
+    /* center: side margin 16.5mm, top/bottom 8.25mm */
+    top:8.25mm; left:16.5mm; right:16.5mm; bottom:8.25mm;
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    grid-template-rows:repeat(7, 1fr);
+    gap:6mm;
+  }
+  /* crop marks at every cell corner */
+  .grid::before, .grid::after { content:none; }
+
+  .tile {
+    width:84mm; height:52.5mm; background:var(--white);
+    border:0.5pt solid var(--border); position:relative; overflow:hidden;
+    display:flex; flex-direction:column; box-sizing:border-box;
+    font-size:7pt;
+  }
+  .tile .bar { height:1.6mm; background:var(--magenta); }
+  .tile .tinner { flex:1; padding:2mm 2.4mm; display:flex; flex-direction:column; justify-content:space-between; }
+  .tile .twm { font:900 6pt var(--ff-display); color:var(--navy); }
+  .tile .tcenter { display:flex; flex-direction:column; align-items:center; gap:.6mm; }
+  .tile .tseal { font:700 8pt var(--ff-heading); color:var(--v-recommended); text-transform:uppercase; letter-spacing:.06em; border:1pt solid var(--v-recommended); outline:.6pt solid var(--v-recommended); outline-offset:.6pt; padding:.6mm 2mm; }
+  .tile .ttool { font:900 6.5pt var(--ff-display); }
+  .tile .tmeta { font:400 4.4pt var(--ff-mono); color:var(--muted); }
+  .tile .tfoot { display:flex; justify-content:space-between; align-items:flex-end; }
+  .tile .trev { font:400 3.8pt var(--ff-body); color:var(--slate); max-width:48mm; }
+  .tile .tqr { width:7mm; height:7mm; background:
+     repeating-linear-gradient(0deg, var(--text) 0 0.5mm, transparent 0.5mm 1mm),
+     repeating-linear-gradient(90deg, var(--text) 0 0.5mm, transparent 0.5mm 1mm);
+     opacity:.85; }
+
+  /* corner crop ticks (drawn on the sheet, at grid intersections) */
+  .crops { position:absolute; inset:0; pointer-events:none; }
+  .crop { position:absolute; width:4mm; height:4mm; }
+  .crop::before, .crop::after { content:""; position:absolute; background:var(--slate); }
+  .crop::before { left:50%; top:0; width:.3pt; height:100%; transform:translateX(-50%); }
+  .crop::after  { top:50%; left:0; height:.3pt; width:100%; transform:translateY(-50%); }
+
+  .legend { margin-top:22px; display:flex; gap:28px; flex-wrap:wrap; font:400 11px/1.5 var(--ff-body); color:var(--muted); }
+  .legend b { color:var(--text); font-family:var(--ff-mono); font-size:10px; text-transform:uppercase; letter-spacing:.08em; }
+  .dim { font:700 10px var(--ff-mono); color:var(--navy); }
+</style>
+</head>
+<body>
+  <h1>A3 imposition — 21 cards per sheet</h1>
+  <p class="sub">Portrait A3 (297 × 420 mm) · 3 cols × 7 rows · card 84 × 52.5 mm · 6 mm cut channel · crop marks at intersections. Double-sided: print this grid on both faces (back content mirrored for long-edge flip).</p>
+
+  <div class="a3-wrap">
+    <div class="a3">
+      <div class="grid" id="grid"></div>
+      <svg class="crops" viewBox="0 0 297 420" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%">
+        <!-- crop marks at the 4×8 intersection grid (mm coordinates) -->
+        <g stroke="#4c5e74" stroke-width="0.12" fill="none">
+          <!-- generated below via JS-free inline: vertical x positions and horizontal y positions -->
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div><b>Cards / sheet</b><br><span class="dim">21</span> (3 × 7)</div>
+    <div><b>Card size</b><br><span class="dim">84 × 52.5 mm</span></div>
+    <div><b>Cut channel</b><br><span class="dim">6 mm</span></div>
+    <div><b>Side margin</b><br><span class="dim">16.5 mm</span></div>
+    <div><b>Top/bottom margin</b><br><span class="dim">8.25 mm</span></div>
+  </div>
+
+<script>
+  // tile the grid 3 x 7 = 21 with a compact front card
+  const grid = document.getElementById('grid');
+  const tile = `
+    <div class="bar"></div>
+    <div class="tinner">
+      <span class="twm">TRUST</span>
+      <div class="tcenter">
+        <span class="tseal">Recommended</span>
+        <span class="ttool">AI2 Asta</span>
+        <span class="tmeta">Allen Institute for AI · asta.ai</span>
+      </div>
+      <div class="tfoot">
+        <span class="trev">Two information specialists · shared verdict</span>
+        <span class="tqr"></span>
+      </div>
+    </div>`;
+  for (let i=0;i<21;i++){ const d=document.createElement('div'); d.className='tile'; d.innerHTML=tile; grid.appendChild(d); }
+
+  // draw crop marks at grid intersections (x: 16.5, 106.5, 196.5, 286.5 ; y: 8.25 + k*(52.5+6))
+  const svg = document.querySelector('svg.crops g');
+  const xs = [16.5, 16.5+90, 16.5+180, 16.5+270];     // 90 = 84+6
+  let ys = []; for (let k=0;k<=7;k++) ys.push(8.25 + k*(52.5+6));
+  let s='';
+  xs.forEach(x=>{ ys.forEach(y=>{
+    s += `<path d="M${x-2} ${y} H${x+2} M${x} ${y-2} V${y+2}" />`;
+  });});
+  svg.innerHTML = s;
+</script>
+</body>
+</html>

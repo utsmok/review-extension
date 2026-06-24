@@ -1,5 +1,10 @@
 import JSZip from "jszip";
-import { buildBusinessCardLabel, buildHtmlReport, buildNutritionLabel } from "./html-report";
+import {
+  buildBusinessCardLabel,
+  buildBusinessCardSheet,
+  buildHtmlReport,
+  buildNutritionLabel,
+} from "./html-report";
 import { ensureArray } from "./metadata-utils";
 import { minifyHtml } from "./minify";
 import {
@@ -59,6 +64,8 @@ export interface ExportArtifacts {
   htmlReport: string;
   nutritionLabel: string;
   businessCardLabel: string;
+  businessCardSheetFront: string;
+  businessCardSheetBack: string;
   /** filename → base64-encoded content (images, logos). */
   imageFiles: Map<string, string>;
   /** filename → plain-text content (capture HTML files). */
@@ -67,6 +74,8 @@ export interface ExportArtifacts {
   reportFilename: string;
   labelFilename: string;
   cardFilename: string;
+  cardSheetFrontFilename: string;
+  cardSheetBackFilename: string;
 }
 
 // Cached dynamic imports
@@ -366,6 +375,12 @@ export async function prepareExportArtifacts(
   );
   const labelHtml = await buildNutritionLabel(reportMetadata, evaluations, rubric, finalization);
   const cardHtml = await buildBusinessCardLabel(reportMetadata, evaluations, rubric, finalization);
+  const { front: cardSheetFrontHtml, back: cardSheetBackHtml } = await buildBusinessCardSheet(
+    reportMetadata,
+    evaluations,
+    rubric,
+    finalization,
+  );
 
   const safeName = sanitizeFilename(metadata.toolName);
 
@@ -378,11 +393,15 @@ export async function prepareExportArtifacts(
     htmlReport: minifyHtml(htmlReport),
     nutritionLabel: minifyHtml(labelHtml),
     businessCardLabel: minifyHtml(cardHtml),
+    businessCardSheetFront: minifyHtml(cardSheetFrontHtml),
+    businessCardSheetBack: minifyHtml(cardSheetBackHtml),
     imageFiles,
     captureHtmlFiles,
     reportFilename: `Evaluation_Report_${safeName}.html`,
     labelFilename: `TRUST_Label_${safeName}.html`,
     cardFilename: `${safeName}-card.html`,
+    cardSheetFrontFilename: `${safeName}-card-front-A3.html`,
+    cardSheetBackFilename: `${safeName}-card-back-A3.html`,
   };
 }
 
@@ -419,6 +438,8 @@ export async function assembleZip(artifacts: ExportArtifacts): Promise<Blob> {
   zip.file(artifacts.reportFilename, artifacts.htmlReport);
   zip.file(artifacts.labelFilename, artifacts.nutritionLabel);
   zip.file(artifacts.cardFilename, artifacts.businessCardLabel);
+  zip.file(artifacts.cardSheetFrontFilename, artifacts.businessCardSheetFront);
+  zip.file(artifacts.cardSheetBackFilename, artifacts.businessCardSheetBack);
 
   return zip.generateAsync({
     type: "blob",
@@ -460,6 +481,8 @@ export async function assembleBatchZip(
     folder.file(artifacts.reportFilename, artifacts.htmlReport);
     folder.file(artifacts.labelFilename, artifacts.nutritionLabel);
     folder.file(artifacts.cardFilename, artifacts.businessCardLabel);
+    folder.file(artifacts.cardSheetFrontFilename, artifacts.businessCardSheetFront);
+    folder.file(artifacts.cardSheetBackFilename, artifacts.businessCardSheetBack);
   }
 
   // Root manifest
