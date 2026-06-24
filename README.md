@@ -39,7 +39,12 @@ You can find the extension in the [chrome web store](https://chromewebstore.goog
 5. Click the extension icon in the toolbar to open the side panel
 
 ### Firefox
-See **Manual installation** above, but replace step 3–4 with: open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on**, and select any file inside the unzipped folder.
+
+**From Firefox Add-ons (recommended)**
+The extension is available on [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/trust-review/). Visit the page, then press `Add to Firefox`.
+
+**Manual installation**
+See **Manual installation** under Chrome above, but replace step 3–4 with: open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on**, and select any file inside the unzipped folder.
 
 ## Usage
 

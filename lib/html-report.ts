@@ -768,21 +768,23 @@ function buildBusinessCardLabelHtml(
     .join("");
 
   // Principle rows — first letter colored + name + score circles + numeric.
-  const principleRowsHtml = PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric).map((p) => {
-    const avg = principleAverage(p.id, evaluations, rubric, evalMap);
-    const color = REPORT_COLORS[p.id] ?? p.color;
-    const circles =
-      avg === null
-        ? `<span class="circles">${EMPTY_CIRCLE.repeat(3)}</span>`
-        : circlesOnly(scoreCircles(avg));
-    const val = avg === null ? "\u2013" : avg.toFixed(1);
-    return `<div class="bc-prow" style="--cc:${color}"><span class="bc-pname"><span class="bc-pinit">${esc((PRINCIPLE_NAMES[p.id] ?? "").charAt(0))}</span>${esc((PRINCIPLE_NAMES[p.id] ?? "").slice(1))}</span>${circles}<span class="bc-pval">${val}</span></div>`;
-  });
+  const principleRowsHtml = PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
+    .map((p) => {
+      const avg = principleAverage(p.id, evaluations, rubric, evalMap);
+      const color = REPORT_COLORS[p.id] ?? p.color;
+      const circles =
+        avg === null
+          ? `<span class="circles">${EMPTY_CIRCLE.repeat(3)}</span>`
+          : circlesOnly(scoreCircles(avg));
+      const val = avg === null ? "\u2013" : avg.toFixed(1);
+      return `<div class="bc-prow" style="--cc:${color}"><span class="bc-pname"><span class="bc-pinit">${esc((PRINCIPLE_NAMES[p.id] ?? "").charAt(0))}</span>${esc((PRINCIPLE_NAMES[p.id] ?? "").slice(1))}</span>${circles}<span class="bc-pval">${val}</span></div>`;
+    })
+    .join("");
   // Findings — all strengths in one box, all weaknesses in another.
   const strengths = (finalization?.strengths ?? []).map((s) => s.trim()).filter(Boolean);
   const weaknesses = (finalization?.weaknesses ?? []).map((w) => w.trim()).filter(Boolean);
-  const strengthsJoin = joinFindings(strengths, 350);
-  const weaknessesJoin = joinFindings(weaknesses, 350);
+  const strengthsJoin = joinFindings(strengths, 500);
+  const weaknessesJoin = joinFindings(weaknesses, 500);
   const overflowTag = (n: number) =>
     n > 0 ? `<span class="bc-overflow">+${n} more in full report</span>` : "";
   const findingsHtml = [
@@ -818,14 +820,16 @@ function buildBusinessCardLabelHtml(
         </div>
         <div class="bc-seal-verdict">${esc(scores.verdict)}</div>
       </div>
-      ${metadata.description || conclusion ? `<div class="bc-front-blocks">${metadata.description ? `<div class="bc-block"><span class="bc-pill">what?</span><p class="bc-block-text">${esc(truncateAtWord(metadata.description, 130))}</p></div>` : ""}${conclusion ? `<div class="bc-block bc-block--why" style="--vc:${vc}"><span class="bc-pill">conclusion</span><p class="bc-block-text">${esc(conclusion)}</p></div>` : ""}</div>` : ""}
+      ${metadata.description || conclusion ? `<div class="bc-front-blocks">${metadata.description ? `<div class="bc-block"><div class="bc-block-inner"><span class="bc-pill">what?</span><p class="bc-block-text">${esc(truncateAtWord(metadata.description, 130))}</p></div></div>` : ""}${conclusion ? `<div class="bc-block bc-block--why" style="--vc:${vc}"><div class="bc-block-inner"><span class="bc-pill">conclusion</span><p class="bc-block-text">${esc(conclusion)}</p></div></div>` : ""}</div>` : ""}
     </div>
     <div class="bc-front-foot">
-      <div class="bc-reviewer">Reviewed by UTwente librarians<br /><span class="bc-ru">utwente.nl/library</span></div>
-      <div class="bc-qrwrap">
-        ${qrHtml}
-        <span class="bc-qr-cap">view full report at<br />trust.samuelmok.cc</span>
-      </div>
+      <div class="bc-qrwrap">${qrHtml}</div>
+      <span class="bc-foot-sep">•</span>
+      <span class="bc-foot-item bc-ru">trust.samuelmok.cc</span>
+      <span class="bc-foot-sep">•</span>
+      <span class="bc-foot-item">Reviewed by UTwente librarians</span>
+      <span class="bc-foot-sep">•</span>
+      <span class="bc-foot-item bc-ru">utwente.nl/library</span>
     </div>
   </div>
 </div>`;
