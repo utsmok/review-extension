@@ -1,0 +1,145 @@
+{
+  "metadata": {
+    "id": "6e95d713-c851-4211-b4e3-def34b96387c",
+    "toolName": "Ai2 Asta",
+    "toolUrl": "https://asta.allen.ai/",
+    "startTime": "2026-06-19T11:57:54.977Z",
+    "rubricId": "trust-full",
+    "usesAi": true,
+    "status": "started",
+    "faviconUrl": "https://asta.allen.ai/favicon/favicon.ico",
+    "description": "Open source LLM-powered literature search system by Ai2, built on Semantic Scholar, excelling in transparency.",
+    "company": "Ai2",
+    "toolLogoUrl": "",
+    "pricing": "Free",
+    "availability": "Open Source",
+    "termsConditionsUrl": "https://allenai.org/privacy-policy/2025-02-19",
+    "dataSources": ["Semantic Scholar"],
+    "discipline": ["Multidisciplinary"],
+    "searchMethods": ["Semantic search", "Faceted filtering", "Natural language"],
+    "authenticationMethod": "None required",
+    "finalizedAt": "2026-06-19T12:57:58.163Z"
+  },
+  "evaluations": [
+    {
+      "rubricId": "privacy_and_security.data_privacy",
+      "score": "pass",
+      "notes": "",
+      "explicitEvidenceIds": ["8f9e633c-b0b5-4f1b-aaf9-f853b7d60382"]
+    },
+    {
+      "rubricId": "privacy_and_security.training_policy",
+      "notes": "While the terms clearly state they can and will use your input to train models, the tool is also available fully open source and can be self-hosted without sending any data to Ai2 or others. However, when using their hosted version, this would be marked as 'Fail'. ",
+      "explicitEvidenceIds": ["b23dac0b-4ebc-4cbb-bbb5-ee17dabeba88"],
+      "score": "unsure"
+    },
+    {
+      "rubricId": "intellectual_property.ip_preservation",
+      "score": "pass",
+      "notes": "",
+      "explicitEvidenceIds": ["17fb3d53-e43a-40bd-9b0b-2383f3c3009a"]
+    },
+    {
+      "rubricId": "accessibility.compliance",
+      "notes": "While it does not pass the full scan, it does match most of WCAG. The found issues are mostly trivial to fix with some additional labeling. ",
+      "explicitEvidenceIds": ["b08d4e37-50cc-40bc-bfa0-147bb370a644"],
+      "score": "pass"
+    },
+    {
+      "rubricId": "TR.data_source_clarity",
+      "score": 3,
+      "notes": "They make use of their own database, Semantic Scholar, which is regularly updated. ",
+      "explicitEvidenceIds": [
+        "59643345-fc31-4437-a91d-8934f2763224",
+        "f95f5816-0a58-4b15-9fb0-72b87b92170e"
+      ],
+      "customScore": {
+        "score": 3,
+        "reasoning": ""
+      }
+    },
+    {
+      "rubricId": "TR.methodology_disclosure",
+      "notes": "The full source code is available if required to dig into every detail of how the tool works. ",
+      "explicitEvidenceIds": [
+        "0637c708-1c02-4b0b-a1b2-f6b4bbe23af8",
+        "636cce89-dedd-48b7-b9cd-f562be12f7da"
+      ],
+      "score": 3
+    },
+    {
+      "rubricId": "US.workflow_integration",
+      "notes": "",
+      "explicitEvidenceIds": ["c812a9fb-ce14-4614-8c06-2c011d8e47db"],
+      "score": 2
+    },
+    {
+      "rubricId": "US.cognitive_guardrails",
+      "notes": "The tool clearly shows the thinking and collection process, and also indicates confidence of a match per-item in a clear manner, including additional evidence from citing papers. ",
+      "explicitEvidenceIds": ["3473bf11-16b6-47df-9755-f58b98eae1ac"],
+      "score": 3
+    },
+    {
+      "rubricId": "SE.algorithmic_fairness",
+      "notes": "",
+      "explicitEvidenceIds": ["9d3540bd-6304-433c-b10a-125ab196cdbf"],
+      "score": 2
+    },
+    {
+      "rubricId": "SE.data_handling",
+      "score": 2,
+      "notes": "",
+      "explicitEvidenceIds": ["40a4b723-98dd-4e5e-8ac4-691b9afac0f1"]
+    },
+    {
+      "rubricId": "RE.accuracy_and_hallucination",
+      "notes": "",
+      "explicitEvidenceIds": ["de11ae30-4e52-42b8-89a8-cf6470b837ce"],
+      "score": 3
+    },
+    {
+      "rubricId": "RE.variance_consistency",
+      "notes": "see two evidence captures for a comparison between two runs with highly similar imput queries. The match was pretty good, but there are some nuanced differences. The differences in the results can directly be explained by the different interpretation of the user's query.",
+      "explicitEvidenceIds": [
+        "0f91549d-d618-437d-a662-03a8cb8033d0",
+        "48734b39-e07f-4f15-ac9f-2290466962f8"
+      ],
+      "score": 2
+    },
+    {
+      "rubricId": "TC.source_attribution_depth",
+      "notes": "",
+      "explicitEvidenceIds": [
+        "0f91549d-d618-437d-a662-03a8cb8033d0",
+        "3473bf11-16b6-47df-9755-f58b98eae1ac"
+      ],
+      "score": 3
+    },
+    {
+      "rubricId": "TC.bibliometric_credibility",
+      "notes": "The source database takes care of this: filtering out specific item types and handling retracted data. It is not included in this tool. ",
+      "explicitEvidenceIds": [],
+      "score": "na"
+    }
+  ],
+  "finalization": {
+    "grade": "pass",
+    "conclusion": "An open-sourced and well documented tool that shows how it works and what it does in a transparant manner. The results are often quite good, and always come with reasoning/evidence. The fact that the tool verbosely interprets your request and breaks it down into specific requirements for inclusion is very helpful even without any results as a help to fine-tune (re)search questions.",
+    "strengths": [
+      "Transparent LLM usage",
+      "Clearly supported results",
+      "Open source and free",
+      "Natural language interaction works well"
+    ],
+    "weaknesses": [
+      "Only semantic scholar as a backend",
+      "Limited filtering / metadata available in this interface",
+      "No direct connections with other tools like Zotero",
+      "Cannot use existing papers as input",
+      "No way to do combine natural language queries with manual/deterministic additions",
+      "Base privacy/content policy does not match our requirements, need to self-host to circumvent"
+    ],
+    "recommendations": "This feels like a nice tool for multiple use cases, as the transparacy in the process makes it suitable for e.g. learning how LLM's interpret your prompts and decide relevancy. It is also relatively simple and open source, so it can make a fine base for a more complex tooling.",
+    "finalizedAt": "2026-06-19T12:57:58.163Z"
+  }
+}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TRUST Card — Real Example Data</title>
+<style>
+  body { margin: 0; padding: 24px; background: #f4f5f7; font-family: system-ui, sans-serif; }
+  h1 { font-size: 16px; color: #333; margin-bottom: 2px; }
+  .card-slot .frame-box { width: 168mm; height: 210mm; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; background: white; }
+  .card-slot iframe { width: 84mm; height: 105mm; border: 0; transform: scale(2); transform-origin: top left; }
+  .card-slot h3 { font-size: 11px; color: #555; margin: 0 0 6px; }
+</style>
+</head>
+<body>
+<h1>TRUST Business Cards — Real Export Data</h1>
+<p class="sub">From <code>.example_data/</code> — Ai2 Asta session export</p>
+<div id="cards" class="cards">Loading…</div>
+<script type="module">
+  import trustFull from "@/data/rubrics/trust-full.json";
+  import { buildBusinessCardLabel } from "@/lib/html-report";
+
+  const RUBRIC = trustFull;
+  const resp = await fetch("example-session.json");
+  const session = await resp.json();
+
+  const cardHtml = await buildBusinessCardLabel(
+    session.metadata,
+    session.evaluations,
+    RUBRIC,
+    session.finalization,
+  );
+
+  const container = document.getElementById("cards");
+  container.innerHTML = "";
+
+  const slot = document.createElement("div");
+  slot.className = "card-slot";
+  const heading = document.createElement("h3");
+  heading.textContent = `${session.metadata.toolName} — ${session.finalization?.grade ?? "?"}`;
+  slot.appendChild(heading);
+
+  const box = document.createElement("div");
+  box.className = "frame-box";
+  const iframe = document.createElement("iframe");
+  iframe.srcdoc = cardHtml;
+  box.appendChild(iframe);
+  slot.appendChild(box);
+  container.appendChild(slot);
+</script>
+</body>
+</html>

@@ -2392,12 +2392,12 @@ h1.part-title {
   flex-direction: column;
   align-items: center;
   gap: 0.6mm;
+  width: 50mm;
   padding: 0.8mm 3mm 0.9mm;
   border: 1.6pt solid var(--vc);
-  outline: 0.8pt solid var(--vc);
-  outline-offset: -1.6mm;
   border-radius: 1.5px;
   background: color-mix(in srgb, var(--vc) 6%, var(--white));
+  box-sizing: border-box;
   box-shadow: 0 1.4mm 2.6mm -1mm rgba(20, 32, 51, 0.2);
 }
 .bc-seal-tool {
@@ -2413,8 +2413,9 @@ h1.part-title {
 .bc-seal-id {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   line-height: 1.05;
+  min-width: 0;
 }
 .bc-seal-name {
   font-family: var(--ff-heading);
@@ -2423,6 +2424,10 @@ h1.part-title {
   color: var(--magenta);
   text-transform: uppercase;
   letter-spacing: var(--ls-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40mm;
 }
 .bc-seal-url {
   font: 400 5pt / 1 var(--ff-mono);
@@ -2438,26 +2443,35 @@ h1.part-title {
   text-transform: uppercase;
   line-height: 0.95;
 }
+.bc-front-blocks {
+  display: flex;
+  gap: 1mm;
+}
 .bc-block {
+  flex: 1 1 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 1mm;
   border: 0.4pt solid var(--border);
   border-radius: 1.5px;
-  padding: 0.6mm 1.4mm;
+  padding: 0.6mm 1.2mm;
   background: var(--white);
+  min-width: 0;
 }
 .bc-block--why {
   border-color: color-mix(in srgb, var(--vc) 35%, var(--border));
   background: color-mix(in srgb, var(--vc) 5%, var(--white));
 }
 .bc-pill {
-  display: inline-block;
+  flex: none;
   font: 700 4pt / 1.2 var(--ff-mono);
   text-transform: lowercase;
   letter-spacing: 0.04em;
-  padding: 0.4mm 1.3mm;
+  padding: 0.4mm 1.2mm;
   border-radius: 999px;
   background: color-mix(in srgb, var(--slate) 12%, var(--white));
   color: var(--slate);
-  margin-bottom: 0.5mm;
+  white-space: nowrap;
 }
 .bc-block--why .bc-pill {
   background: color-mix(in srgb, var(--vc) 14%, var(--white));
@@ -2468,6 +2482,16 @@ h1.part-title {
   color: var(--text);
   text-align: left;
   margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+.bc-overflow {
+  display: block;
+  font: 600 3.8pt / 1.2 var(--ff-mono);
+  color: var(--slate);
+  margin-top: 0.3mm;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 .bc-front-foot {
   display: flex;

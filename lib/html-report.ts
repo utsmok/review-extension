@@ -708,6 +708,23 @@ function truncateAtWord(text: string, max: number): string {
   return `${lastSpace >= max * 0.4 ? cut.slice(0, lastSpace) : cut.trimEnd()}\u2026`;
 }
 
+/** Join items with bullet separators, fitting as many as possible within max chars.
+ *  Returns the joined text and the count of items that didn't fit. */
+function joinFindings(items: string[], max: number): { text: string; omitted: number } {
+  const clean = items.map((s) => s.trim()).filter(Boolean);
+  if (clean.length === 0) return { text: "", omitted: 0 };
+  const sep = " \u2022 ";
+  let result = "";
+  let fitCount = 0;
+  for (let i = 0; i < clean.length; i++) {
+    const candidate = result ? result + sep + clean[i] : clean[i];
+    if (candidate.length > max) break;
+    result = candidate;
+    fitCount++;
+  }
+  return { text: result, omitted: clean.length - fitCount };
+}
+
 /** Build the two-sided TRUST business-card HTML (front + back, "The Seal").
  *  Returns both faces; the async wrapper wraps them in a document. */
 function buildBusinessCardLabelHtml(
@@ -751,30 +768,29 @@ function buildBusinessCardLabelHtml(
     .join("");
 
   // Principle rows — first letter colored + name + score circles + numeric.
-  const principleRowsHtml = PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric)
-    .map((p) => {
-      const avg = principleAverage(p.id, evaluations, rubric, evalMap);
-      const color = REPORT_COLORS[p.id] ?? p.color;
-      const circles =
-        avg === null
-          ? `<span class="circles">${EMPTY_CIRCLE.repeat(3)}</span>`
-          : circlesOnly(scoreCircles(avg));
-      const val = avg === null ? "\u2013" : avg.toFixed(1);
-      return `<div class="bc-prow" style="--cc:${color}"><span class="bc-pname"><span class="bc-pinit">${esc((PRINCIPLE_NAMES[p.id] ?? "").charAt(0))}</span>${esc((PRINCIPLE_NAMES[p.id] ?? "").slice(1))}</span>${circles}<span class="bc-pval">${val}</span></div>`;
-    })
-    .join("");
+  const principleRowsHtml = PRINCIPLES.filter((p) => p.id in rubric.scoring_rubric).map((p) => {
+    const avg = principleAverage(p.id, evaluations, rubric, evalMap);
+    const color = REPORT_COLORS[p.id] ?? p.color;
+    const circles =
+      avg === null
+        ? `<span class="circles">${EMPTY_CIRCLE.repeat(3)}</span>`
+        : circlesOnly(scoreCircles(avg));
+    const val = avg === null ? "\u2013" : avg.toFixed(1);
+    return `<div class="bc-prow" style="--cc:${color}"><span class="bc-pname"><span class="bc-pinit">${esc((PRINCIPLE_NAMES[p.id] ?? "").charAt(0))}</span>${esc((PRINCIPLE_NAMES[p.id] ?? "").slice(1))}</span>${circles}<span class="bc-pval">${val}</span></div>`;
+  });
   // Findings — all strengths in one box, all weaknesses in another.
   const strengths = (finalization?.strengths ?? []).map((s) => s.trim()).filter(Boolean);
   const weaknesses = (finalization?.weaknesses ?? []).map((w) => w.trim()).filter(Boolean);
-  const SEP = " \u2022 ";
-  const strengthsText = truncateAtWord(strengths.join(SEP), 350);
-  const weaknessesText = truncateAtWord(weaknesses.join(SEP), 350);
+  const strengthsJoin = joinFindings(strengths, 350);
+  const weaknessesJoin = joinFindings(weaknesses, 350);
+  const overflowTag = (n: number) =>
+    n > 0 ? `<span class="bc-overflow">+${n} more in full report</span>` : "";
   const findingsHtml = [
-    strengthsText
-      ? `        <div class="bc-find-box up"><span class="bc-find-mk">+</span><p class="bc-find-text">${esc(strengthsText)}</p></div>`
+    strengthsJoin.text
+      ? `        <div class="bc-find-box up"><span class="bc-find-mk">+</span><p class="bc-find-text">${esc(strengthsJoin.text)}${overflowTag(strengthsJoin.omitted)}</p></div>`
       : "",
-    weaknessesText
-      ? `        <div class="bc-find-box dn"><span class="bc-find-mk">!</span><p class="bc-find-text">${esc(weaknessesText)}</p></div>`
+    weaknessesJoin.text
+      ? `        <div class="bc-find-box dn"><span class="bc-find-mk">!</span><p class="bc-find-text">${esc(weaknessesJoin.text)}${overflowTag(weaknessesJoin.omitted)}</p></div>`
       : "",
   ]
     .filter(Boolean)
@@ -802,8 +818,7 @@ function buildBusinessCardLabelHtml(
         </div>
         <div class="bc-seal-verdict">${esc(scores.verdict)}</div>
       </div>
-      ${metadata.description ? `<div class="bc-block"><span class="bc-pill">what?</span><p class="bc-block-text">${esc(truncateAtWord(metadata.description, 130))}</p></div>` : ""}
-      ${conclusion ? `<div class="bc-block bc-block--why" style="--vc:${vc}"><span class="bc-pill">review conclusion</span><p class="bc-block-text">${esc(conclusion)}</p></div>` : ""}
+      ${metadata.description || conclusion ? `<div class="bc-front-blocks">${metadata.description ? `<div class="bc-block"><span class="bc-pill">what?</span><p class="bc-block-text">${esc(truncateAtWord(metadata.description, 130))}</p></div>` : ""}${conclusion ? `<div class="bc-block bc-block--why" style="--vc:${vc}"><span class="bc-pill">conclusion</span><p class="bc-block-text">${esc(conclusion)}</p></div>` : ""}</div>` : ""}
     </div>
     <div class="bc-front-foot">
       <div class="bc-reviewer">Reviewed by UTwente librarians<br /><span class="bc-ru">utwente.nl/library</span></div>

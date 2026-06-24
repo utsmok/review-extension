@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TRUST Cards — Registry Tools</title>
+<style>
+  body { margin: 0; padding: 24px; background: #f4f5f7; font-family: system-ui, sans-serif; }
+  h1 { font-size: 18px; color: #333; margin-bottom: 4px; }
+  p.subtitle { font-size: 13px; color: #888; margin-top: 0; margin-bottom: 24px; }
+  .cards-grid { display: flex; flex-wrap: wrap; gap: 24px; }
+  .card-slot { display: flex; flex-direction: column; gap: 8px; }
+  .card-slot h3 { font-size: 12px; color: #555; margin: 0; }
+  .card-slot iframe { border: 1px solid #ddd; border-radius: 4px; transform: scale(2); transform-origin: top left; }
+  .card-slot .iframe-wrap { width: 168mm; height: 105mm; overflow: hidden; border: 1px solid #ccc; border-radius: 4px; background: white; }
+</style>
+</head>
+<body>
+<h1>TRUST Business Cards — Registry Data</h1>
+<p class="subtitle">Generated from <code>data/tools/registry.json</code> review data</p>
+<div id="cards" class="cards-grid">Loading…</div>
+<script type="module">
+  import registry from "@/data/tools/registry.json";
+  import trustFull from "@/data/rubrics/trust-full.json";
+  import { buildBusinessCardLabel } from "@/lib/html-report";
+  import { PRINCIPLES } from "@/lib/principles";
+
+  const RUBRIC = trustFull;
+
+  // Collect all quality-gate and scoring question IDs from the rubric
+  function allQgIds() {
+    const ids = [];
+    for (const [cat, questions] of Object.entries(RUBRIC.quality_gate)) {
+      for (const qKey of Object.keys(questions)) ids.push(`${cat}.${qKey}`);
+    }
+    return ids;
+  }
+  function allScoringIds() {
+    const ids = [];
+    for (const [cat, questions] of Object.entries(RUBRIC.scoring_rubric)) {
+      for (const qKey of Object.keys(questions)) ids.push(`${cat}.${qKey}`);
+    }
+    return ids;
+  }
+
+  // Map a principle code (TR, RE, US, SE, TC) to the principle ID
+  const CODE_TO_ID = {};
+  for (const p of PRINCIPLES) CODE_TO_ID[p.code] = p.id;
+
+  // For each scoring question, find which principle it belongs to
+  function principleForQuestion(qid) {
+    const prefix = qid.split(".")[0];
+    return CODE_TO_ID[prefix] || prefix;
+  }
+
+  function buildEvaluations(review) {
+    const evals = [];
+    const qgIds = allQgIds();
+    const scoreIds = allScoringIds();
+
+    // Quality gates: pass for recommended, mix for others
+    const verdict = review.verdict || "recommended";
+    for (const id of qgIds) {
+      evals.push({ rubricId: id, score: "pass", notes: "", explicitEvidenceIds: [] });
+    }
+
+    // Scoring: score each question at the rounded principle average
+    for (const id of scoreIds) {
+      const pid = principleForQuestion(id);
+      const avg = review.scores?.[pid] ?? review.scores?.[pid.replace("_", "")] ?? 2;
+      evals.push({ rubricId: id, score: Math.round(avg), notes: "", explicitEvidenceIds: [] });
+    }
+
+    return evals;
+  }
+
+  function buildFinalization(review) {
+    const gradeMap = { recommended: "pass", conditional: "caution", "not recommended": "fail" };
+    return {
+      grade: gradeMap[review.verdict] || "pass",
+      conclusion: review.notes || "",
+      recommendations: "",
+      strengths: review.strengths || [],
+      weaknesses: review.weaknesses || [],
+    };
+  }
+
+  function buildMetadata(tool) {
+    const d = tool.defaults || {};
+    return {
+      id: crypto.randomUUID(),
+      toolName: tool.name,
+      toolUrl: tool.url,
+      startTime: "2025-06-15T10:00:00.000Z",
+      status: "done",
+      description: d.dataSources ? `Academic search tool. Data sources: ${d.dataSources.join(", ")}.` : "",
+      company: d.company || "",
+      pricing: d.pricing || "",
+      availability: d.availability || "",
+      dataSources: d.dataSources || [],
+      searchMethods: d.searchMethods || [],
+      discipline: d.discipline || [],
+      authenticationMethod: d.authenticationMethod || "",
+      usesAi: d.usesAi ?? true,
+    };
+  }
+
+  const container = document.getElementById("cards");
+  const tools = registry.filter((t) => t.review);
+
+  for (const tool of tools) {
+    const metadata = buildMetadata(tool);
+    const evaluations = buildEvaluations(tool.review);
+    const finalization = buildFinalization(tool.review);
+
+    const cardHtml = await buildBusinessCardLabel(metadata, evaluations, RUBRIC, finalization);
+
+    const slot = document.createElement("div");
+    slot.className = "card-slot";
+
+    const heading = document.createElement("h3");
+    heading.textContent = `${tool.name} — ${tool.review.verdict}`;
+    slot.appendChild(heading);
+
+    const wrap = document.createElement("div");
+    wrap.className = "iframe-wrap";
+    const iframe = document.createElement("iframe");
+    iframe.style.width = "84mm";
+    iframe.style.height = "52.5mm";
+    iframe.style.border = "0";
+    iframe.srcdoc = cardHtml;
+    wrap.appendChild(iframe);
+    slot.appendChild(wrap);
+
+    container.appendChild(slot);
+  }
+
+  container.firstChild?.remove(); // remove "Loading…"
+</script>
+</body>
+</html>

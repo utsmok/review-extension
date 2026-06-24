@@ -8,7 +8,10 @@
       "!!.github/skills",
       "!!tools",
       "!!card-design",
-      "!!site/example"
+      "!!site/example",
+      "!!report-dev/registry-cards.html",
+      "!!report-dev/example-card.html",
+      "!!report-dev/example-session.json"
     ]
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
