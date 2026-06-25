@@ -117,12 +117,20 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
   }
   if (s && activeId) {
     // Persist screenshots to separate IDB store, then strip from session data
+    let screenshotFailures = false;
     for (const cap of c) {
       if (cap.screenshotBase64 && !persistedScreenshotIds.has(cap.id)) {
         if (await saveScreenshot(cap)) {
           persistedScreenshotIds.add(cap.id);
+        } else {
+          screenshotFailures = true;
         }
       }
+    }
+    if (screenshotFailures) {
+      toastWarning(
+        "Some screenshots could not be saved to storage. They are kept for this session but may not persist.",
+      );
     }
     const strippedCaptures = stripScreenshots(c);
     const ok = await getRepository().save(activeId, {
