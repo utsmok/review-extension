@@ -1140,6 +1140,7 @@ code {
 }
 .tools-table th,
 .compare-table th {
+  text-align: left;
   font-family: var(--ff-heading);
   font-weight: 700;
   text-transform: uppercase;
