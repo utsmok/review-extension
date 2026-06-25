@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { getProgressState, type ProgressState } from "@/lib/evaluation-state";
 
-export type { ProgressState };
 export { getProgressState };
 
 /**
