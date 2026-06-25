@@ -223,6 +223,7 @@ export function teardownAutoSave(): void {
   lastSaveTime = 0;
   persistedForSessionId = null;
   persistedScreenshotIds = new Set();
+  screenshotFailureToastShown = false;
 }
 
 /** Save all captures' screenshots to the separate screenshot IDB store. */
