@@ -193,6 +193,7 @@
   }
 
   async function handleFiles(files) {
+    showFileError("");
     let errors = 0;
     for (const file of files) {
       try {
@@ -243,7 +244,7 @@
         totalScore: computeTotal(session.evaluations || []),
       };
     } catch (err) {
-      alert(err instanceof Error ? err.message : "An unexpected error occurred.");
+      showFileError(err instanceof Error ? err.message : "An unexpected error occurred.");
       return null;
     }
   }

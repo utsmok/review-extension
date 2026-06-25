@@ -1126,13 +1126,12 @@ code {
 }
 
 /* =====================================================================
-   Tools table + comparison table — flat, dense, scannable
+   Tools table — flat, dense, scannable
    ===================================================================== */
 .table-wrap {
   overflow-x: auto;
 }
 .tools-table,
-.comparison-table,
 .compare-table {
   width: 100%;
   border-collapse: collapse;
@@ -1140,9 +1139,7 @@ code {
   font-size: 0.9375rem;
 }
 .tools-table th,
-.comparison-table th,
 .compare-table th {
-  text-align: left;
   font-family: var(--ff-heading);
   font-weight: 700;
   text-transform: uppercase;
@@ -1157,8 +1154,7 @@ code {
 .tools-table td.num {
   text-align: center;
 }
-.tools-table td,
-.comparison-table td {
+.tools-table td {
   padding: var(--space-3);
   border-top: 1px solid var(--ut-border);
   vertical-align: middle;
@@ -1262,11 +1258,6 @@ code {
   color: var(--trust-magenta);
   background: var(--trust-magenta-tint);
   border-color: var(--trust-magenta-border);
-}
-
-/* Comparison (background) table */
-.comparison-table td {
-  line-height: 1.45;
 }
 
 /* =====================================================================
@@ -1454,27 +1445,9 @@ code {
   color: var(--ut-muted);
   margin-top: 2px;
 }
-
-/* =====================================================================
-   Contact + QR
-   ===================================================================== */
 .contact {
   text-align: center;
 }
-.qr-section {
-  text-align: center;
-  margin-top: var(--space-8);
-}
-.qr-section img {
-  width: 140px;
-  height: 140px;
-  margin: 0 auto var(--space-2);
-  border: 1px solid var(--ut-border);
-  padding: var(--space-2);
-  background: var(--ut-white);
-  border-radius: var(--radius-md);
-}
-
 /* =====================================================================
    Footer
    ===================================================================== */
@@ -2038,7 +2011,6 @@ a.author-chip:hover {
     overflow-x: visible;
   }
   .tools-table,
-  .comparison-table,
   .compare-table {
     font-size: 9pt;
   }
