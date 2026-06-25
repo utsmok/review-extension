@@ -105,7 +105,7 @@ describe("buildBusinessCardLabel", () => {
     );
     // principles render as names with a coloured first letter (code merged in);
     // the initial is wrapped in .bc-pinit so the full name is split — check tails
-    for (const tail of ["ransparency", "eliability", "sability", "oundness", "raceability"]) {
+    for (const tail of ["ransparency", "eliability", "ser-centric", "oundness", "raceability"]) {
       expect(html).toContain(tail);
     }
     expect(html).toContain('class="bc-pinit"');

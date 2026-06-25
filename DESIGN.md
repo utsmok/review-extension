@@ -127,7 +127,7 @@ A navy-anchored palette with five categorical accents for TRUST principles and a
 ### Principle Accents
 - **TRUST Reliable Green** (#16a34a): Accent for R_reliable category.
 - **TRUST User-Centric Violet** (#9333ea): Accent for U_user_centric category.
-- **TRUST Secure Orange** (#ea580c): Accent for S_secure category.
+- **TRUST Sound Orange** (#ea580c): Accent for S_sound category.
 - **TRUST Traceable Teal** (#0d9488): Accent for T_traceable category.
 
 Each TRUST color generates a full family via `color-mix()`: accent (base), accent-strong (86% + black), tint (16% + white), border (32% + border gray), on-accent (white). These drive the `[data-accent-key]` scoping system in CSS.
