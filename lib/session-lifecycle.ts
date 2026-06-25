@@ -77,6 +77,7 @@ let lastSaveTime = 0;
 let rateLimitTimer: ReturnType<typeof setTimeout> | undefined;
 let persistedForSessionId: string | null = null;
 let persistedScreenshotIds = new Set<string>();
+let screenshotFailureToastShown = false;
 async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = false): Promise<void> {
   // Rate limit: 3-second hard minimum between saves (debounced calls only)
   if (!bypassRateLimit) {
@@ -108,6 +109,7 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
   if (activeId !== persistedForSessionId) {
     persistedForSessionId = activeId;
     persistedScreenshotIds = new Set();
+    screenshotFailureToastShown = false;
   }
   // Guard: skip if session switched between schedule and flush to prevent
   // a stale debounced save from overwriting the new session's data.
@@ -128,9 +130,14 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
       }
     }
     if (screenshotFailures) {
-      toastWarning(
-        "Some screenshots could not be saved to storage. They are kept for this session but may not persist.",
-      );
+      if (!screenshotFailureToastShown) {
+        toastWarning(
+          "Some screenshots could not be saved to storage. They are kept for this session but may not persist.",
+        );
+        screenshotFailureToastShown = true;
+      }
+    } else {
+      screenshotFailureToastShown = false;
     }
     const strippedCaptures = stripScreenshots(c);
     const ok = await getRepository().save(activeId, {

@@ -410,6 +410,9 @@ describe("auto-save", () => {
 
     // A failed persist must not be recorded as persisted → retried on the next flush
     expect(mockSaveScreenshot).toHaveBeenCalledTimes(2);
+    // Toast fires once on first failure, not repeated on the second flush (dedup)
+    expect(mockToastWarning).toHaveBeenCalledWith(expect.stringContaining("could not be saved"));
+    expect(mockToastWarning).toHaveBeenCalledTimes(1);
   });
 
   it("does not re-persist a screenshot once it is saved (dedup)", async () => {
