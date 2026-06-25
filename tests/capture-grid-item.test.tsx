@@ -54,7 +54,7 @@ describe("CaptureGridItem", () => {
     const { container } = render(
       <CaptureGridItem capture={makeCapture()} {...{ ...defaultProps, index: 3 }} />,
     );
-    expect(container.querySelector("[style]")).toBeTruthy();
+    expect((container.firstElementChild as HTMLElement).style.animationDelay).toBe("120ms");
   });
 
   it("adds capture-card-removing class when isRemoving is true", () => {
