@@ -10,7 +10,7 @@ Academic librarians and information services staff at the University of Twente. 
 
 ## Product Purpose
 
-A browser extension that provides a structured evaluation workflow for academic search tools against the TRUST framework (Transparent, Reliable, User-centric, Sound, Traceable). The tool captures screenshots and DOM snapshots as evidence, links them to specific rubric criteria, collects scores, and exports a complete review package (ZIP with CSVs, evidence files, and a styled PDF report). All data stays local.
+A browser extension that provides a structured evaluation workflow for academic search tools against the TRUST framework (Transparent, Reliable, User-centric, Sound, Traceable). The tool captures screenshots and DOM snapshots as evidence, links them to specific rubric criteria, collects scores, and exports a complete review package (ZIP with CSVs, evidence files, and a standalone HTML report). All data stays local.
 
 Success: every review is consistent, evidence-backed, and auditable by a second reviewer without context.
 

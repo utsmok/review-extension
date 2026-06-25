@@ -16,9 +16,6 @@
 
 TRUST Review is a Chrome/Firefox extension for conducting structured evaluations of information tools (search engines, databases, AI-powered assistants) using the [TRUST Framework](https://www.utwente.nl/library/). It runs entirely in the browser — no server, no accounts, no data leaves your machine.
 
-## What it looks like
-
-_Screenshots coming soon — to be captured from the running extension._
 
 ## What it does
 
