@@ -214,7 +214,7 @@
           ? lastError.message
           : total === 1
             ? "Could not read that file — it may not be a valid TRUST review archive."
-            : `${errors} of ${total} file${errors > 1 ? "s" : ""} could not be read.`,
+            : `${errors} of ${total} file${total === 1 ? "" : "s"} could not be read.`,
       );
     }
     renderCompare();
@@ -223,7 +223,9 @@
   async function parseZip(file) {
     if (!window.JSZip) {
       const s = document.createElement("script");
-      s.src = "https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js";
+      s.src = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
+      s.integrity = "sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG";
+      s.crossOrigin = "anonymous";
       document.head.appendChild(s);
       await new Promise((resolve, reject) => {
         s.onload = resolve;

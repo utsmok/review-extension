@@ -7,9 +7,9 @@ import { useToastStore } from "@/stores/toast";
 
 describe("useCaptureAction", () => {
   beforeEach(() => {
-    useToastStore.getState().toasts.forEach((t) => {
+    for (const t of [...useToastStore.getState().toasts]) {
       useToastStore.getState().removeToast(t.id);
-    });
+    }
   });
 
   afterEach(() => {
