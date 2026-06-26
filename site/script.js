@@ -193,7 +193,9 @@
   }
 
   async function handleFiles(files) {
+    showFileError("");
     let errors = 0;
+    let lastError = null;
     for (const file of files) {
       try {
         const data = await parseZip(file);
@@ -201,51 +203,51 @@
         else errors++;
       } catch (e) {
         console.warn("Failed to parse", file.name, e);
+        lastError = e;
         errors++;
       }
     }
     if (errors > 0) {
       const total = files.length;
       showFileError(
-        total === 1
-          ? "Could not read that file — it may not be a valid TRUST review archive."
-          : `${errors} of ${total} file${errors > 1 ? "s" : ""} could not be read.`,
+        total === 1 && lastError?.message
+          ? lastError.message
+          : total === 1
+            ? "Could not read that file — it may not be a valid TRUST review archive."
+            : `${errors} of ${total} file${total === 1 ? "" : "s"} could not be read.`,
       );
     }
     renderCompare();
   }
 
   async function parseZip(file) {
-    try {
-      if (!window.JSZip) {
-        const s = document.createElement("script");
-        s.src = "https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js";
-        document.head.appendChild(s);
-        await new Promise((resolve, reject) => {
-          s.onload = resolve;
-          s.onerror = () =>
-            reject(new Error("Failed to load JSZip from CDN. Check your internet connection."));
-        });
-      }
-      const zip = await JSZip.loadAsync(file);
-      const sessionFile = zip.file("session.json");
-      if (!sessionFile) return null;
-      const session = JSON.parse(await sessionFile.async("string"));
-      return {
-        fileName: file.name,
-        toolName: session.metadata?.toolName || "Unknown",
-        toolUrl: session.metadata?.toolUrl || "",
-        verdict: session.finalization?.grade || "",
-        conclusion: session.finalization?.conclusion || "",
-        strengths: session.finalization?.strengths || [],
-        weaknesses: session.finalization?.weaknesses || [],
-        principles: extractPrincipleScores(session.evaluations || []),
-        totalScore: computeTotal(session.evaluations || []),
-      };
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "An unexpected error occurred.");
-      return null;
+    if (!window.JSZip) {
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
+      s.integrity = "sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG";
+      s.crossOrigin = "anonymous";
+      document.head.appendChild(s);
+      await new Promise((resolve, reject) => {
+        s.onload = resolve;
+        s.onerror = () =>
+          reject(new Error("Failed to load JSZip from CDN. Check your internet connection."));
+      });
     }
+    const zip = await JSZip.loadAsync(file);
+    const sessionFile = zip.file("session.json");
+    if (!sessionFile) return null;
+    const session = JSON.parse(await sessionFile.async("string"));
+    return {
+      fileName: file.name,
+      toolName: session.metadata?.toolName || "Unknown",
+      toolUrl: session.metadata?.toolUrl || "",
+      verdict: session.finalization?.grade || "",
+      conclusion: session.finalization?.conclusion || "",
+      strengths: session.finalization?.strengths || [],
+      weaknesses: session.finalization?.weaknesses || [],
+      principles: extractPrincipleScores(session.evaluations || []),
+      totalScore: computeTotal(session.evaluations || []),
+    };
   }
 
   function extractPrincipleScores(evaluations) {

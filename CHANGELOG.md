@@ -2,6 +2,37 @@
 
 
 
+## v0.9.4 — 2026-06-24
+
+### Added
+
+- **Business card redesigned.** Verdict seal as visual anchor with tool lockup; "what?" and "review conclusion" pill-labeled text rectangles; compact layout fitting 84×52.5 mm with QR code and footer.
+- **Card back redesigned.** Quality gates packed in a vertical column beside the principle table; strengths/weaknesses consolidated into solid rectangles with bullet-separated inline text and word-boundary truncation.
+- **Summary (nutrition label) layout.** Quality gates on a single full-width row, centered above the table; principle score table narrowed to 500 px.
+- **Report detail improvements.** Per-question evidence-count badge; Details popover reordered evidence-first.
+- **A3 print export.** Two separate single-page HTML documents (front + back), 3×7 = 21 cards each, generated from registry data.
+
+## v0.9.5 — 2026-06-24
+
+### Fixed
+
+- **Verdict seal.** Removed inner outline border (single border only); fixed 50 mm width for constant dimensions across verdicts; centered tool name and URL in stamp.
+- **Card front layout.** Side-by-side what/conclusion blocks (was stacked top/bottom); inline pill labels (was centered above text).
+- **Findings overflow.** Replaced ellipsis with "+N more in full report" overflow indicator; `joinFindings` tracks how many items fit vs total.
+
+### Added
+
+- **Card preview pages.** `example-card.html` renders a card from real `.example_data` export; `registry-cards.html` renders cards from registry data.
+
+## v0.9.6 — 2026-06-24
+
+### Changed
+
+- **Card front.** Single-row footer (QR · trust.samuelmok.cc · Reviewed by UTwente · URL), centered and dot-separated in mono font; enlarged what/conclusion boxes; pill labels inline with text, vertically top-aligned; tightened line-height (1.1), reduced padding (1.2 mm).
+- **Card back.** Fixed stray comma separators between principle rows (missing `.join()`); increased findings character limit from 350 to 500.
+- **Firefox support.** Extension now available on Firefox Add-ons; README and site updated with Firefox install instructions and AMO link; E2E Firefox smoke test added.
+- **Dev tooling.** `report-dev/gen-card-static.mjs` generates a static card preview from real example data via Vite SSR; `report-dev/example-card.html` regenerated.
+
 ## v0.9.3 — 2026-06-19
 
 ### Fixed

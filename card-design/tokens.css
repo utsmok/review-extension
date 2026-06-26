@@ -1,5 +1,5 @@
-/* TRUST design tokens — copied verbatim from lib/report.css :root + DESIGN.md.
-   Single source of truth for every card proposal so they stay on-brand. */
+/* Card-design design tokens — colour values mirror lib/report.css :root;
+   fonts are intentionally lighter. Keep colours in sync when the brand shifts. */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Nunito+Sans:wght@800;900&display=swap');
 
 :root {

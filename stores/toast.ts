@@ -31,11 +31,6 @@ function clearTimer(id: number) {
   }
 }
 
-function clearAllTimers() {
-  for (const timer of pendingTimers.values()) clearTimeout(timer);
-  pendingTimers.clear();
-}
-
 export const useToastStore = create<ToastStore>((set) => ({
   toasts: [],
   addToast: (type, message, action) => {
@@ -52,11 +47,6 @@ export const useToastStore = create<ToastStore>((set) => ({
     set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
   },
 }));
-
-/** Clear all pending auto-dismiss timers. Call in test afterEach. */
-export function clearAllToastTimers() {
-  clearAllTimers();
-}
 
 export function toastError(message: string, action?: { label: string; onClick: () => void }) {
   useToastStore.getState().addToast("error", message, action);

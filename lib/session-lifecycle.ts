@@ -77,6 +77,7 @@ let lastSaveTime = 0;
 let rateLimitTimer: ReturnType<typeof setTimeout> | undefined;
 let persistedForSessionId: string | null = null;
 let persistedScreenshotIds = new Set<string>();
+let screenshotFailureToastShown = false;
 async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = false): Promise<void> {
   // Rate limit: 3-second hard minimum between saves (debounced calls only)
   if (!bypassRateLimit) {
@@ -108,6 +109,7 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
   if (activeId !== persistedForSessionId) {
     persistedForSessionId = activeId;
     persistedScreenshotIds = new Set();
+    screenshotFailureToastShown = false;
   }
   // Guard: skip if session switched between schedule and flush to prevent
   // a stale debounced save from overwriting the new session's data.
@@ -117,12 +119,25 @@ async function autoSaveFlush(scheduledId?: string | null, bypassRateLimit = fals
   }
   if (s && activeId) {
     // Persist screenshots to separate IDB store, then strip from session data
+    let screenshotFailures = false;
     for (const cap of c) {
       if (cap.screenshotBase64 && !persistedScreenshotIds.has(cap.id)) {
         if (await saveScreenshot(cap)) {
           persistedScreenshotIds.add(cap.id);
+        } else {
+          screenshotFailures = true;
         }
       }
+    }
+    if (screenshotFailures) {
+      if (!screenshotFailureToastShown) {
+        toastWarning(
+          "Some screenshots could not be saved to storage. They are kept for this session but may not persist.",
+        );
+        screenshotFailureToastShown = true;
+      }
+    } else {
+      screenshotFailureToastShown = false;
     }
     const strippedCaptures = stripScreenshots(c);
     const ok = await getRepository().save(activeId, {
@@ -208,6 +223,7 @@ export function teardownAutoSave(): void {
   lastSaveTime = 0;
   persistedForSessionId = null;
   persistedScreenshotIds = new Set();
+  screenshotFailureToastShown = false;
 }
 
 /** Save all captures' screenshots to the separate screenshot IDB store. */

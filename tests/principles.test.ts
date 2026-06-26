@@ -44,7 +44,7 @@ describe("PRINCIPLES", () => {
     expect(names).toEqual([
       "Transparency",
       "Reliability",
-      "Usability",
+      "User-centric",
       "Soundness",
       "Traceability",
     ]);
