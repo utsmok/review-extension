@@ -1,580 +1,392 @@
-# Framework Modularity Implementation Plan
+# Framework Modularity — Plan A: Schema-Driven Form Layer
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. This plan supersedes the earlier "option-lists only" draft.
 
-**Goal:** Make the TRUST-specific content (principles, grades, metadata option-lists, quality-gate category codes) data-driven and in-extension editable, so the framework can be customized and shared without touching code — while keeping the TRUST review product intact.
+**Goal:** Make every user-entry field in the extension (all ~25: metadata, finalization free-text, settings) data-driven via a declarative `FieldDescriptor` schema, and provide a full in-extension editor to toggle / modify / create / reorder fields, edit option-lists in place, and consolidate the triplicated grade definitions — all persisted locally and importable/exportable as JSON.
 
-**Architecture:** Introduce a single `framework.json` config that is the source of truth for everything currently hardcoded in `lib/principles.ts`, `lib/metadata-options.ts`, `lib/rubric.ts` maps, and the grade definitions. An accessor layer derives the existing constants from it (keeping the public API stable, so the ~6 import sites need no logic changes). A persisted customization store holds user overrides; an in-extension editor (linked from Settings) edits option-lists and grade labels/descriptions and imports/exports the customization as JSON.
+**Architecture:** A `fields` section is added to `data/framework/trust-framework.json` describing every entry field. A `FieldDescriptor`-driven renderer (`SchemaForm`) iterates the active schema (defaults merged with persisted user customizations) and dispatches to typed input components. The customization store generalizes the additive+hide+rename model to whole-field overrides (label, required, enabled, order, group) plus field additions/removals plus option-list edits plus grade text. Grade definitions — currently triplicated across `GradeSelector.tsx`, `compute-scores.ts`, and `types.ts` — consolidate into the config. Custom user-created fields persist into a `customFields` bag on `SessionMetadata`.
 
-**Tech Stack:** TypeScript, React 19, Zustand (+ `persist` middleware → localStorage, mirroring `stores/registry.ts`), WXT, Vitest + @testing-library/react.
+**Tech Stack:** TypeScript, React 19, Zustand (+ `persist` → localStorage, mirroring `stores/registry.ts`), WXT, Vitest + @testing-library/react.
 
-## Scope boundaries (read before starting)
+## Scope
 
-**In scope (this plan):**
-- Data-ify: principles, QG category codes/labels, accent keys, category labels, **grade labels + descriptions**, metadata option-lists (data sources, search methods, disciplines, auth methods) + discipline default.
-- Runtime override of option-lists (add/remove/reset per field) and grade label/description text, persisted + importable/exportable.
-- Editor UI for the above, linked from Settings.
+**In scope:**
+- A declarative schema for ALL ~25 entry fields (type, label, placeholder, options, required, group, order, enabled, captureable, autoPopulate key).
+- Schema-driven rendering of the Metadata form and the finalization free-text fields (conclusion, strengths, weaknesses, recommendations).
+- Full editor: toggle fields on/off, edit label/placeholder/help, create new fields, remove fields, reorder, edit option-lists in place (add/rename/remove with rename-migration of stored reviews), edit grade label/description/color/tint.
+- Consolidate the 3 grade-definition sites into one config source (unify `GRADE_LABELS`; keep `FinalizationGrade` id union stable).
+- Fix the registry/options mismatch (registry defaults aligned to field option-lists).
+- Import/export the customization as JSON.
 
-**Explicitly OUT of scope (deferred to Plan B — `docs/plans/*-framework-modularity-stage2.md`, to be written):**
-- Adding/renaming/removing **grade IDs** (changes the `FinalizationGrade` union type — Plan A edits only label/description text, the IDs stay the shipped set).
-- Editing **rubric questions** (titles, requirements, examples, scoring anchors) and question authoring UX.
-- Rubric/pack **versioning & migration** (the `lib/migrations.ts` hook exists; wiring it to pack versions is Plan B — Plan A does not change the rubric, so no version issue arises).
-- Branding/theming extraction (logos, `--trust-magenta`, TRUST literals in `report.css`/`sanitize.ts`/print headers).
-- Repo split.
+**Out of scope (Plan B — `docs/plans/2026-06-27-framework-modularity-stage2.md`):**
+- Adding/removing **grade IDs** (changes the `FinalizationGrade` union).
+- **Rubric question** authoring (quality-gate + scoring titles/requirements/backgrounds/examples/anchors/ai_only).
+- **Principle** name/code/color editing + token/report color-map propagation.
+- **Branding** extraction (logos, `--trust-magenta`, "TRUST" literals in report/print/sanitize, export filenames).
+- **Pack/rubric versioning & migration** of question-key renames.
 
-**Why:** the issue itself says "start with the smaller version; expand later." This plan delivers the visible "edit the TRUST questionnaire option-lists and grade wording" capability + community import/export, which is the high-leverage slice, without the type-extensibility and versioning rabbit holes.
+**Why this scope:** the issue's own framing splits "fields" (now) from "questions" (next). Fields are the high-impact, low-risk, demoable surface; the schema descriptor, schema-driven renderer, editor framework, customization store, rename-migration helper, and import/export plumbing built here are exactly what Plan B reuses for rubric/grades/principles. Sequencing fields first de-risks the harder instrument work.
 
 ## File Structure
 
 **Create:**
-- `data/framework/trust-framework.json` — the single source-of-truth config (principles, QG codes, accent keys, labels, grades, metadata schema).
-- `data/framework/index.ts` — loader, `validateFrameworkShape`, `deepFreeze`, const contracts for TS types. Mirrors `data/rubrics/index.ts`.
-- `lib/framework-config.ts` — accessors: `getFrameworkConfig()` (default), `getActiveFrameworkConfig()` (merged with customization), typed getters (`getPrinciples`, `getGradeDefinitions`, `getMetadataField`, `getQGCategoryCode`, `getAccentKey`, `getCategoryLabel`).
-- `stores/framework-customization.ts` — Zustand+persist store for user overrides (option-list deltas + grade label/desc overrides).
-- `hooks/useFrameworkConfig.ts` — React hooks (`usePrinciples`, `useGradeDefinitions`, `useMetadataFieldOptions`) that subscribe to the customization store.
-- `components/FrameworkEditor.tsx` — the editor screen.
-- Tests: `tests/framework-config.test.ts`, `tests/framework-customization.test.ts`, `tests/use-framework-config.test.ts`, `tests/framework-editor.test.tsx`, `tests/metadata-options-sourced.test.ts`.
+- `lib/field-schema.ts` — `FieldDescriptor` type, `getFieldValue`/`setFieldValue` helpers, field-config accessors (`getFields`, `getActiveFields`, `getField`).
+- `components/SchemaForm.tsx` — iterates active descriptors; dispatches to input components by `type`.
+- `components/field-inputs/` — typed input components (`TextInput.tsx`, `TextAreaInput.tsx`, `UrlInput.tsx`, `BooleanToggle.tsx`, `SelectInput.tsx`, `ImageInput.tsx`). Most wrap existing atoms; `SelectInput` wraps `PillField`.
+- `components/FieldEditor.tsx` — full field + option + grade editor (replaces the narrower `FrameworkEditor` from the prior draft).
+- `lib/framework-migrate.ts` — `migrateOptionRename` (stored-session rewrite on option rename).
+- Tests: `tests/field-schema.test.ts`, `tests/schema-form.test.tsx`, `tests/framework-customization.test.ts`, `tests/field-editor.test.tsx`, `tests/grade-config-consolidation.test.ts`.
 
-**Modify (derivation — public exports stay stable):**
-- `lib/principles.ts` — `PRINCIPLES` sourced from config.
-- `lib/metadata-options.ts` — the 4 option arrays + `DISCIPLINE_DEFAULT` + `DISCIPLINE_OTHERS` sourced from config.
-- `lib/rubric.ts` — `QG_CATEGORY_CODES`, `ACCENT_KEYS`, `CATEGORY_LABELS` sourced from config.
-- `lib/types.ts` — add framework-config types; `FinalizationGrade` unchanged (IDs stable).
-- `components/metadata/DisciplineField.tsx` — read options via `useMetadataFieldOptions("discipline")` instead of static imports.
-- `components/Metadata.tsx` — `PillField` `options` via `useMetadataFieldOptions(...)`.
-- `components/SettingsScreen.tsx` — add entry point to `FrameworkEditor`.
+**Modify:**
+- `data/framework/trust-framework.json` — add `fields: FieldDescriptor[]` (all ~25) and `grades` (consolidated, with color/tint).
+- `data/framework/index.ts` — extend `validateFrameworkShape` for `fields` + `grades` shape; export `FIELD_IDS`.
+- `lib/types.ts` — add `FieldDescriptor`, `FrameworkGrade` (add `color`/`tint`), `customFields?` bag on `SessionMetadata`; `FinalizationGrade` unchanged.
+- `stores/framework-customization.ts` — generalize to field overrides + additions + removals + order + option overrides + grade overrides.
+- `lib/framework-config.ts` — `getActiveFrameworkConfig` merges field/grade customizations.
+- `components/Metadata.tsx` — render the metadata surface from `SchemaForm` (replace the hand-written field JSX).
+- `components/finalization/GradeSelector.tsx` — derive grades from config (replace `GRADES`/`ENHANCED_GRADES` literals).
+- `lib/report/compute-scores.ts` — derive `GRADE_COLORS`/`GRADE_LABELS` from config.
+- `data/tools/registry.json` — align default values to the field option-lists.
+- `components/SettingsScreen.tsx` — entry point to `FieldEditor`.
 
-**No change** to scoring, export pipeline, html-report, comparison — they consume the same stable exports (`PRINCIPLES`, etc.), now backed by config.
+**No change** to scoring math, export ZIP assembly, html-report structure (field-iterative sections auto-adapt once data flows from the schema).
 
 ---
 
-## Task 1: Framework config data model + JSON + loader
+## Task 1: FieldDescriptor model + field/grade config + loader
 
 **Files:**
-- Create: `data/framework/trust-framework.json`
-- Create: `data/framework/index.ts`
-- Modify: `lib/types.ts` (append framework-config types)
-- Test: `tests/framework-config.test.ts`
+- Modify: `lib/types.ts` (add `FieldDescriptor`, extend `FrameworkGrade`, add `customFields`)
+- Modify: `data/framework/trust-framework.json` (add `fields`, `grades`)
+- Modify: `data/framework/index.ts` (validate + export)
+- Test: `tests/field-schema.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `tests/framework-config.test.ts`:
+Create `tests/field-schema.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
-import {
-  FRAMEWORK_CONFIG,
-  GRADE_IDS,
-  validateFrameworkShape,
-} from "@/data/framework";
+import { FRAMEWORK_CONFIG, FIELD_IDS, validateFrameworkShape } from "@/data/framework";
 
-describe("framework config", () => {
-  it("exposes a frozen config with the TRUST id and version", () => {
-    expect(FRAMEWORK_CONFIG.id).toBe("trust");
-    expect(FRAMEWORK_CONFIG.version).toBe("1.1");
+describe("field schema config", () => {
+  it("is frozen and valid", () => {
     expect(Object.isFrozen(FRAMEWORK_CONFIG)).toBe(true);
-  });
-
-  it("declares the 5 principle IDs in order", () => {
-    expect(FRAMEWORK_CONFIG.principles.map((p) => p.id)).toEqual([
-      "TR",
-      "RE",
-      "US",
-      "SE",
-      "TC",
-    ]);
-  });
-
-  it("GRADE_IDS lists the 9 canonical grade identifiers", () => {
-    expect(GRADE_IDS).toEqual([
-      "pass",
-      "conditional",
-      "fail",
-      "recommended",
-      "recommended_with_caveats",
-      "needs_review",
-      "pilot_only",
-      "not_recommended",
-      "out_of_scope",
-    ]);
-  });
-
-  it("every grade definition maps to a GRADE_IDS entry", () => {
-    const ids = new Set(FRAMEWORK_CONFIG.grades.map((g) => g.id));
-    for (const id of GRADE_IDS) expect(ids.has(id)).toBe(true);
-  });
-
-  it("validateFrameworkShape passes for the shipped config", () => {
     expect(() => validateFrameworkShape(FRAMEWORK_CONFIG)).not.toThrow();
   });
 
-  it("validateFrameworkShape throws for a malformed config", () => {
-    expect(() => validateFrameworkShape({ principles: [] })).toThrow();
+  it("declares every builtin metadata field with a stable id and storageKey", () => {
+    const ids = new Set(FRAMEWORK_CONFIG.fields.map((f) => f.id));
+    for (const required of ["toolName", "toolUrl", "description", "dataSources", "grade", "conclusion"])
+      expect(ids.has(required)).toBe(true);
+  });
+
+  it("dataSources is a multi-select with options and allowCustom", () => {
+    const f = FRAMEWORK_CONFIG.fields.find((x) => x.id === "dataSources")!;
+    expect(f.type).toBe("multi-select");
+    expect(f.options?.length).toBeGreaterThan(10);
+    expect(f.allowCustom).toBe(true);
+  });
+
+  it("discipline has a defaultOption", () => {
+    const f = FRAMEWORK_CONFIG.fields.find((x) => x.id === "discipline")!;
+    expect(f.defaultOption).toBe("Multidisciplinary");
+  });
+
+  it("FIELD_IDS is a stable ordered list of ids", () => {
+    expect(Array.isArray(FIELD_IDS)).toBe(true);
+    expect(new Set(FIELD_IDS).size).toBe(FIELD_IDS.length);
+  });
+
+  it("grades consolidated: 9 ids, each with label/description/color/tint", () => {
+    expect(FRAMEWORK_CONFIG.grades).toHaveLength(9);
+    for (const g of FRAMEWORK_CONFIG.grades) {
+      expect(typeof g.label).toBe("string");
+      expect(typeof g.color).toBe("string");
+    }
   });
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [ ] **Step 2: Run to verify it fails**
 
-Run: `pnpm test tests/framework-config.test.ts`
-Expected: FAIL — `@/data/framework` does not exist.
+Run: `pnpm test tests/field-schema.test.ts`
+Expected: FAIL — `fields`/consolidated `grades` not present.
 
-- [ ] **Step 3: Create the framework config JSON**
+- [ ] **Step 3: Add types**
 
-Create `data/framework/trust-framework.json`. The option-list contents are copied verbatim from `lib/metadata-options.ts` (the four `as const` arrays). Grade labels/descriptions are copied verbatim from the existing UI in `components/finalization/GradeSelector.tsx` (read that file first and transcribe its label + subtitle/description strings into the matching `id`).
-
-```json
-{
-  "id": "trust",
-  "name": "TRUST Framework",
-  "version": "1.1",
-  "principles": [
-    { "id": "TR", "code": "TR", "color": "#2563eb", "reportColor": "#2563eb", "fullName": "Transparency" },
-    { "id": "RE", "code": "RE", "color": "#16a34a", "reportColor": "#127035", "fullName": "Reliability" },
-    { "id": "US", "code": "US", "color": "#9333ea", "reportColor": "#9333ea", "fullName": "User-centric" },
-    { "id": "SE", "code": "SE", "color": "#ea580c", "reportColor": "#c2410c", "fullName": "Soundness" },
-    { "id": "TC", "code": "TC", "color": "#0d9488", "reportColor": "#0f766e", "fullName": "Traceability" }
-  ],
-  "qualityGateCategories": [
-    { "key": "privacy_and_security", "code": "PS", "label": "Privacy & Security" },
-    { "key": "intellectual_property", "code": "IP", "label": "Intellectual Property" },
-    { "key": "accessibility", "code": "AC", "label": "Accessibility" }
-  ],
-  "accentKeys": { "TR": "tr", "RE": "re", "US": "uc", "SE": "se", "TC": "tc" },
-  "categoryLabels": {
-    "privacy_and_security": "Privacy & Security",
-    "intellectual_property": "Intellectual Property",
-    "accessibility": "Accessibility",
-    "TR": "TR — Transparent",
-    "RE": "RE — Reliable",
-    "US": "US — User-Centric",
-    "SE": "SE — Sound",
-    "TC": "TC — Traceable"
-  },
-  "grades": [
-    { "id": "pass", "label": "Pass", "description": "<copy from GradeSelector.tsx>" },
-    { "id": "conditional", "label": "Conditional", "description": "<copy from GradeSelector.tsx>" },
-    { "id": "fail", "label": "Fail", "description": "<copy from GradeSelector.tsx>" },
-    { "id": "recommended", "label": "Recommended", "description": "<copy from GradeSelector.tsx>" },
-    { "id": "recommended_with_caveats", "label": "Recommended with caveats", "description": "<copy from GradeSelector.tsx>" },
-    { "id": "needs_review", "label": "Needs review", "description": "<copy from GradeSelector.tsx>" },
-    { "id": "pilot_only", "label": "Pilot only", "description": "<copy from GradeSelector.tsx>" },
-    { "id": "not_recommended", "label": "Not recommended", "description": "<copy from GradeSelector.tsx>" },
-    { "id": "out_of_scope", "label": "Out of scope", "description": "<copy from GradeSelector.tsx>" }
-  ],
-  "metadataFields": {
-    "dataSources": { "label": "Data sources", "options": ["CrossRef", "OpenAlex", "OpenCitations", "DataCite", "Scopus", "Web of Science", "PubMed", "Semantic Scholar", "Google Scholar", "IEEE Xplore", "JSTOR", "arXiv", "bioRxiv", "MedRxiv", "ERIC", "PsycINFO", "ProQuest", "Dimensions", "BASE", "CORE", "Cochrane Library", "ACM Digital Library"] },
-    "searchMethods": { "label": "Search methods", "options": ["Keywords", "Semantic search", "Boolean queries", "Natural language", "Citation chaining", "Faceted filtering", "Vector search", "Hybrid search", "Controlled vocabulary / MeSH"] },
-    "discipline": { "label": "Discipline", "default": "Multidisciplinary", "options": ["Agricultural and Biological Sciences", "History and Archaeology", "Languages and Literature", "Philosophy and Ethics", "Performing Arts", "Visual Arts and Design", "Religious Studies", "Biochemistry, Genetics and Molecular Biology", "Business, Management and Accounting", "Chemical Engineering", "Chemistry", "Computer Science", "Decision Sciences", "Dentistry", "Earth and Planetary Sciences", "Economics, Econometrics and Finance", "Energy", "Engineering", "Environmental Science", "Health Professions", "Immunology and Microbiology", "Materials Science", "Mathematics", "Medicine", "Neuroscience", "Nursing", "Pharmacology, Toxicology and Pharmaceutics", "Physics and Astronomy", "Psychology", "Education and Educational Research", "Law, Policy, and Criminology", "Political Science and International Relations", "Sociology, Anthropology, and Social Work", "Veterinary", "Multidisciplinary", "Information Science and Library Science", "Communication and Media Studies", "Geography"] },
-    "authenticationMethod": { "label": "Authentication method", "options": ["SSO/SAML", "IP Authentication", "OpenAthens", "Proxy (EZproxy)", "LibKey", "Email-only", "API Key", "None required", "Personal account"] }
-  }
-}
-```
-
-> The `<copy from GradeSelector.tsx>` markers are an instruction to transcribe the real strings from that file, NOT shipped placeholders. Before committing, `grep -n 'description' data/framework/trust-framework.json` must return zero `<` characters inside string values.
-
-- [ ] **Step 4: Add the framework-config types**
-
-Append to `lib/types.ts`:
+In `lib/types.ts`, add:
 
 ```ts
-// ── Framework config (data-driven content) ─────────────────────────────
+/** Input type for a schema-driven entry field. */
+export type FieldType =
+  | "text"
+  | "textarea"
+  | "url"
+  | "email"
+  | "boolean"
+  | "select" // single-select pill field
+  | "multi-select" // multi-select pill field
+  | "image";
 
-/** A TRUST principle with display metadata. Order matters (tab/column order). */
-export interface FrameworkPrinciple {
+/** Which object a field's value is stored on. */
+export type FieldSurface = "metadata" | "finalization" | "settings";
+
+/** Declarative description of one user-entry field. Drives SchemaForm + the editor. */
+export interface FieldDescriptor {
+  /** Stable identifier; also the customization key. Builtin ids match the storage key. */
   id: string;
-  code: string;
-  color: HexColor;
-  reportColor: HexColor;
-  fullName: string;
-}
-
-/** Quality-gate category → short code + human label. */
-export interface FrameworkQGCategory {
-  key: string;
-  code: string;
+  /** Key on the storage object (SessionMetadata / ReviewFinalization / Settings). */
+  storageKey: string;
+  surface: FieldSurface;
   label: string;
+  placeholder?: string;
+  helpText?: string;
+  type: FieldType;
+  /** Options for select/multi-select. */
+  options?: string[];
+  /** Default option for select (e.g. discipline default). */
+  defaultOption?: string;
+  maxLength?: number;
+  required?: boolean;
+  /** Allow free-text custom entries in select/multi-select (default true). */
+  allowCustom?: boolean;
+  /** Form grouping label (e.g. "Profile", "Access", "Coverage"). */
+  group?: string;
+  /** Display order within the group. */
+  order: number;
+  /** Toggle the field on/off in the form. */
+  enabled: boolean;
+  /** Supports screenshot evidence linking (toolLogoUrl, termsConditionsUrl). */
+  captureable?: boolean;
+  /** data/tools/registry.json `defaults` key for auto-population. */
+  autoPopulateKey?: string;
 }
 
-/** A finalization grade definition (id is stable; label/description are editable). */
+/** A finalization grade definition (Plan A: label/description/color/tint editable; id stable). */
 export interface FrameworkGrade {
   id: string;
   label: string;
   description: string;
-}
-
-/** A metadata field's option-list schema. */
-export interface FrameworkMetadataField {
-  label: string;
-  options: string[];
-  default?: string;
-}
-
-/** The full framework config loaded from data/framework/*.json. */
-export interface FrameworkConfig {
-  id: string;
-  name: string;
-  version: string;
-  principles: FrameworkPrinciple[];
-  qualityGateCategories: FrameworkQGCategory[];
-  accentKeys: Record<string, string>;
-  categoryLabels: Record<string, string>;
-  grades: FrameworkGrade[];
-  metadataFields: Record<string, FrameworkMetadataField>;
+  color: string;
+  tint: string;
 }
 ```
 
-- [ ] **Step 5: Create the loader**
-
-Create `data/framework/index.ts`:
+Extend `SessionMetadata` (in `lib/types.ts`) with a custom-fields bag:
 
 ```ts
-import type { FrameworkConfig } from "@/lib/types";
-import trustFramework from "./trust-framework.json";
+  /** User-created (schema-customized) field values keyed by FieldDescriptor.storageKey. */
+  customFields?: Record<string, unknown>;
+```
 
-/** Recursively freeze an object and all nested values. */
-function deepFreeze<T>(obj: T): T {
-  if (obj && typeof obj === "object") {
-    Object.freeze(obj);
-    for (const val of Object.values(obj as object)) deepFreeze(val);
-  }
-  return obj;
+- [ ] **Step 4: Write the config**
+
+In `data/framework/trust-framework.json`, add a `fields` array and replace `grades` with the consolidated set (transcribe label/description/color/tint verbatim from `components/finalization/GradeSelector.tsx` `GRADES` and `ENHANCED_GRADES`; ids come from the `FinalizationGrade` union in `lib/types.ts`). The field list — derived from the survey of `Metadata.tsx`, `FinalizationScreen.tsx`, `SettingsScreen.tsx`:
+
+```jsonc
+{
+  // ...existing id/name/version/principles/qualityGateCategories/accentKeys/categoryLabels/metadataFields...
+  "fields": [
+    { "id": "toolName", "storageKey": "toolName", "surface": "metadata", "label": "Tool name", "type": "text", "required": true, "group": "Identity", "order": 1, "enabled": true },
+    { "id": "toolUrl", "storageKey": "toolUrl", "surface": "metadata", "label": "Tool URL", "type": "url", "required": true, "group": "Identity", "order": 2, "enabled": true },
+    { "id": "toolLogoUrl", "storageKey": "toolLogoUrl", "surface": "metadata", "label": "Tool logo", "type": "image", "captureable": true, "group": "Identity", "order": 3, "enabled": true },
+    { "id": "faviconUrl", "storageKey": "faviconUrl", "surface": "metadata", "label": "Favicon", "type": "image", "group": "Identity", "order": 4, "enabled": false },
+    { "id": "usesAi", "storageKey": "usesAi", "surface": "metadata", "label": "Uses AI", "type": "boolean", "autoPopulateKey": "usesAi", "group": "Identity", "order": 5, "enabled": true },
+    { "id": "company", "storageKey": "company", "surface": "metadata", "label": "Company / vendor", "type": "text", "autoPopulateKey": "company", "group": "Identity", "order": 6, "enabled": true },
+    { "id": "description", "storageKey": "description", "surface": "metadata", "label": "Description", "type": "textarea", "maxLength": 500, "group": "Identity", "order": 7, "enabled": true },
+    { "id": "pricing", "storageKey": "pricing", "surface": "metadata", "label": "Pricing", "type": "text", "autoPopulateKey": "pricing", "group": "Access", "order": 1, "enabled": true },
+    { "id": "availability", "storageKey": "availability", "surface": "metadata", "label": "Availability", "type": "text", "autoPopulateKey": "availability", "group": "Access", "order": 2, "enabled": true },
+    { "id": "authenticationMethod", "storageKey": "authenticationMethod", "surface": "metadata", "label": "Authentication method", "type": "select", "allowCustom": false, "autoPopulateKey": "authenticationMethod", "options": ["SSO/SAML", "IP Authentication", "OpenAthens", "Proxy (EZproxy)", "LibKey", "Email-only", "API Key", "None required", "Personal account"], "group": "Access", "order": 3, "enabled": true },
+    { "id": "termsConditionsUrl", "storageKey": "termsConditionsUrl", "surface": "metadata", "label": "Terms & Conditions URL", "type": "url", "captureable": true, "group": "Access", "order": 4, "enabled": true },
+    { "id": "dataSources", "storageKey": "dataSources", "surface": "metadata", "label": "Data sources", "type": "multi-select", "allowCustom": true, "autoPopulateKey": "dataSources", "options": ["CrossRef", "OpenAlex", "OpenCitations", "DataCite", "Scopus", "Web of Science", "PubMed", "Semantic Scholar", "Google Scholar", "IEEE Xplore", "JSTOR", "arXiv", "bioRxiv", "MedRxiv", "ERIC", "PsycINFO", "ProQuest", "Dimensions", "BASE", "CORE", "Cochrane Library", "ACM Digital Library"], "group": "Coverage", "order": 1, "enabled": true },
+    { "id": "searchMethods", "storageKey": "searchMethods", "surface": "metadata", "label": "Search methods", "type": "multi-select", "allowCustom": true, "autoPopulateKey": "searchMethods", "options": ["Keywords", "Semantic search", "Boolean queries", "Natural language", "Citation chaining", "Faceted filtering", "Vector search", "Hybrid search", "Controlled vocabulary / MeSH"], "group": "Coverage", "order": 2, "enabled": true },
+    { "id": "discipline", "storageKey": "discipline", "surface": "metadata", "label": "Discipline", "type": "multi-select", "allowCustom": true, "defaultOption": "Multidisciplinary", "autoPopulateKey": "discipline", "options": ["Agricultural and Biological Sciences", "History and Archaeology", "Languages and Literature", "Philosophy and Ethics", "Performing Arts", "Visual Arts and Design", "Religious Studies", "Biochemistry, Genetics and Molecular Biology", "Business, Management and Accounting", "Chemical Engineering", "Chemistry", "Computer Science", "Decision Sciences", "Dentistry", "Earth and Planetary Sciences", "Economics, Econometrics and Finance", "Energy", "Engineering", "Environmental Science", "Health Professions", "Immunology and Microbiology", "Materials Science", "Mathematics", "Medicine", "Neuroscience", "Nursing", "Pharmacology, Toxicology and Pharmaceutics", "Physics and Astronomy", "Psychology", "Education and Educational Research", "Law, Policy, and Criminology", "Political Science and International Relations", "Sociology, Anthropology, and Social Work", "Veterinary", "Multidisciplinary", "Information Science and Library Science", "Communication and Media Studies", "Geography"], "group": "Coverage", "order": 3, "enabled": true },
+    { "id": "notes", "storageKey": "notes", "surface": "metadata", "label": "Notes", "type": "textarea", "group": "Coverage", "order": 4, "enabled": true },
+    { "id": "grade", "storageKey": "grade", "surface": "finalization", "label": "Final grade", "type": "select", "allowCustom": false, "group": "Verdict", "order": 1, "enabled": true },
+    { "id": "conclusion", "storageKey": "conclusion", "surface": "finalization", "label": "Conclusion", "type": "textarea", "group": "Verdict", "order": 2, "enabled": true },
+    { "id": "strengths", "storageKey": "strengths", "surface": "finalization", "label": "Strengths", "type": "multi-select", "allowCustom": true, "group": "Verdict", "order": 3, "enabled": true },
+    { "id": "weaknesses", "storageKey": "weaknesses", "surface": "finalization", "label": "Weaknesses", "type": "multi-select", "allowCustom": true, "group": "Verdict", "order": 4, "enabled": true },
+    { "id": "recommendations", "storageKey": "recommendations", "surface": "finalization", "label": "Recommendations", "type": "textarea", "group": "Verdict", "order": 5, "enabled": true },
+    { "id": "reviewerName", "storageKey": "name", "surface": "settings", "label": "Reviewer name", "type": "text", "group": "Reviewer", "order": 1, "enabled": true },
+    { "id": "reviewerEmail", "storageKey": "email", "surface": "settings", "label": "Reviewer email", "type": "email", "group": "Reviewer", "order": 2, "enabled": true },
+    { "id": "enhancedRecommendation", "storageKey": "labs.enhancedRecommendation", "surface": "settings", "label": "Enhanced recommendation grades", "type": "boolean", "group": "Labs", "order": 1, "enabled": true }
+  ],
+  "grades": [
+    { "id": "pass", "label": "Pass", "description": "<from GradeSelector>", "color": "<from GradeSelector>", "tint": "<from GradeSelector>" },
+    { "id": "conditional", "label": "Conditional", "description": "<from GradeSelector>", "color": "<from GradeSelector>", "tint": "<from GradeSelector>" },
+    { "id": "fail", "label": "Fail", "description": "<from GradeSelector>", "color": "<from GradeSelector>", "tint": "<from GradeSelector>" },
+    { "id": "recommended", "label": "Recommended", "description": "<from GradeSelector>", "color": "<from GradeSelector>", "tint": "<from GradeSelector>" },
+    { "id": "recommended_with_caveats", "label": "Recommended with caveats", "description": "<from GradeSelector>", "color": "<from GradeSelector>", "tint": "<from GradeSelector>" },
+    { "id": "needs_review", "label": "Needs review", "description": "<from GradeSelector>", "color": "<from GradeSelector>", "tint": "<from GradeSelector>" },
+    { "id": "pilot_only", "label": "Pilot only", "description": "<from GradeSelector>", "color": "<from GradeSelector>", "tint": "<from GradeSelector>" },
+    { "id": "not_recommended", "label": "Not recommended", "description": "<from GradeSelector>", "color": "<from GradeSelector>", "tint": "<from GradeSelector>" },
+    { "id": "out_of_scope", "label": "Out of scope", "description": "<from GradeSelector>", "color": "<from GradeSelector>", "tint": "<from GradeSelector>" }
+  ]
 }
+```
 
-/** Validate raw framework JSON shape before casting. Catches malformed JSON at startup. */
-export function validateFrameworkShape(data: unknown): asserts data is FrameworkConfig {
-  if (!data || typeof data !== "object") throw new Error("Framework config is not an object");
-  const d = data as Record<string, unknown>;
-  if (typeof d.id !== "string") throw new Error("Framework config missing string 'id'");
-  if (typeof d.name !== "string") throw new Error("Framework config missing string 'name'");
-  if (typeof d.version !== "string") throw new Error("Framework config missing string 'version'");
-  if (!Array.isArray(d.principles)) throw new Error("Framework config missing array 'principles'");
-  if (!Array.isArray(d.qualityGateCategories)) throw new Error("Framework config missing array 'qualityGateCategories'");
-  if (!d.accentKeys || typeof d.accentKeys !== "object") throw new Error("Framework config missing object 'accentKeys'");
-  if (!d.categoryLabels || typeof d.categoryLabels !== "object") throw new Error("Framework config missing object 'categoryLabels'");
-  if (!Array.isArray(d.grades)) throw new Error("Framework config missing array 'grades'");
-  if (!d.metadataFields || typeof d.metadataFields !== "object") throw new Error("Framework config missing object 'metadataFields'");
-}
+> The `<from GradeSelector>` markers instruct transcribing the real strings from `components/finalization/GradeSelector.tsx` (`GRADES` lines 10–27 and `ENHANCED_GRADES` lines 31–66). Before committing, `grep -n '<from' data/framework/trust-framework.json` must return nothing.
 
-validateFrameworkShape(trustFramework);
+- [ ] **Step 5: Extend the loader**
 
-/** The shipped, frozen framework config. */
-export const FRAMEWORK_CONFIG: FrameworkConfig = deepFreeze(
-  structuredClone(trustFramework),
-) as FrameworkConfig;
+In `data/framework/index.ts`, extend `validateFrameworkShape` to assert `Array.isArray(d.fields)` and `Array.isArray(d.grades)`, and add:
 
-/** Canonical grade IDs (the FinalizationGrade union contract). Stable across customizations. */
+```ts
+/** Stable ordered list of builtin field ids. */
+export const FIELD_IDS = FRAMEWORK_CONFIG.fields.map((f) => f.id) as readonly string[];
+/** Stable ordered list of canonical grade ids (the FinalizationGrade contract). */
 export const GRADE_IDS = FRAMEWORK_CONFIG.grades.map((g) => g.id) as readonly string[];
 ```
 
 - [ ] **Step 6: Run test to verify it passes**
 
-Run: `pnpm test tests/framework-config.test.ts`
-Expected: PASS (all 6 assertions).
-
-- [ ] **Step 7: Typecheck**
-
-Run: `pnpm typecheck`
-Expected: no errors.
-
-- [ ] **Step 8: Commit**
-
-```bash
-git add data/framework/ lib/types.ts tests/framework-config.test.ts
-git commit -m "feat(framework): add data-driven framework config + loader"
-```
-
----
-
-## Task 2: Framework-config accessor layer
-
-**Files:**
-- Create: `lib/framework-config.ts`
-- Test: extend `tests/framework-config.test.ts`
-
-- [ ] **Step 1: Add failing accessor tests**
-
-Append to `tests/framework-config.test.ts`:
-
-```ts
-import {
-  getFrameworkConfig,
-  getPrinciples,
-  getGradeDefinitions,
-  getMetadataField,
-  getMetadataFieldOptions,
-  getQGCategoryCode,
-  getAccentKey,
-  getCategoryLabel,
-} from "@/lib/framework-config";
-
-describe("framework-config accessors", () => {
-  it("getPrinciples returns principles in order", () => {
-    expect(getPrinciples().map((p) => p.id)).toEqual(["TR", "RE", "US", "SE", "TC"]);
-  });
-
-  it("getGradeDefinitions returns all grades", () => {
-    expect(getGradeDefinitions()).toHaveLength(9);
-  });
-
-  it("getMetadataFieldOptions returns the discipline options", () => {
-    expect(getMetadataFieldOptions("discipline")).toContain("Multidisciplinary");
-  });
-
-  it("getMetadataField returns the discipline default", () => {
-    expect(getMetadataField("discipline").default).toBe("Multidisciplinary");
-  });
-
-  it("getQGCategoryCode maps known and falls back for unknown", () => {
-    expect(getQGCategoryCode("privacy_and_security")).toBe("PS");
-    expect(getQGCategoryCode("unknown_cat")).toBe("UN"); // uppercased first 2 chars
-  });
-
-  it("getAccentKey maps known and defaults to control", () => {
-    expect(getAccentKey("TR")).toBe("tr");
-    expect(getAccentKey("zzz")).toBe("control");
-  });
-
-  it("getCategoryLabel maps known and falls back to the id", () => {
-    expect(getCategoryLabel("TR")).toBe("TR — Transparent");
-    expect(getCategoryLabel("nope")).toBe("nope");
-  });
-
-  it("getFrameworkConfig returns the frozen config", () => {
-    expect(getFrameworkConfig()).toBe(FRAMEWORK_CONFIG);
-  });
-});
-```
-
-- [ ] **Step 2: Run tests to verify they fail**
-
-Run: `pnpm test tests/framework-config.test.ts`
-Expected: FAIL — `@/lib/framework-config` does not export the accessors.
-
-- [ ] **Step 3: Implement the accessors**
-
-Create `lib/framework-config.ts`. `getActiveFrameworkConfig()` (used from Task 4 onward once the customization store exists) initially returns the default config unchanged:
-
-```ts
-import { FRAMEWORK_CONFIG } from "@/data/framework";
-import type { FrameworkConfig, FrameworkGrade, FrameworkPrinciple } from "@/lib/types";
-
-/** The shipped framework config (no user overrides applied). */
-export function getFrameworkConfig(): FrameworkConfig {
-  return FRAMEWORK_CONFIG;
-}
-
-/**
- * The active framework config: shipped defaults merged with any persisted user
- * customization. Until the customization store is wired (Task 4), this equals
- * the shipped config. Customization only overrides option-lists and grade
- * label/description text — never principle/grade identity.
- */
-export function getActiveFrameworkConfig(): FrameworkConfig {
-  return FRAMEWORK_CONFIG;
-}
-
-export function getPrinciples(): readonly FrameworkPrinciple[] {
-  return getActiveFrameworkConfig().principles;
-}
-
-export function getGradeDefinitions(): readonly FrameworkGrade[] {
-  return getActiveFrameworkConfig().grades;
-}
-
-export function getMetadataField(field: string) {
-  return getActiveFrameworkConfig().metadataFields[field];
-}
-
-export function getMetadataFieldOptions(field: string): readonly string[] {
-  return getMetadataField(field)?.options ?? [];
-}
-
-export function getQGCategoryCode(categoryKey: string): string {
-  const cat = getActiveFrameworkConfig().qualityGateCategories.find(
-    (c) => c.key === categoryKey,
-  );
-  return cat?.code ?? categoryKey.toUpperCase().slice(0, 2);
-}
-
-export function getAccentKey(categoryId: string): string {
-  return getActiveFrameworkConfig().accentKeys[categoryId] ?? "control";
-}
-
-export function getCategoryLabel(categoryId: string): string {
-  return getActiveFrameworkConfig().categoryLabels[categoryId] ?? categoryId;
-}
-```
-
-- [ ] **Step 4: Run tests to verify they pass**
-
-Run: `pnpm test tests/framework-config.test.ts`
-Expected: PASS (all assertions).
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add lib/framework-config.ts tests/framework-config.test.ts
-git commit -m "feat(framework): add config accessor layer"
-```
-
----
-
-## Task 3: Derive existing constants from the config
-
-Public exports (`PRINCIPLES`, the metadata-option arrays, the rubric maps) keep their names and shapes; only their source changes from literals to the config. This keeps the ~6 downstream import sites (`report-model.ts`, `compute-scores.ts`, `session-lifecycle.ts`, `html-report.ts`, `CompareModal.tsx`, `Metadata.tsx`, `DisciplineField.tsx`) unchanged in this task.
-
-**Files:**
-- Modify: `lib/principles.ts`
-- Modify: `lib/metadata-options.ts`
-- Modify: `lib/rubric.ts` (the three maps)
-- Test: `tests/metadata-options-sourced.test.ts`
-
-- [ ] **Step 1: Write the failing test**
-
-Create `tests/metadata-options-sourced.test.ts`:
-
-```ts
-import { describe, expect, it } from "vitest";
-import {
-  DATA_SOURCE_OPTIONS,
-  SEARCH_METHOD_OPTIONS,
-  DISCIPLINE_OPTIONS,
-  AUTH_METHOD_OPTIONS,
-  DISCIPLINE_DEFAULT,
-  DISCIPLINE_OTHERS,
-} from "@/lib/metadata-options";
-import { PRINCIPLES } from "@/lib/principles";
-
-describe("constants are sourced from framework config", () => {
-  it("PRINCIPLES matches the config principles", () => {
-    expect(PRINCIPLES.map((p) => p.id)).toEqual(["TR", "RE", "US", "SE", "TC"]);
-    expect(PRINCIPLES[0].color).toBe("#2563eb");
-  });
-
-  it("metadata option arrays are non-empty and match known first entries", () => {
-    expect(DATA_SOURCE_OPTIONS[0]).toBe("CrossRef");
-    expect(SEARCH_METHOD_OPTIONS[0]).toBe("Keywords");
-    expect(DISCIPLINE_OPTIONS).toContain("Multidisciplinary");
-    expect(AUTH_METHOD_OPTIONS[0]).toBe("SSO/SAML");
-  });
-
-  it("DISCIPLINE_DEFAULT is Multidisciplinary and excluded from DISCIPLINE_OTHERS", () => {
-    expect(DISCIPLINE_DEFAULT).toBe("Multidisciplinary");
-    expect(DISCIPLINE_OTHERS).not.toContain(DISCIPLINE_DEFAULT);
-    expect(DISCIPLINE_OTHERS.length).toBe(DISCIPLINE_OPTIONS.length - 1);
-  });
-});
-```
-
-- [ ] **Step 2: Run test to verify it passes already (baseline)**
-
-Run: `pnpm test tests/metadata-options-sourced.test.ts`
-Expected: PASS — current hardcoded values already satisfy these. (This test is a regression guard: it must still pass after the derivation refactor.)
-
-- [ ] **Step 3: Rewrite `lib/principles.ts` to source from config**
-
-Replace the entire file content of `lib/principles.ts` with:
-
-```ts
-import { getPrinciples } from "./framework-config";
-
-/**
- * TRUST framework principles with display codes, accent colors, and full names.
- * Now derived from the data-driven framework config (see data/framework/).
- * Order matters — drives tab/column ordering.
- */
-export const PRINCIPLES = getPrinciples().map((p) => ({
-  id: p.id,
-  code: p.code,
-  color: p.color,
-  reportColor: p.reportColor,
-  fullName: p.fullName,
-})) as unknown as {
-  readonly id: "TR" | "RE" | "US" | "SE" | "TC";
-  readonly code: string;
-  readonly color: `#${string}`;
-  readonly reportColor: `#${string}`;
-  readonly fullName: string;
-}[];
-```
-
-> The `as unknown as` cast preserves the narrow literal-typed shape the existing consumers (e.g. `PRINCIPLES[0].id` used as a key) rely on, so no downstream type breaks.
-
-- [ ] **Step 4: Rewrite `lib/metadata-options.ts` to source from config**
-
-Replace the entire file content of `lib/metadata-options.ts` with:
-
-```ts
-import { getFrameworkConfig } from "./framework-config";
-
-const cfg = getFrameworkConfig();
-
-export const DATA_SOURCE_OPTIONS = cfg.metadataFields.dataSources.options;
-export const SEARCH_METHOD_OPTIONS = cfg.metadataFields.searchMethods.options;
-export const DISCIPLINE_OPTIONS = cfg.metadataFields.discipline.options ?? [];
-export const AUTH_METHOD_OPTIONS = cfg.metadataFields.authenticationMethod.options;
-
-export const DISCIPLINE_DEFAULT = cfg.metadataFields.discipline.default ?? "Multidisciplinary";
-export const DISCIPLINE_OTHERS = DISCIPLINE_OPTIONS.filter((d) => d !== DISCIPLINE_DEFAULT);
-export const MAX_CUSTOM_LENGTH = 120;
-```
-
-> These remain plain array exports so every current import site keeps working. They reflect the *default* config; runtime overrides are handled in Task 5 via hooks (the static exports stay the build-time defaults).
-
-- [ ] **Step 5: Rewrite the three maps in `lib/rubric.ts`**
-
-In `lib/rubric.ts`, replace the three hardcoded maps (`QG_CATEGORY_CODES`, `ACCENT_KEYS`, `CATEGORY_LABELS`) and their helper bodies so they delegate to the accessors. Replace the `QG_CATEGORY_CODES` const + `getQGCategoryCode` body, the `ACCENT_KEYS` const + `getAccentKey` body, and the `CATEGORY_LABELS` const + `getCategoryLabel` body with thin delegations:
-
-```ts
-import { getAccentKey as cfgAccentKey, getCategoryLabel as cfgCategoryLabel, getQGCategoryCode as cfgQGCode } from "./framework-config";
-
-// …existing code…
-
-/** Map quality gate category keys to short display codes (delegates to framework config). */
-export function getQGCategoryCode(categoryKey: string): string {
-  return cfgQGCode(categoryKey);
-}
-
-/** Build a quality-gate question code like "PS1" using the category code mapping. */
-export function getQGQuestionCode(categoryKey: string, questionIndex: number): string {
-  return `${getQGCategoryCode(categoryKey)}${questionIndex + 1}`;
-}
-
-/** Resolve the accent color key for a category, defaulting to "control". */
-export function getAccentKey(categoryId: string): string {
-  return cfgAccentKey(categoryId);
-}
-
-/** Human-readable label for a category ID. */
-export function getCategoryLabel(categoryId: string): string {
-  return cfgCategoryLabel(categoryId);
-}
-```
-
-Delete the now-unused `QG_CATEGORY_CODES`, `ACCENT_KEYS`, and `CATEGORY_LABELS` const declarations from `lib/rubric.ts` (they are module-private and have no external consumers).
-
-- [ ] **Step 6: Run the full test suite + typecheck**
-
-Run: `pnpm test && pnpm typecheck`
-Expected: all tests PASS (including the existing `tests/principles.test.ts`, `tests/rubric-tagging-section.test.tsx`, etc.), no type errors. The regression guard from Step 1 confirms values are unchanged.
+Run: `pnpm test tests/field-schema.test.ts && pnpm typecheck`
+Expected: PASS, no type errors.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add lib/principles.ts lib/metadata-options.ts lib/rubric.ts tests/metadata-options-sourced.test.ts
-git commit -m "refactor(framework): source principles/options/rubric-maps from config"
+git add lib/types.ts data/framework/trust-framework.json data/framework/index.ts tests/field-schema.test.ts
+git commit -m "feat(framework): declarative FieldDescriptor schema + consolidated grades"
 ```
 
 ---
 
-## Task 4: Framework customization store
-
-A persisted store holding user overrides. It overrides option-lists (per field, the user may add/remove entries relative to defaults) and grade label/description text. It does NOT touch principle/grade identity.
+## Task 2: Field-schema accessor layer + value binding
 
 **Files:**
-- Create: `stores/framework-customization.ts`
-- Modify: `lib/framework-config.ts` (`getActiveFrameworkConfig` merges overrides)
+- Create: `lib/field-schema.ts`
+- Test: extend `tests/field-schema.test.ts`
+
+- [ ] **Step 1: Add failing accessor/binding tests**
+
+Append to `tests/field-schema.test.ts`:
+
+```ts
+import {
+  getFields,
+  getActiveFields,
+  getField,
+  getFieldsBySurface,
+  getFieldValue,
+  setFieldValue,
+} from "@/lib/field-schema";
+import type { SessionMetadata } from "@/lib/types";
+
+describe("field-schema accessors + binding", () => {
+  it("getFields returns builtin fields; getActiveFields filtered by enabled + sorted", () => {
+    expect(getFields().length).toBeGreaterThan(15);
+    const active = getActiveFields();
+    expect(active.every((f) => f.enabled)).toBe(true);
+    // faviconUrl is disabled by default
+    expect(active.find((f) => f.id === "faviconUrl")).toBeUndefined();
+  });
+
+  it("getFieldsBySurface partitions metadata vs finalization", () => {
+    expect(getFieldsBySurface("metadata").find((f) => f.id === "conclusion")).toBeUndefined();
+    expect(getFieldsBySurface("finalization").find((f) => f.id === "conclusion")).toBeTruthy();
+  });
+
+  it("getFieldValue reads a builtin metadata key", () => {
+    const s = { toolName: "Asta" } as SessionMetadata;
+    expect(getFieldValue(s, getField("toolName"))).toBe("Asta");
+  });
+
+  it("getFieldValue reads custom fields from the customFields bag", () => {
+    const s = { customFields: { region: "EU" } } as SessionMetadata;
+    const desc = { id: "region", storageKey: "region", surface: "metadata", label: "Region", type: "text", order: 1, enabled: true, custom: true } as any;
+    expect(getFieldValue(s, desc)).toBe("EU");
+  });
+
+  it("setFieldValue writes builtins to the top-level key, custom to customFields", () => {
+    const s = {} as SessionMetadata;
+    setFieldValue(s, getField("company"), "AI2");
+    expect(s.company).toBe("AI2");
+    const custom = { id: "region", storageKey: "region", surface: "metadata", label: "Region", type: "text", order: 1, enabled: true, custom: true } as any;
+    setFieldValue(s, custom, "EU");
+    expect(s.customFields?.region).toBe("EU");
+  });
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `pnpm test tests/field-schema.test.ts`
+Expected: FAIL — accessors not exported.
+
+- [ ] **Step 3: Implement accessors + binding**
+
+Create `lib/field-schema.ts`:
+
+```ts
+import { FRAMEWORK_CONFIG } from "@/data/framework";
+import type { FieldDescriptor, FieldSurface, SessionMetadata } from "@/lib/types";
+import { getActiveFrameworkConfig } from "./framework-config";
+
+/** All shipped field descriptors (no customization). */
+export function getFields(): readonly FieldDescriptor[] {
+  return FRAMEWORK_CONFIG.fields;
+}
+
+/** Active descriptors: customization-merged, enabled-only, ordered within group. */
+export function getActiveFields(surface?: FieldSurface): FieldDescriptor[] {
+  const fields = getActiveFrameworkConfig().fields
+    .filter((f) => f.enabled)
+    .filter((f) => (surface ? f.surface === surface : true));
+  return [...fields].sort((a, b) =>
+    a.group === b.group ? a.order - b.order : String(a.group).localeCompare(String(b.group)),
+  );
+}
+
+export function getFieldsBySurface(surface: FieldSurface): FieldDescriptor[] {
+  return getActiveFields(surface);
+}
+
+export function getField(id: string): FieldDescriptor {
+  const f = getActiveFrameworkConfig().fields.find((x) => x.id === id);
+  if (!f) throw new Error(`Unknown field: ${id}`);
+  return f;
+}
+
+/** Read a field's value from a session. Custom fields read from `customFields`. */
+export function getFieldValue(session: SessionMetadata, desc: FieldDescriptor): unknown {
+  if ((desc as { custom?: boolean }).custom) return session.customFields?.[desc.storageKey];
+  return (session as Record<string, unknown>)[desc.storageKey];
+}
+
+/** Mutate a session's field value. Custom fields write to `customFields`. */
+export function setFieldValue(session: SessionMetadata, desc: FieldDescriptor, value: unknown): void {
+  if ((desc as { custom?: boolean }).custom) {
+    session.customFields = { ...(session.customFields ?? {}), [desc.storageKey]: value };
+    return;
+  }
+  (session as Record<string, unknown>)[desc.storageKey] = value;
+}
+```
+
+- [ ] **Step 4: Run to verify it passes**
+
+Run: `pnpm test tests/field-schema.test.ts && pnpm typecheck`
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add lib/field-schema.ts tests/field-schema.test.ts
+git commit -m "feat(framework): field-schema accessors + value binding"
+```
+
+---
+
+## Task 3: Generalize the customization store (fields + options + grades)
+
+The store from the earlier draft (additive+hide+rename for option-lists) generalizes to whole-field overrides, field additions/removals, order, and grade overrides.
+
+**Files:**
+- Modify: `stores/framework-customization.ts`
+- Modify: `lib/framework-config.ts` (`getActiveFrameworkConfig` merges fields + grades)
+- Create: `lib/framework-migrate.ts`
 - Test: `tests/framework-customization.test.ts`
 
 - [ ] **Step 1: Write the failing test**
@@ -584,132 +396,178 @@ Create `tests/framework-customization.test.ts`:
 ```ts
 import { beforeEach, describe, expect, it } from "vitest";
 import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
-import { getMetadataFieldOptions, getGradeDefinitions } from "@/lib/framework-config";
+import { getActiveFields, getActiveFrameworkConfig } from "@/lib/framework-config";
+import { getField } from "@/lib/field-schema";
 
-describe("framework customization store", () => {
-  beforeEach(() => {
-    useFrameworkCustomizationStore.getState().resetAll();
+describe("customization store", () => {
+  beforeEach(() => useFrameworkCustomizationStore.getState().resetAll());
+
+  it("toggles a field off (removed from active set)", () => {
+    expect(getActiveFields().find((f) => f.id === "pricing")).toBeTruthy();
+    useFrameworkCustomizationStore.getState().setFieldOverride("pricing", { enabled: false });
+    expect(getActiveFields().find((f) => f.id === "pricing")).toBeUndefined();
   });
 
-  it("starts with no overrides (active config equals defaults)", () => {
-    expect(getMetadataFieldOptions("dataSources")).toContain("CrossRef");
-    expect(useFrameworkCustomizationStore.getState().hasOverrides()).toBe(false);
+  it("overrides a field label and required", () => {
+    useFrameworkCustomizationStore.getState().setFieldOverride("company", { label: "Vendor", required: true });
+    expect(getField("company").label).toBe("Vendor");
+    expect(getField("company").required).toBe(true);
   });
 
-  it("adds and removes a custom data-source option", () => {
-    const store = useFrameworkCustomizationStore.getState();
-    store.addOption("dataSources", "My Local Repo");
-    expect(getMetadataFieldOptions("dataSources")).toContain("My Local Repo");
-
-    store.removeOption("dataSources", "My Local Repo");
-    expect(getMetadataFieldOptions("dataSources")).not.toContain("My Local Repo");
+  it("creates a custom field that appears in the active set", () => {
+    useFrameworkCustomizationStore.getState().addField({
+      id: "region", storageKey: "region", surface: "metadata", label: "Region",
+      type: "text", group: "Identity", order: 99, enabled: true,
+    });
+    expect(getActiveFields().find((f) => f.id === "region")).toBeTruthy();
   });
 
-  it("resetField restores a single field's defaults", () => {
-    const store = useFrameworkCustomizationStore.getState();
-    store.addOption("dataSources", "X");
-    store.addOption("searchMethods", "Y");
-    store.resetField("dataSources");
-    expect(getMetadataFieldOptions("dataSources")).not.toContain("X");
-    expect(getMetadataFieldOptions("searchMethods")).toContain("Y");
+  it("reorders fields within a group", () => {
+    useFrameworkCustomizationStore.getState().setFieldOverride("pricing", { order: 99 });
+    const group = getActiveFields("metadata").filter((f) => f.group === "Access");
+    expect(group[group.length - 1].id).toBe("pricing");
   });
 
-  it("overrides a grade's label and description", () => {
-    const store = useFrameworkCustomizationStore.getState();
-    store.setGradeOverride("pass", { label: "Go", description: "Ship it" });
-    const pass = getGradeDefinitions().find((g) => g.id === "pass");
-    expect(pass?.label).toBe("Go");
-    expect(pass?.description).toBe("Ship it");
+  it("option edit-in-place: add / rename shipped default / hide", () => {
+    const s = useFrameworkCustomizationStore.getState();
+    s.addOption("dataSources", "Local Repo");
+    s.renameOption("dataSources", "CrossRef", "Crossref API");
+    s.hideOption("dataSources", "Google Scholar");
+    const opts = getField("dataSources").options ?? [];
+    expect(opts).toContain("Local Repo");
+    expect(opts).toContain("Crossref API");
+    expect(opts).not.toContain("CrossRef");
+    expect(opts).not.toContain("Google Scholar");
   });
 
-  it("exportCustomization then importCustomization round-trips", () => {
-    const store = useFrameworkCustomizationStore.getState();
-    store.addOption("dataSources", "Round");
-    store.setGradeOverride("fail", { label: "Nope" });
-    const exported = store.exportCustomization();
-
-    store.resetAll();
-    expect(getMetadataFieldOptions("dataSources")).not.toContain("Round");
-
-    store.importCustomization(exported);
-    expect(getMetadataFieldOptions("dataSources")).toContain("Round");
-    expect(getGradeDefinitions().find((g) => g.id === "fail")?.label).toBe("Nope");
+  it("overrides a grade label + color", () => {
+    useFrameworkCustomizationStore.getState().setGradeOverride("pass", { label: "Approved", color: "#00ff00" });
+    const pass = getActiveFrameworkConfig().grades.find((g) => g.id === "pass")!;
+    expect(pass.label).toBe("Approved");
+    expect(pass.color).toBe("#00ff00");
   });
 
-  it("importCustomization rejects malformed payloads", () => {
-    const store = useFrameworkCustomizationStore.getState();
-    expect(() => store.importCustomization({ garbage: true })).toThrow();
-    expect(() => store.importCustomization("not an object")).toThrow();
+  it("export/import round-trips field + option + grade overrides", () => {
+    const s = useFrameworkCustomizationStore.getState();
+    s.setFieldOverride("company", { label: "Vendor" });
+    s.addOption("dataSources", "X");
+    s.setGradeOverride("fail", { label: "Nope" });
+    const exported = s.exportCustomization();
+    s.resetAll();
+    s.importCustomization(exported);
+    expect(getField("company").label).toBe("Vendor");
+    expect(getField("dataSources").options).toContain("X");
+    expect(getActiveFrameworkConfig().grades.find((g) => g.id === "fail")?.label).toBe("Nope");
+  });
+
+  it("import rejects malformed payloads", () => {
+    expect(() => useFrameworkCustomizationStore.getState().importCustomization("nope")).toThrow();
+    expect(() => useFrameworkCustomizationStore.getState().importCustomization({ x: 1 })).toThrow();
   });
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [ ] **Step 2: Run to verify it fails**
 
 Run: `pnpm test tests/framework-customization.test.ts`
-Expected: FAIL — store module does not exist.
+Expected: FAIL.
 
-- [ ] **Step 3: Create the customization store**
+- [ ] **Step 3: Implement the generalized store**
 
-Create `stores/framework-customization.ts`. The shape mirrors `stores/registry.ts` (Zustand + `persist` → localStorage):
+Create `stores/framework-customization.ts`:
 
 ```ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { getFrameworkConfig } from "@/lib/framework-config";
+import type { FieldDescriptor, FrameworkGrade } from "@/lib/types";
 
-/** A grade label/description override (ids are stable; only text changes). */
-export interface GradeOverride {
-  label?: string;
-  description?: string;
-}
+export interface GradeOverride extends Partial<Pick<FrameworkGrade, "label" | "description" | "color" | "tint">> {}
+export interface FieldOverride extends Partial<Omit<FieldDescriptor, "id" | "storageKey" | "surface" | "type">> {}
 
-/** Serializable customization. `extraOptions` are additive to defaults; `hiddenOptions` remove defaults. */
 export interface FrameworkCustomization {
-  /** field → options the user added beyond the shipped defaults. */
+  /** field id → override patch (label, required, enabled, order, group, placeholder, helpText). */
+  fieldOverrides: Record<string, FieldOverride>;
+  /** fully user-created field descriptors. */
+  customFields: FieldDescriptor[];
+  /** select/multi-select field id → options added beyond defaults. */
   extraOptions: Record<string, string[]>;
-  /** field → shipped options the user hid. */
+  /** field id → shipped options hidden. */
   hiddenOptions: Record<string, string[]>;
-  /** grade id → label/description text override. */
+  /** field id → { oldName: newName } for renamed shipped options. */
+  renames: Record<string, Record<string, string>>;
+  /** grade id → text/color override. */
   gradeOverrides: Record<string, GradeOverride>;
 }
 
 const EMPTY: FrameworkCustomization = {
-  extraOptions: {},
-  hiddenOptions: {},
-  gradeOverrides: {},
+  fieldOverrides: {}, customFields: [], extraOptions: {}, hiddenOptions: {}, renames: {}, gradeOverrides: {},
 };
 
 export interface FrameworkCustomizationState {
   customization: FrameworkCustomization;
+  setFieldOverride: (id: string, patch: FieldOverride) => void;
+  addField: (desc: FieldDescriptor) => void;
+  removeCustomField: (id: string) => void;
   addOption: (field: string, option: string) => void;
   removeOption: (field: string, option: string) => void;
-  /** Mark a shipped default option as hidden (restorable via resetField). */
   hideOption: (field: string, option: string) => void;
+  renameOption: (field: string, oldVal: string, newVal: string) => void;
   setGradeOverride: (gradeId: string, override: GradeOverride) => void;
   resetField: (field: string) => void;
   resetGrades: () => void;
   resetAll: () => void;
   hasOverrides: () => boolean;
   exportCustomization: () => FrameworkCustomization;
-  /** Validate and merge a previously exported customization, replacing the current one. */
   importCustomization: (data: unknown) => void;
+}
+
+function isStrArr(v: unknown): v is string[] {
+  return Array.isArray(v) && v.every((x) => typeof x === "string");
+}
+function normStrArr(v: unknown): string[] {
+  return isStrArr(v) ? v : [];
+}
+function normRenames(v: unknown): Record<string, string> {
+  if (!v || typeof v !== "object") return {};
+  const out: Record<string, string> = {};
+  for (const [k, val] of Object.entries(v as object)) if (typeof val === "string") out[k] = val;
+  return out;
+}
+function normFieldOverride(v: unknown): FieldOverride {
+  if (!v || typeof v !== "object") return {};
+  const o = v as Record<string, unknown>;
+  const out: FieldOverride = {};
+  if (typeof o.label === "string") out.label = o.label;
+  if (typeof o.placeholder === "string") out.placeholder = o.placeholder;
+  if (typeof o.helpText === "string") out.helpText = o.helpText;
+  if (typeof o.required === "boolean") out.required = o.required;
+  if (typeof o.enabled === "boolean") out.enabled = o.enabled;
+  if (typeof o.group === "string") out.group = o.group;
+  if (typeof o.order === "number") out.order = o.order;
+  if (typeof o.maxLength === "number") out.maxLength = o.maxLength;
+  return out;
 }
 
 function validateCustomization(data: unknown): FrameworkCustomization {
   if (!data || typeof data !== "object") throw new Error("Customization must be an object");
   const d = data as Record<string, unknown>;
-  const isStrArr = (v: unknown): v is string[] =>
-    Array.isArray(v) && v.every((x) => typeof x === "string");
-  const norm = (v: unknown): string[] => (isStrArr(v) ? v : []);
+  if (!d.fieldOverrides && !d.extraOptions && !d.gradeOverrides && !d.customFields)
+    throw new Error("Customization has no recognized keys");
+  const fieldOverrides: Record<string, FieldOverride> = {};
   const extraOptions: Record<string, string[]> = {};
   const hiddenOptions: Record<string, string[]> = {};
+  const renames: Record<string, Record<string, string>> = {};
   const gradeOverrides: Record<string, GradeOverride> = {};
-  if (d.extraOptions && typeof d.extraOptions === "object") {
-    for (const [k, v] of Object.entries(d.extraOptions as object)) extraOptions[k] = norm(v);
-  }
-  if (d.hiddenOptions && typeof d.hiddenOptions === "object") {
-    for (const [k, v] of Object.entries(d.hiddenOptions as object)) hiddenOptions[k] = norm(v);
-  }
+  const customFields: FieldDescriptor[] = Array.isArray(d.customFields) ? (d.customFields as FieldDescriptor[]) : [];
+  if (d.fieldOverrides && typeof d.fieldOverrides === "object")
+    for (const [k, v] of Object.entries(d.fieldOverrides as object)) fieldOverrides[k] = normFieldOverride(v);
+  if (d.extraOptions && typeof d.extraOptions === "object")
+    for (const [k, v] of Object.entries(d.extraOptions as object)) extraOptions[k] = normStrArr(v);
+  if (d.hiddenOptions && typeof d.hiddenOptions === "object")
+    for (const [k, v] of Object.entries(d.hiddenOptions as object)) hiddenOptions[k] = normStrArr(v);
+  if (d.renames && typeof d.renames === "object")
+    for (const [k, v] of Object.entries(d.renames as object)) renames[k] = normRenames(v);
   if (d.gradeOverrides && typeof d.gradeOverrides === "object") {
     for (const [k, v] of Object.entries(d.gradeOverrides as object)) {
       if (v && typeof v === "object") {
@@ -717,11 +575,20 @@ function validateCustomization(data: unknown): FrameworkCustomization {
         gradeOverrides[k] = {
           ...(typeof o.label === "string" ? { label: o.label } : {}),
           ...(typeof o.description === "string" ? { description: o.description } : {}),
+          ...(typeof o.color === "string" ? { color: o.color } : {}),
+          ...(typeof o.tint === "string" ? { tint: o.tint } : {}),
         };
       }
     }
   }
-  return { extraOptions, hiddenOptions, gradeOverrides };
+  return { fieldOverrides, customFields, extraOptions, hiddenOptions, renames, gradeOverrides };
+}
+
+function shippedFieldHas(id: string): boolean {
+  return getFrameworkConfig().fields.some((f) => f.id === id);
+}
+function shippedOption(fieldId: string, option: string): boolean {
+  return getFrameworkConfig().fields.find((f) => f.id === fieldId)?.options?.includes(option) ?? false;
 }
 
 export const useFrameworkCustomizationStore = create<FrameworkCustomizationState>()(
@@ -729,679 +596,660 @@ export const useFrameworkCustomizationStore = create<FrameworkCustomizationState
     (set, get) => ({
       customization: EMPTY,
 
+      setFieldOverride: (id, patch) =>
+        set((s) => ({
+          customization: {
+            ...s.customization,
+            fieldOverrides: { ...s.customization.fieldOverrides, [id]: { ...s.customization.fieldOverrides[id], ...patch } },
+          },
+        })),
+
+      addField: (desc) =>
+        set((s) => ({
+          customization: { ...s.customization, customFields: [...s.customization.customFields.filter((f) => f.id !== desc.id), { ...desc, custom: true }] },
+        })),
+
+      removeCustomField: (id) =>
+        set((s) => ({ customization: { ...s.customization, customFields: s.customization.customFields.filter((f) => f.id !== id) } })),
+
       addOption: (field, option) =>
         set((s) => {
           const existing = s.customization.extraOptions[field] ?? [];
           if (existing.includes(option)) return {};
-          return {
-            customization: {
-              ...s.customization,
-              extraOptions: { ...s.customization.extraOptions, [field]: [...existing, option] },
-            },
-          };
+          return { customization: { ...s.customization, extraOptions: { ...s.customization.extraOptions, [field]: [...existing, option] } } };
         }),
 
-      removeOption: (field, option) =>
+      removeOption: (field, option) => set((s) => {
+        // custom option → drop from extraOptions; shipped → ignore here (use hideOption)
+        const extra = s.customization.extraOptions[field] ?? [];
+        if (!extra.includes(option)) return {};
+        return { customization: { ...s.customization, extraOptions: { ...s.customization.extraOptions, [field]: extra.filter((o) => o !== option) } } };
+      }),
+
+      hideOption: (field, option) => set((s) => {
+        const hidden = s.customization.hiddenOptions[field] ?? [];
+        if (hidden.includes(option)) return {};
+        return { customization: { ...s.customization, hiddenOptions: { ...s.customization.hiddenOptions, [field]: [...hidden, option] } } };
+      }),
+
+      renameOption: (field, oldVal, newVal) => {
+        const v = newVal.trim();
+        if (!v || v === oldVal) return;
         set((s) => {
+          if (shippedOption(field, oldVal)) {
+            const fr = s.customization.renames[field] ?? {};
+            return { customization: { ...s.customization, renames: { ...s.customization.renames, [field]: { ...fr, [oldVal]: v } } } };
+          }
           const extra = s.customization.extraOptions[field] ?? [];
-          if (!extra.includes(option)) return {};
-          return {
-            customization: {
-              ...s.customization,
-              extraOptions: { ...s.customization.extraOptions, [field]: extra.filter((o) => o !== option) },
-            },
-          };
-        }),
-
-      hideOption: (field, option) =>
-        set((s) => {
-          const hidden = s.customization.hiddenOptions[field] ?? [];
-          if (hidden.includes(option)) return {};
-          return {
-            customization: {
-              ...s.customization,
-              hiddenOptions: { ...s.customization.hiddenOptions, [field]: [...hidden, option] },
-            },
-          };
-        }),
+          if (!extra.includes(oldVal)) return {};
+          return { customization: { ...s.customization, extraOptions: { ...s.customization.extraOptions, [field]: extra.map((o) => (o === oldVal ? v : o)) } } };
+        });
+      },
 
       setGradeOverride: (gradeId, override) =>
-        set((s) => ({
-          customization: {
-            ...s.customization,
-            gradeOverrides: { ...s.customization.gradeOverrides, [gradeId]: override },
-          },
-        })),
+        set((s) => ({ customization: { ...s.customization, gradeOverrides: { ...s.customization.gradeOverrides, [gradeId]: { ...s.customization.gradeOverrides[gradeId], ...override } } } })),
 
-      resetField: (field) =>
-        set((s) => {
-          const { [field]: _e, ...extra } = s.customization.extraOptions;
-          const { [field]: _h, ...hidden } = s.customization.hiddenOptions;
-          return {
-            customization: { ...s.customization, extraOptions: extra, hiddenOptions: hidden },
-          };
-        }),
+      resetField: (field) => set((s) => {
+        const { [field]: _fo, ...fieldOverrides } = s.customization.fieldOverrides;
+        const { [field]: _e, ...extraOptions } = s.customization.extraOptions;
+        const { [field]: _h, ...hiddenOptions } = s.customization.hiddenOptions;
+        const { [field]: _r, ...renames } = s.customization.renames;
+        return { customization: { ...s.customization, fieldOverrides, extraOptions, hiddenOptions, renames } };
+      }),
 
-      resetGrades: () =>
-        set((s) => ({ customization: { ...s.customization, gradeOverrides: {} } })),
-
+      resetGrades: () => set((s) => ({ customization: { ...s.customization, gradeOverrides: {} } })),
       resetAll: () => set({ customization: EMPTY }),
 
       hasOverrides: () => {
         const c = get().customization;
-        return (
-          Object.keys(c.extraOptions).length > 0 ||
-          Object.keys(c.hiddenOptions).length > 0 ||
-          Object.keys(c.gradeOverrides).length > 0
-        );
+        return Object.values(c).some((v) => (Array.isArray(v) ? v.length > 0 : Object.keys(v as object).length > 0));
       },
 
       exportCustomization: () => structuredClone(get().customization),
-
       importCustomization: (data) => set({ customization: validateCustomization(data) }),
     }),
-    {
-      name: "trust-framework-customization",
-      partialize: (s) => ({ customization: s.customization }),
-    },
+    { name: "trust-framework-customization", partialize: (s) => ({ customization: s.customization }) },
   ),
 );
 ```
 
-- [ ] **Step 4: Wire `getActiveFrameworkConfig` to merge overrides**
+- [ ] **Step 4: Merge fields + grades in `getActiveFrameworkConfig`**
 
-In `lib/framework-config.ts`, replace the `getActiveFrameworkConfig` body to merge the customization store's current state. Import the store lazily (the accessor runs both in the extension and in tests; the store is safe to import at module load):
+In `lib/framework-config.ts`, replace `getActiveFrameworkConfig`:
 
 ```ts
 import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
+import type { FieldDescriptor } from "@/lib/types";
 
 export function getActiveFrameworkConfig(): FrameworkConfig {
   const c = useFrameworkCustomizationStore.getState().customization;
   const base = FRAMEWORK_CONFIG;
 
-  const metadataFields: FrameworkConfig["metadataFields"] = {};
-  for (const [field, def] of Object.entries(base.metadataFields)) {
-    const extra = c.extraOptions[field] ?? [];
-    const hidden = new Set(c.hiddenOptions[field] ?? []);
-    const merged = [...def.options, ...extra].filter((o) => !hidden.has(o));
-    metadataFields[field] = { ...def, options: merged };
-  }
+  const fields: FieldDescriptor[] = [...base.fields, ...c.customFields.map((f) => ({ ...f, custom: true }))]
+    .map((f) => {
+      const ov = c.fieldOverrides[f.id];
+      const opts = mergeOptions(f, c);
+      return { ...f, ...(ov ?? {}), ...(opts ? { options: opts } : {}) };
+    })
+    .filter((f) => f.enabled); // active = enabled; getFields() still returns all incl. disabled
 
   const grades = base.grades.map((g) => {
     const o = c.gradeOverrides[g.id];
     return o ? { ...g, ...o } : g;
   });
 
-  return { ...base, metadataFields, grades };
+  return { ...base, fields, grades };
+}
+
+/** Apply renames + extras + hides to a select/multi-select field's options. */
+function mergeOptions(f: FieldDescriptor, c: { renames: Record<string, Record<string, string>>; extraOptions: Record<string, string[]>; hiddenOptions: Record<string, string[]> }): string[] | undefined {
+  if (!f.options) return undefined;
+  const renames = c.renames[f.id] ?? {};
+  const hidden = new Set(c.hiddenOptions[f.id] ?? []);
+  const renamed = f.options.filter((o) => !hidden.has(o)).map((o) => renames[o] ?? o);
+  const extra = c.extraOptions[f.id] ?? [];
+  return [...renamed, ...extra];
 }
 ```
 
-> `getFrameworkConfig()` still returns the frozen default (no overrides) — use it anywhere that must reflect the shipped config (e.g. default-reset UI). `getActiveFrameworkConfig()` is what all the other accessors already call, so they now reflect overrides automatically.
+> `getFields()` (shipped, all incl. disabled) stays backed by `FRAMEWORK_CONFIG`. `getActiveFields()` calls `getActiveFrameworkConfig().fields` (enabled-only, merged). `getField(id)` must look in the active config too so overrides are visible — update `lib/field-schema.ts` `getField` to read from `getActiveFrameworkConfig().fields`, falling back to shipped.
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [ ] **Step 5: Session migration on option rename**
 
-Run: `pnpm test tests/framework-customization.test.ts`
-Expected: PASS (all 6 assertions).
+Create `lib/framework-migrate.ts` (same as prior draft — rewrites a renamed option across all stored sessions):
 
-- [ ] **Step 6: Run full suite + typecheck**
+```ts
+import { getRepository } from "@/lib/session-repository";
+import type { SessionData, SessionMetadata } from "@/lib/types";
+import { useRegistryStore } from "@/stores/registry";
 
-Run: `pnpm test && pnpm typecheck`
-Expected: all PASS, no type errors.
+/** Rewrite oldVal → newVal in one metadata array field across every stored session. */
+export async function migrateOptionRename(field: string, oldVal: string, newVal: string): Promise<number> {
+  const repo = getRepository();
+  const { sessionIndex } = useRegistryStore.getState();
+  let touched = 0;
+  for (const id of Object.keys(sessionIndex)) {
+    const data: SessionData | null = await repo.load(id);
+    if (!data) continue;
+    const arr = (data.metadata as Record<string, unknown>)[field];
+    if (!Array.isArray(arr) || !arr.includes(oldVal)) continue;
+    const next = arr.map((v) => (v === oldVal ? newVal : v));
+    (data.metadata as Record<string, unknown>)[field] = next;
+    await repo.save(id, data);
+    useRegistryStore.getState().updateSessionMetadata(id, { [field]: next } as Partial<SessionMetadata>);
+    touched++;
+  }
+  return touched;
+}
+```
+
+- [ ] **Step 6: Run tests + typecheck**
+
+Run: `pnpm test tests/framework-customization.test.ts && pnpm test && pnpm typecheck`
+Expected: PASS.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add stores/framework-customization.ts lib/framework-config.ts tests/framework-customization.test.ts
-git commit -m "feat(framework): add persisted customization store + active-config merge"
+git add stores/framework-customization.ts lib/framework-config.ts lib/framework-migrate.ts lib/field-schema.ts tests/framework-customization.test.ts
+git commit -m "feat(framework): generalized customization store (fields/options/grades) + rename migration"
 ```
 
 ---
 
-## Task 5: React hooks + wire metadata option consumers
+## Task 4: Consolidate grade definitions to config
 
-The static exports from Task 3 stay (build-time defaults). The live UI must reflect runtime overrides, so the `PillField` option sources and `DisciplineField` switch to hooks that subscribe to the customization store.
+Remove the triplication. `GradeSelector` and `compute-scores` derive from `getActiveFrameworkConfig().grades`.
 
 **Files:**
-- Create: `hooks/useFrameworkConfig.ts`
-- Modify: `components/Metadata.tsx` (3 `PillField` option props)
-- Modify: `components/metadata/DisciplineField.tsx` (option source)
-- Test: `tests/use-framework-config.test.ts`
+- Modify: `components/finalization/GradeSelector.tsx`
+- Modify: `lib/report/compute-scores.ts`
+- Test: `tests/grade-config-consolidation.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `tests/use-framework-config.test.ts`:
+Create `tests/grade-config-consolidation.test.ts`:
 
 ```ts
-import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
-import { useMetadataFieldOptions } from "@/hooks/useFrameworkConfig";
-import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
+import { describe, expect, it } from "vitest";
+import { GRADE_IDS, getActiveFrameworkConfig } from "@/lib/framework-config";
 
-describe("useMetadataFieldOptions", () => {
-  beforeEach(() => {
-    useFrameworkCustomizationStore.getState().resetAll();
+describe("grade definitions are config-driven", () => {
+  it("every FinalizationGrade id has a config definition with color + label", () => {
+    const byId = new Map(getActiveFrameworkConfig().grades.map((g) => [g.id, g]));
+    for (const id of GRADE_IDS) {
+      const g = byId.get(id);
+      expect(g, `grade ${id}`).toBeTruthy();
+      expect(g!.label).toBeTruthy();
+      expect(g!.color).toMatch(/^#/);
+    }
   });
 
-  it("returns default options initially", () => {
-    const { result } = renderHook(() => useMetadataFieldOptions("dataSources"));
-    expect(result.current).toContain("CrossRef");
-  });
-
-  it("reactively includes a newly added option", () => {
-    const { result } = renderHook(() => useMetadataFieldOptions("dataSources"));
-    expect(result.current).not.toContain("Live");
-    act(() => {
-      useFrameworkCustomizationStore.getState().addOption("dataSources", "Live");
-    });
-    expect(result.current).toContain("Live");
+  it("GradeSelector source and compute-scores source agree with config", async () => {
+    const { GRADE_COLORS, GRADE_LABELS } = await import("@/lib/report/compute-scores");
+    for (const g of getActiveFrameworkConfig().grades) {
+      expect(GRADE_COLORS[g.id]).toBe(g.color);
+      expect(GRADE_LABELS[g.id]).toBe(g.label);
+    }
   });
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [ ] **Step 2: Run to verify it fails**
 
-Run: `pnpm test tests/use-framework-config.test.ts`
-Expected: FAIL — hook does not exist.
+Run: `pnpm test tests/grade-config-consolidation.test.ts`
+Expected: FAIL — `GRADE_COLORS`/`GRADE_LABELS` still hardcoded.
 
-- [ ] **Step 3: Create the hooks**
+- [ ] **Step 3: Derive `compute-scores` grade maps from config**
 
-Create `hooks/useFrameworkConfig.ts`:
+In `lib/report/compute-scores.ts`, delete the literal `GRADE_COLORS` and `GRADE_LABELS` objects and replace with config-derived lazy accessors:
 
 ```ts
-import { useMemo } from "react";
-import { getMetadataField } from "@/lib/framework-config";
-import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
+import { getActiveFrameworkConfig } from "@/lib/framework-config";
 
-/** Subscribe to a metadata field's option list, re-rendering when customization changes. */
-export function useMetadataFieldOptions(field: string): string[] {
-  // Subscribe so the hook re-runs on any customization change.
-  useFrameworkCustomizationStore((s) => s.customization);
-  return useMemo(() => [...getMetadataField(field)?.options ?? []], [field]);
+export const GRADE_COLORS: Record<string, string> = Object.fromEntries(
+  getActiveFrameworkConfig().grades.map((g) => [g.id, g.color]),
+);
+export const GRADE_LABELS: Record<string, string> = Object.fromEntries(
+  getActiveFrameworkConfig().grades.map((g) => [g.id, g.label]),
+);
+```
+
+> These are read at module load; if a grade override should affect already-imported report code, the report builders call `getActiveFrameworkConfig()` directly. Acceptable for Plan A (overrides are uncommon mid-export); note as a known limitation.
+
+- [ ] **Step 4: Derive `GradeSelector` from config**
+
+In `components/finalization/GradeSelector.tsx`, delete the `GRADES` and `ENHANCED_GRADES` literal arrays. The Labs `enhancedRecommendation` flag selects which **subset of ids** is shown (core 3 vs all 9). Replace with:
+
+```ts
+import { getActiveFrameworkConfig } from "@/lib/framework-config";
+
+const CORE_GRADE_IDS = ["pass", "conditional", "fail"];
+const ALL_GRADE_IDS = getActiveFrameworkConfig().grades.map((g) => g.id);
+
+export function useGradeOptions(enhanced: boolean) {
+  const ids = enhanced ? ALL_GRADE_IDS : CORE_GRADE_IDS;
+  const byId = new Map(getActiveFrameworkConfig().grades.map((g) => [g.id, g]));
+  return ids.map((id) => byId.get(id)!).filter(Boolean);
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+Render from `useGradeOptions(settings.labs.enhancedRecommendation)`; keep the existing button/styling, just feed `{value: g.id, label: g.label, description: g.description, color: g.color, tint: g.tint}`.
 
-Run: `pnpm test tests/use-framework-config.test.ts`
-Expected: PASS.
+- [ ] **Step 5: Run tests + full suite**
 
-- [ ] **Step 5: Wire `components/Metadata.tsx`**
+Run: `pnpm test && pnpm typecheck`
+Expected: PASS (existing finalization tests still green; grades render identically).
 
-In `components/Metadata.tsx`, replace the static import usage with the hook. Remove `DATA_SOURCE_OPTIONS`, `SEARCH_METHOD_OPTIONS`, `AUTH_METHOD_OPTIONS` from the `@/lib/metadata-options` import, and add a hook import + three calls at the top of the component body:
-
-```ts
-import { useMetadataFieldOptions } from "@/hooks/useFrameworkConfig";
-```
-
-Inside the component function, before the JSX:
-
-```ts
-const dataSources = useMetadataFieldOptions("dataSources");
-const searchMethods = useMetadataFieldOptions("searchMethods");
-const authMethods = useMetadataFieldOptions("authenticationMethod");
-```
-
-Then update the three `PillField` usages:
-- `options={DATA_SOURCE_OPTIONS}` → `options={dataSources}`
-- `options={SEARCH_METHOD_OPTIONS}` → `options={searchMethods}`
-- `options={AUTH_METHOD_OPTIONS}` → `options={authMethods}`
-
-- [ ] **Step 6: Wire `components/metadata/DisciplineField.tsx`**
-
-In `components/metadata/DisciplineField.tsx`: replace the `DISCIPLINE_OPTIONS` import with the hook, and derive `DISCIPLINE_DEFAULT` / `DISCIPLINE_OTHERS` locally. Update imports:
-
-```ts
-import { useMetadataFieldOptions } from "@/hooks/useFrameworkConfig";
-import { MAX_CUSTOM_LENGTH } from "@/lib/metadata-options";
-```
-
-Inside the component:
-
-```ts
-const disciplineOptions = useMetadataFieldOptions("discipline");
-const config = getMetadataField("discipline"); // import getMetadataField from @/lib/framework-config
-const DISCIPLINE_DEFAULT = config?.default ?? "Multidisciplinary";
-const DISCIPLINE_OTHERS = disciplineOptions.filter((d) => d !== DISCIPLINE_DEFAULT);
-```
-
-Replace every `DISCIPLINE_OPTIONS` → `disciplineOptions`, and keep the existing `DISCIPLINE_DEFAULT` / `DISCIPLINE_OTHERS` references pointing at the local consts.
-
-- [ ] **Step 7: Run the full suite + typecheck + lint**
-
-Run: `pnpm test && pnpm typecheck && pnpm check`
-Expected: all PASS, no errors. (The existing `pill-field.test.tsx` and metadata tests must still pass.)
-
-- [ ] **Step 8: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add hooks/useFrameworkConfig.ts components/Metadata.tsx components/metadata/DisciplineField.tsx tests/use-framework-config.test.ts
-git commit -m "feat(framework): wire metadata option consumers to live customization hooks"
+git add components/finalization/GradeSelector.tsx lib/report/compute-scores.ts tests/grade-config-consolidation.test.ts
+git commit -m "refactor(framework): consolidate triplicated grade definitions into config"
 ```
 
 ---
 
-## Task 6: Framework editor UI
+## Task 5: Schema-driven Metadata form
 
-A screen reachable from Settings that lets the user edit each metadata field's option list (add/remove entries) and each grade's label/description, with per-field reset and "reset all". (Import/export buttons are added in Task 7.)
+Refactor `Metadata.tsx` to render from `SchemaForm` instead of hand-written fields. Incremental: keep the existing capture-linking and auto-populate behavior; just source the field list + bindings from the schema.
 
 **Files:**
-- Create: `components/FrameworkEditor.tsx`
-- Modify: `components/SettingsScreen.tsx` (add entry point)
-- Test: `tests/framework-editor.test.tsx`
+- Create: `components/SchemaForm.tsx`
+- Create: `components/field-inputs/SelectInput.tsx` (wraps `PillField`), and thin wrappers for text/textarea/url/boolean/image as needed (reuse existing inputs in `Metadata.tsx`)
+- Modify: `components/Metadata.tsx`
+- Test: `tests/schema-form.test.tsx`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `tests/framework-editor.test.tsx`:
+Create `tests/schema-form.test.tsx`:
 
 ```tsx
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import FrameworkEditor from "@/components/FrameworkEditor";
+import SchemaForm from "@/components/SchemaForm";
 import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
-import { getMetadataFieldOptions } from "@/lib/framework-config";
 import { AllProviders } from "@/tests/helpers/render-utils";
+import type { SessionMetadata } from "@/lib/types";
 
-describe("FrameworkEditor", () => {
+function renderForm() {
+  const session: SessionMetadata = { id: "s1", toolName: "Asta", toolUrl: "https://asta", startTime: "", status: "in-progress" };
+  const onChange = vi.fn();
+  render(
+    <AllProviders>
+      <SchemaForm surface="metadata" session={session} onChange={onChange} />
+    </AllProviders>,
+  );
+  return { session, onChange };
+}
+
+describe("SchemaForm", () => {
   beforeEach(() => useFrameworkCustomizationStore.getState().resetAll());
   afterEach(cleanup);
 
-  it("renders a section per metadata field and the grades section", () => {
-    render(<FrameworkEditor onBack={() => {}} />, { wrapper: AllProviders });
-    expect(screen.getByText(/data sources/i)).toBeTruthy();
-    expect(screen.getByText(/discipline/i)).toBeTruthy();
-    expect(screen.getByText(/finalization grades/i)).toBeTruthy();
+  it("renders all enabled metadata fields grouped", () => {
+    renderForm();
+    expect(screen.getByLabelText(/tool name/i)).toBeTruthy();
+    expect(screen.getByText(/coverage/i)).toBeTruthy(); // group heading
   });
 
-  it("adds a custom option that becomes live in the metadata field", () => {
-    render(<FrameworkEditor onBack={() => {}} />, { wrapper: AllProviders });
-    const input = screen.getByPlaceholderText(/add.*data sources/i);
-    fireEvent.change(input, { target: { value: "Repo X" } });
-    fireEvent.keyDown(input, { key: "Enter" });
-    expect(getMetadataFieldOptions("dataSources")).toContain("Repo X");
+  it("respects a toggled-off field (not rendered)", () => {
+    useFrameworkCustomizationStore.getState().setFieldOverride("pricing", { enabled: false });
+    renderForm();
+    expect(screen.queryByLabelText(/pricing/i)).toBeNull();
   });
 
-  it("edits a grade label", () => {
-    render(<FrameworkEditor onBack={() => {}} />, { wrapper: AllProviders });
-    const passLabelInput = screen.getByLabelText(/label.*pass/i);
-    fireEvent.change(passLabelInput, { target: { value: "Approved" } });
-    expect(
-      useFrameworkCustomizationStore.getState().customization.gradeOverrides.pass?.label,
-    ).toBe("Approved");
+  it("renders a custom-created field", () => {
+    useFrameworkCustomizationStore.getState().addField({
+      id: "region", storageKey: "region", surface: "metadata", label: "Region", type: "text", group: "Identity", order: 99, enabled: true,
+    });
+    renderForm();
+    expect(screen.getByLabelText(/region/i)).toBeTruthy();
   });
 
-  it("reset all clears overrides", () => {
-    useFrameworkCustomizationStore.getState().addOption("dataSources", "Temp");
-    render(<FrameworkEditor onBack={() => {}} />, { wrapper: AllProviders });
-    fireEvent.click(screen.getByRole("button", { name: /reset all/i }));
-    expect(useFrameworkCustomizationStore.getState().hasOverrides()).toBe(false);
+  it("edits propagate via onChange using the storageKey", () => {
+    const { onChange } = renderForm();
+    fireEvent.change(screen.getByLabelText(/company/i), { target: { value: "AI2" } });
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ company: "AI2" }));
   });
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [ ] **Step 2: Run to verify it fails**
 
-Run: `pnpm test tests/framework-editor.test.tsx`
-Expected: FAIL — component does not exist.
+Run: `pnpm test tests/schema-form.test.tsx`
+Expected: FAIL — `SchemaForm` does not exist.
 
-- [ ] **Step 3: Implement the editor**
+- [ ] **Step 3: Build input components**
 
-Create `components/FrameworkEditor.tsx`. Use the existing design tokens (Tailwind utility classes mirroring `SettingsScreen.tsx`):
+Create `components/field-inputs/SelectInput.tsx` (wraps the existing `PillField`):
 
 ```tsx
-import { useState } from "react";
-import { getFrameworkConfig, getMetadataField } from "@/lib/framework-config";
-import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
+import PillField from "@/components/PillField";
+import type { FieldDescriptor } from "@/lib/types";
 
-const FIELDS = ["dataSources", "searchMethods", "discipline", "authenticationMethod"] as const;
+export default function SelectInput({ desc, value, onChange }: { desc: FieldDescriptor; value: string[]; onChange: (v: string[]) => void }) {
+  return (
+    <PillField
+      label={desc.label}
+      options={desc.options ?? []}
+      selected={value}
+      onChange={onChange}
+      placeholder={desc.placeholder ?? `Add ${desc.label}…`}
+      allowCustom={desc.allowCustom ?? true}
+      single={desc.type === "select"}
+    />
+  );
+}
+```
 
-export default function FrameworkEditor({ onBack }: { onBack: () => void }) {
-  const cfg = getFrameworkConfig();
-  const store = useFrameworkCustomizationStore();
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
+Create thin wrappers for the other types by extracting the existing JSX in `Metadata.tsx` (text/textarea/url inputs and the usesAi toggle) into `TextInput.tsx`, `TextAreaInput.tsx`, `UrlInput.tsx`, `BooleanToggle.tsx`, `ImageInput.tsx` under `components/field-inputs/`. Each takes `{ desc, value, onChange }` and renders the same markup `Metadata.tsx` uses today.
 
-  const commitOption = (field: string) => {
-    const v = (drafts[field] ?? "").trim();
-    if (v) store.addOption(field, v);
-    setDrafts((d) => ({ ...d, [field]: "" }));
+- [ ] **Step 4: Build `SchemaForm`**
+
+Create `components/SchemaForm.tsx`:
+
+```tsx
+import { getFieldsBySurface } from "@/lib/field-schema";
+import { getFieldValue, setFieldValue } from "@/lib/field-schema";
+import type { FieldSurface, SessionMetadata } from "@/lib/types";
+import TextInput from "./field-inputs/TextInput";
+import TextAreaInput from "./field-inputs/TextAreaInput";
+import UrlInput from "./field-inputs/UrlInput";
+import BooleanToggle from "./field-inputs/BooleanToggle";
+import SelectInput from "./field-inputs/SelectInput";
+import ImageInput from "./field-inputs/ImageInput";
+
+export default function SchemaForm({
+  surface,
+  session,
+  onChange,
+}: {
+  surface: FieldSurface;
+  session: SessionMetadata;
+  onChange: (next: SessionMetadata) => void;
+}) {
+  const fields = getFieldsBySurface(surface);
+  const groups = new Map<string, typeof fields>();
+  for (const f of fields) {
+    const g = f.group ?? "Other";
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g)!.push(f);
+  }
+
+  const renderField = (desc: (typeof fields)[number]) => {
+    const value = getFieldValue(session, desc) as never;
+    const update = (v: unknown) => {
+      const next = structuredClone(session) as SessionMetadata;
+      setFieldValue(next, desc, v);
+      onChange(next);
+    };
+    switch (desc.type) {
+      case "textarea": return <TextAreaInput key={desc.id} desc={desc} value={value} onChange={update} />;
+      case "url": return <UrlInput key={desc.id} desc={desc} value={value} onChange={update} />;
+      case "boolean": return <BooleanToggle key={desc.id} desc={desc} value={!!value} onChange={update} />;
+      case "image": return <ImageInput key={desc.id} desc={desc} value={value} onChange={update} />;
+      case "select":
+      case "multi-select": return <SelectInput key={desc.id} desc={desc} value={Array.isArray(value) ? value : value ? [value] : []} onChange={update} />;
+      default: return <TextInput key={desc.id} desc={desc} value={value} onChange={update} />;
+    }
   };
 
   return (
-    <div className="flex flex-col gap-ut-4 p-ut-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-heading uppercase text-ut-lg">Customize framework</h2>
-        <button type="button" className="text-ut-sm text-trust-magenta underline" onClick={onBack}>
-          Back to settings
-        </button>
-      </div>
-      <p className="text-ut-sm text-ut-muted">
-        Edit the option lists and grade wording for this framework. Changes are stored locally and
-        apply to new and open reviews. Import/export is on this screen too.
-      </p>
-
-      {FIELDS.map((field) => {
-        const def = getMetadataField(field);
-        const live = cfg.metadataFields[field].options;
-        return (
-          <section key={field} className="border border-ut-border rounded-ut-sm p-ut-3">
-            <h3 className="font-heading uppercase text-ut-sm mb-ut-2">{def?.label ?? field}</h3>
-            <ul className="flex flex-wrap gap-ut-1 mb-ut-2">
-              {live.map((opt) => (
-                <li
-                  key={opt}
-                  className="flex items-center gap-ut-1 border border-ut-border rounded-ut-full px-ut-2 py-ut-1 text-ut-xs"
-                >
-                  <span>{opt}</span>
-                  <button
-                    type="button"
-                    aria-label={`Remove ${opt}`}
-                    className="text-ut-muted hover:text-trust-magenta"
-                    onClick={() => store.removeOption(field, opt)}
-                  >
-                    ×
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <input
-              className="border border-ut-border rounded-ut-sm px-ut-2 py-ut-1 text-ut-sm w-full"
-              list={`${field}-suggestions`}
-              placeholder={`Add ${def?.label ?? field}…`}
-              value={drafts[field] ?? ""}
-              onChange={(e) => setDrafts((d) => ({ ...d, [field]: e.target.value }))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  commitOption(field);
-                }
-              }}
-            />
-            <datalist id={`${field}-suggestions`}>
-              {def?.options.map((o) => <option key={o} value={o} />)}
-            </datalist>
-          </section>
-        );
-      })}
-
-      <section className="border border-ut-border rounded-ut-sm p-ut-3">
-        <h3 className="font-heading uppercase text-ut-sm mb-ut-2">Finalization grades</h3>
-        <div className="flex flex-col gap-ut-2">
-          {cfg.grades.map((g) => {
-            const live = getFrameworkConfig().grades.find((x) => x.id === g.id) ?? g;
-            return (
-              <div key={g.id} className="flex flex-col gap-ut-1">
-                <label className="text-ut-xs text-ut-muted" htmlFor={`label-${g.id}`}>
-                  Label — {g.id}
-                </label>
-                <input
-                  id={`label-${g.id}`}
-                  className="border border-ut-border rounded-ut-sm px-ut-2 py-ut-1 text-ut-sm"
-                  value={live.label}
-                  onChange={(e) => store.setGradeOverride(g.id, { label: e.target.value })}
-                />
-                <textarea
-                  className="border border-ut-border rounded-ut-sm px-ut-2 py-ut-1 text-ut-sm"
-                  rows={2}
-                  value={live.description}
-                  onChange={(e) => store.setGradeOverride(g.id, { description: e.target.value })}
-                />
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <div className="flex gap-ut-2">
-        <button
-          type="button"
-          className="text-ut-sm border border-ut-border rounded-ut-sm px-ut-3 py-ut-1"
-          onClick={() => store.resetAll()}
-        >
-          Reset all
-        </button>
-      </div>
+    <div className="flex flex-col gap-ut-4">
+      {[...groups.entries()].map(([group, flds]) => (
+        <section key={group}>
+          <h3 className="font-heading uppercase text-ut-xs text-ut-muted mb-ut-2">{group}</h3>
+          <div className="flex flex-col gap-ut-3">{flds.map(renderField)}</div>
+        </section>
+      ))}
     </div>
   );
 }
 ```
 
-> The grade label/description inputs use `getFrameworkConfig()` (defaults) as their base display value; the store override is written on change. `aria-label`s match the test selectors. Refine class names to match the project's actual Tailwind utility naming if `rounded-ut-full` differs — verify with `grep 'rounded-ut' components/`.
+- [ ] **Step 5: Refactor `Metadata.tsx` to use `SchemaForm`**
 
-- [ ] **Step 4: Wire the entry point in Settings**
+In `components/Metadata.tsx`, replace the hand-written field JSX with `<SchemaForm surface="metadata" session={session} onChange={(next) => updateMetadata(next)} />`. Preserve the non-field chrome that stays (e.g. the capture-linking UI for captureable fields, tool-profile auto-detect button) by keeping those as siblings or passing a render-prop; the captureable-field evidence linking can stay in `ImageInput`/`UrlInput` via an `onCapture` callback threaded from `Metadata.tsx`. Run `grep -n 'DATA_SOURCE_OPTIONS\|SEARCH_METHOD_OPTIONS\|AUTH_METHOD_OPTIONS\|captureForMetadataField' components/Metadata.tsx` to confirm no stale static imports remain.
 
-In `components/SettingsScreen.tsx`, add a button that swaps to the editor. Add a `useState` for the sub-view and a render branch (mirroring how `SettingsScreen` already toggles sub-screens if any exist; otherwise add a simple local state):
-
-```tsx
-import { useState } from "react";
-import FrameworkEditor from "./FrameworkEditor";
-
-// inside the component:
-const [editingFramework, setEditingFramework] = useState(false);
-if (editingFramework) return <FrameworkEditor onBack={() => setEditingFramework(false)} />;
-```
-
-Add a button in the settings body:
-
-```tsx
-<button
-  type="button"
-  className="w-full text-left border border-ut-border rounded-ut-sm px-ut-3 py-ut-2 hover:border-trust-magenta"
-  onClick={() => setEditingFramework(true)}
->
-  Customize framework
-</button>
-```
-
-- [ ] **Step 5: Run tests to verify they pass**
-
-Run: `pnpm test tests/framework-editor.test.tsx`
-Expected: PASS.
-
-- [ ] **Step 6: Run full suite + typecheck + lint**
+- [ ] **Step 6: Run tests + full suite + typecheck**
 
 Run: `pnpm test && pnpm typecheck && pnpm check`
-Expected: all PASS.
+Expected: PASS. The existing `pill-field.test.tsx` and any metadata tests still green (behavior unchanged; fields now schema-sourced).
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add components/FrameworkEditor.tsx components/SettingsScreen.tsx tests/framework-editor.test.tsx
-git commit -m "feat(framework): add in-extension framework editor"
+git add components/SchemaForm.tsx components/field-inputs/ components/Metadata.tsx tests/schema-form.test.tsx
+git commit -m "feat(framework): schema-driven metadata form"
 ```
 
 ---
 
-## Task 7: Import / export customization
+## Task 6: Finalization free-text fields via schema
 
-Adds export-to-JSON-file and import-from-JSON-file buttons to the editor, completing the community-sharing loop.
+Wire `conclusion`, `strengths`, `weaknesses`, `recommendations` through `SchemaForm` (surface `finalization`). `strengths`/`weaknesses` render as multi-select pill fields backed by the existing `BulletListEditor` behavior.
 
 **Files:**
-- Modify: `components/FrameworkEditor.tsx`
-- Test: extend `tests/framework-editor.test.tsx`
+- Modify: `components/FinalizationScreen.tsx`
+- Test: extend `tests/schema-form.test.tsx`
 
-- [ ] **Step 1: Add failing tests**
+- [ ] **Step 1: Add a finalization-surface test**
 
-Append to `tests/framework-editor.test.tsx`:
+Append to `tests/schema-form.test.tsx`:
 
 ```tsx
-import { getMetadataFieldOptions } from "@/lib/framework-config";
-
-it("exports the customization as a downloadable JSON blob", () => {
-  useFrameworkCustomizationStore.getState().addOption("dataSources", "Shared");
-  const urlCreations: string[] = [];
-  const origCreate = URL.createObjectURL;
-  URL.createObjectURL = (b: Blob) => {
-    urlCreations.push("created");
-    return "blob:mock";
-  };
-  const revoke = URL.revokeObjectURL;
-  URL.revokeObjectURL = () => {};
-  const anchorClick = HTMLAnchorElement.prototype.click;
-  HTMLAnchorElement.prototype.click = () => {};
-
-  render(<FrameworkEditor onBack={() => {}} />, { wrapper: AllProviders });
-  fireEvent.click(screen.getByRole("button", { name: /export customization/i }));
-  expect(urlCreations).toHaveLength(1);
-
-  URL.createObjectURL = origCreate;
-  URL.revokeObjectURL = revoke;
-  HTMLAnchorElement.prototype.click = anchorClick;
-});
-
-it("imports a customization from a JSON file", async () => {
-  const payload = {
-    extraOptions: { dataSources: ["Imported"] },
-    hiddenOptions: {},
-    gradeOverrides: {},
-  };
-  render(<FrameworkEditor onBack={() => {}} />, { wrapper: AllProviders });
-  const input = screen.getByLabelText(/import customization/i) as HTMLInputElement;
-  fireEvent.change(input, {
-    target: { files: [new File([JSON.stringify(payload)], "cust.json", { type: "application/json" })] },
-  });
-  // let the async FileReader / JSON.parse settle
-  await Promise.resolve();
-  expect(getMetadataFieldOptions("dataSources")).toContain("Imported");
-});
-
-it("shows an error toast on malformed import", async () => {
-  render(<FrameworkEditor onBack={() => {}} />, { wrapper: AllProviders });
-  const input = screen.getByLabelText(/import customization/i) as HTMLInputElement;
-  fireEvent.change(input, {
-    target: { files: [new File(["{not json", "bad.json", { type: "application/json" }])] },
-  });
-  await Promise.resolve();
-  expect(await screen.findByText(/could not import/i)).toBeTruthy();
+it("renders finalization free-text fields from the schema", () => {
+  const fin = { conclusion: "", grade: "pass", strengths: [], weaknesses: [], recommendations: "", finalizedAt: "" };
+  render(
+    <AllProviders>
+      <SchemaForm surface="finalization" session={fin as any} onChange={() => {}} />
+    </AllProviders>,
+  );
+  expect(screen.getByLabelText(/conclusion/i)).toBeTruthy();
+  expect(screen.getByLabelText(/strengths/i)).toBeTruthy();
+  expect(screen.getByLabelText(/recommendations/i)).toBeTruthy();
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+> `SchemaForm` currently types `session` as `SessionMetadata`. Generalize its props to accept `SessionMetadata | ReviewFinalization` (both are plain record-like objects) by loosening the prop type to `Record<string, unknown>` internally and casting at the binding layer. Update the test's `onChange` expectation accordingly.
 
-Run: `pnpm test tests/framework-editor.test.tsx`
-Expected: FAIL — no export/import buttons.
+- [ ] **Step 2: Run to verify it fails** → `pnpm test tests/schema-form.test.tsx` → FAIL.
 
-- [ ] **Step 3: Add export/import handlers + buttons**
+- [ ] **Step 3: Generalize + wire `FinalizationScreen`**
 
-In `components/FrameworkEditor.tsx`, add the handlers and two buttons in the bottom action row:
+Loosen `SchemaForm`'s `session` prop to `Record<string, unknown>`; `getFieldValue`/`setFieldValue` already operate on `Record`-like objects. In `components/FinalizationScreen.tsx`, replace the hand-written conclusion/strengths/weaknesses/recommendations inputs with `<SchemaForm surface="finalization" session={finalization} onChange={setFinalization} />`. Keep the grade selector (Task 4 already config-driven) and the export-actions section as-is.
 
-```tsx
-function downloadJSON(filename: string, data: unknown) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+- [ ] **Step 4: Run tests + full suite** → `pnpm test && pnpm typecheck` → PASS.
 
-// inside the component:
-const onImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  file
-    .text()
-    .then((txt) => {
-      try {
-        store.importCustomization(JSON.parse(txt));
-      } catch {
-        toastError("Could not import customization file — invalid JSON.");
+- [ ] **Step 5: Commit**
+
+```bash
+git add components/SchemaForm.tsx components/FinalizationScreen.tsx tests/schema-form.test.tsx
+git commit -m "feat(framework): finalization free-text fields via schema"
+```
+
+---
+
+## Task 7: Fix the registry / options mismatch
+
+Align `data/tools/registry.json` default values with the field option-lists so auto-populated values are never orphan "custom" pills. `detectToolProfile` already maps `autoPopulateKey` → storage key; the field schema now owns the canonical option spelling.
+
+**Files:**
+- Modify: `data/tools/registry.json`
+- Modify: `lib/tool-profiles.ts` (if it hardcodes option strings)
+- Test: `tests/tool-profile-options.test.ts`
+
+- [ ] **Step 1: Write the failing test**
+
+Create `tests/tool-profile-options.test.ts`:
+
+```ts
+import { describe, expect, it } from "vitest";
+import tools from "@/data/tools/registry.json";
+import { getFrameworkConfig } from "@/lib/framework-config";
+
+describe("registry defaults match field option-lists", () => {
+  const optionFields = new Map(
+    getFrameworkConfig().fields.filter((f) => f.options).map((f) => [f.autoPopulateKey ?? f.storageKey, f.options!]),
+  );
+
+  for (const tool of tools) {
+    for (const [key, value] of Object.entries(tool.defaults ?? {})) {
+      const allowed = optionFields.get(key);
+      if (!allowed || value == null) continue;
+      const vals = Array.isArray(value) ? value : [value];
+      for (const v of vals) {
+        it(`${tool.name}: "${v}" is a valid option for ${key}`, () => {
+          expect(allowed).toContain(v);
+        });
       }
-    })
-    .catch(() => toastError("Could not import customization file."));
-  e.target.value = "";
-};
+    }
+  }
+});
 ```
 
-Add `import { toastError } from "@/stores/toast";` at the top. In the bottom action `<div className="flex gap-ut-2">`:
+- [ ] **Step 2: Run to verify it fails**
+
+Run: `pnpm test tests/tool-profile-options.test.ts`
+Expected: FAIL — e.g. Semantic Scholar `searchMethods: ["Semantic search", "Keyword search"]` vs canonical `"Keywords"`.
+
+- [ ] **Step 3: Align registry values**
+
+In `data/tools/registry.json`, edit every `defaults.{dataSources,searchMethods,discipline,authenticationMethod}` value to match the canonical spelling in `data/framework/trust-framework.json` (e.g. `"Keyword search"` → `"Keywords"`, `"Semantic search"` stays). Re-run the test until green.
+
+- [ ] **Step 4: Run full suite** → `pnpm test && pnpm typecheck` → PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add data/tools/registry.json tests/tool-profile-options.test.ts
+git commit -m "fix(framework): align tool-profile defaults with field option-lists"
+```
+
+---
+
+## Task 8: Full FieldEditor UI
+
+Settings → "Customize fields": per-surface (Metadata / Finalization / Settings) editable field list (toggle on/off, edit label/placeholder/help/required, create new field, remove custom, reorder up/down), option-list edit-in-place (add/rename/remove with rename-migration for shipped defaults), and a grade text/color editor. Plus export/import.
+
+**Files:**
+- Create: `components/FieldEditor.tsx`
+- Modify: `components/SettingsScreen.tsx` (entry point)
+- Test: `tests/field-editor.test.tsx`
+
+- [ ] **Step 1: Write the failing test**
+
+Create `tests/field-editor.test.tsx` (sketch — assert the key flows: toggle, edit label, add custom field, reorder, rename option triggers migration, export/import):
 
 ```tsx
-<button
-  type="button"
-  className="text-ut-sm border border-ut-border rounded-ut-sm px-ut-3 py-ut-1"
-  onClick={() => downloadJSON("trust-framework-customization.json", store.exportCustomization())}
->
-  Export customization
-</button>
-<label className="text-ut-sm border border-ut-border rounded-ut-sm px-ut-3 py-ut-1 cursor-pointer">
-  Import customization
-  <input type="file" accept="application/json,.json" hidden onChange={onImport} />
-</label>
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import FieldEditor from "@/components/FieldEditor";
+import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
+import { AllProviders } from "@/tests/helpers/render-utils";
+
+describe("FieldEditor", () => {
+  beforeEach(() => useFrameworkCustomizationStore.getState().resetAll());
+  afterEach(cleanup);
+
+  it("toggles a field off", () => {
+    render(<FieldEditor onBack={() => {}} />, { wrapper: AllProviders });
+    fireEvent.click(screen.getByRole("switch", { name: /enable pricing/i }));
+    expect(useFrameworkCustomizationStore.getState().customization.fieldOverrides.pricing?.enabled).toBe(false);
+  });
+
+  it("edits a field label in place", () => {
+    render(<FieldEditor onBack={() => {}} />, { wrapper: AllProviders });
+    fireEvent.change(screen.getByLabelText(/label.*company/i), { target: { value: "Vendor" } });
+    expect(useFrameworkCustomizationStore.getState().customization.fieldOverrides.company?.label).toBe("Vendor");
+  });
+
+  it("creates a custom field", () => {
+    render(<FieldEditor onBack={() => {}} />, { wrapper: AllProviders });
+    fireEvent.change(screen.getByPlaceholderText(/new field label/i), { target: { value: "Region" } });
+    fireEvent.click(screen.getByRole("button", { name: /add field/i }));
+    expect(useFrameworkCustomizationStore.getState().customization.customFields.some((f) => f.label === "Region")).toBe(true);
+  });
+
+  it("renaming a shipped option calls migrateOptionRename", () => {
+    const migrate = vi.fn().mockResolvedValue(0);
+    vi.doMock("@/lib/framework-migrate", () => ({ migrateOptionRename: migrate }));
+    render(<FieldEditor onBack={() => {}} />, { wrapper: AllProviders });
+    fireEvent.change(screen.getByDisplayValue("CrossRef"), { target: { value: "Crossref API" } });
+    fireEvent.blur(screen.getByDisplayValue("Crossref API"));
+    expect(migrate).toHaveBeenCalledWith("dataSources", "CrossRef", "Crossref API");
+  });
+
+  it("exports and imports customization", () => {
+    useFrameworkCustomizationStore.getState().setFieldOverride("pricing", { label: "Cost" });
+    render(<FieldEditor onBack={() => {}} />, { wrapper: AllProviders });
+    fireEvent.click(screen.getByRole("button", { name: /export customization/i }));
+    // (assert URL.createObjectURL called — pattern from prior draft)
+  });
+});
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [ ] **Step 2: Run to verify it fails** → `pnpm test tests/field-editor.test.tsx` → FAIL.
 
-Run: `pnpm test tests/framework-editor.test.tsx`
-Expected: PASS (including the 3 new tests).
+- [ ] **Step 3: Implement `FieldEditor`**
 
-- [ ] **Step 5: Run full suite + typecheck + lint**
+Create `components/FieldEditor.tsx`. For each surface, iterate `getFields()` (all, incl. disabled) grouped; each row: enabled toggle (switch), label input (in-place → `setFieldOverride(id,{label})`), placeholder/help/required inputs, ↑/↓ reorder buttons (`setFieldOverride(id,{order})`), and for custom fields a remove button (`removeCustomField`). For select/multi-select fields, render an editable options sub-list: each option in an `<input>` (blur → `renameOption` + `migrateOptionRename` when shipped), a × (`hideOption` if shipped / `removeOption` if custom), and an add row (`addOption`). A grades section edits each grade's label/description/color/tint (`setGradeOverride`). Footer: Reset all, Export customization, Import customization (file input → `importCustomization`). Reuse the `downloadJSON` + import-file helpers from the prior draft's Task 7.
+
+> The rename handler decides migration: if the option is a shipped default (check `getFrameworkConfig().fields...options`), call `migrateOptionRename` after `renameOption`; custom options skip migration. This is the edit-in-place abstraction — the user just edits the text; the backend routes to add/hide/rename/migrate.
+
+- [ ] **Step 4: Wire entry point**
+
+In `components/SettingsScreen.tsx`, add `const [editing, setEditing] = useState(false)` and a render branch returning `<FieldEditor onBack={() => setEditing(false)} />`, plus a "Customize fields" button.
+
+- [ ] **Step 5: Run tests + full suite + typecheck + lint**
 
 Run: `pnpm test && pnpm typecheck && pnpm check`
-Expected: all PASS.
+Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add components/FrameworkEditor.tsx tests/framework-editor.test.tsx
-git commit -m "feat(framework): import/export framework customization as JSON"
+git add components/FieldEditor.tsx components/SettingsScreen.tsx tests/field-editor.test.tsx
+git commit -m "feat(framework): full field editor (toggle/edit/create/reorder/options/grades) + import/export"
 ```
 
 ---
 
-## Task 8: Docs + CHANGELOG
+## Task 9: Docs + CHANGELOG
 
-**Files:**
-- Modify: `CLAUDE.md` (rubric-structure section → mention framework config)
-- Modify: `CHANGELOG.md` (unreleased entry)
+- [ ] **Step 1: Update `CLAUDE.md`** — document the field-schema layer (`data/framework/trust-framework.json` `fields`), `SchemaForm`, the customization store, and the Settings → Customize fields entry. Note that grade definitions are now config-driven and the FinalizationGrade id union is still the type contract (Plan B loosens it).
 
-- [ ] **Step 1: Update CLAUDE.md architecture section**
-
-In `CLAUDE.md`, under the "Key Decisions" / "Rubric Structure" area, add a bullet and a short subsection documenting the new config layer:
-
-```markdown
-- Framework content (principles, quality-gate category codes, grade definitions, metadata
-  option-lists) is data-driven via `data/framework/trust-framework.json`, accessed through
-  `lib/framework-config.ts`. User customizations persist via `stores/framework-customization.ts`
-  and are editable in Settings → Customize framework.
-```
-
-- [ ] **Step 2: Add CHANGELOG entry**
-
-In `CHANGELOG.md`, under the top unreleased section (create one if absent):
+- [ ] **Step 2: Add CHANGELOG entry** (unreleased):
 
 ```markdown
 ### New
-- **Framework customization (Labs)** — the metadata option-lists (data sources, search methods,
-  disciplines, authentication methods) and finalization grade labels/descriptions are now
-  data-driven (`data/framework/trust-framework.json`) and editable in-extension via Settings →
-  Customize framework. Customizations persist locally and can be imported/exported as JSON for
-  sharing. Principles, quality-gate codes, and accent maps are now derived from this config too.
+- **Schema-driven, customizable review fields (Labs)** — every entry field (metadata, finalization, settings) is
+  now described by a declarative `FieldDescriptor` schema and rendered from it. Settings → Customize fields lets
+  reviewers toggle fields on/off, edit labels/placeholders, create new fields, reorder, edit option-lists in place
+  (with rename migration of existing reviews), and edit grade wording/color. Customizations persist locally and
+  export/import as JSON. Grade definitions are consolidated into one config source. Tool-profile auto-populate
+  values are aligned to the canonical option spellings.
 ```
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git add CLAUDE.md CHANGELOG.md
-git commit -m "docs(framework): document framework config + customization"
+git commit -m "docs(framework): document schema-driven field layer"
 ```
 
 ---
 
-## Definition of Done (this plan)
+## Definition of Done
 
-- [ ] `pnpm test` green, coverage not below the ratcheted thresholds (73/66/66/75).
-- [ ] `pnpm typecheck` and `pnpm check` (biome) clean.
-- [ ] A reviewer can open Settings → Customize framework, add a custom data source, rename a grade's label, and see both reflected in an open review's Metadata and Finalization screens.
-- [ ] Export → import of a customization JSON round-trips on a fresh profile.
-- [ ] No downstream export pipeline / report / comparison behavior changed (they consume the same stable exports).
+- [ ] `pnpm test` green; coverage ≥ ratcheted thresholds (73/66/66/75).
+- [ ] `pnpm typecheck` + `pnpm check` clean.
+- [ ] A reviewer can, from Settings → Customize fields: turn the "Pricing" field off, rename the "Company" field to "Vendor", add a custom "Region" text field, reorder a group, rename "CrossRef"→"Crossref API" (and an existing review using CrossRef follows), and edit the "Pass" grade label/color — all reflected live in Metadata/Finalization.
+- [ ] Export → import round-trips on a fresh profile.
+- [ ] No scoring/export/report regression (field-iterative report sections adapt automatically; grade maps derive from config).
 - [ ] CLAUDE.md + CHANGELOG updated.
 
-## Follow-up plans (not in scope here)
+## Shared plumbing handed off to Plan B
 
-- **Plan B — Framework modularity, full:** grade-ID authoring (extends `FinalizationGrade`), rubric-question authoring, rubric/pack versioning + migration via `lib/migrations.ts`, branding/theming extraction (logos, `--trust-magenta`, TRUST literals in `report.css`/`sanitize.ts`/print headers).
-- **Plan C — Consensus comparison app (#4):** new static offline app under `consensus/` (replicating the `web/` → `site/try/` build pattern → `site/consensus/`), a `ConsensusModel` that mirrors finalization's expert-overrides-scores pattern (manual consensus, tool highlights agreement/diffs across 2–3 reviews), and an exportable standalone consensus-report HTML.
-
-## Self-Review Notes
-
-- **Spec coverage:** issue #5's "make all content easily user-modifiable by editing plain .json files" → Task 1 (JSON). "interface inside the extension to easily modify the .json files" + "export/import" → Tasks 4–7. "name their question set, and export/import them" → Task 7 (customization-level; full pack naming is Plan B). The issue's broader repo-split and full-rubric-authoring goals are explicitly scoped to Plan B with a stated reason.
-- **Type consistency:** `FrameworkConfig` / `FrameworkPrinciple` / `FrameworkGrade` / `FrameworkMetadataField` defined once (Task 1) and reused everywhere. Accessor names (`getPrinciples`, `getGradeDefinitions`, `getMetadataField`, `getMetadataFieldOptions`, `getQGCategoryCode`, `getAccentKey`, `getCategoryLabel`) are identical across Tasks 2–6. Store method names (`addOption`/`removeOption`/`hideOption`/`setGradeOverride`/`resetField`/`resetGrades`/`resetAll`/`hasOverrides`/`exportCustomization`/`importCustomization`) are identical across Tasks 4–7.
-- **Placeholder scan:** the only `<copy from GradeSelector.tsx>` markers are an explicit transcription instruction for real strings that live in that file (not invented content); a grep gate in Task 1 Step 3 enforces none ship as literal angle-bracket placeholders.
+Plan B reuses, unchanged: the `FieldDescriptor` model + accessors, `SchemaForm` + `field-inputs/`, the customization store (extended for rubric/principle/grade-id overrides), `framework-migrate.ts` (extended for question-key renames), the editor framework (`FieldEditor` patterns → `RubricEditor`), and the import/export plumbing (extended to a full pack).
