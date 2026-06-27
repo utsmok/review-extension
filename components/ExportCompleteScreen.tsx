@@ -16,7 +16,7 @@ interface ExportCompleteScreenProps {
 
 function gradeLabel(finalization: ReviewFinalization | null): string {
   if (!finalization) return "";
-  return GRADE_LABELS[finalization.grade] ?? finalization.grade;
+  return GRADE_LABELS()[finalization.grade] ?? finalization.grade;
 }
 
 function gradeColorClass(finalization: ReviewFinalization | null): string {

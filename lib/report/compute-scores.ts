@@ -6,34 +6,17 @@ import {
   REPORT_SCORE_COLORS,
 } from "../rubric";
 import type { Evaluation, ReviewFinalization, RubricData } from "../types";
+import { getActiveFrameworkConfig } from "@/lib/framework-config";
 
 /** Average score below which a principle is considered failed. */
 const PRINCIPLE_FAIL_THRESHOLD = 1.0;
 /** Ratio of actual-to-max score below which overall evaluation is considered failed. */
 const OVERALL_FAIL_RATIO = 0.6;
 
-const GRADE_COLORS: Record<string, string> = {
-  pass: REPORT_SCORE_COLORS[3],
-  conditional: REPORT_SCORE_COLORS[1],
-  fail: REPORT_SCORE_COLORS[0],
-  recommended: REPORT_SCORE_COLORS[3],
-  recommended_with_caveats: REPORT_SCORE_COLORS[2],
-  needs_review: REPORT_SCORE_COLORS[1],
-  pilot_only: "#b45309",
-  not_recommended: REPORT_SCORE_COLORS[0],
-  out_of_scope: "#4c5e74",
-};
-export const GRADE_LABELS: Record<string, string> = {
-  pass: "RECOMMENDED",
-  conditional: "CAUTION",
-  fail: "NOT RECOMMENDED",
-  recommended: "RECOMMENDED",
-  recommended_with_caveats: "RECOMMENDED WITH CAVEATS",
-  needs_review: "NEEDS REVIEW",
-  pilot_only: "PILOT ONLY",
-  not_recommended: "NOT RECOMMENDED",
-  out_of_scope: "OUT OF SCOPE",
-};
+export const GRADE_COLORS = (): Record<string, string> =>
+  Object.fromEntries(getActiveFrameworkConfig().grades.map((g) => [g.id, g.reportColor]));
+export const GRADE_LABELS = (): Record<string, string> =>
+  Object.fromEntries(getActiveFrameworkConfig().grades.map((g) => [g.id, g.reportLabel]));
 const MUTED_COLOR = "#4c5e74";
 
 export interface ReportScores {
@@ -122,8 +105,8 @@ export function computeReportScores(
   let verdict: string;
   let verdictColor: string;
   if (finalization) {
-    verdict = GRADE_LABELS[finalization.grade] ?? finalization.grade.toUpperCase();
-    verdictColor = GRADE_COLORS[finalization.grade] ?? "#4f5e73";
+    verdict = GRADE_LABELS()[finalization.grade] ?? finalization.grade.toUpperCase();
+    verdictColor = GRADE_COLORS()[finalization.grade] ?? "#4f5e73";
   } else if (noEvaluation) {
     verdict = "NOT EVALUATED";
     verdictColor = MUTED_COLOR;

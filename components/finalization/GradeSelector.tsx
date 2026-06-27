@@ -1,87 +1,26 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useLabs } from "@/hooks/useLabs";
 import type { FinalizationGrade } from "@/lib/types";
+import { getActiveFrameworkConfig } from "@/lib/framework-config";
 
-const GRADES: {
-  value: FinalizationGrade;
-  label: string;
-  description: string;
-  color: string;
-  tint: string;
-}[] = [
-  {
-    value: "pass",
-    label: "Pass",
-    description: "Meets TRUST standards for institutional recommendation",
-    color: "bg-ut-green",
-    tint: "bg-grade-pass-tint",
-  },
-  {
-    value: "conditional",
-    label: "Conditional",
-    description: "Acceptable with documented caveats",
-    color: "bg-score-1-strong",
-    tint: "bg-grade-conditional-tint",
-  },
-  {
-    value: "fail",
-    label: "Fail",
-    description: "Does not meet minimum standards",
-    color: "bg-ut-red",
-    tint: "bg-grade-fail-tint",
-  },
-];
+const CORE_GRADE_IDS = ["pass", "conditional", "fail"] as const;
+const ALL_GRADE_IDS = [
+  "pass", "conditional", "fail",
+  "recommended", "recommended_with_caveats", "needs_review",
+  "pilot_only", "not_recommended", "out_of_scope",
+] as const;
 
-const ENHANCED_GRADES: {
-  value: FinalizationGrade;
-  label: string;
-  description: string;
-  color: string;
-  tint: string;
-}[] = [
-  {
-    value: "recommended",
-    label: "Recommended",
-    description: "Exceeds TRUST standards",
-    color: "bg-ut-green",
-    tint: "bg-grade-pass-tint",
-  },
-  {
-    value: "recommended_with_caveats",
-    label: "With Caveats",
-    description: "Recommended with documented limitations",
-    color: "bg-score-1-strong",
-    tint: "bg-grade-conditional-tint",
-  },
-  {
-    value: "needs_review",
-    label: "Needs Review",
-    description: "Insufficient evidence for recommendation",
-    color: "bg-ut-muted",
-    tint: "bg-gray-100",
-  },
-  {
-    value: "pilot_only",
-    label: "Pilot Only",
-    description: "Suitable only for limited pilot use",
-    color: "bg-amber-600",
-    tint: "bg-amber-50",
-  },
-  {
-    value: "not_recommended",
-    label: "Not Recommended",
-    description: "Does not meet minimum standards",
-    color: "bg-ut-red",
-    tint: "bg-grade-fail-tint",
-  },
-  {
-    value: "out_of_scope",
-    label: "Out of Scope",
-    description: "Falls outside TRUST evaluation criteria",
-    color: "bg-gray-500",
-    tint: "bg-gray-100",
-  },
-];
+function getGradeOptions(enhanced: boolean) {
+  const ids = enhanced ? ALL_GRADE_IDS : CORE_GRADE_IDS;
+  const byId = new Map(getActiveFrameworkConfig().grades.map((g) => [g.id, g]));
+  return ids.map((id) => byId.get(id)!).filter(Boolean).map((g) => ({
+    value: g.id as FinalizationGrade,
+    label: g.label,
+    description: g.description,
+    color: g.color,
+    tint: g.tint,
+  }));
+}
 
 interface GradeSelectorProps {
   grade: FinalizationGrade | "";
@@ -90,7 +29,7 @@ interface GradeSelectorProps {
 
 export default function GradeSelector({ grade, onGradeChange }: GradeSelectorProps) {
   const labs = useLabs();
-  const grades = labs.enhancedRecommendation ? ENHANCED_GRADES : GRADES;
+  const grades = useMemo(() => getGradeOptions(!!labs.enhancedRecommendation), [!!labs.enhancedRecommendation]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
