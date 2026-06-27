@@ -43,6 +43,8 @@ export interface SessionMetadata {
   authenticationMethod?: string;
   notes?: string;
   finalizedAt?: string;
+  /** User-created (schema-customized) field values keyed by FieldDescriptor.storageKey. */
+  customFields?: Record<string, unknown>;
 }
 
 /** Full session data as stored in IndexedDB and exported ZIP (session.json). */
@@ -112,6 +114,68 @@ export interface ReviewFinalization {
 export type PassFailScore = QualityGateScore;
 /** Alias for scoring rubric scores (semantic clarity at call sites). */
 export type RubricScore = ScoringScore;
+
+/** Input type for a schema-driven entry field. */
+export type FieldType =
+  | "text"
+  | "textarea"
+  | "url"
+  | "email"
+  | "boolean"
+  | "select"
+  | "multi-select"
+  | "image";
+
+/** Which object a field's value is stored on. */
+export type FieldSurface = "metadata" | "finalization" | "settings";
+
+/** Declarative description of one user-entry field. Drives SchemaForm + the editor. */
+export interface FieldDescriptor {
+  /** Stable identifier; also the customization key. Builtin ids match the storage key. */
+  id: string;
+  /** Key on the storage object (SessionMetadata / ReviewFinalization / Settings). */
+  storageKey: string;
+  surface: FieldSurface;
+  label: string;
+  placeholder?: string;
+  helpText?: string;
+  type: FieldType;
+  /** Options for select/multi-select. */
+  options?: string[];
+  /** Default option for select (e.g. discipline default). */
+  defaultOption?: string;
+  maxLength?: number;
+  required?: boolean;
+  /** Allow free-text custom entries in select/multi-select (default true). */
+  allowCustom?: boolean;
+  /** Form grouping label (e.g. "Profile", "Access", "Coverage"). */
+  group?: string;
+  /** Display order within the group. */
+  order: number;
+  /** Toggle the field on/off in the form. */
+  enabled: boolean;
+  /** Supports screenshot evidence linking (toolLogoUrl, termsConditionsUrl). */
+  captureable?: boolean;
+  /** data/tools/registry.json `defaults` key for auto-population. */
+  autoPopulateKey?: string;
+  /** True when this field was user-created (not shipped). */
+  custom?: boolean;
+}
+
+/** A grade definition with both UI (Tailwind) and report (hex) representations. */
+export interface FrameworkGrade {
+  id: string;
+  label: string;
+  description: string;
+  /** Tailwind class for UI button (e.g. "bg-ut-green"). */
+  color: string;
+  /** Tailwind class for UI tint (e.g. "bg-grade-pass-tint"). */
+  tint: string;
+  /** Hex color for exported report (e.g. "#3d7249"). */
+  reportColor: string;
+  /** Uppercase label for exported report (e.g. "RECOMMENDED"). */
+  reportLabel: string;
+}
 
 export interface PassFailQuestion {
   readonly type: "pass_fail";
