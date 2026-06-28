@@ -6,6 +6,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import FieldEditor from "@/components/FieldEditor";
 import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
 
+/** Helper: click an EditableText display, type new text, blur to commit. */
+function editEditableField(displayEl: HTMLElement, newText: string) {
+  fireEvent.click(displayEl);
+  const input = screen.getByTestId("editable-text-input");
+  fireEvent.change(input, { target: { value: newText } });
+  fireEvent.blur(input);
+}
+
 describe("FieldEditor", () => {
   const onBack = vi.fn();
 
@@ -76,24 +84,20 @@ describe("FieldEditor", () => {
     // All shipped fields should have checkboxes (at least the metadata ones)
     const checkboxes = screen.getAllByRole("checkbox");
     expect(checkboxes.length).toBeGreaterThan(0);
-    // Fields start collapsed — no expanded details visible by default
-    // The "Label" LabeledField inside CollapsibleRow should not be visible
-    // since rows are collapsed
-    const labelFields = screen.queryAllByText("Label");
-    // These "Label" text instances are from LabeledField inside CollapsibleRow children
-    // Since collapsed, there should be none visible
-    expect(labelFields.length).toBe(0);
+    // Fields start collapsed — the "Preview" caption inside CollapsibleRow should not be visible
+    const previewCaptions = screen.queryAllByText("Preview");
+    expect(previewCaptions.length).toBe(0);
   });
+
   it("expands a field row when its summary is clicked", () => {
     render(<FieldEditor onBack={onBack} />);
-    // Find a collapsed CollapsibleRow by data-testid and click its toggle button
     const row = screen.getByTestId("field-row-toolName");
     expect(row.getAttribute("data-open")).toBe("false");
     const toggle = row.querySelector('button[aria-expanded="false"]')!;
     fireEvent.click(toggle);
     expect(row.getAttribute("data-open")).toBe("true");
-    // After expanding, the "Label" LabeledField should be visible
-    expect(screen.getByText("Label")).toBeDefined();
+    // After expanding, the "Preview" caption and the field preview should be visible
+    expect(screen.getByTestId("field-preview-toolName")).toBeDefined();
   });
 
   it("shows field rows with move up/down controls", () => {
@@ -119,8 +123,7 @@ describe("FieldEditor", () => {
 
   it("shows select/multi-select fields with options inside expanded rows", () => {
     render(<FieldEditor onBack={onBack} />);
-    // Expand a row that has options — find a field row and expand it
-    // First, let's expand all collapsed rows to find options
+    // Expand all collapsed rows to find options
     const collapsedButtons = screen
       .getAllByRole("button")
       .filter((btn) => btn.getAttribute("aria-expanded") === "false");
@@ -184,5 +187,45 @@ describe("FieldEditor", () => {
     // Override should still exist
     const state = useFrameworkCustomizationStore.getState();
     expect(state.customization.fieldOverrides.pricing).toBeDefined();
+  });
+
+  it("renders a live widget preview reflecting the field type", () => {
+    render(<FieldEditor onBack={onBack} />);
+    // Expand all rows
+    const collapsedButtons = screen
+      .getAllByRole("button")
+      .filter((btn) => btn.getAttribute("aria-expanded") === "false");
+    for (const btn of collapsedButtons) {
+      fireEvent.click(btn);
+    }
+
+    // toolName is a text field — should have a disabled input in the preview
+    const toolNamePreview = screen.getByTestId("field-widget-preview-toolName");
+    expect(toolNamePreview.tagName).toBe("INPUT");
+    expect((toolNamePreview as HTMLInputElement).disabled).toBe(true);
+
+    // authenticationMethod is a select field — should have a <select> with options
+    const authMethodPreview = screen.getByTestId("field-widget-preview-authenticationMethod");
+    expect(authMethodPreview.tagName).toBe("SELECT");
+    expect((authMethodPreview as HTMLSelectElement).disabled).toBe(true);
+    // Should contain the authentication method options (SSO/SAML, IP Auth, etc.)
+    const authMethodOptions = authMethodPreview.querySelectorAll("option");
+    expect(authMethodOptions.length).toBeGreaterThan(1);
+  });
+
+  it("editing the label via the preview commits to the store", () => {
+    render(<FieldEditor onBack={onBack} />);
+    // Expand the toolName row
+    const row = screen.getByTestId("field-row-toolName");
+    const toggle = row.querySelector('button[aria-expanded="false"]')!;
+    fireEvent.click(toggle);
+
+    // Click the label display (EditableText with aria-label "toolName label")
+    const labelDisplay = screen.getByRole("button", { name: "toolName label" });
+    editEditableField(labelDisplay, "Custom Tool Name");
+
+    // Verify the override was written
+    const state = useFrameworkCustomizationStore.getState();
+    expect(state.customization.fieldOverrides.toolName.label).toBe("Custom Tool Name");
   });
 });

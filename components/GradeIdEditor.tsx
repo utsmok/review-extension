@@ -71,8 +71,6 @@ export default function GradeIdEditor({ onBack }: { onBack: () => void }) {
     setReportLabel("");
   }, [id, label, description, color, tint, reportColor, reportLabel, addGrade]);
 
-  const previewGrades = activeGrades.slice(0, 4);
-
   return (
     <EditorShell
       title="Grades"
@@ -86,19 +84,7 @@ export default function GradeIdEditor({ onBack }: { onBack: () => void }) {
       }
     >
       <div className="space-y-ut-4">
-        <PreviewBox label="How grades appear" testId="grade-preview">
-          <div className="flex gap-ut-2 flex-wrap" data-testid="grade-preview-chips">
-            {previewGrades.map((g) => (
-              <span
-                key={g.id}
-                className={`inline-flex items-center gap-1 px-ut-2 py-0.5 rounded-ut-sm text-ut-xs font-bold text-white ${g.color}`}
-                data-testid={`grade-chip-${g.id}`}
-              >
-                {g.label}
-              </span>
-            ))}
-          </div>
-        </PreviewBox>
+        <VerdictPreview grades={activeGrades} />
 
         <div
           className="border border-state-warning-border bg-state-warning-tint rounded-ut-sm px-ut-3 py-ut-2 text-ut-xs text-ut-text"
@@ -435,5 +421,61 @@ function GradeRow({ grade, isEdited, onOverride, onRemove }: GradeRowProps): Rea
         </button>
       </div>
     </CollapsibleRow>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  VerdictPreview — live GradeSelector-like preview of active grades */
+/* ------------------------------------------------------------------ */
+
+function VerdictPreview({ grades }: { grades: FrameworkGrade[] }) {
+  const sliced = grades.slice(0, 6);
+  const [selectedId, setSelectedId] = useState(sliced[0]?.id ?? "");
+
+  // If selected grade falls outside the slice, fall back to first
+  const effectiveSelected = sliced.some((g) => g.id === selectedId)
+    ? selectedId
+    : (sliced[0]?.id ?? "");
+
+  return (
+    <PreviewBox label="How the final verdict appears" testId="grade-preview">
+      <div data-testid="verdict-preview">
+        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-1 block">
+          Overall Grade
+        </span>
+        <div role="radiogroup" className="grid grid-cols-3 gap-ut-2">
+          {sliced.map((g) => {
+            const selected = g.id === effectiveSelected;
+            return (
+              <button
+                key={g.id}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => setSelectedId(g.id)}
+                className={`grade-btn px-ut-3 py-ut-3 rounded-ut-sm font-heading font-semibold uppercase tracking-ut-label ${
+                  selected
+                    ? `${g.color} text-white is-selected`
+                    : `border-2 border-ut-border ${g.tint} text-ut-text hover:brightness-95`
+                }`}
+              >
+                <span
+                  className={`text-ut-sm leading-snug ${selected ? "font-bold" : "font-semibold"}`}
+                >
+                  {g.label}
+                </span>
+                <span className="grade-btn__desc block text-ut-xs font-normal normal-case tracking-normal mt-0.5 leading-relaxed">
+                  {g.description}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-ut-xs text-ut-muted mt-ut-1">
+          Click a grade to preview its selected colour. This is how reviewers choose the overall
+          grade on the Finalize screen.
+        </p>
+      </div>
+    </PreviewBox>
   );
 }

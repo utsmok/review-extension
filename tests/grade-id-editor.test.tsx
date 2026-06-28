@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import GradeIdEditor from "@/components/GradeIdEditor";
 import { getActiveGrades } from "@/lib/framework-config";
@@ -168,19 +168,45 @@ describe("GradeIdEditor", () => {
     expect(screen.getByText(`${grades.length} grades active`)).toBeDefined();
   });
 
-  it("renders live chip preview with grade colors", () => {
+  it("renders verdict preview with grade labels and descriptions in radio buttons", () => {
     render(<GradeIdEditor onBack={onBack} />);
     const previewBox = screen.getByTestId("grade-preview");
     expect(previewBox).toBeDefined();
-    const chips = screen.getByTestId("grade-preview-chips");
-    expect(chips).toBeDefined();
+    const verdictPreview = screen.getByTestId("verdict-preview");
+    expect(verdictPreview).toBeDefined();
     const grades = getActiveGrades();
-    const previewGrades = grades.slice(0, 4);
-    for (const g of previewGrades) {
-      const chip = screen.getByTestId(`grade-chip-${g.id}`);
-      expect(chip).toBeDefined();
-      expect(chip.textContent).toBe(g.label);
+    const sliced = grades.slice(0, 6);
+    // Each grade's label appears inside a radio button within the radiogroup
+    const radios = within(verdictPreview).getAllByRole("radio");
+    expect(radios.length).toBe(sliced.length);
+    for (const g of sliced) {
+      const radio = radios.find((r) => r.textContent?.includes(g.label));
+      expect(radio).toBeDefined();
+      expect(radio!.textContent).toContain(g.description);
     }
+  });
+
+  it("clicking a grade selects it and shows the selected style", () => {
+    render(<GradeIdEditor onBack={onBack} />);
+    const radios = screen.getAllByRole("radio");
+    expect(radios.length).toBeGreaterThan(1);
+    const firstRadio = radios[0];
+    const secondRadio = radios[1];
+    // Initially first is selected
+    expect(firstRadio.className).toContain("is-selected");
+    expect(secondRadio.className).not.toContain("is-selected");
+    // Click the second grade
+    fireEvent.click(secondRadio);
+    // Now second is selected
+    expect(secondRadio.className).toContain("is-selected");
+    expect(firstRadio.className).not.toContain("is-selected");
+  });
+
+  it("the verdict preview mirrors GradeSelector structure (Overall Grade label + radiogroup)", () => {
+    render(<GradeIdEditor onBack={onBack} />);
+    const verdictPreview = screen.getByTestId("verdict-preview");
+    expect(within(verdictPreview).getByText("Overall Grade")).toBeDefined();
+    expect(within(verdictPreview).getByRole("radiogroup")).toBeDefined();
   });
 
   it("expanding a grade row reveals label and description editors", () => {

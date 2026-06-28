@@ -3,6 +3,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import {
   CollapsibleRow,
+  EditableText,
   EditorShell,
   editorInputClass,
   LabeledField,
@@ -167,6 +168,78 @@ function OptionRow({
   );
 }
 
+function FieldWidgetPreview({
+  field,
+  currentOptions,
+}: {
+  field: FieldDescriptor;
+  currentOptions: string[];
+}) {
+  const widgetClass =
+    "meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text cursor-not-allowed opacity-70";
+
+  switch (field.type) {
+    case "textarea":
+      return (
+        <textarea
+          disabled
+          rows={2}
+          placeholder={field.placeholder ?? ""}
+          className={`${widgetClass} resize-none`}
+          data-testid={`field-widget-preview-${field.id}`}
+        />
+      );
+    case "select":
+    case "multi-select":
+      return (
+        <select
+          disabled
+          multiple={field.type === "multi-select"}
+          className={widgetClass}
+          data-testid={`field-widget-preview-${field.id}`}
+        >
+          <option value="">Select…</option>
+          {currentOptions.map((opt) => (
+            <option key={opt}>{opt}</option>
+          ))}
+        </select>
+      );
+    case "boolean":
+      return (
+        <label className="flex items-center gap-ut-2 min-h-[44px]">
+          <input
+            disabled
+            type="checkbox"
+            className="meta-checkbox w-4 h-4 rounded-ut-sm border-ut-border text-ut-blue"
+          />
+          <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+            {field.label}
+          </span>
+        </label>
+      );
+    case "image":
+      return (
+        <div
+          className="border-2 border-dashed border-ut-border rounded-ut-sm p-ut-3 text-center text-ut-xs text-ut-muted"
+          aria-hidden="true"
+          data-testid={`field-widget-preview-${field.id}`}
+        >
+          Image capture
+        </div>
+      );
+    default:
+      return (
+        <input
+          disabled
+          type={field.type === "url" ? "url" : field.type === "email" ? "email" : "text"}
+          placeholder={field.placeholder ?? ""}
+          className={widgetClass}
+          data-testid={`field-widget-preview-${field.id}`}
+        />
+      );
+  }
+}
+
 // ─── FieldRow ──────────────────────────────────────────────────────────
 
 function FieldRow({
@@ -312,20 +385,46 @@ function FieldRow({
       )}
       <CollapsibleRow summary={summary} edited={isEdited} testId={`field-row-${field.id}`}>
         <div className="space-y-ut-2">
-          <LabeledField label="Label" hint="The name shown to reviewers on the form.">
-            <InlineInput value={field.label} onChange={handleLabelChange} />
-          </LabeledField>
-
-          <LabeledField
-            label="Placeholder"
-            hint="Example text shown inside the field before anyone types."
+          <div
+            className="rounded-ut-sm border border-ut-border bg-ut-grey/40 p-ut-3 space-y-1"
+            data-testid={`field-preview-${field.id}`}
           >
-            <InlineInput value={field.placeholder ?? ""} onChange={handlePlaceholderChange} />
-          </LabeledField>
+            <span className="text-ut-2xs uppercase tracking-ut-label text-ut-muted">Preview</span>
 
-          <LabeledField label="Help text" hint="Extra guidance shown beneath the field.">
-            <InlineInput value={field.helpText ?? ""} onChange={handleHelpTextChange} />
-          </LabeledField>
+            <EditableText
+              multiline={false}
+              value={field.label}
+              onChange={handleLabelChange}
+              label={`${field.id} label`}
+              placeholder="Field label"
+              className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy"
+            />
+
+            <FieldWidgetPreview field={field} currentOptions={currentOptions} />
+
+            <div>
+              <span className="text-ut-2xs uppercase tracking-ut-label text-ut-muted">
+                Placeholder
+              </span>
+              <EditableText
+                multiline={false}
+                value={field.placeholder ?? ""}
+                onChange={handlePlaceholderChange}
+                label={`${field.id} placeholder`}
+                placeholder="e.g. Enter value"
+                className="text-ut-sm text-ut-text"
+              />
+            </div>
+
+            <EditableText
+              multiline
+              value={field.helpText ?? ""}
+              onChange={handleHelpTextChange}
+              label={`${field.id} help text`}
+              placeholder="Add help text shown beneath the field"
+              className="text-ut-xs text-ut-muted"
+            />
+          </div>
 
           <label className="flex items-center gap-2 text-ut-xs">
             <input
