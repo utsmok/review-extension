@@ -1,7 +1,8 @@
-import { RUBRIC_DATA } from "@/data/rubrics";
+import { RUBRIC_DATA, RUBRIC_VERSION } from "@/data/rubrics";
 import { exportSession, importSessionFromZip } from "@/lib/export";
 import type { ExportArtifacts, ReviewerInfo } from "@/lib/export-pipeline";
 import { assembleBatchZip, prepareExportArtifacts } from "@/lib/export-pipeline";
+import { getActiveBranding } from "@/lib/framework-config";
 import { PRINCIPLES } from "@/lib/principles";
 import { computeReportScores } from "@/lib/report/compute-scores";
 import { deleteScreenshotsForCaptures, saveScreenshot } from "@/lib/screenshot-store";
@@ -288,13 +289,18 @@ export async function saveCurrentSession(): Promise<void> {
 
 /** Create a new session: save to IDB, register in registry. */
 export async function createSession(metadata: SessionMetadata): Promise<void> {
-  await getRepository().save(metadata.id, {
-    metadata,
+  const stamped: SessionMetadata = {
+    ...metadata,
+    packId: metadata.packId ?? getActiveBranding().frameworkName,
+    packVersion: metadata.packVersion ?? RUBRIC_VERSION,
+  };
+  await getRepository().save(stamped.id, {
+    metadata: stamped,
     captures: [],
     evaluations: [],
     finalization: null,
   });
-  useRegistryStore.getState().addSession(metadata);
+  useRegistryStore.getState().addSession(stamped);
 }
 
 /** Delete a session: clear store if active, delete from IDB first, then registry. */

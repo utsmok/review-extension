@@ -37,3 +37,40 @@ export function runMigrations(data: SessionData): SessionData {
   current.schemaVersion = CURRENT_SCHEMA_VERSION;
   return current;
 }
+
+/** Parameters for a single pack migration step. */
+export interface PackMigrationParams {
+  fromVersion: number;
+  toVersion: number;
+  questionRenames: Record<string, string>;
+}
+
+/**
+ * Run a pack-level question-rename migration on a session's evaluations.
+ *
+ * - If `metadata.packVersion` is `null` or `undefined`, returns data unchanged
+ *   (the session was created before pack versioning existed — no rubricId rewrites apply).
+ * - If `metadata.packVersion` is already >= `toVersion`, returns data unchanged (idempotent).
+ * - Otherwise, clones the session, rewrites every `evaluation.rubricId` that appears
+ *   as a key in `questionRenames`, stamps `metadata.packVersion = toVersion`, and returns.
+ */
+export function runPackMigrations(data: SessionData, m: PackMigrationParams): SessionData {
+  const { toVersion, questionRenames } = m;
+  const current = data.metadata.packVersion ?? null;
+
+  if (current === null || current >= toVersion) {
+    return data;
+  }
+
+  // Clone — never mutate the original
+  const result: SessionData = {
+    ...data,
+    metadata: { ...data.metadata, packVersion: toVersion },
+    evaluations: data.evaluations.map((ev) => {
+      const renamed = questionRenames[ev.rubricId];
+      return renamed ? { ...ev, rubricId: renamed } : ev;
+    }),
+  };
+
+  return result;
+}

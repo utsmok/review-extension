@@ -1,6 +1,11 @@
+import { RUBRIC_VERSION } from "@/data/rubrics";
 import type { SessionData } from "@/lib/types";
 import { idbRequest, openIDBStore } from "./idb-helpers";
-import { runMigrations, CURRENT_SCHEMA_VERSION as SCHEMA_VERSION } from "./migrations";
+import {
+  runMigrations,
+  runPackMigrations,
+  CURRENT_SCHEMA_VERSION as SCHEMA_VERSION,
+} from "./migrations";
 
 // --- Interface ---
 
@@ -74,10 +79,15 @@ export class IdbSessionRepository implements SessionRepository {
     const tx = db.transaction(STORE_NAME, "readonly");
     const req = tx.objectStore(STORE_NAME).get(id);
     const data = (await idbRequest<SessionData | null>(req)) ?? null;
-    if (data && data.schemaVersion !== SCHEMA_VERSION) {
-      return runMigrations(data);
-    }
-    return data;
+    if (!data) return null;
+    const migrated = data.schemaVersion !== SCHEMA_VERSION ? runMigrations(data) : data;
+    // Apply pack-level question-rename migrations when forward renames exist.
+    // For v1 the migration is a no-op (no real renames shipped yet).
+    return runPackMigrations(migrated, {
+      fromVersion: RUBRIC_VERSION - 1,
+      toVersion: RUBRIC_VERSION,
+      questionRenames: {},
+    });
   }
 
   async delete(id: string): Promise<void> {

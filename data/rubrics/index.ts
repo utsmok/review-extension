@@ -39,3 +39,9 @@ function validateRubricShape(data: unknown): asserts data is RubricData {
 
 validateRubricShape(trustFull);
 export const RUBRIC_DATA: RubricData = deepFreeze(trustFull) as RubricData;
+
+/**
+ * Numeric pack version derived from the rubric version string.
+ * "1.1" → 1 (major). Used to stamp new sessions for pack migration.
+ */
+export const RUBRIC_VERSION: number = parseInt(trustFull.version.split(".")[0], 10) || 1;
