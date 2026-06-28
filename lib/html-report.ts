@@ -1,4 +1,5 @@
 import { encode as encodeQR } from "uqr";
+import { getActiveBranding, getReportBranding } from "./framework-config";
 import { PRINCIPLES } from "./principles";
 import type { ReportScores } from "./report/compute-scores";
 import type { CaptureInfo, PrincipleScoreRow, QualityGateRow } from "./report-model";
@@ -9,10 +10,15 @@ import {
   qualityGateResults,
   reportScoreColor,
 } from "./rubric";
-import type { Capture, Evaluation, ReviewFinalization, RubricData, SessionMetadata } from "./types";
+import type {
+  Capture,
+  Evaluation,
+  FrameworkBranding,
+  ReviewFinalization,
+  RubricData,
+  SessionMetadata,
+} from "./types";
 
-// Cached dynamic import for logos (used by buildHtmlReport and buildNutritionLabel)
-let _logos: typeof import("./logos") | null = null;
 // ── Constants ──────────────────────────────────────────────────────────
 
 /** Darkened report-local colors for WCAG AA contrast with white text */
@@ -420,9 +426,7 @@ function buildNutritionLabelHtml(
   rubric: RubricData,
   finalization: ReviewFinalization | null,
   scores: ReportScores,
-  TRUST_LOGO: string,
-  LISA_EIS_LOGO: string,
-  UT_LOGO: string,
+  logos: FrameworkBranding["logos"],
   evalMap: Map<string, Evaluation>,
 ): string {
   const date = metadata.startTime.slice(0, 10);
@@ -518,7 +522,7 @@ function buildNutritionLabelHtml(
           <span class="nutrition-tool-url">${safeLink(metadata.toolUrl)}</span>
         </div>
       </div>
-      <img src="${TRUST_LOGO}" alt="TRUST" class="nl-brand-logo" />
+      <img src="${logos.framework}" alt="${esc(getReportBranding().frameworkName)}" class="nl-brand-logo" />
     </div>
     ${metadata.description ? `<div class="nutrition-description">${esc(metadata.description)}</div>` : ""}
   </div>
@@ -528,7 +532,7 @@ function buildNutritionLabelHtml(
     <div class="nutrition-verdict-stamp" style="color:${scores.verdictColor};border-color:${scores.verdictColor}">
       ${scores.verdict}
       <span class="nutrition-verdict-sub">
-        <img src="${TRUST_LOGO}" alt="TRUST" style="height:0.9em;vertical-align:middle;margin-right:2px" />
+        <img src="${logos.framework}" alt="${esc(getReportBranding().frameworkName)}" style="height:0.9em;vertical-align:middle;margin-right:2px" />
         Framework Verdict
       </span>
     </div>
@@ -571,11 +575,11 @@ function buildNutritionLabelHtml(
   ${swRow}
 
   <div class="nutrition-footer">
-    <img src="${LISA_EIS_LOGO}" alt="LISA-EIS" style="height:24px" />
+    <img src="${logos.secondary}" alt="LISA-EIS" style="height:24px" />
     <a href="https://www.utwente.nl/library/" target="_blank" rel="noopener noreferrer">
       <span class="nutrition-footer-text">LISA-EIS / University of Twente / ${date}</span>
     </a>
-    <img src="${UT_LOGO}" alt="University of Twente" style="height:22px" />
+    <img src="${logos.institution}" alt="University of Twente" style="height:22px" />
   </div>
 </div>`;
 }
@@ -587,19 +591,17 @@ export async function buildNutritionLabel(
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
 ): Promise<string> {
-  if (!_logos) _logos = await import("./logos");
-  const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = _logos;
+  const { logos } = getActiveBranding();
   // Build the report model (pure data transformation — no captures needed)
   const model = buildReportModel(metadata, [], evaluations, rubric, finalization, new Map());
+  const b = getReportBranding();
   const labelHtml = buildNutritionLabelHtml(
     metadata,
     evaluations,
     rubric,
     finalization,
     model.scores,
-    TRUST_LOGO,
-    LISA_EIS_LOGO,
-    UT_LOGO,
+    logos,
     model.evalMap,
   );
   return `<!DOCTYPE html>
@@ -608,7 +610,7 @@ export async function buildNutritionLabel(
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<title>TRUST Label: ${esc(metadata.toolName)}</title>
+<title>${esc(b.title)}: ${esc(metadata.toolName)}</title>
 <style>${REPORT_STYLE}</style>
 </head>
 <body class="report">
@@ -733,7 +735,7 @@ function buildBusinessCardLabelHtml(
   rubric: RubricData,
   finalization: ReviewFinalization | null,
   scores: ReportScores,
-  TRUST_LOGO: string,
+  frameworkLogo: string,
   evalMap: Map<string, Evaluation>,
 ): { front: string; back: string } {
   const vc = scores.verdictColor;
@@ -806,7 +808,7 @@ function buildBusinessCardLabelHtml(
 <div class="bc-card">
   <div class="bc-face bc-front">
     <div class="bc-brand-row">
-      <img class="bc-brand-logo" src="${TRUST_LOGO}" alt="TRUST" />
+      <img class="bc-brand-logo" src="${frameworkLogo}" alt="${esc(getReportBranding().frameworkName)}" />
       <span class="bc-brand-tag">Information Tool Reviews</span>
     </div>
     <div class="bc-hero">
@@ -839,7 +841,7 @@ function buildBusinessCardLabelHtml(
 <div class="bc-card">
   <div class="bc-face bc-back">
     <div class="bc-back-top">
-      <img class="bc-brand-logo" src="${TRUST_LOGO}" alt="TRUST" />
+      <img class="bc-brand-logo" src="${frameworkLogo}" alt="${esc(getReportBranding().frameworkName)}" />
       <span class="bc-back-label">Report Card</span>
       <span class="bc-back-tool">${toolName}</span>
     </div>
@@ -862,8 +864,7 @@ export async function buildBusinessCardLabel(
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
 ): Promise<string> {
-  if (!_logos) _logos = await import("./logos");
-  const { TRUST_LOGO } = _logos;
+  const { logos } = getActiveBranding();
   const model = buildReportModel(metadata, [], evaluations, rubric, finalization, new Map());
   const { front, back } = buildBusinessCardLabelHtml(
     metadata,
@@ -871,7 +872,7 @@ export async function buildBusinessCardLabel(
     rubric,
     finalization,
     model.scores,
-    TRUST_LOGO,
+    logos.framework,
     model.evalMap,
   );
   return `<!DOCTYPE html>
@@ -879,7 +880,7 @@ export async function buildBusinessCardLabel(
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TRUST Card: ${esc(metadata.toolName)}</title>
+<title>${esc(getReportBranding().frameworkName)} Card: ${esc(metadata.toolName)}</title>
 <style>${REPORT_STYLE}</style>
 </head>
 <body>
@@ -895,13 +896,15 @@ ${back}
  *  Card outlines double as cut guides; no pre-mirroring — the printer handles
  *  duplex placement. Each doc is a single A3 page. */
 function buildCardSheetDoc(face: "front" | "back", cardHtml: string, toolName: string): string {
+  const b = getReportBranding();
   const label = face === "front" ? "Front" : "Back";
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TRUST Card — A3 ${label} Sheet: ${esc(toolName)}</title>
+<title>${esc(b.frameworkName)} Card — A3 ${label} Sheet: ${esc(toolName)}</title>
 <style>${REPORT_STYLE}
 /* ── A3 imposition (84×52.5mm cards, 3 cols × 7 rows = 21) ── */
 @page { size: 297mm 420mm; margin: 0; }
@@ -919,7 +922,7 @@ html, body { margin: 0; padding: 0; background: #fff; }
 </head>
 <body>
 <div class="a3-sheet">
-  <div class="a3-label">${label} &middot; TRUST Report Card &middot; ${esc(toolName)}</div>
+  <div class="a3-label">${label} &middot; ${esc(b.cardTitle)} &middot; ${esc(toolName)}</div>
   <div class="a3-grid">${cardHtml.repeat(21)}</div>
 </div>
 </body>
@@ -933,8 +936,7 @@ export async function buildBusinessCardSheet(
   rubric: RubricData,
   finalization: ReviewFinalization | null = null,
 ): Promise<{ front: string; back: string }> {
-  if (!_logos) _logos = await import("./logos");
-  const { TRUST_LOGO } = _logos;
+  const { logos } = getActiveBranding();
   const model = buildReportModel(metadata, [], evaluations, rubric, finalization, new Map());
   const { front, back } = buildBusinessCardLabelHtml(
     metadata,
@@ -942,7 +944,7 @@ export async function buildBusinessCardSheet(
     rubric,
     finalization,
     model.scores,
-    TRUST_LOGO,
+    logos.framework,
     model.evalMap,
   );
   return {
@@ -961,9 +963,9 @@ export async function buildHtmlReport(
   reviewer?: { name?: string; email?: string },
   quickNotes: { id: string; text: string; timestamp: string }[] = [],
 ): Promise<string> {
-  // Compress all screenshots in parallel
-  if (!_logos) _logos = await import("./logos");
-  const { LISA_EIS_LOGO, TRUST_LOGO, UT_LOGO } = _logos;
+  // Branding
+  const branding = getActiveBranding();
+  const b = getReportBranding();
 
   // Screenshots — prefer annotated version when available (lossless PNG, no compression)
   const screenshots = new Map<string, string>(
@@ -992,16 +994,16 @@ export async function buildHtmlReport(
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<title>TRUST Review: ${esc(metadata.toolName)}</title>
+<title>${esc(b.frameworkName)} Review: ${esc(metadata.toolName)}</title>
 <style>${REPORT_STYLE}</style>
 </head>
 <body class="report">
 
 <main id="report-content">
-<h1 class="sr-only">TRUST Review: ${esc(metadata.toolName)}</h1>
+<h1 class="sr-only">${esc(b.frameworkName)} Review: ${esc(metadata.toolName)}</h1>
 
 <section class="report-part" id="part-summary" data-part="summary">
-  ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, model.scores, TRUST_LOGO, LISA_EIS_LOGO, UT_LOGO, model.evalMap)}
+  ${buildNutritionLabelHtml(metadata, evaluations, rubric, finalization, model.scores, branding.logos, model.evalMap)}
 </section>
 
 <section class="report-part" id="part-scores" data-part="scores">
@@ -1063,7 +1065,7 @@ ${unlinkedSection}
 </main>
 <div class="bottom-bar"></div>
 <footer class="footer">
-  <span class="footer-wordmark">TRUST Framework<span class="footer-edition">v1.1</span></span>
+  <span class="footer-wordmark">${esc(b.footerFramework)}<span class="footer-edition">v1.1</span></span>
   <span class="footer-meta">${esc(metadata.toolName)} · ${model.scores.totalQuestions} questions · ${finalization?.finalizedAt ? "Finalized" : "Evaluated"} ${formatDate(finalization?.finalizedAt ?? metadata.startTime)}${
     reviewer?.name || reviewer?.email
       ? ` · Reviewed by ${[reviewer?.name, reviewer?.email]

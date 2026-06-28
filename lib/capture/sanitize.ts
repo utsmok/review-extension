@@ -1,3 +1,5 @@
+import { getActiveBranding } from "../framework-config";
+
 /** Strip control characters that browsers silently remove from URL attribute
  * values before resolving the scheme. This closes the embedded-whitespace
  * bypass where `java\tscript:` or `java\nscript:` would execute.
@@ -167,7 +169,7 @@ export async function archivePageHtml(): Promise<{ html: string; title: string }
 
   // 6. Add archive metadata
   const comment = clone.createComment(
-    `\n  Archived by TRUST Review Extension\n  Source: ${doc.location?.href}\n  Date: ${new Date().toISOString()}\n`,
+    `\n  ${getActiveBranding().report.archiveNotice}\n  Source: ${doc.location?.href}\n  Date: ${new Date().toISOString()}\n`,
   );
   const headEl = clone.querySelector("head");
   if (headEl) headEl.prepend(comment);

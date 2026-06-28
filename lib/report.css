@@ -2085,7 +2085,7 @@ h1.part-title {
   @page report {
     margin: 1.6cm 1.2cm 1.5cm;
     @top-right {
-      content: "TRUST Framework";
+      content: var(--report-footer-framework);
       font-family: var(--ff-heading);
       font-size: 8pt;
       font-weight: 700;

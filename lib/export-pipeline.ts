@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import { getActiveBranding } from "./framework-config";
 import {
   buildBusinessCardLabel,
   buildBusinessCardSheet,
@@ -398,7 +399,7 @@ export async function prepareExportArtifacts(
     imageFiles,
     captureHtmlFiles,
     reportFilename: `Evaluation_Report_${safeName}.html`,
-    labelFilename: `TRUST_Label_${safeName}.html`,
+    labelFilename: `${getActiveBranding().export.labelFilenamePrefix}${safeName}.html`,
     cardFilename: `${safeName}-card.html`,
     cardSheetFrontFilename: `${safeName}-card-front-A3.html`,
     cardSheetBackFilename: `${safeName}-card-back-A3.html`,
