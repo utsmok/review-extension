@@ -1,3 +1,4 @@
+import { getActiveFrameworkConfig } from "@/lib/framework-config";
 import { PRINCIPLES } from "../principles";
 import {
   getCategoryScores,
@@ -6,7 +7,6 @@ import {
   REPORT_SCORE_COLORS,
 } from "../rubric";
 import type { Evaluation, ReviewFinalization, RubricData } from "../types";
-import { getActiveFrameworkConfig } from "@/lib/framework-config";
 
 /** Average score below which a principle is considered failed. */
 const PRINCIPLE_FAIL_THRESHOLD = 1.0;

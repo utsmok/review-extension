@@ -45,6 +45,10 @@ export interface SessionMetadata {
   finalizedAt?: string;
   /** User-created (schema-customized) field values keyed by FieldDescriptor.storageKey. */
   customFields?: Record<string, unknown>;
+  /** Optional pack id for framework pack versioning. */
+  packId?: string;
+  /** Optional pack version number for framework pack versioning. */
+  packVersion?: number;
 }
 
 /** Full session data as stored in IndexedDB and exported ZIP (session.json). */
@@ -89,7 +93,10 @@ export interface Evaluation {
   manualDone?: boolean;
 }
 
-/** Final verdict grade assigned during review finalization. */
+/**
+ * Final verdict grade assigned during review finalization.
+ * Kept for autocomplete / default suggestions; ReviewFinalization.grade is `string`.
+ */
 export type FinalizationGrade =
   | "pass"
   | "conditional"
@@ -103,11 +110,60 @@ export type FinalizationGrade =
 
 export interface ReviewFinalization {
   conclusion: string;
-  grade: FinalizationGrade;
+  /** Grade id — loosened in Plan B so custom grade IDs are storable; validate via `isValidGrade`. */
+  grade: string;
   strengths: string[];
   weaknesses: string[];
   recommendations: string;
   finalizedAt: string;
+}
+
+/** TRUST principle with display codes, accent colors, and full names. */
+export interface FrameworkPrinciple {
+  id: string;
+  code: string;
+  color: string;
+  reportColor: string;
+  fullName: string;
+}
+
+/** Framework branding — logos, colors, report literals, export prefixes. */
+export interface FrameworkBranding {
+  frameworkName: string;
+  frameworkFullName: string;
+  wordmark: string;
+  magenta: string;
+  logos: { framework: string; secondary?: string; institution?: string };
+  report: {
+    title: string;
+    nutritionTitle: string;
+    cardTitle: string;
+    footerFramework: string;
+    reviewedBy: string;
+    archiveNotice: string;
+    qrUrl?: string;
+  };
+  export: {
+    labelFilenamePrefix: string;
+    frameworkLogoFilename: string;
+  };
+}
+
+/** Path into a rubric, e.g. ["scoring_rubric","TR","data_source_clarity","title"]. */
+export type RubricPath = readonly string[];
+
+/** Additive customization of the rubric: path → value, plus added/removed questions. */
+export interface RubricOverride {
+  valuePatches: Record<string, unknown>;
+  addedQuestions: {
+    section: "quality_gate" | "scoring_rubric";
+    parent: string;
+    key: string;
+    def: Record<string, unknown>;
+  }[];
+  removedQuestions: { section: "quality_gate" | "scoring_rubric"; parent: string; key: string }[];
+  /** ordering: parent → ordered child keys */
+  order: Record<string, string[]>;
 }
 
 /** Alias for quality gate scores (semantic clarity at call sites). */

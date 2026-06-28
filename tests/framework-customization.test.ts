@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
-import type { FieldDescriptor } from "@/lib/types";
-import { getActiveFrameworkConfig } from "@/lib/framework-config";
+import { beforeEach, describe, expect, it } from "vitest";
 import { getActiveFields, getField } from "@/lib/field-schema";
+import { getActiveFrameworkConfig } from "@/lib/framework-config";
+import type { FieldDescriptor } from "@/lib/types";
+import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
 
 describe("Task 3 – framework customization store", () => {
   beforeEach(() => {
@@ -26,10 +26,10 @@ describe("Task 3 – framework customization store", () => {
     s.renameOption("pricing", "Paid", "Commercial");
     s.resetField("pricing");
     const c = s.customization;
-    expect(c.fieldOverrides["pricing"]).toBeUndefined();
-    expect(c.extraOptions["pricing"]).toBeUndefined();
-    expect(c.hiddenOptions["pricing"]).toBeUndefined();
-    expect(c.renames["pricing"]).toBeUndefined();
+    expect(c.fieldOverrides.pricing).toBeUndefined();
+    expect(c.extraOptions.pricing).toBeUndefined();
+    expect(c.hiddenOptions.pricing).toBeUndefined();
+    expect(c.renames.pricing).toBeUndefined();
   });
 
   it("addField adds a custom field to config", () => {
@@ -85,14 +85,18 @@ describe("Task 3 – framework customization store", () => {
   });
 
   it("renameOption renames shipped option", () => {
-    useFrameworkCustomizationStore.getState().renameOption("authenticationMethod", "SSO/SAML", "SAML/SSO");
+    useFrameworkCustomizationStore
+      .getState()
+      .renameOption("authenticationMethod", "SSO/SAML", "SAML/SSO");
     const auth = getField("authenticationMethod");
     expect(auth.options).toContain("SAML/SSO");
     expect(auth.options).not.toContain("SSO/SAML");
   });
 
   it("setGradeOverride merges label + color", () => {
-    useFrameworkCustomizationStore.getState().setGradeOverride("pass", { label: "Approved", color: "#00ff00" });
+    useFrameworkCustomizationStore
+      .getState()
+      .setGradeOverride("pass", { label: "Approved", color: "#00ff00" });
     const pass = getActiveFrameworkConfig().grades.find((g) => g.id === "pass")!;
     expect(pass.label).toBe("Approved");
     expect(pass.color).toBe("#00ff00");
@@ -117,9 +121,11 @@ describe("Task 3 – framework customization store", () => {
   it("exportCustomization returns a clone", () => {
     useFrameworkCustomizationStore.getState().setFieldOverride("pricing", { order: 99 });
     const exp = useFrameworkCustomizationStore.getState().exportCustomization();
-    expect(exp.fieldOverrides["pricing"]).toEqual({ order: 99 });
-    exp.fieldOverrides["pricing"] = { order: 0 };
-    expect(useFrameworkCustomizationStore.getState().customization.fieldOverrides["pricing"]).toEqual({ order: 99 });
+    expect(exp.fieldOverrides.pricing).toEqual({ order: 99 });
+    exp.fieldOverrides.pricing = { order: 0 };
+    expect(useFrameworkCustomizationStore.getState().customization.fieldOverrides.pricing).toEqual({
+      order: 99,
+    });
   });
 
   it("importCustomization applies valid data", () => {
@@ -131,9 +137,9 @@ describe("Task 3 – framework customization store", () => {
   });
 
   it("importCustomization throws on bad shape", () => {
-    expect(() =>
-      useFrameworkCustomizationStore.getState().importCustomization(42),
-    ).toThrow("Customization must be an object");
+    expect(() => useFrameworkCustomizationStore.getState().importCustomization(42)).toThrow(
+      "Customization must be an object",
+    );
   });
 
   it("getActiveFields count increases after addField", () => {
@@ -152,7 +158,14 @@ describe("Task 3 – framework customization store", () => {
 
   it("store customization structure supports persistence", () => {
     const c = useFrameworkCustomizationStore.getState().customization;
-    for (const key of ["fieldOverrides", "customFields", "extraOptions", "hiddenOptions", "renames", "gradeOverrides"] as const) {
+    for (const key of [
+      "fieldOverrides",
+      "customFields",
+      "extraOptions",
+      "hiddenOptions",
+      "renames",
+      "gradeOverrides",
+    ] as const) {
       expect(c).toHaveProperty(key);
     }
   });

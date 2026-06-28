@@ -1,8 +1,14 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { FIELD_IDS, GRADE_IDS, FRAMEWORK_CONFIG, validateFrameworkShape } from "@/data/framework";
-import type { FieldDescriptor, FieldSurface } from "@/lib/types";
-import { getField, getFieldValue, getActiveFields, getFields, getFieldsBySurface, setFieldValue } from "@/lib/field-schema";
-import type { SessionMetadata } from "@/lib/types";
+import { beforeEach, describe, expect, it } from "vitest";
+import { FIELD_IDS, FRAMEWORK_CONFIG, GRADE_IDS, validateFrameworkShape } from "@/data/framework";
+import {
+  getActiveFields,
+  getField,
+  getFields,
+  getFieldsBySurface,
+  getFieldValue,
+  setFieldValue,
+} from "@/lib/field-schema";
+import type { FieldDescriptor, FieldSurface, SessionMetadata } from "@/lib/types";
 
 /* ──────────────────────────── Task 1 ──────────────────────────── */
 
@@ -19,13 +25,21 @@ describe("Task 1 – field/grade config", () => {
   });
 
   it("validateFrameworkShape rejects missing fields", () => {
-    expect(() => validateFrameworkShape({ ...FRAMEWORK_CONFIG, fields: null as any }))
-      .toThrow("fields must be an array");
+    expect(() =>
+      validateFrameworkShape({
+        ...FRAMEWORK_CONFIG,
+        fields: null as unknown as typeof FRAMEWORK_CONFIG.fields,
+      }),
+    ).toThrow("fields must be an array");
   });
 
   it("validateFrameworkShape rejects missing grades", () => {
-    expect(() => validateFrameworkShape({ ...FRAMEWORK_CONFIG, grades: undefined as any }))
-      .toThrow("grades must be an array");
+    expect(() =>
+      validateFrameworkShape({
+        ...FRAMEWORK_CONFIG,
+        grades: undefined as unknown as typeof FRAMEWORK_CONFIG.grades,
+      }),
+    ).toThrow("grades must be an array");
   });
 
   it("every field has required keys (id, storageKey, surface, label, type, order, enabled)", () => {
@@ -126,7 +140,9 @@ describe("Task 2 – field-schema accessors", () => {
   });
 
   it("getFieldsBySurface is an alias for getActiveFields(surface)", () => {
-    expect(getFieldsBySurface("metadata" as FieldSurface)).toEqual(getActiveFields("metadata" as FieldSurface));
+    expect(getFieldsBySurface("metadata" as FieldSurface)).toEqual(
+      getActiveFields("metadata" as FieldSurface),
+    );
   });
 
   it("getField('toolName') returns the correct descriptor", () => {

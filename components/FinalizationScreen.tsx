@@ -5,11 +5,11 @@ import GradeSelector from "@/components/finalization/GradeSelector";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { PRINCIPLES } from "@/lib/principles";
 import { principleAverage } from "@/lib/rubric";
-import type { FinalizationGrade, ReviewFinalization } from "@/lib/types";
+import type { ReviewFinalization } from "@/lib/types";
 import { useSessionStore } from "@/stores/session";
 
 function buildFinalizationData(
-  grade: FinalizationGrade,
+  grade: string,
   conclusion: string,
   strengths: string[],
   weaknesses: string[],
@@ -40,7 +40,7 @@ export default function FinalizationScreen() {
     });
   }, [evaluations, rubric]);
 
-  const [grade, setGrade] = useState<FinalizationGrade | "">(finalization?.grade ?? "");
+  const [grade, setGrade] = useState<string>(finalization?.grade ?? "");
   const [conclusion, setConclusion] = useState(finalization?.conclusion ?? "");
   const [strengths, setStrengths] = useState<string[]>(finalization?.strengths ?? []);
   const [weaknesses, setWeaknesses] = useState<string[]>(finalization?.weaknesses ?? []);
@@ -156,7 +156,7 @@ export default function FinalizationScreen() {
   }, [setFinalization]);
 
   // Detect edits to mark unsaved state (formal save needed)
-  const handleGradeChange = (g: FinalizationGrade) => {
+  const handleGradeChange = (g: string) => {
     setGrade(g);
     setSaved(false);
   };

@@ -9,8 +9,8 @@ export function getFields(): readonly FieldDescriptor[] {
 
 /** Active descriptors: customization-merged, enabled-only, ordered within group. */
 export function getActiveFields(surface?: FieldSurface): FieldDescriptor[] {
-  const fields = getActiveFrameworkConfig().fields
-    .filter((f) => f.enabled)
+  const fields = getActiveFrameworkConfig()
+    .fields.filter((f) => f.enabled)
     .filter((f) => (surface ? f.surface === surface : true));
   return [...fields].sort((a, b) =>
     a.group === b.group ? a.order - b.order : String(a.group).localeCompare(String(b.group)),

@@ -1,35 +1,47 @@
 import { useCallback, useMemo } from "react";
 import { useLabs } from "@/hooks/useLabs";
-import type { FinalizationGrade } from "@/lib/types";
+
 import { getActiveFrameworkConfig } from "@/lib/framework-config";
 
 const CORE_GRADE_IDS = ["pass", "conditional", "fail"] as const;
 const ALL_GRADE_IDS = [
-  "pass", "conditional", "fail",
-  "recommended", "recommended_with_caveats", "needs_review",
-  "pilot_only", "not_recommended", "out_of_scope",
+  "pass",
+  "conditional",
+  "fail",
+  "recommended",
+  "recommended_with_caveats",
+  "needs_review",
+  "pilot_only",
+  "not_recommended",
+  "out_of_scope",
 ] as const;
 
 function getGradeOptions(enhanced: boolean) {
   const ids = enhanced ? ALL_GRADE_IDS : CORE_GRADE_IDS;
   const byId = new Map(getActiveFrameworkConfig().grades.map((g) => [g.id, g]));
-  return ids.map((id) => byId.get(id)!).filter(Boolean).map((g) => ({
-    value: g.id as FinalizationGrade,
-    label: g.label,
-    description: g.description,
-    color: g.color,
-    tint: g.tint,
-  }));
+  return ids
+    .map((id) => byId.get(id))
+    .filter((g): g is NonNullable<typeof g> => g !== undefined)
+    .map((g) => ({
+      value: g.id,
+      label: g.label,
+      description: g.description,
+      color: g.color,
+      tint: g.tint,
+    }));
 }
 
 interface GradeSelectorProps {
-  grade: FinalizationGrade | "";
-  onGradeChange: (grade: FinalizationGrade) => void;
+  grade: string;
+  onGradeChange: (grade: string) => void;
 }
 
 export default function GradeSelector({ grade, onGradeChange }: GradeSelectorProps) {
   const labs = useLabs();
-  const grades = useMemo(() => getGradeOptions(!!labs.enhancedRecommendation), [!!labs.enhancedRecommendation]);
+  const grades = useMemo(
+    () => getGradeOptions(Boolean(labs.enhancedRecommendation)),
+    [labs.enhancedRecommendation],
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
