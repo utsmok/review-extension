@@ -1,13 +1,35 @@
-import type { ChangeEvent } from "react";
-import { useCallback, useRef } from "react";
+import { type ChangeEvent, useCallback, useRef, useState } from "react";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import {
+  CollapsibleRow,
+  EditorShell,
+  editorInputClass,
+  LabeledField,
+  PreviewBox,
+} from "@/components/editor";
 import { applyBrandingTokens, getActiveBranding } from "@/lib/framework-config";
 import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
 
 export default function BrandingEditor({ onBack }: { onBack: () => void }) {
   const branding = getActiveBranding();
+  const brandingOverrides = useFrameworkCustomizationStore(
+    (s) => s.customization.brandingOverrides,
+  );
   const setBrandingOverrides = useFrameworkCustomizationStore((s) => s.setBrandingOverrides);
   const resetBranding = useFrameworkCustomizationStore((s) => s.resetBranding);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
+
+  // ── helpers to determine if a bucket has overrides ──
+  const hasIdentityOverride =
+    !!brandingOverrides.frameworkName ||
+    !!brandingOverrides.frameworkFullName ||
+    !!brandingOverrides.wordmark ||
+    !!brandingOverrides.magenta;
+
+  const hasReportOverride = !!brandingOverrides.report;
+  const hasExportOverride = !!brandingOverrides.export;
+  const hasLogoOverride = !!brandingOverrides.logos;
 
   const handleIdentityChange = useCallback(
     (field: string, value: string) => {
@@ -56,146 +78,234 @@ export default function BrandingEditor({ onBack }: { onBack: () => void }) {
   }, [resetBranding]);
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="border-b border-ut-border px-ut-4 py-ut-2 flex items-center gap-2">
+    <EditorShell
+      title="Branding"
+      subtitle="Framework name, colors, logos, and the text printed on exported reports."
+      onBack={onBack}
+      footer={
         <button
           type="button"
-          className="text-ut-muted hover:text-ut-navy transition-colors p-0.5"
-          onClick={onBack}
-          aria-label="Back"
+          className="text-ut-red hover:text-ut-red/80 text-ut-xs"
+          onClick={() => setConfirmReset(true)}
         >
-          <svg
-            aria-hidden="true"
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
+          Reset Branding
         </button>
-        <h1 className="font-heading text-ut-sub font-bold uppercase tracking-ut-heading text-trust-magenta">
-          Customize Branding
-        </h1>
-      </div>
+      }
+    >
+      <div className="space-y-ut-3">
+        {/* ── Live preview ──────────────────────────────────────────────── */}
+        <PreviewBox label="Report header preview" testId="report-header-preview">
+          <div>
+            <div className="h-3 rounded-ut-sm" style={{ backgroundColor: branding.magenta }} />
+            <div className="mt-ut-2 space-y-ut-1">
+              <p className="font-heading text-ut-sub font-bold uppercase tracking-ut-heading text-ut-navy">
+                {branding.frameworkName}
+              </p>
+              <p className="text-ut-xs text-ut-muted">{branding.frameworkFullName}</p>
+              {branding.logos.framework && (
+                <img
+                  src={branding.logos.framework}
+                  alt="Framework logo"
+                  className="h-8 max-w-full object-contain"
+                  data-testid="preview-logo"
+                />
+              )}
+            </div>
+          </div>
+        </PreviewBox>
 
-      {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-ut-4 py-ut-4 space-y-ut-3">
-        {/* ─── 1. Identity ─────────────────────────────────────────────── */}
-        <section className="border border-ut-border rounded-md p-ut-3 space-y-ut-2">
-          <h2 className="text-ut-sm font-bold text-ut-navy">Identity</h2>
-
-          <LabelInput
+        {/* ── 1. Identity ────────────────────────────────────────────────── */}
+        <CollapsibleRow
+          summary="Identity"
+          defaultOpen
+          edited={hasIdentityOverride}
+          testId="section-identity"
+        >
+          <LabeledField
             label="Framework Name"
-            value={branding.frameworkName}
-            onChange={(v) => handleIdentityChange("frameworkName", v)}
-          />
-          <LabelInput
-            label="Framework Full Name"
-            value={branding.frameworkFullName}
-            onChange={(v) => handleIdentityChange("frameworkFullName", v)}
-          />
-          <LabelInput
-            label="Wordmark"
-            value={branding.wordmark}
-            onChange={(v) => handleIdentityChange("wordmark", v)}
-          />
+            hint="The short name, e.g. 'TRUST'. Used in headers and filenames."
+          >
+            <input
+              type="text"
+              value={branding.frameworkName}
+              onChange={(e) => handleIdentityChange("frameworkName", e.target.value)}
+              className={editorInputClass}
+              data-testid="identity-frameworkName"
+            />
+          </LabeledField>
 
-          {/* Magenta color */}
-          <label className="block">
-            <span className="text-ut-xs text-ut-muted">Magenta</span>
-            <div className="flex items-center gap-ut-2 mt-1">
+          <LabeledField
+            label="Framework Full Name"
+            hint="Spelled-out name shown on the report cover."
+          >
+            <input
+              type="text"
+              value={branding.frameworkFullName}
+              onChange={(e) => handleIdentityChange("frameworkFullName", e.target.value)}
+              className={editorInputClass}
+              data-testid="identity-frameworkFullName"
+            />
+          </LabeledField>
+
+          <LabeledField label="Wordmark" hint="Text wordmark rendered where the logo can't load.">
+            <input
+              type="text"
+              value={branding.wordmark}
+              onChange={(e) => handleIdentityChange("wordmark", e.target.value)}
+              className={editorInputClass}
+              data-testid="identity-wordmark"
+            />
+          </LabeledField>
+
+          <LabeledField
+            label="Magenta"
+            hint="Signature accent color for headers and primary buttons."
+          >
+            <div className="flex items-center gap-ut-2">
               <input
                 type="color"
                 value={branding.magenta}
                 onChange={(e) => handleIdentityChange("magenta", e.target.value)}
-                className="h-8 w-8 cursor-pointer rounded border border-ut-border p-0"
+                className="h-8 w-8 cursor-pointer rounded-ut-sm border border-ut-border p-0"
                 data-testid="magenta-input"
               />
               <span
-                className="inline-block h-6 w-6 rounded border border-ut-border"
+                className="inline-block h-6 w-6 rounded-ut-sm border border-ut-border"
                 style={{ backgroundColor: branding.magenta }}
                 data-testid="magenta-swatch"
               />
-              <span className="text-ut-xs text-ut-muted font-mono">{branding.magenta}</span>
+              <span className="font-mono text-ut-xs text-ut-muted">{branding.magenta}</span>
             </div>
-          </label>
-        </section>
+          </LabeledField>
+        </CollapsibleRow>
 
-        {/* ─── 2. Report Literals ──────────────────────────────────────── */}
-        <section className="border border-ut-border rounded-md p-ut-3 space-y-ut-2">
-          <h2 className="text-ut-sm font-bold text-ut-navy">Report Literals</h2>
+        {/* ── 2. Report Literals ────────────────────────────────────────── */}
+        <CollapsibleRow
+          summary="Report Literals"
+          edited={hasReportOverride}
+          testId="section-report"
+        >
+          <LabeledField label="Report Title" hint="Main heading on the exported report.">
+            <input
+              type="text"
+              value={branding.report.title}
+              onChange={(e) => handleReportChange("title", e.target.value)}
+              className={editorInputClass}
+              data-testid="report-title"
+            />
+          </LabeledField>
 
-          <LabelInput
-            label="Report Title"
-            value={branding.report.title}
-            onChange={(v) => handleReportChange("title", v)}
-          />
-          <LabelInput
-            label="Nutrition Title"
-            value={branding.report.nutritionTitle}
-            onChange={(v) => handleReportChange("nutritionTitle", v)}
-          />
-          <LabelInput
-            label="Card Title"
-            value={branding.report.cardTitle}
-            onChange={(v) => handleReportChange("cardTitle", v)}
-          />
-          <LabelInput
+          <LabeledField label="Nutrition Title" hint="Heading on the nutrition-label summary card.">
+            <input
+              type="text"
+              value={branding.report.nutritionTitle}
+              onChange={(e) => handleReportChange("nutritionTitle", e.target.value)}
+              className={editorInputClass}
+              data-testid="report-nutritionTitle"
+            />
+          </LabeledField>
+
+          <LabeledField label="Card Title" hint="Heading on the business-card summary.">
+            <input
+              type="text"
+              value={branding.report.cardTitle}
+              onChange={(e) => handleReportChange("cardTitle", e.target.value)}
+              className={editorInputClass}
+              data-testid="report-cardTitle"
+            />
+          </LabeledField>
+
+          <LabeledField
             label="Footer Framework"
-            value={branding.report.footerFramework}
-            onChange={(v) => handleReportChange("footerFramework", v)}
-          />
-          <LabelInput
-            label="Reviewed By"
-            value={branding.report.reviewedBy}
-            onChange={(v) => handleReportChange("reviewedBy", v)}
-          />
-          <LabelInput
+            hint="Framework attribution printed in the report footer."
+          >
+            <input
+              type="text"
+              value={branding.report.footerFramework}
+              onChange={(e) => handleReportChange("footerFramework", e.target.value)}
+              className={editorInputClass}
+              data-testid="report-footerFramework"
+            />
+          </LabeledField>
+
+          <LabeledField label="Reviewed By" hint="Label naming the reviewer line on the report.">
+            <input
+              type="text"
+              value={branding.report.reviewedBy}
+              onChange={(e) => handleReportChange("reviewedBy", e.target.value)}
+              className={editorInputClass}
+              data-testid="report-reviewedBy"
+            />
+          </LabeledField>
+
+          <LabeledField
             label="Archive Notice"
-            value={branding.report.archiveNotice}
-            onChange={(v) => handleReportChange("archiveNotice", v)}
-          />
-          <LabelInput
+            hint="Notice text appended to archived report bundles."
+          >
+            <input
+              type="text"
+              value={branding.report.archiveNotice}
+              onChange={(e) => handleReportChange("archiveNotice", e.target.value)}
+              className={editorInputClass}
+              data-testid="report-archiveNotice"
+            />
+          </LabeledField>
+
+          <LabeledField
             label="QR URL"
-            value={branding.report.qrUrl ?? ""}
-            onChange={(v) => handleReportChange("qrUrl", v)}
-          />
-        </section>
+            hint="URL the report QR code points to (leave blank for none)."
+          >
+            <input
+              type="text"
+              value={branding.report.qrUrl ?? ""}
+              onChange={(e) => handleReportChange("qrUrl", e.target.value)}
+              className={editorInputClass}
+              data-testid="report-qrUrl"
+            />
+          </LabeledField>
+        </CollapsibleRow>
 
-        {/* ─── 3. Export ────────────────────────────────────────────────── */}
-        <section className="border border-ut-border rounded-md p-ut-3 space-y-ut-2">
-          <h2 className="text-ut-sm font-bold text-ut-navy">Export</h2>
-
-          <LabelInput
+        {/* ── 3. Export ────────────────────────────────────────────────── */}
+        <CollapsibleRow summary="Export" edited={hasExportOverride} testId="section-export">
+          <LabeledField
             label="Label Filename Prefix"
-            value={branding.export.labelFilenamePrefix}
-            onChange={(v) => handleExportChange("labelFilenamePrefix", v)}
-          />
-          <LabelInput
+            hint="Prefix for the exported label filename."
+          >
+            <input
+              type="text"
+              value={branding.export.labelFilenamePrefix}
+              onChange={(e) => handleExportChange("labelFilenamePrefix", e.target.value)}
+              className={editorInputClass}
+              data-testid="export-labelFilenamePrefix"
+            />
+          </LabeledField>
+
+          <LabeledField
             label="Framework Logo Filename"
-            value={branding.export.frameworkLogoFilename}
-            onChange={(v) => handleExportChange("frameworkLogoFilename", v)}
-          />
-        </section>
+            hint="Filename used for the framework logo inside the export."
+          >
+            <input
+              type="text"
+              value={branding.export.frameworkLogoFilename}
+              onChange={(e) => handleExportChange("frameworkLogoFilename", e.target.value)}
+              className={editorInputClass}
+              data-testid="export-frameworkLogoFilename"
+            />
+          </LabeledField>
+        </CollapsibleRow>
 
-        {/* ─── 4. Logos ─────────────────────────────────────────────────── */}
-        <section className="border border-ut-border rounded-md p-ut-3 space-y-ut-2">
-          <h2 className="text-ut-sm font-bold text-ut-navy">Logos</h2>
-
-          <label className="block">
-            <span className="text-ut-xs text-ut-muted">Framework Logo (upload)</span>
+        {/* ── 4. Logos ──────────────────────────────────────────────────── */}
+        <CollapsibleRow summary="Logos" edited={hasLogoOverride} testId="section-logos">
+          <LabeledField label="Framework Logo (upload)">
             <input
               ref={fileRef}
               type="file"
               accept="image/*"
               onChange={handleLogoUpload}
-              className="block mt-1 text-ut-sm"
+              className="block text-ut-xs text-ut-muted"
               data-testid="logo-upload"
             />
-          </label>
+          </LabeledField>
 
           {branding.logos.framework && (
             <div>
@@ -203,20 +313,19 @@ export default function BrandingEditor({ onBack }: { onBack: () => void }) {
               <img
                 src={branding.logos.framework}
                 alt="Framework logo"
-                className="mt-1 h-16 max-w-full object-contain border border-ut-border rounded"
+                className="mt-0.5 h-16 max-w-full object-contain border border-ut-border rounded-ut-sm"
                 data-testid="logo-preview"
               />
             </div>
           )}
 
-          {/* Read-only display for secondary / institution */}
           {branding.logos.secondary && (
             <div>
               <span className="text-ut-xs text-ut-muted">Secondary Logo (read-only)</span>
               <img
                 src={branding.logos.secondary}
                 alt="Secondary logo"
-                className="mt-1 h-12 max-w-full object-contain border border-ut-border rounded"
+                className="mt-0.5 h-12 max-w-full object-contain border border-ut-border rounded-ut-sm"
               />
             </div>
           )}
@@ -226,45 +335,29 @@ export default function BrandingEditor({ onBack }: { onBack: () => void }) {
               <img
                 src={branding.logos.institution}
                 alt="Institution logo"
-                className="mt-1 h-12 max-w-full object-contain border border-ut-border rounded"
+                className="mt-0.5 h-12 max-w-full object-contain border border-ut-border rounded-ut-sm"
               />
             </div>
           )}
-        </section>
-
-        {/* ─── Reset ────────────────────────────────────────────────────── */}
-        <button
-          type="button"
-          className="text-ut-sm text-ut-muted hover:text-red-600 transition-colors underline"
-          onClick={handleReset}
-        >
-          Reset Branding
-        </button>
+        </CollapsibleRow>
       </div>
-    </div>
-  );
-}
 
-/* ─── Reusable label + text input ──────────────────────────────────────── */
-
-function LabelInput({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label className="block">
-      <span className="text-ut-xs text-ut-muted">{label}</span>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 block w-full rounded border border-ut-border bg-white px-2 py-1 text-ut-sm"
-      />
-    </label>
+      {confirmReset && (
+        <ConfirmDialog
+          message="Reset all branding to the framework defaults? This clears any name, color, logo, and text customizations you've made."
+          actions={[
+            { label: "Cancel", handler: () => setConfirmReset(false), variant: "cancel" },
+            {
+              label: "Reset",
+              handler: () => {
+                handleReset();
+                setConfirmReset(false);
+              },
+              variant: "danger",
+            },
+          ]}
+        />
+      )}
+    </EditorShell>
   );
 }

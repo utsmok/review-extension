@@ -1,19 +1,54 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { downloadBlob } from "@/lib/export";
 
-import { getActiveFrameworkConfig, getActiveGrades } from "@/lib/framework-config";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import {
+  CollapsibleRow,
+  EditorShell,
+  editorInputClass,
+  LabeledField,
+  Section,
+} from "@/components/editor";
+import { getActiveFrameworkConfig } from "@/lib/framework-config";
 import { migrateOptionRename } from "@/lib/framework-migrate";
-import type { FieldDescriptor, FieldSurface, FrameworkGrade } from "@/lib/types";
+import type { FieldDescriptor, FieldSurface } from "@/lib/types";
 import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
 
-// ─── downloadJSON helper ─────────────────────────────────────────────────
+// ─── Friendly-name maps ────────────────────────────────────────────────
 
-function downloadJSON(filename: string, data: unknown): void {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  downloadBlob(blob, filename);
+const TYPE_LABELS: Record<string, string> = {
+  text: "Text",
+  textarea: "Long text",
+  url: "URL",
+  email: "Email",
+  boolean: "Toggle",
+  select: "Single select",
+  "multi-select": "Multi-select",
+  image: "Image",
+};
+
+const SURFACE_LABELS: Record<FieldSurface, string> = {
+  metadata: "Tool details",
+  finalization: "Finalize",
+  settings: "Settings",
+};
+
+const SURFACE_DESCRIPTIONS: Record<FieldSurface, string> = {
+  metadata: "Information about the tool itself — name, vendor, pricing, links.",
+  finalization: "Decisions made at the end of the review — recommendation, notes.",
+  settings: "Preferences that control how the review is conducted.",
+};
+
+// ─── Slug helper ───────────────────────────────────────────────────────
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "")
+    .slice(0, 48);
 }
 
-// ─── Inline input ─────────────────────────────────────────────────────────
+// ─── InlineInput ───────────────────────────────────────────────────────
 
 function InlineInput({
   value,
@@ -31,6 +66,7 @@ function InlineInput({
 
   const prevValue = useRef(value);
   if (prevValue.current !== value) {
+    // Sync when external value changes
     prevValue.current = value;
     setDraft(value);
   }
@@ -55,12 +91,12 @@ function InlineInput({
         }
       }}
       placeholder={placeholder}
-      className={`text-ut-xs border border-ut-border rounded px-1 py-0.5 bg-white ${className}`}
+      className={`${editorInputClass} ${className}`}
     />
   );
 }
 
-// ─── OptionRow ──────────────────────────────────────────────────────────
+// ─── OptionRow ─────────────────────────────────────────────────────────
 
 function OptionRow({
   fieldId,
@@ -74,6 +110,8 @@ function OptionRow({
   const renameOption = useFrameworkCustomizationStore((s) => s.renameOption);
   const hideOption = useFrameworkCustomizationStore((s) => s.hideOption);
   const removeOption = useFrameworkCustomizationStore((s) => s.removeOption);
+
+  const [confirmHide, setConfirmHide] = useState(false);
 
   const handleRename = useCallback(
     (newVal: string) => {
@@ -91,28 +129,45 @@ function OptionRow({
 
   const handleRemove = useCallback(() => {
     if (isShipped) {
-      hideOption(fieldId, option);
+      // Confirm before hiding shipped option
+      setConfirmHide(true);
     } else {
       removeOption(fieldId, option);
     }
-  }, [fieldId, option, isShipped, hideOption, removeOption]);
+  }, [fieldId, option, isShipped, removeOption]);
+
+  const confirmHideAction = useCallback(() => {
+    hideOption(fieldId, option);
+    setConfirmHide(false);
+  }, [fieldId, option, hideOption]);
 
   return (
-    <div className="flex items-center gap-1">
-      <InlineInput value={option} onChange={handleRename} className="flex-1 min-w-0" />
-      <button
-        type="button"
-        onClick={handleRemove}
-        className="text-ut-red hover:text-ut-red/80 text-ut-xs font-bold px-1"
-        aria-label={`Remove ${option}`}
-      >
-        ×
-      </button>
-    </div>
+    <>
+      {confirmHide && (
+        <ConfirmDialog
+          message={`Hide "${option}" from reviewers? They will no longer be able to select it.`}
+          actions={[
+            { label: "Cancel", handler: () => setConfirmHide(false), variant: "cancel" },
+            { label: "Hide option", handler: confirmHideAction, variant: "danger" },
+          ]}
+        />
+      )}
+      <div className="flex items-center gap-1">
+        <InlineInput value={option} onChange={handleRename} className="flex-1 min-w-0" />
+        <button
+          type="button"
+          onClick={handleRemove}
+          className="text-ut-red hover:text-ut-red/80 text-ut-xs font-bold px-1"
+          aria-label={`Remove ${option}`}
+        >
+          ×
+        </button>
+      </div>
+    </>
   );
 }
 
-// ─── FieldRow ─────────────────────────────────────────────────────────────
+// ─── FieldRow ──────────────────────────────────────────────────────────
 
 function FieldRow({
   field,
@@ -126,6 +181,11 @@ function FieldRow({
   const setFieldOverride = useFrameworkCustomizationStore((s) => s.setFieldOverride);
   const removeCustomField = useFrameworkCustomizationStore((s) => s.removeCustomField);
   const addOption = useFrameworkCustomizationStore((s) => s.addOption);
+
+  const customization = useFrameworkCustomizationStore((s) => s.customization);
+  const isEdited = !!customization.fieldOverrides[field.id] || !!field.custom;
+
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
   const handleToggle = useCallback(() => {
     setFieldOverride(field.id, { enabled: !field.enabled });
@@ -166,10 +226,14 @@ function FieldRow({
     setFieldOverride(next.id, { order: field.order });
   }, [index, field.id, field.order, fieldsInGroup, setFieldOverride]);
 
-  const handleRemove = useCallback(
-    () => removeCustomField(field.id),
-    [field.id, removeCustomField],
-  );
+  const handleRemoveClick = useCallback(() => {
+    setConfirmRemove(true);
+  }, []);
+
+  const confirmRemoveAction = useCallback(() => {
+    removeCustomField(field.id);
+    setConfirmRemove(false);
+  }, [field.id, removeCustomField]);
 
   // Current options after merge
   const activeConfig = getActiveFrameworkConfig();
@@ -187,203 +251,149 @@ function FieldRow({
   }, [field.id, newOptionDraft, addOption]);
 
   const hasOptions = field.type === "select" || field.type === "multi-select";
+  const friendlyType = TYPE_LABELS[field.type] ?? field.type;
+
+  // Summary line
+  const summary = (
+    <>
+      <input
+        type="checkbox"
+        checked={field.enabled}
+        onChange={handleToggle}
+        className="shrink-0 accent-trust-magenta"
+        aria-label={`Toggle ${field.label}`}
+      />
+      <span className={`font-bold ${!field.enabled ? "opacity-60" : ""}`}>{field.label}</span>
+      <span className="text-ut-2xs text-ut-muted font-mono">{field.id}</span>
+      <span className="text-ut-2xs text-ut-muted">{friendlyType}</span>
+
+      <div className="flex gap-0.5 ml-auto shrink-0">
+        <button
+          type="button"
+          onClick={handleMoveUp}
+          disabled={index === 0}
+          className="text-ut-xs text-ut-muted hover:text-ut-navy disabled:opacity-30 px-1"
+          aria-label="Move up"
+        >
+          ↑
+        </button>
+        <button
+          type="button"
+          onClick={handleMoveDown}
+          disabled={index === fieldsInGroup.length - 1}
+          className="text-ut-xs text-ut-muted hover:text-ut-navy disabled:opacity-30 px-1"
+          aria-label="Move down"
+        >
+          ↓
+        </button>
+        {field.custom && (
+          <button
+            type="button"
+            onClick={handleRemoveClick}
+            className="text-ut-xs text-ut-red hover:text-ut-red/80 px-1"
+          >
+            Remove
+          </button>
+        )}
+      </div>
+    </>
+  );
 
   return (
-    <div
-      className={`border border-ut-border rounded p-ut-2 space-y-ut-1 ${!field.enabled ? "opacity-60" : ""}`}
-    >
-      {/* Row header */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <label className="flex items-center gap-1 text-ut-xs">
-          <input type="checkbox" checked={field.enabled} onChange={handleToggle} />
-          <span className="font-bold">{field.id}</span>
-        </label>
-        <InlineInput value={field.label} onChange={handleLabelChange} className="w-36" />
-        <span className="text-ut-xs text-ut-muted">{field.type}</span>
-        <span className="text-ut-xs text-ut-muted">{field.surface}</span>
+    <>
+      {confirmRemove && (
+        <ConfirmDialog
+          message={`Remove "${field.label}" entirely? This cannot be undone.`}
+          actions={[
+            { label: "Cancel", handler: () => setConfirmRemove(false), variant: "cancel" },
+            { label: "Remove field", handler: confirmRemoveAction, variant: "danger" },
+          ]}
+        />
+      )}
+      <CollapsibleRow summary={summary} edited={isEdited} testId={`field-row-${field.id}`}>
+        <div className="space-y-ut-2">
+          <LabeledField label="Label" hint="The name shown to reviewers on the form.">
+            <InlineInput value={field.label} onChange={handleLabelChange} />
+          </LabeledField>
 
-        <div className="flex gap-0.5 ml-auto">
-          <button
-            type="button"
-            onClick={handleMoveUp}
-            disabled={index === 0}
-            className="text-ut-xs text-ut-muted hover:text-ut-navy disabled:opacity-30 px-1"
-            aria-label="Move up"
+          <LabeledField
+            label="Placeholder"
+            hint="Example text shown inside the field before anyone types."
           >
-            ↑
-          </button>
-          <button
-            type="button"
-            onClick={handleMoveDown}
-            disabled={index === fieldsInGroup.length - 1}
-            className="text-ut-xs text-ut-muted hover:text-ut-navy disabled:opacity-30 px-1"
-            aria-label="Move down"
-          >
-            ↓
-          </button>
-          {field.custom && (
-            <button
-              type="button"
-              onClick={handleRemove}
-              className="text-ut-xs text-ut-red hover:text-ut-red/80 px-1"
-            >
-              Remove
-            </button>
+            <InlineInput value={field.placeholder ?? ""} onChange={handlePlaceholderChange} />
+          </LabeledField>
+
+          <LabeledField label="Help text" hint="Extra guidance shown beneath the field.">
+            <InlineInput value={field.helpText ?? ""} onChange={handleHelpTextChange} />
+          </LabeledField>
+
+          <label className="flex items-center gap-2 text-ut-xs">
+            <input
+              type="checkbox"
+              checked={field.required ?? false}
+              onChange={handleRequiredChange}
+              className="accent-trust-magenta"
+            />
+            <span>Required — reviewers must fill this in</span>
+          </label>
+
+          {hasOptions && (
+            <div className="border-t border-ut-border pt-ut-2 space-y-ut-1">
+              <h4 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+                Options
+              </h4>
+              {currentOptions.map((opt) => (
+                <OptionRow
+                  key={opt}
+                  fieldId={field.id}
+                  option={opt}
+                  isShipped={shippedOptions.includes(opt)}
+                />
+              ))}
+              <div className="flex items-center gap-1">
+                <input
+                  type="text"
+                  value={newOptionDraft}
+                  onChange={(e) => setNewOptionDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddOption();
+                  }}
+                  placeholder="New option…"
+                  className={`${editorInputClass} flex-1 min-w-0`}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddOption}
+                  className="text-ut-xs text-trust-magenta hover:text-trust-magenta/80 font-bold px-1"
+                >
+                  +
+                </button>
+              </div>
+            </div>
           )}
         </div>
-      </div>
-
-      {/* Sub-fields */}
-      <div className="grid grid-cols-2 gap-x-ut-2 gap-y-ut-1 text-ut-xs">
-        <div className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">Placeholder</span>
-          <InlineInput
-            value={field.placeholder ?? ""}
-            onChange={handlePlaceholderChange}
-            className="flex-1 min-w-0"
-          />
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">Help text</span>
-          <InlineInput
-            value={field.helpText ?? ""}
-            onChange={handleHelpTextChange}
-            className="flex-1 min-w-0"
-          />
-        </div>
-        <label className="flex items-center gap-1 col-span-2">
-          <input
-            type="checkbox"
-            checked={field.required ?? false}
-            onChange={handleRequiredChange}
-          />
-          <span>Required</span>
-        </label>
-      </div>
-
-      {/* Options sub-list for select/multi-select */}
-      {hasOptions && (
-        <div className="mt-1 space-y-1 border-t border-ut-border pt-ut-1">
-          <h4 className="text-ut-xs font-bold text-ut-navy">Options</h4>
-          {currentOptions.map((opt) => (
-            <OptionRow
-              key={opt}
-              fieldId={field.id}
-              option={opt}
-              isShipped={shippedOptions.includes(opt)}
-            />
-          ))}
-          <div className="flex items-center gap-1">
-            <input
-              type="text"
-              value={newOptionDraft}
-              onChange={(e) => setNewOptionDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleAddOption();
-              }}
-              placeholder="New option…"
-              className="text-ut-xs border border-ut-border rounded px-1 py-0.5 bg-white flex-1 min-w-0"
-            />
-            <button
-              type="button"
-              onClick={handleAddOption}
-              className="text-ut-xs text-trust-magenta hover:text-trust-magenta/80 font-bold px-1"
-            >
-              +
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+      </CollapsibleRow>
+    </>
   );
 }
 
-// ─── GradeRow ─────────────────────────────────────────────────────────────
-
-function GradeRow({ grade }: { grade: FrameworkGrade }) {
-  const setGradeOverride = useFrameworkCustomizationStore((s) => s.setGradeOverride);
-
-  const update = useCallback(
-    (patch: Parameters<typeof setGradeOverride>[1]) => setGradeOverride(grade.id, patch),
-    [grade.id, setGradeOverride],
-  );
-
-  return (
-    <div className="border border-ut-border rounded p-ut-2 space-y-ut-1 text-ut-xs">
-      <div className="flex items-center gap-2">
-        <span className={`w-3 h-3 rounded-sm ${grade.color}`} />
-        <span className="font-bold">{grade.id}</span>
-        <span className="text-ut-muted">{grade.label}</span>
-      </div>
-      <div className="grid grid-cols-2 gap-x-ut-2 gap-y-ut-1">
-        <div className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">Label</span>
-          <InlineInput
-            value={grade.label}
-            onChange={(v) => update({ label: v })}
-            className="flex-1 min-w-0"
-          />
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">Description</span>
-          <InlineInput
-            value={grade.description}
-            onChange={(v) => update({ description: v })}
-            className="flex-1 min-w-0"
-          />
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">Color</span>
-          <InlineInput
-            value={grade.color}
-            onChange={(v) => update({ color: v })}
-            className="flex-1 min-w-0"
-          />
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">Tint</span>
-          <InlineInput
-            value={grade.tint}
-            onChange={(v) => update({ tint: v })}
-            className="flex-1 min-w-0"
-          />
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">Report color</span>
-          <InlineInput
-            value={grade.reportColor}
-            onChange={(v) => update({ reportColor: v })}
-            className="flex-1 min-w-0"
-          />
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">Report label</span>
-          <InlineInput
-            value={grade.reportLabel}
-            onChange={(v) => update({ reportLabel: v })}
-            className="flex-1 min-w-0"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── AddFieldForm ─────────────────────────────────────────────────────────
+// ─── AddFieldForm ──────────────────────────────────────────────────────
 
 function AddFieldForm() {
   const addField = useFrameworkCustomizationStore((s) => s.addField);
-  const [id, setId] = useState("");
-  const [storageKey, setStorageKey] = useState("");
   const [label, setLabel] = useState("");
   const [surface, setSurface] = useState<FieldSurface>("metadata");
   const [type, setType] = useState<FieldDescriptor["type"]>("text");
   const [group, setGroup] = useState("");
 
+  const idSlug = slugify(label);
+
   const handleSubmit = useCallback(() => {
+    const id = idSlug;
+    if (!id || !label.trim()) return;
     const desc: FieldDescriptor = {
-      id: id.trim(),
-      storageKey: storageKey.trim() || id.trim(),
+      id,
+      storageKey: id,
       surface,
       label: label.trim(),
       type,
@@ -393,127 +403,131 @@ function AddFieldForm() {
       custom: true,
     };
     addField(desc);
-    setId("");
-    setStorageKey("");
     setLabel("");
     setGroup("");
-  }, [id, storageKey, label, surface, type, group, addField]);
+  }, [idSlug, label, surface, type, group, addField]);
+
+  const canSubmit = !!idSlug && !!label.trim();
 
   return (
-    <div className="border border-dashed border-ut-border rounded p-ut-2 space-y-ut-1 text-ut-xs">
-      <h4 className="font-bold text-ut-navy">Add field</h4>
-      <div className="grid grid-cols-2 gap-x-ut-2 gap-y-ut-1">
-        <label className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">ID</span>
-          <input
-            type="text"
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-            className="text-ut-xs border border-ut-border rounded px-1 py-0.5 bg-white flex-1 min-w-0"
-          />
-        </label>
-        <label className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">Storage key</span>
-          <input
-            type="text"
-            value={storageKey}
-            onChange={(e) => setStorageKey(e.target.value)}
-            className="text-ut-xs border border-ut-border rounded px-1 py-0.5 bg-white flex-1 min-w-0"
-          />
-        </label>
-        <label className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">Label</span>
+    <Section
+      title="Add a new field"
+      description="Create a custom field that reviewers will see on this surface."
+    >
+      <div className="space-y-ut-2">
+        <LabeledField label="Field label" hint="The name reviewers will see on the form.">
           <input
             type="text"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
-            className="text-ut-xs border border-ut-border rounded px-1 py-0.5 bg-white flex-1 min-w-0"
+            placeholder="e.g. License tier"
+            className={editorInputClass}
           />
-        </label>
-        <label className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">Surface</span>
-          <select
-            value={surface}
-            onChange={(e) => setSurface(e.target.value as FieldSurface)}
-            className="text-ut-xs border border-ut-border rounded px-1 py-0.5 bg-white flex-1"
-          >
-            <option value="metadata">Metadata</option>
-            <option value="finalization">Finalization</option>
-            <option value="settings">Settings</option>
-          </select>
-        </label>
-        <label className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">Type</span>
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value as FieldDescriptor["type"])}
-            className="text-ut-xs border border-ut-border rounded px-1 py-0.5 bg-white flex-1"
-          >
-            <option value="text">Text</option>
-            <option value="textarea">Textarea</option>
-            <option value="url">URL</option>
-            <option value="email">Email</option>
-            <option value="boolean">Boolean</option>
-            <option value="select">Select</option>
-            <option value="multi-select">Multi-select</option>
-            <option value="image">Image</option>
-          </select>
-        </label>
-        <label className="flex items-center gap-1">
-          <span className="text-ut-muted w-20 shrink-0">Group</span>
+        </LabeledField>
+
+        <LabeledField
+          label="ID (auto-generated)"
+          hint="Internal identifier. Created automatically from the label."
+        >
+          <input
+            type="text"
+            value={idSlug}
+            readOnly
+            className={`${editorInputClass} opacity-60 cursor-not-allowed font-mono`}
+          />
+        </LabeledField>
+
+        <div className="grid grid-cols-2 gap-ut-2">
+          <LabeledField label="Surface" hint="Where on the form this field appears.">
+            <select
+              value={surface}
+              onChange={(e) => setSurface(e.target.value as FieldSurface)}
+              className={editorInputClass}
+            >
+              <option value="metadata">Tool details</option>
+              <option value="finalization">Finalize</option>
+              <option value="settings">Settings</option>
+            </select>
+          </LabeledField>
+
+          <LabeledField label="Field type" hint="What kind of answer the field collects.">
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as FieldDescriptor["type"])}
+              className={editorInputClass}
+            >
+              <option value="text">Text</option>
+              <option value="textarea">Long text</option>
+              <option value="url">URL</option>
+              <option value="email">Email</option>
+              <option value="boolean">Toggle</option>
+              <option value="select">Single select</option>
+              <option value="multi-select">Multi-select</option>
+              <option value="image">Image</option>
+            </select>
+          </LabeledField>
+        </div>
+
+        <LabeledField
+          label="Group (optional)"
+          hint="Group label to visually organize related fields."
+        >
           <input
             type="text"
             value={group}
             onChange={(e) => setGroup(e.target.value)}
-            className="text-ut-xs border border-ut-border rounded px-1 py-0.5 bg-white flex-1 min-w-0"
+            placeholder="e.g. Profile"
+            className={editorInputClass}
           />
-        </label>
+        </LabeledField>
+
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!canSubmit}
+          className="bg-trust-magenta text-white hover:bg-trust-magenta-strong disabled:opacity-30 rounded-ut-sm px-ut-3 py-ut-1 font-heading uppercase tracking-ut-label text-ut-xs"
+        >
+          Add field
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={!id.trim() || !label.trim()}
-        className="text-ut-xs text-trust-magenta hover:text-trust-magenta/80 font-bold disabled:opacity-30"
-      >
-        Add field
-      </button>
-    </div>
+    </Section>
   );
 }
 
-// ─── SurfaceSection ───────────────────────────────────────────────────────
+// ─── SurfaceSection ────────────────────────────────────────────────────
 
 function SurfaceSection({ surface }: { surface: FieldSurface }) {
   const activeConfig = getActiveFrameworkConfig();
+  const customFields = useFrameworkCustomizationStore((s) => s.customization.customFields);
 
   const merged = useMemo(() => {
-    const custom = useFrameworkCustomizationStore
-      .getState()
-      .customization.customFields.filter((f) => f.surface === surface);
+    const custom = customFields.filter((f) => f.surface === surface);
     return [...activeConfig.fields.filter((f) => f.surface === surface), ...custom];
-  }, [activeConfig, surface]);
+  }, [activeConfig, customFields, surface]);
 
   const grouped = useMemo(() => {
-    const groups = new Map<string, FieldDescriptor[]>();
+    const groups: Record<string, FieldDescriptor[]> = {};
     for (const f of merged) {
       const g = f.group ?? "";
-      const arr = groups.get(g) ?? [];
-      arr.push(f);
-      groups.set(g, arr);
+      if (!groups[g]) groups[g] = [];
+      groups[g].push(f);
     }
-    for (const arr of groups.values()) arr.sort((a, b) => a.order - b.order);
+    for (const arr of Object.values(groups)) arr.sort((a, b) => a.order - b.order);
     return groups;
   }, [merged]);
 
+  const surfaceLabel = SURFACE_LABELS[surface];
+
   return (
-    <section>
-      <h3 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-ut-1 capitalize">
-        {surface}
-      </h3>
+    <Section title={surfaceLabel} description={SURFACE_DESCRIPTIONS[surface]}>
       <div className="space-y-ut-3">
-        {Array.from(grouped.entries()).map(([group, fields]) => (
+        {Object.entries(grouped).map(([group, fields]) => (
           <div key={group}>
-            {group && <h4 className="text-ut-xs font-bold text-trust-magenta mb-ut-1">{group}</h4>}
+            {group && (
+              <h4 className="text-ut-2xs font-heading font-bold uppercase tracking-ut-label text-trust-magenta mb-ut-1">
+                {group}
+              </h4>
+            )}
             <div className="space-y-ut-2">
               {fields.map((f, i) => (
                 <FieldRow key={f.id} field={f} fieldsInGroup={fields} index={i} />
@@ -522,143 +536,75 @@ function SurfaceSection({ surface }: { surface: FieldSurface }) {
           </div>
         ))}
       </div>
-    </section>
+    </Section>
   );
 }
 
-// ─── Main FieldEditor ────────────────────────────────────────────────────
+// ─── Main FieldEditor ──────────────────────────────────────────────────
 
 export default function FieldEditor({ onBack }: { onBack: () => void }) {
-  const resetAll = useFrameworkCustomizationStore((s) => s.resetAll);
-  const exportCustomization = useFrameworkCustomizationStore((s) => s.exportCustomization);
-  const importCustomization = useFrameworkCustomizationStore((s) => s.importCustomization);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [tab, setTab] = useState<"fields" | "grades">("fields");
+  const resetField = useFrameworkCustomizationStore((s) => s.resetField);
+  const removeCustomField = useFrameworkCustomizationStore((s) => s.removeCustomField);
+  const customization = useFrameworkCustomizationStore((s) => s.customization);
+  const [confirmReset, setConfirmReset] = useState(false);
 
-  const grades = getActiveGrades();
+  const hasFieldOverrides = useFrameworkCustomizationStore((s) => {
+    const c = s.customization;
+    return (
+      Object.keys(c.fieldOverrides).length > 0 ||
+      c.customFields.length > 0 ||
+      Object.keys(c.extraOptions).length > 0 ||
+      Object.keys(c.hiddenOptions).length > 0 ||
+      Object.keys(c.renames).length > 0
+    );
+  });
 
-  const handleExport = useCallback(() => {
-    downloadJSON("trust-framework-customization.json", exportCustomization());
-  }, [exportCustomization]);
+  const handleResetFields = useCallback(() => {
+    // Reset all field overrides
+    for (const id of Object.keys(customization.fieldOverrides)) {
+      resetField(id);
+    }
+    // Remove all custom fields
+    for (const cf of customization.customFields) {
+      removeCustomField(cf.id);
+    }
+    setConfirmReset(false);
+  }, [customization.fieldOverrides, customization.customFields, resetField, removeCustomField]);
 
-  const handleImport = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          importCustomization(JSON.parse(reader.result as string));
-        } catch {
-          // Invalid JSON — silently ignore
-        }
-      };
-      reader.readAsText(file);
-      e.target.value = "";
-    },
-    [importCustomization],
-  );
+  const footer = hasFieldOverrides ? (
+    <>
+      {confirmReset && (
+        <ConfirmDialog
+          message="Reset all field changes? Custom fields, reorders, renames, and hidden options will be removed. This cannot be undone."
+          actions={[
+            { label: "Cancel", handler: () => setConfirmReset(false), variant: "cancel" },
+            { label: "Reset fields", handler: handleResetFields, variant: "danger" },
+          ]}
+        />
+      )}
+      <button
+        type="button"
+        onClick={() => setConfirmReset(true)}
+        className="text-trust-magenta hover:underline text-ut-xs font-heading uppercase tracking-ut-label"
+      >
+        Reset fields to default
+      </button>
+    </>
+  ) : null;
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="border-b border-ut-border px-ut-4 py-ut-2 flex items-center gap-2">
-        <button
-          type="button"
-          className="text-ut-muted hover:text-ut-navy transition-colors p-0.5"
-          onClick={onBack}
-          aria-label="Back"
-        >
-          <svg
-            aria-hidden="true"
-            className="w-4 h-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-        <h1 className="font-heading text-ut-sub font-bold uppercase tracking-ut-heading text-trust-magenta">
-          Customize Fields
-        </h1>
+    <EditorShell
+      title="Fields & options"
+      subtitle="Toggle, rename, reorder, or add the entry fields reviewers fill in. Changes apply to new reviews."
+      onBack={onBack}
+      footer={footer}
+    >
+      <div className="space-y-ut-6">
+        <SurfaceSection surface="metadata" />
+        <SurfaceSection surface="finalization" />
+        <SurfaceSection surface="settings" />
+        <AddFieldForm />
       </div>
-
-      {/* Tab bar */}
-      <div className="border-b border-ut-border px-ut-4 flex gap-ut-3">
-        {(["fields", "grades"] as const).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={`text-ut-xs font-bold pb-1 border-b-2 transition-colors ${
-              tab === t
-                ? "border-trust-magenta text-trust-magenta"
-                : "border-transparent text-ut-muted hover:text-ut-navy"
-            }`}
-          >
-            {t === "fields" ? "Fields" : "Grade Display"}
-          </button>
-        ))}
-      </div>
-
-      {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-ut-4 py-ut-4 space-y-ut-5">
-        {tab === "fields" && (
-          <>
-            <SurfaceSection surface="metadata" />
-            <SurfaceSection surface="finalization" />
-            <SurfaceSection surface="settings" />
-            <AddFieldForm />
-          </>
-        )}
-
-        {tab === "grades" && (
-          <section>
-            <h3 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-ut-1">
-              Grades
-            </h3>
-            <div className="space-y-ut-2">
-              {grades.map((g) => (
-                <GradeRow key={g.id} grade={g} />
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
-
-      {/* Footer actions */}
-      <div className="border-t border-ut-border px-ut-4 py-ut-2 flex items-center gap-ut-3">
-        <button
-          type="button"
-          onClick={resetAll}
-          className="text-ut-xs text-ut-red hover:text-ut-red/80 font-bold"
-        >
-          Reset all
-        </button>
-        <button
-          type="button"
-          onClick={handleExport}
-          className="text-ut-xs text-ut-navy hover:text-ut-navy/80 font-bold"
-        >
-          Export customization
-        </button>
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          className="text-ut-xs text-ut-navy hover:text-ut-navy/80 font-bold"
-        >
-          Import customization
-        </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".json,application/json"
-          className="hidden"
-          onChange={handleImport}
-        />
-      </div>
-    </div>
+    </EditorShell>
   );
 }

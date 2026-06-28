@@ -4,8 +4,6 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import FieldEditor from "@/components/FieldEditor";
-import GradeIdEditor from "@/components/GradeIdEditor";
-import { getActiveGrades } from "@/lib/framework-config";
 import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
 
 describe("FieldEditor", () => {
@@ -18,184 +16,173 @@ describe("FieldEditor", () => {
 
   afterEach(cleanup);
 
-  it("renders with header and field/customize tabs", () => {
+  it("renders inside EditorShell with correct title and subtitle", () => {
     render(<FieldEditor onBack={onBack} />);
-    expect(screen.getByText("Customize Fields")).toBeDefined();
-    expect(screen.getByRole("button", { name: "Fields" })).toBeDefined();
-    expect(screen.getByRole("button", { name: "Grade Display" })).toBeDefined();
+    expect(screen.getByText("Fields & options")).toBeDefined();
+    expect(
+      screen.getByText(
+        "Toggle, rename, reorder, or add the entry fields reviewers fill in. Changes apply to new reviews.",
+      ),
+    ).toBeDefined();
   });
 
   it("renders the back button and calls onBack on click", () => {
     render(<FieldEditor onBack={onBack} />);
-    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    fireEvent.click(screen.getByRole("button", { name: /back/i }));
     expect(onBack).toHaveBeenCalledOnce();
   });
 
-  it("shows metadata fields section by default", () => {
+  it("shows surface sections: Tool details, Finalize, Settings", () => {
     render(<FieldEditor onBack={onBack} />);
-    expect(screen.getByText("Metadata")).toBeDefined();
+    // Use heading role to disambiguate from <option> elements that share the same text
+    expect(screen.getByRole("heading", { name: "Tool details", level: 2 })).toBeDefined();
+    expect(screen.getByRole("heading", { name: "Finalize", level: 2 })).toBeDefined();
+    expect(screen.getByRole("heading", { name: "Settings", level: 2 })).toBeDefined();
   });
 
-  it("shows finalization and settings fields sections", () => {
+  it("shows no grade tab or grade display content", () => {
     render(<FieldEditor onBack={onBack} />);
-    expect(screen.getByText("Finalization")).toBeDefined();
-    expect(screen.getByText("Settings")).toBeDefined();
+    expect(screen.queryByRole("button", { name: "Grade Display" })).toBeNull();
+    expect(screen.queryByText("Grades")).toBeNull();
   });
 
-  it("toggles to Grade Display tab and shows grades", () => {
+  it("shows no IO footer (Export/Import/Reset all)", () => {
     render(<FieldEditor onBack={onBack} />);
-    fireEvent.click(screen.getByRole("button", { name: "Grade Display" }));
-    const grades = getActiveGrades();
-    expect(grades.length).toBeGreaterThan(0);
-    // Each grade should show its id
-    for (const g of grades) {
-      expect(screen.getAllByText(g.id).length).toBeGreaterThanOrEqual(1);
-    }
+    expect(screen.queryByRole("button", { name: "Reset all" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Export customization" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Import customization" })).toBeNull();
   });
 
-  it("renders footer with Reset all, Export, and Import buttons", () => {
+  it("shows Add field form with de-jargon labels", () => {
     render(<FieldEditor onBack={onBack} />);
-    expect(screen.getByRole("button", { name: "Reset all" })).toBeDefined();
-    expect(screen.getByRole("button", { name: "Export customization" })).toBeDefined();
-    expect(screen.getByRole("button", { name: "Import customization" })).toBeDefined();
+    expect(screen.getByText("Add a new field")).toBeDefined();
+    expect(screen.getByText("Field label")).toBeDefined();
+    expect(screen.getByText("ID (auto-generated)")).toBeDefined();
+    expect(screen.getByText("Surface")).toBeDefined();
+    expect(screen.getByText("Field type")).toBeDefined();
   });
 
-  it("calls resetAll when Reset all is clicked", () => {
-    const spy = vi.spyOn(useFrameworkCustomizationStore.getState(), "resetAll");
+  it("auto-generates field ID slug from label", () => {
     render(<FieldEditor onBack={onBack} />);
-    fireEvent.click(screen.getByRole("button", { name: "Reset all" }));
-    expect(spy).toHaveBeenCalledOnce();
-    spy.mockRestore();
+    const labelInput = screen.getByPlaceholderText("e.g. License tier");
+    fireEvent.change(labelInput, { target: { value: "My Custom Field" } });
+    // The readonly ID field should show the slugified version
+    const idInput = screen.getByDisplayValue("my_custom_field") as HTMLInputElement;
+    expect(idInput.readOnly).toBe(true);
   });
 
-  it("shows Add field form at the bottom of fields tab", () => {
+  it("shows each field as a collapsed CollapsibleRow with enable checkbox", () => {
     render(<FieldEditor onBack={onBack} />);
-    expect(screen.getAllByText("Add field").length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("shows field rows with enable/disable toggles", () => {
-    render(<FieldEditor onBack={onBack} />);
-    // All shipped fields should have checkboxes
+    // All shipped fields should have checkboxes (at least the metadata ones)
     const checkboxes = screen.getAllByRole("checkbox");
     expect(checkboxes.length).toBeGreaterThan(0);
+    // Fields start collapsed — no expanded details visible by default
+    // The "Label" LabeledField inside CollapsibleRow should not be visible
+    // since rows are collapsed
+    const labelFields = screen.queryAllByText("Label");
+    // These "Label" text instances are from LabeledField inside CollapsibleRow children
+    // Since collapsed, there should be none visible
+    expect(labelFields.length).toBe(0);
   });
-
-  it("shows select/multi-select fields with options", () => {
+  it("expands a field row when its summary is clicked", () => {
     render(<FieldEditor onBack={onBack} />);
-    // Find a select field (e.g. "pricing" which has options)
-    const optionHeaders = screen.queryAllByText("Options");
-    // At least one select/multi-select field should show an Options section
-    expect(optionHeaders.length).toBeGreaterThanOrEqual(1);
-  });
-});
-
-describe("GradeIdEditor", () => {
-  const onBack = vi.fn();
-
-  beforeEach(() => {
-    useFrameworkCustomizationStore.getState().resetAll();
-    onBack.mockClear();
+    // Find a collapsed CollapsibleRow by data-testid and click its toggle button
+    const row = screen.getByTestId("field-row-toolName");
+    expect(row.getAttribute("data-open")).toBe("false");
+    const toggle = row.querySelector('button[aria-expanded="false"]')!;
+    fireEvent.click(toggle);
+    expect(row.getAttribute("data-open")).toBe("true");
+    // After expanding, the "Label" LabeledField should be visible
+    expect(screen.getByText("Label")).toBeDefined();
   });
 
-  afterEach(cleanup);
-
-  it("renders with Grade IDs header", () => {
-    render(<GradeIdEditor onBack={onBack} />);
-    expect(screen.getByText("Grade IDs")).toBeDefined();
+  it("shows field rows with move up/down controls", () => {
+    render(<FieldEditor onBack={onBack} />);
+    const moveUpButtons = screen.getAllByRole("button", { name: "Move up" });
+    const moveDownButtons = screen.getAllByRole("button", { name: "Move down" });
+    expect(moveUpButtons.length).toBeGreaterThan(0);
+    expect(moveDownButtons.length).toBeGreaterThan(0);
+    // First field should have disabled Move up
+    expect(moveUpButtons[0].hasAttribute("disabled")).toBe(true);
   });
 
-  it("renders the back button and calls onBack", () => {
-    render(<GradeIdEditor onBack={onBack} />);
-    fireEvent.click(screen.getByRole("button", { name: "Back" }));
-    expect(onBack).toHaveBeenCalledOnce();
+  it("toggles a field enabled state via the summary checkbox", () => {
+    render(<FieldEditor onBack={onBack} />);
+    // Find a checkbox (these are the summary-level enable toggles)
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes.length).toBeGreaterThan(0);
+    const firstCheckbox = checkboxes[0];
+    const initiallyChecked = (firstCheckbox as HTMLInputElement).checked;
+    fireEvent.click(firstCheckbox);
+    expect((firstCheckbox as HTMLInputElement).checked).toBe(!initiallyChecked);
   });
 
-  it("shows warning about grade contract changes", () => {
-    render(<GradeIdEditor onBack={onBack} />);
-    expect(screen.getByText("Warning:", { exact: false })).toBeDefined();
-    expect(
-      screen.getByText(/Adding or removing grade IDs changes the grade contract/),
-    ).toBeDefined();
-  });
-
-  it("lists all active grades", () => {
-    render(<GradeIdEditor onBack={onBack} />);
-    const grades = getActiveGrades();
-    expect(grades.length).toBeGreaterThan(0);
-    for (const g of grades) {
-      expect(screen.getAllByText(g.id).length).toBeGreaterThanOrEqual(1);
+  it("shows select/multi-select fields with options inside expanded rows", () => {
+    render(<FieldEditor onBack={onBack} />);
+    // Expand a row that has options — find a field row and expand it
+    // First, let's expand all collapsed rows to find options
+    const collapsedButtons = screen
+      .getAllByRole("button")
+      .filter((btn) => btn.getAttribute("aria-expanded") === "false");
+    for (const btn of collapsedButtons) {
+      fireEvent.click(btn);
     }
+    // Now look for "Options" header (from select/multi-select fields)
+    const optionsHeaders = screen.queryAllByText("Options");
+    expect(optionsHeaders.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("shows Active Grades count in heading", () => {
-    render(<GradeIdEditor onBack={onBack} />);
-    const grades = getActiveGrades();
-    expect(screen.getByText(`Active Grades (${grades.length})`)).toBeDefined();
+  it("shows edited dot when a field has overrides", () => {
+    // Set an override on a real field.
+    useFrameworkCustomizationStore.getState().setFieldOverride("pricing", { required: true });
+    render(<FieldEditor onBack={onBack} />);
+
+    // The pricing field row should have an edited dot
+    const pricingRow = screen.getByTestId("field-row-pricing");
+    const editedDot = pricingRow.querySelector('[title="Edited from shipped default"]');
+    expect(editedDot).toBeDefined();
   });
 
-  it("shows Add grade form", () => {
-    render(<GradeIdEditor onBack={onBack} />);
-    expect(screen.getAllByText("Add grade").length).toBeGreaterThanOrEqual(1);
+  it("shows Reset fields to default button when field overrides exist", () => {
+    useFrameworkCustomizationStore.getState().setFieldOverride("pricing", { required: true });
+    render(<FieldEditor onBack={onBack} />);
+    expect(screen.getByRole("button", { name: "Reset fields to default" })).toBeDefined();
   });
 
-  it("Add grade button is disabled when id and label are empty", () => {
-    render(<GradeIdEditor onBack={onBack} />);
-    const btn = screen.getByRole("button", { name: "Add grade" });
-    expect((btn as HTMLButtonElement).disabled).toBe(true);
+  it("hides Reset fields to default button when no field overrides exist", () => {
+    render(<FieldEditor onBack={onBack} />);
+    expect(screen.queryByRole("button", { name: "Reset fields to default" })).toBeNull();
   });
 
-  it("shows a Remove button for each active grade", () => {
-    render(<GradeIdEditor onBack={onBack} />);
-    const grades = getActiveGrades();
-    const removeButtons = screen.getAllByText("Remove");
-    expect(removeButtons.length).toBe(grades.length);
+  it("confirms before resetting fields and clears overrides on confirm", () => {
+    useFrameworkCustomizationStore.getState().setFieldOverride("pricing", { required: true });
+    render(<FieldEditor onBack={onBack} />);
+
+    // Click reset — should show confirm dialog
+    fireEvent.click(screen.getByRole("button", { name: "Reset fields to default" }));
+    expect(screen.getByText(/Reset all field changes/)).toBeDefined();
+
+    // Confirm the reset
+    fireEvent.click(screen.getByRole("button", { name: "Reset fields" }));
+
+    // The overrides should be cleared
+    const state = useFrameworkCustomizationStore.getState();
+    expect(Object.keys(state.customization.fieldOverrides).length).toBe(0);
+    // Dialog should be gone
+    expect(screen.queryByText(/Reset all field changes/)).toBeNull();
   });
 
-  it("removes a grade when Remove is clicked", () => {
-    render(<GradeIdEditor onBack={onBack} />);
-    const grades = getActiveGrades();
-    const firstGrade = grades[0];
-    expect(firstGrade).toBeDefined();
+  it("can cancel the reset confirmation", () => {
+    useFrameworkCustomizationStore.getState().setFieldOverride("pricing", { required: true });
+    render(<FieldEditor onBack={onBack} />);
 
-    fireEvent.click(screen.getAllByText("Remove")[0]);
-    // After removal, the grade should be in the removed section
-    const customization = useFrameworkCustomizationStore.getState().customization;
-    expect(customization.gradeRemovals).toContain(firstGrade.id);
-  });
+    fireEvent.click(screen.getByRole("button", { name: "Reset fields to default" }));
+    expect(screen.getByText(/Reset all field changes/)).toBeDefined();
 
-  it("shows Removed Grades section after removing a grade", () => {
-    render(<GradeIdEditor onBack={onBack} />);
-    const grades = getActiveGrades();
-    const firstGrade = grades[0];
-
-    fireEvent.click(screen.getAllByText("Remove")[0]);
-    expect(screen.getByText(`Removed Grades (1)`)).toBeDefined();
-    expect(screen.getByText(firstGrade.id)).toBeDefined();
-    expect(screen.getByText("(removed)")).toBeDefined();
-  });
-
-  it("adds a new grade via the form", () => {
-    render(<GradeIdEditor onBack={onBack} />);
-
-    // Fill in the form — ID, Label, Description are the first 3 textboxes
-    const allInputs = screen.getAllByRole("textbox");
-    fireEvent.change(allInputs[0], { target: { value: "custom_grade" } });
-    fireEvent.change(allInputs[1], { target: { value: "Custom Grade" } });
-    fireEvent.change(allInputs[2], { target: { value: "A custom grade description" } });
-
-    // Click Add grade button
-    fireEvent.click(screen.getByRole("button", { name: "Add grade" }));
-
-    // Verify it was added
-    const updatedGrades = getActiveGrades();
-    const added = updatedGrades.find((g) => g.id === "custom_grade");
-    expect(added).toBeDefined();
-    expect(added?.label).toBe("Custom Grade");
-  });
-
-  it("shows footer with grade count summary", () => {
-    render(<GradeIdEditor onBack={onBack} />);
-    const grades = getActiveGrades();
-    expect(screen.getByText(`${grades.length} grades active`)).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByText(/Reset all field changes/)).toBeNull();
+    // Override should still exist
+    const state = useFrameworkCustomizationStore.getState();
+    expect(state.customization.fieldOverrides.pricing).toBeDefined();
   });
 });

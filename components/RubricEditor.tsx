@@ -1,4 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import {
+  CollapsibleRow,
+  EditorShell,
+  editorInputClass,
+  LabeledField,
+  Section,
+} from "@/components/editor";
 import { getActiveRubric } from "@/lib/rubric-schema";
 import type { RubricData } from "@/lib/types";
 import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
@@ -10,6 +18,15 @@ function useActiveRubric(): RubricData {
   return useMemo(() => getActiveRubric(), [customization]);
 }
 
+/** Slugify a human-readable title into a safe key. */
+function slugifyTitle(title: string): string {
+  return title
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
+}
+
 export default function RubricEditor({ onBack }: { onBack: () => void }) {
   const rubric = useActiveRubric();
   const setRubricOverride = useFrameworkCustomizationStore((s) => s.setRubricOverride);
@@ -17,10 +34,16 @@ export default function RubricEditor({ onBack }: { onBack: () => void }) {
   const removeRubricQuestion = useFrameworkCustomizationStore((s) => s.removeRubricQuestion);
   const reorderRubricQuestions = useFrameworkCustomizationStore((s) => s.reorderRubricQuestions);
 
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [collapsedCats, setCollapsedCats] = useState<Record<string, boolean>>({});
+  const [confirmRemove, setConfirmRemove] = useState<{
+    section: "quality_gate" | "scoring_rubric";
+    parent: string;
+    key: string;
+    label: string;
+  } | null>(null);
 
-  const toggle = useCallback((key: string) => {
-    setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleCat = useCallback((key: string) => {
+    setCollapsedCats((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
   const handleFieldChange = useCallback(
@@ -49,14 +72,14 @@ export default function RubricEditor({ onBack }: { onBack: () => void }) {
   );
 
   const handleAdd = useCallback(
-    (section: "quality_gate" | "scoring_rubric", parent: string, slug: string) => {
-      const key = slug.trim().replace(/\s+/g, "_");
+    (section: "quality_gate" | "scoring_rubric", parent: string, title: string) => {
+      const key = slugifyTitle(title);
       if (!key) return;
       if (section === "quality_gate") {
         addRubricQuestion(section, parent, {
           key,
           type: "pass_fail",
-          title: "",
+          title,
           requirement: "",
           background: "",
           examples: { pass: "", fail: "", na: "" },
@@ -65,7 +88,7 @@ export default function RubricEditor({ onBack }: { onBack: () => void }) {
       } else {
         addRubricQuestion(section, parent, {
           key,
-          title: "",
+          title,
           background: "",
           "0": "",
           "1": "",
@@ -79,92 +102,92 @@ export default function RubricEditor({ onBack }: { onBack: () => void }) {
     [addRubricQuestion],
   );
 
-  const handleRemove = useCallback(
-    (section: "quality_gate" | "scoring_rubric", parent: string, key: string) => {
-      removeRubricQuestion(section, parent, key);
+  const requestRemove = useCallback(
+    (section: "quality_gate" | "scoring_rubric", parent: string, key: string, label: string) => {
+      setConfirmRemove({ section, parent, key, label });
     },
-    [removeRubricQuestion],
+    [],
   );
 
-  return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="border-b border-ut-border px-ut-4 py-ut-2 flex items-center gap-2">
-        <button
-          type="button"
-          className="text-ut-muted hover:text-ut-navy transition-colors p-0.5"
-          onClick={onBack}
-          aria-label="Back"
-        >
-          <svg
-            aria-hidden="true"
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="font-heading text-ut-sub font-bold uppercase tracking-ut-heading text-trust-magenta">
-          Customize Rubric
-        </h1>
-      </div>
+  const confirmRemoveAction = useCallback(() => {
+    if (!confirmRemove) return;
+    removeRubricQuestion(confirmRemove.section, confirmRemove.parent, confirmRemove.key);
+    setConfirmRemove(null);
+  }, [confirmRemove, removeRubricQuestion]);
 
-      {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-ut-4 py-ut-4 space-y-ut-5">
+  return (
+    <>
+      <EditorShell
+        title="Rubric questions"
+        subtitle="Author the quality-gate checks and scoring questions reviewers score against. Edits apply to new reviews."
+        onBack={onBack}
+      >
         {/* ── Quality Gates ────────────────────── */}
-        <section>
-          <h2 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-ut-1">
-            Quality Gates
-          </h2>
-          {Object.entries(rubric.quality_gate).map(([category, questions]) => (
-            <CategorySection
-              key={category}
-              section="quality_gate"
-              parent={category}
-              label={category.replace(/_/g, " ")}
-              questionKeys={Object.keys(questions)}
-              collapsed={!!collapsed[`qg.${category}`]}
-              onToggle={() => toggle(`qg.${category}`)}
-              questions={questions}
-              onFieldChange={handleFieldChange}
-              onToggleAiOnly={handleToggleAiOnly}
-              onMove={(keys, idx, dir) => handleMove("quality_gate", category, keys, idx, dir)}
-              onRemove={(key) => handleRemove("quality_gate", category, key)}
-              onAdd={(slug) => handleAdd("quality_gate", category, slug)}
-              isQualityGate
-            />
-          ))}
-        </section>
+        <Section title="Quality Gates" description="Pass/fail checks every review must clear.">
+          <div className="space-y-ut-2">
+            {Object.entries(rubric.quality_gate).map(([category, questions]) => (
+              <CategorySection
+                key={category}
+                section="quality_gate"
+                parent={category}
+                label={category.replace(/_/g, " ")}
+                questionKeys={Object.keys(questions)}
+                collapsed={!!collapsedCats[`qg.${category}`]}
+                onToggle={() => toggleCat(`qg.${category}`)}
+                questions={questions}
+                onFieldChange={handleFieldChange}
+                onToggleAiOnly={handleToggleAiOnly}
+                onMove={(keys, idx, dir) => handleMove("quality_gate", category, keys, idx, dir)}
+                onRequestRemove={(key, label) =>
+                  requestRemove("quality_gate", category, key, label)
+                }
+                onAdd={handleAdd}
+                isQualityGate
+              />
+            ))}
+          </div>
+        </Section>
 
         {/* ── Scoring Rubric ────────────────────── */}
-        <section>
-          <h2 className="text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy mb-ut-1">
-            Scoring
-          </h2>
-          {Object.entries(rubric.scoring_rubric).map(([principle, questions]) => (
-            <CategorySection
-              key={principle}
-              section="scoring_rubric"
-              parent={principle}
-              label={principle}
-              questionKeys={Object.keys(questions)}
-              collapsed={!!collapsed[`sr.${principle}`]}
-              onToggle={() => toggle(`sr.${principle}`)}
-              questions={questions}
-              onFieldChange={handleFieldChange}
-              onToggleAiOnly={handleToggleAiOnly}
-              onMove={(keys, idx, dir) => handleMove("scoring_rubric", principle, keys, idx, dir)}
-              onRemove={(key) => handleRemove("scoring_rubric", principle, key)}
-              onAdd={(slug) => handleAdd("scoring_rubric", principle, slug)}
-              isQualityGate={false}
-            />
-          ))}
-        </section>
-      </div>
-    </div>
+        <Section
+          title="Scoring"
+          description="Numeric (0–3) scale questions reviewers score against."
+        >
+          <div className="space-y-ut-2">
+            {Object.entries(rubric.scoring_rubric).map(([principle, questions]) => (
+              <CategorySection
+                key={principle}
+                section="scoring_rubric"
+                parent={principle}
+                label={principle}
+                questionKeys={Object.keys(questions)}
+                collapsed={!!collapsedCats[`sr.${principle}`]}
+                onToggle={() => toggleCat(`sr.${principle}`)}
+                questions={questions}
+                onFieldChange={handleFieldChange}
+                onToggleAiOnly={handleToggleAiOnly}
+                onMove={(keys, idx, dir) => handleMove("scoring_rubric", principle, keys, idx, dir)}
+                onRequestRemove={(key, label) =>
+                  requestRemove("scoring_rubric", principle, key, label)
+                }
+                onAdd={handleAdd}
+                isQualityGate={false}
+              />
+            ))}
+          </div>
+        </Section>
+      </EditorShell>
+
+      {confirmRemove && (
+        <ConfirmDialog
+          message={`Remove "${confirmRemove.label}"? This question will no longer appear in new reviews.`}
+          actions={[
+            { label: "Cancel", handler: () => setConfirmRemove(null), variant: "cancel" },
+            { label: "Remove", handler: confirmRemoveAction, variant: "danger" },
+          ]}
+        />
+      )}
+    </>
   );
 }
 
@@ -187,8 +210,8 @@ interface CategorySectionProps {
   ) => void;
   onToggleAiOnly: (section: string, parent: string, qKey: string, current: boolean) => void;
   onMove: (keys: string[], idx: number, dir: -1 | 1) => void;
-  onRemove: (key: string) => void;
-  onAdd: (slug: string) => void;
+  onRequestRemove: (key: string, label: string) => void;
+  onAdd: (section: "quality_gate" | "scoring_rubric", parent: string, title: string) => void;
   isQualityGate: boolean;
 }
 
@@ -203,50 +226,37 @@ function CategorySection({
   onFieldChange,
   onToggleAiOnly,
   onMove,
-  onRemove,
+  onRequestRemove,
   onAdd,
   isQualityGate,
 }: CategorySectionProps) {
-  const [addSlug, setAddSlug] = useState("");
-  const chevron = collapsed ? (
-    <svg
-      aria-hidden="true"
-      className="w-3 h-3"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-    </svg>
-  ) : (
-    <svg
-      aria-hidden="true"
-      className="w-3 h-3"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-    </svg>
-  );
+  const [addTitle, setAddTitle] = useState("");
+  const generatedSlug = slugifyTitle(addTitle);
 
   return (
-    <div className="border border-ut-border rounded-md mb-ut-2">
+    <div className="border border-ut-border rounded-ut-sm">
       <button
         type="button"
-        className="w-full flex items-center gap-1.5 px-ut-2 py-ut-1 text-left text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy hover:bg-ut-surface transition-colors rounded-t-md"
+        className="w-full flex items-center gap-1.5 px-ut-2 py-ut-1.5 text-left text-ut-xs font-heading font-bold uppercase tracking-ut-label text-ut-navy hover:bg-ut-offwhite transition-colors"
         onClick={onToggle}
         aria-expanded={!collapsed}
       >
-        {chevron}
+        <svg
+          aria-hidden="true"
+          className={`w-3 h-3 shrink-0 transition-transform ${collapsed ? "" : "rotate-90"}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
         {label}
         <span className="text-ut-muted font-normal lowercase">({questionKeys.length})</span>
       </button>
 
       {!collapsed && (
-        <div className="px-ut-2 py-ut-1 space-y-ut-2 border-t border-ut-border">
+        <div className="px-ut-2 py-ut-2 space-y-ut-2 border-t border-ut-border bg-ut-offwhite/50">
           {questionKeys.map((qKey, idx) => (
             <QuestionRow
               key={qKey}
@@ -260,35 +270,49 @@ function CategorySection({
               onFieldChange={onFieldChange}
               onToggleAiOnly={onToggleAiOnly}
               onMove={(dir) => onMove(questionKeys, idx, dir)}
-              onRemove={() => onRemove(qKey)}
+              onRequestRemove={() => onRequestRemove(qKey, String(questions[qKey]?.title) || qKey)}
             />
           ))}
 
-          {/* Add question row */}
-          <div className="flex items-center gap-1.5 pt-ut-1 border-t border-ut-border">
-            <input
-              type="text"
-              className="flex-1 min-w-0 text-ut-xs rounded border border-ut-border px-2 py-1 focus:outline-none focus:ring-1 focus:ring-trust-magenta"
-              placeholder="question-slug"
-              value={addSlug}
-              onChange={(e) => setAddSlug(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  onAdd(addSlug);
-                  setAddSlug("");
-                }
-              }}
-              aria-label={`Add question to ${label}`}
-            />
+          {/* Add question by title */}
+          <div className="flex items-end gap-ut-2 pt-ut-1 border-t border-ut-border">
+            <LabeledField
+              label="New question title"
+              hint="A slug key will be generated from the title."
+            >
+              <input
+                type="text"
+                className={editorInputClass}
+                placeholder="e.g. Source verification"
+                value={addTitle}
+                onChange={(e) => setAddTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && addTitle.trim()) {
+                    onAdd(section, parent, addTitle);
+                    setAddTitle("");
+                  }
+                }}
+                aria-label={`Add question to ${label}`}
+              />
+            </LabeledField>
+            {generatedSlug && (
+              <span
+                className="pb-ut-1 text-ut-2xs text-ut-muted font-mono shrink-0"
+                aria-hidden="true"
+              >
+                key: {generatedSlug}
+              </span>
+            )}
             <button
               type="button"
-              className="text-ut-xs text-trust-magenta hover:underline font-medium whitespace-nowrap"
+              className={`bg-trust-magenta text-white hover:bg-trust-magenta-strong rounded-ut-sm px-ut-3 py-ut-1 font-heading uppercase tracking-ut-label text-ut-xs shrink-0 disabled:opacity-30 disabled:cursor-not-allowed`}
+              disabled={!addTitle.trim()}
               onClick={() => {
-                onAdd(addSlug);
-                setAddSlug("");
+                onAdd(section, parent, addTitle);
+                setAddTitle("");
               }}
             >
-              Add question
+              Add
             </button>
           </div>
         </div>
@@ -314,7 +338,7 @@ interface QuestionRowProps {
   ) => void;
   onToggleAiOnly: (section: string, parent: string, qKey: string, current: boolean) => void;
   onMove: (dir: -1 | 1) => void;
-  onRemove: () => void;
+  onRequestRemove: () => void;
 }
 
 function QuestionRow({
@@ -328,199 +352,235 @@ function QuestionRow({
   onFieldChange,
   onToggleAiOnly,
   onMove,
-  onRemove,
+  onRequestRemove,
 }: QuestionRowProps) {
   const title = String(data.title ?? "");
   const aiOnly = Boolean(data.ai_only);
   const bg = String(data.background ?? "");
 
+  const summaryLabel = title || qKey;
+
   return (
-    <div className="border border-ut-border rounded p-ut-2 space-y-ut-1.5">
-      {/* Header row: reorder, title, ai_only, remove */}
-      <div className="flex items-center gap-1.5">
-        <span className="text-ut-muted text-ut-xs w-4 text-center shrink-0">{idx + 1}</span>
-        <button
-          type="button"
-          className="text-ut-muted hover:text-ut-navy disabled:opacity-30 p-0.5"
-          onClick={() => onMove(-1)}
-          disabled={idx === 0}
-          aria-label={`Move ${qKey} up`}
-        >
-          <svg
-            aria-hidden="true"
-            className="w-3 h-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+    <CollapsibleRow
+      summary={
+        <div className="flex items-center gap-ut-2 min-w-0 flex-1">
+          <span className="text-ut-xs text-ut-navy font-medium truncate">{summaryLabel}</span>
+          <span className="text-ut-2xs text-ut-muted font-mono shrink-0">{qKey}</span>
+
+          {/* AI-only toggle */}
+          <label
+            className="flex items-center gap-1 text-ut-2xs text-ut-muted shrink-0 cursor-pointer"
+            title="Scored by the AI assistant, not shown as a manual question."
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="text-ut-muted hover:text-ut-navy disabled:opacity-30 p-0.5"
-          onClick={() => onMove(1)}
-          disabled={idx === total - 1}
-          aria-label={`Move ${qKey} down`}
-        >
-          <svg
-            aria-hidden="true"
-            className="w-3 h-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+            <input
+              type="checkbox"
+              checked={aiOnly}
+              onChange={(e) => {
+                e.stopPropagation();
+                onToggleAiOnly(section, parent, qKey, aiOnly);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              aria-label={`${qKey} ai_only`}
+              className="w-3 h-3"
+            />
+            <span>AI-only</span>
+          </label>
+
+          {/* Reorder ↑/↓ */}
+          <button
+            type="button"
+            className="text-ut-muted hover:text-ut-navy disabled:opacity-30 p-0.5 shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMove(-1);
+            }}
+            disabled={idx === 0}
+            aria-label={`Move ${qKey} up`}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        <span className="text-ut-muted text-ut-xs font-mono shrink-0">{qKey}</span>
+            <svg
+              aria-hidden="true"
+              className="w-3 h-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="text-ut-muted hover:text-ut-navy disabled:opacity-30 p-0.5 shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMove(1);
+            }}
+            disabled={idx === total - 1}
+            aria-label={`Move ${qKey} down`}
+          >
+            <svg
+              aria-hidden="true"
+              className="w-3 h-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {/* Remove */}
+          <button
+            type="button"
+            className="text-ut-red hover:text-ut-red/80 p-0.5 shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRequestRemove();
+            }}
+            aria-label={`Remove ${qKey}`}
+          >
+            <svg
+              aria-hidden="true"
+              className="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      }
+    >
+      {/* ── Title (editable, top-level field) ── */}
+      <LabeledField label="Title" hint="The reviewer-facing question name.">
         <input
           type="text"
-          className="flex-1 min-w-0 text-ut-xs rounded border border-ut-border px-2 py-1 focus:outline-none focus:ring-1 focus:ring-trust-magenta"
+          className={editorInputClass}
           value={title}
           onChange={(e) => onFieldChange(section, parent, qKey, "title", e.target.value)}
           aria-label={`${qKey} title`}
         />
-        <label className="flex items-center gap-1 text-ut-xs text-ut-muted shrink-0">
-          <input
-            type="checkbox"
-            checked={aiOnly}
-            onChange={() => onToggleAiOnly(section, parent, qKey, aiOnly)}
-            aria-label={`${qKey} ai_only`}
-          />
-          AI
-        </label>
-        <button
-          type="button"
-          className="text-red-500 hover:text-red-700 p-0.5"
-          onClick={onRemove}
-          aria-label={`Remove ${qKey}`}
-        >
-          <svg
-            aria-hidden="true"
-            className="w-3.5 h-3.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
+      </LabeledField>
 
-      {/* Quality gate: requirement + examples.pass/fail/na */}
+      {/* Quality gate: requirement + background + examples pass/fail/na */}
       {isQualityGate && (
         <>
-          <FieldArea
-            label="Requirement"
-            value={String(data.requirement ?? "")}
-            onChange={(v) => onFieldChange(section, parent, qKey, "requirement", v)}
-            textarea
-          />
-          <FieldArea
-            label="Background"
-            value={bg}
-            onChange={(v) => onFieldChange(section, parent, qKey, "background", v)}
-            textarea
-          />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-ut-1.5">
-            <FieldArea
-              label="Example: Pass"
-              value={String((data.examples as Record<string, unknown>)?.pass ?? "")}
-              onChange={(v) => onFieldChange(section, parent, qKey, "examples.pass", v)}
-              textarea
+          <LabeledField label="Requirement" hint="What must be true to pass this check.">
+            <textarea
+              className={`${editorInputClass} resize-y min-h-[3rem]`}
+              rows={2}
+              value={String(data.requirement ?? "")}
+              onChange={(e) => onFieldChange(section, parent, qKey, "requirement", e.target.value)}
+              aria-label={`${qKey} requirement`}
             />
-            <FieldArea
-              label="Example: Fail"
-              value={String((data.examples as Record<string, unknown>)?.fail ?? "")}
-              onChange={(v) => onFieldChange(section, parent, qKey, "examples.fail", v)}
-              textarea
+          </LabeledField>
+          <LabeledField label="Background" hint="Reviewer guidance before answering this question.">
+            <textarea
+              className={`${editorInputClass} resize-y min-h-[3rem]`}
+              rows={2}
+              value={bg}
+              onChange={(e) => onFieldChange(section, parent, qKey, "background", e.target.value)}
+              aria-label={`${qKey} background`}
             />
-            <FieldArea
-              label="Example: N/A"
-              value={String((data.examples as Record<string, unknown>)?.na ?? "")}
-              onChange={(v) => onFieldChange(section, parent, qKey, "examples.na", v)}
-              textarea
-            />
+          </LabeledField>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-ut-2">
+            <LabeledField label="Example: Pass" hint="What a passing response looks like.">
+              <textarea
+                className={`${editorInputClass} resize-y min-h-[3rem]`}
+                rows={2}
+                value={String((data.examples as Record<string, unknown>)?.pass ?? "")}
+                onChange={(e) =>
+                  onFieldChange(section, parent, qKey, "examples.pass", e.target.value)
+                }
+                aria-label={`${qKey} example pass`}
+              />
+            </LabeledField>
+            <LabeledField label="Example: Fail" hint="What a failing response looks like.">
+              <textarea
+                className={`${editorInputClass} resize-y min-h-[3rem]`}
+                rows={2}
+                value={String((data.examples as Record<string, unknown>)?.fail ?? "")}
+                onChange={(e) =>
+                  onFieldChange(section, parent, qKey, "examples.fail", e.target.value)
+                }
+                aria-label={`${qKey} example fail`}
+              />
+            </LabeledField>
+            <LabeledField label="Example: N/A" hint="When this question doesn't apply.">
+              <textarea
+                className={`${editorInputClass} resize-y min-h-[3rem]`}
+                rows={2}
+                value={String((data.examples as Record<string, unknown>)?.na ?? "")}
+                onChange={(e) =>
+                  onFieldChange(section, parent, qKey, "examples.na", e.target.value)
+                }
+                aria-label={`${qKey} example na`}
+              />
+            </LabeledField>
           </div>
         </>
       )}
 
-      {/* Scoring: 0-3 anchors + examples.0-3 */}
+      {/* Scoring: anchors 0–3 + background + examples 0–3 */}
       {!isQualityGate && (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-ut-1.5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-ut-2">
             {(["0", "1", "2", "3"] as const).map((level) => (
-              <FieldArea
+              <LabeledField
                 key={level}
                 label={`Anchor ${level}`}
-                value={String(data[level] ?? "")}
-                onChange={(v) => onFieldChange(section, parent, qKey, level, v)}
-                textarea
-              />
+                hint={`What a ${level} (${ANCHOR_LABELS[level]}) looks like.`}
+              >
+                <textarea
+                  className={`${editorInputClass} resize-y min-h-[3rem]`}
+                  rows={2}
+                  value={String(data[level] ?? "")}
+                  onChange={(e) => onFieldChange(section, parent, qKey, level, e.target.value)}
+                  aria-label={`${qKey} anchor ${level}`}
+                />
+              </LabeledField>
             ))}
           </div>
-          <FieldArea
-            label="Background"
-            value={bg}
-            onChange={(v) => onFieldChange(section, parent, qKey, "background", v)}
-            textarea
-          />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-ut-1.5">
+          <LabeledField label="Background" hint="Reviewer guidance before scoring this question.">
+            <textarea
+              className={`${editorInputClass} resize-y min-h-[3rem]`}
+              rows={2}
+              value={bg}
+              onChange={(e) => onFieldChange(section, parent, qKey, "background", e.target.value)}
+              aria-label={`${qKey} background`}
+            />
+          </LabeledField>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-ut-2">
             {(["0", "1", "2", "3"] as const).map((level) => (
-              <FieldArea
+              <LabeledField
                 key={`ex-${level}`}
                 label={`Example ${level}`}
-                value={String((data.examples as Record<string, unknown>)?.[level] ?? "")}
-                onChange={(v) => onFieldChange(section, parent, qKey, `examples.${level}`, v)}
-                textarea
-              />
+                hint={`Sample response for level ${level}.`}
+              >
+                <textarea
+                  className={`${editorInputClass} resize-y min-h-[3rem]`}
+                  rows={2}
+                  value={String((data.examples as Record<string, unknown>)?.[level] ?? "")}
+                  onChange={(e) =>
+                    onFieldChange(section, parent, qKey, `examples.${level}`, e.target.value)
+                  }
+                  aria-label={`${qKey} example ${level}`}
+                />
+              </LabeledField>
             ))}
           </div>
         </>
       )}
-    </div>
+    </CollapsibleRow>
   );
 }
 
-function FieldArea({
-  label,
-  value,
-  onChange,
-  textarea,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  textarea?: boolean;
-}) {
-  if (textarea) {
-    return (
-      <label className="block">
-        <span className="text-ut-xs text-ut-muted font-medium">{label}</span>
-        <textarea
-          className="w-full text-ut-xs rounded border border-ut-border px-2 py-1 mt-0.5 focus:outline-none focus:ring-1 focus:ring-trust-magenta resize-y min-h-[3rem]"
-          rows={2}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          aria-label={label}
-        />
-      </label>
-    );
-  }
-  return (
-    <label className="block">
-      <span className="text-ut-xs text-ut-muted font-medium">{label}</span>
-      <input
-        type="text"
-        className="w-full text-ut-xs rounded border border-ut-border px-2 py-1 mt-0.5 focus:outline-none focus:ring-1 focus:ring-trust-magenta"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-label={label}
-      />
-    </label>
-  );
-}
+const ANCHOR_LABELS: Record<string, string> = {
+  "0": "failure",
+  "1": "weak",
+  "2": "adequate",
+  "3": "strong",
+};

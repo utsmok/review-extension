@@ -24,8 +24,8 @@ const EDITORS: {
   },
   {
     view: "grades",
-    label: "Grade identities",
-    hint: "Add or remove final-grade types",
+    label: "Grades",
+    hint: "Add, remove, recolor, and relabel final-grade options",
     Component: GradeIdEditor,
   },
   {
@@ -58,7 +58,7 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
   const settings = useRegistryStore((s) => s.settings);
   const updateSettings = useRegistryStore((s) => s.updateSettings);
   const [view, setView] = useState<View>("main");
-  const hasOverrides = useFrameworkCustomizationStore((s) => s.customization);
+  const hasOverrides = useFrameworkCustomizationStore((s) => s.hasOverrides);
 
   if (view !== "main") {
     const editor = EDITORS.find((e) => e.view === view);
@@ -202,9 +202,7 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
               </button>
             ))}
           </div>
-          {Object.keys(hasOverrides.fieldOverrides).length > 0 ||
-          Object.keys(hasOverrides.gradeOverrides).length > 0 ||
-          hasOverrides.customFields.length > 0 ? (
+          {hasOverrides() ? (
             <p className="text-ut-xs text-trust-magenta mt-ut-2">
               ● Customizations active — export a pack to share them.
             </p>

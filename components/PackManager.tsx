@@ -1,8 +1,14 @@
 import { useRef, useState } from "react";
+import { EditorShell, Section } from "@/components/editor";
 import { downloadBlob } from "@/lib/export";
 import { applyPack, buildActivePack } from "@/lib/pack";
 import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
 
+/**
+ * Single home for framework customization IO: export the active framework
+ * (shipped defaults + every customization) as a portable pack, import one
+ * from a colleague, or reset everything to shipped defaults.
+ */
 export default function PackManager({ onBack }: { onBack: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -18,8 +24,8 @@ export default function PackManager({ onBack }: { onBack: () => void }) {
       const blob = new Blob([JSON.stringify(pack, null, 2)], {
         type: "application/json",
       });
-      downloadBlob(blob, `trust-review-pack-${pack.packId}-${pack.version}.json`);
-      setSuccess("Pack exported successfully.");
+      downloadBlob(blob, "trust-framework-pack.json");
+      setSuccess("Framework pack exported.");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -36,13 +42,14 @@ export default function PackManager({ onBack }: { onBack: () => void }) {
     if (!file) return;
     try {
       const text = await file.text();
-      const data = JSON.parse(text) as unknown;
-      applyPack(data);
-      setSuccess("Pack imported successfully. Customizations applied.");
+      const parsed = JSON.parse(text);
+      applyPack(parsed);
+      setSuccess("Framework pack imported. Customizations updated.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(
+        err instanceof Error ? `Could not read pack: ${err.message}` : "Could not read pack file.",
+      );
     } finally {
-      // Reset so re-selecting the same file works
       e.target.value = "";
     }
   };
@@ -54,71 +61,55 @@ export default function PackManager({ onBack }: { onBack: () => void }) {
     setSuccess("All customizations reset to shipped defaults.");
   };
 
-  return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-ut-border">
-        <button
-          type="button"
-          className="text-ut-muted hover:text-ut-navy transition-colors p-0.5"
-          onClick={onBack}
-          aria-label="Back"
-        >
-          <svg
-            aria-hidden="true"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-        <h2 className="text-lg font-semibold text-ut-navy">Framework Pack Manager</h2>
-      </div>
+  const overridesActive = hasOverrides();
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+  return (
+    <EditorShell
+      title="Framework pack"
+      subtitle="Export your customized framework to a shareable file, import one from a colleague, or reset everything to shipped defaults. A pack captures fields, grades, the rubric, principles, and branding."
+      onBack={onBack}
+    >
+      <div className="space-y-ut-5">
         {error && (
-          <div className="rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-800">
+          <div
+            role="alert"
+            className="rounded-ut-sm border border-state-error-border bg-state-error-tint px-ut-3 py-ut-2 text-ut-xs text-ut-text"
+          >
             {error}
           </div>
         )}
         {success && (
-          <div className="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-800">
+          <div
+            role="status"
+            className="rounded-ut-sm border border-state-success-border bg-state-success-tint px-ut-3 py-ut-2 text-ut-xs text-ut-text"
+          >
             {success}
           </div>
         )}
 
-        <section className="space-y-2">
-          <h3 className="text-sm font-medium text-ut-navy">Export</h3>
-          <p className="text-sm text-ut-muted">
-            Download the current active framework (including all customizations) as a portable JSON
-            pack file.
-          </p>
+        <Section
+          title="Export"
+          description="Download the current active framework — shipped defaults plus every customization you have made — as a portable JSON pack file."
+        >
           <button
             type="button"
             onClick={handleExport}
-            className="px-3 py-1.5 text-sm rounded-md bg-ut-navy text-white hover:bg-ut-navy/90 transition-colors"
+            className="bg-trust-magenta text-white hover:bg-trust-magenta-strong rounded-ut-sm px-ut-3 py-ut-1 text-ut-xs font-heading font-bold uppercase tracking-ut-label transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue"
           >
-            Export Pack
+            Export pack
           </button>
-        </section>
+        </Section>
 
-        <section className="space-y-2">
-          <h3 className="text-sm font-medium text-ut-navy">Import</h3>
-          <p className="text-sm text-ut-muted">
-            Upload a framework pack JSON file. This will replace all current customizations with the
-            differences between the pack and shipped defaults.
-          </p>
+        <Section
+          title="Import"
+          description="Upload a framework pack JSON file. This replaces all of your current customizations with the differences encoded in the pack."
+        >
           <button
             type="button"
             onClick={handleImport}
-            className="px-3 py-1.5 text-sm rounded-md border border-ut-border text-ut-navy hover:bg-ut-navy/5 transition-colors"
+            className="border border-ut-border text-ut-navy hover:bg-ut-grey rounded-ut-sm px-ut-3 py-ut-1 text-ut-xs font-heading font-bold uppercase tracking-ut-label transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue"
           >
-            Import Pack
+            Import pack
           </button>
           <input
             ref={fileRef}
@@ -128,25 +119,33 @@ export default function PackManager({ onBack }: { onBack: () => void }) {
             className="hidden"
             data-testid="pack-import-file"
           />
-        </section>
+        </Section>
 
-        <section className="space-y-2">
-          <h3 className="text-sm font-medium text-ut-navy">Reset</h3>
-          <p className="text-sm text-ut-muted">
-            {hasOverrides()
-              ? "Clear all customizations and return to shipped defaults."
-              : "No customizations are active."}
-          </p>
+        <Section
+          title="Reset"
+          description={
+            overridesActive
+              ? "Clear every customization — fields, grades, rubric, principles, and branding — and return to shipped defaults."
+              : "No customizations are active. The framework is at shipped defaults."
+          }
+        >
           <button
             type="button"
             onClick={handleReset}
-            disabled={!hasOverrides()}
-            className="px-3 py-1.5 text-sm rounded-md border border-red-200 text-red-700 hover:bg-red-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled={!overridesActive}
+            className="border border-state-error-border text-ut-red hover:bg-state-error-tint rounded-ut-sm px-ut-3 py-ut-1 text-ut-xs font-heading font-bold uppercase tracking-ut-label transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ut-blue"
+            data-testid="pack-reset"
           >
-            Reset to Defaults
+            Reset to defaults
           </button>
-        </section>
+        </Section>
+
+        {overridesActive && (
+          <p className="text-ut-xs text-trust-magenta">
+            ● Customizations active — export a pack to share or back them up.
+          </p>
+        )}
       </div>
-    </div>
+    </EditorShell>
   );
 }
