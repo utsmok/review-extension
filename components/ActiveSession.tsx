@@ -5,6 +5,7 @@ import { useCaptureAction } from "@/hooks/useCaptureAction";
 import { useRovingTabIndex } from "@/hooks/useFocus";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { captureActiveTab, captureForMetadataField } from "@/lib/capture";
+import { getActiveBranding } from "@/lib/framework-config";
 import { computeCompletion } from "@/lib/rubric";
 import type { QuickNote } from "@/stores/session";
 import Captures from "./Captures";
@@ -128,7 +129,9 @@ export function ActiveSession() {
     try {
       const result = await exportAndClose(rubric);
       if (result) {
-        setExportFilename(`TRUST_Review_${session?.toolName ?? "review"}.zip`);
+        setExportFilename(
+          `${getActiveBranding().frameworkName}_Review_${session?.toolName ?? "review"}.zip`,
+        );
         setExportFileSize(result.blobSize);
         if (!retry) setExportComplete(true);
         setExportError(null);

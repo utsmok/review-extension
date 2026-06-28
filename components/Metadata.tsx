@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRubric, useTabNavigation } from "@/components/contexts";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureForMetadataField } from "@/lib/capture";
+import { getActiveBranding } from "@/lib/framework-config";
 import {
   AUTH_METHOD_OPTIONS,
   DATA_SOURCE_OPTIONS,
@@ -155,7 +156,7 @@ export default function Metadata() {
     const result = await exportAndClose(rubric);
     setExporting(false);
     if (result) {
-      setExportFilename(`TRUST_Review_${session.toolName}.zip`);
+      setExportFilename(`${getActiveBranding().frameworkName}_Review_${session.toolName}.zip`);
       setExportFileSize(result.blobSize);
       setExportComplete(true);
     } else {
@@ -169,7 +170,7 @@ export default function Metadata() {
     const result = await exportAndClose(rubric);
     setExporting(false);
     if (result) {
-      setExportFilename(`TRUST_Review_${session.toolName}.zip`);
+      setExportFilename(`${getActiveBranding().frameworkName}_Review_${session.toolName}.zip`);
       setExportFileSize(result.blobSize);
       setExportError(null);
     }

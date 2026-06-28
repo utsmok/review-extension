@@ -1,6 +1,30 @@
 # Changelog
 
 
+## Unreleased — Framework Modularity (Plans A + B)
+
+The TRUST framework is now data-driven and fully customizable from **Settings → Framework customization** — adapt fields, grades, the rubric, principles, and branding without touching code. All static/offline; customizations persist locally and export/import as a shareable "framework pack".
+
+### Added
+
+- **Schema-driven form layer.** Declarative `FieldDescriptor` config (`data/framework/trust-framework.json`) drives entry fields via `SchemaForm` + typed field-inputs; wired into FinalizationScreen (strengths/weaknesses/recommendations) and a Metadata subset.
+- **Customization store.** Additive + hide + rename model (with rename-migration of stored sessions) for fields, options, grades, rubric questions, principles, and branding — persisted via Zustand.
+- **Grade identity.** Triplicated grade definitions consolidated into config; grade IDs can be added/removed; `ReviewFinalization.grade` is now a validated `string`.
+- **Rubric authoring.** Quality-gate + scoring questions editable (title/requirement/anchors/examples/ai_only), reorderable, addable, removable via `getActiveRubric`.
+- **Principle editing + runtime theming.** Principle names/colors and the framework magenta inject as CSS custom properties at boot; recoloring propagates live to the UI and the exported report.
+- **Config-driven branding.** Logos, magenta, ~15 report/print/archive literals, and export filenames moved from hardcoded `TRUST` strings to `getReportBranding()`/`getActiveBranding()`; `BrandingEditor` for identity/logo/literal customization.
+- **Pack versioning + IO.** Question-key rename migration on session load; full framework pack export/import (`buildActivePack`/`applyPack`) via `PackManager`.
+- **Editors.** FieldEditor, GradeIdEditor, RubricEditor, PrincipleEditor, BrandingEditor, PackManager — all reachable from SettingsScreen.
+- **Registry alignment.** `data/tools/registry.json` defaults realigned to canonical field option spellings (no more orphan "custom" pills on auto-populate).
+- Test coverage grew from 885 → 1050.
+
+### Changed
+
+- Report/label output is byte-identical at default branding (snapshot tests unchanged); customization only changes output when a value is actually overridden.
+
+### Known partial
+
+- `SchemaForm` drives Finalization fully but only a Metadata subset; discipline, capture-linked, AI-toggle, and multi-select fields still use hand-written markup pending a fuller migration.
 
 ## v0.9.4 — 2026-06-24
 

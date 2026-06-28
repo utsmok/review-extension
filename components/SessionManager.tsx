@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { RUBRIC_DATA } from "@/data/rubrics";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { downloadBlob, sanitizeFilename } from "@/lib/export";
+import { getActiveBranding } from "@/lib/framework-config";
 import { getVisibleRubricQuestionIds } from "@/lib/rubric";
 import {
   buildSessionComparison,
@@ -67,7 +68,7 @@ export default function SessionManager() {
     try {
       const blob = await exportSessionById(id);
       const sanitized = sanitizeFilename(meta.toolName).slice(0, 80);
-      const filename = `TRUST_Review_${sanitized}.zip`.slice(0, 100);
+      const filename = `${getActiveBranding().frameworkName}_Review_${sanitized}.zip`.slice(0, 100);
       downloadBlob(blob, filename);
       const data = await getRepository().load(id);
       const scoredCount =
