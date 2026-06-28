@@ -3,6 +3,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import {
   CollapsibleRow,
   type CollapsibleRowProps,
+  EditableText,
   EditorShell,
   editorInputClass,
   LabeledField,
@@ -612,112 +613,100 @@ function QuestionRow({
         </button>
       </div>
 
-      <LabeledField label="Title" hint="The reviewer-facing question name.">
-        <input
-          type="text"
-          className={editorInputClass}
-          value={title}
-          onChange={(e) => onFieldChange(qKey, "title", e.target.value)}
-          aria-label={`${qKey} title`}
-        />
-      </LabeledField>
+      <EditableText
+        multiline={false}
+        value={title}
+        onChange={(v) => onFieldChange(qKey, "title", v)}
+        label={`${qKey} title`}
+        className="font-heading text-ut-navy text-ut-sm font-bold"
+      />
 
       {isQualityGate ? (
         <>
-          <LabeledField label="Pass criteria" hint="What must be true for this check to pass.">
-            <textarea
-              className={`${editorInputClass} resize-y min-h-[3rem]`}
-              rows={2}
-              value={String(data.requirement ?? "")}
-              onChange={(e) => onFieldChange(qKey, "requirement", e.target.value)}
-              aria-label={`${qKey} pass criteria`}
-            />
-          </LabeledField>
-          <LabeledField label="Guidance" hint="Notes to help reviewers judge this consistently.">
-            <textarea
-              className={`${editorInputClass} resize-y min-h-[3rem]`}
-              rows={2}
-              value={guidance}
-              onChange={(e) => onFieldChange(qKey, "background", e.target.value)}
-              aria-label={`${qKey} guidance`}
-            />
-          </LabeledField>
-          <div className="grid grid-cols-1 gap-ut-2">
-            <LabeledField label="If it passes" hint="What a passing response looks like.">
-              <textarea
-                className={`${editorInputClass} resize-y min-h-[3rem]`}
-                rows={2}
-                value={String(examples.pass ?? "")}
-                onChange={(e) => onFieldChange(qKey, "examples.pass", e.target.value)}
-                aria-label={`${qKey} example pass`}
+          <EditableText
+            value={String(data.requirement ?? "")}
+            onChange={(v) => onFieldChange(qKey, "requirement", v)}
+            label={`${qKey} pass criteria`}
+            className="text-ut-sm text-ut-muted leading-relaxed"
+            placeholder="What must be true for this check to pass"
+          />
+          <details className="question-foldout" open>
+            <summary className="question-foldout-summary">Guidance</summary>
+            <div className="question-foldout-content">
+              <EditableText
+                value={guidance}
+                onChange={(v) => onFieldChange(qKey, "background", v)}
+                label={`${qKey} guidance`}
+                placeholder="Notes to help reviewers judge this consistently"
               />
-            </LabeledField>
-            <LabeledField label="If it fails" hint="What a failing response looks like.">
-              <textarea
-                className={`${editorInputClass} resize-y min-h-[3rem]`}
-                rows={2}
-                value={String(examples.fail ?? "")}
-                onChange={(e) => onFieldChange(qKey, "examples.fail", e.target.value)}
-                aria-label={`${qKey} example fail`}
-              />
-            </LabeledField>
-            <LabeledField label="When it's not applicable" hint="When this check doesn't apply.">
-              <textarea
-                className={`${editorInputClass} resize-y min-h-[3rem]`}
-                rows={2}
-                value={String(examples.na ?? "")}
-                onChange={(e) => onFieldChange(qKey, "examples.na", e.target.value)}
-                aria-label={`${qKey} example na`}
-              />
-            </LabeledField>
-          </div>
+            </div>
+          </details>
+          <details className="question-foldout">
+            <summary className="question-foldout-summary">Examples</summary>
+            <div className="question-foldout-content">
+              {(["pass", "fail", "na"] as const).map((score) => (
+                <div className="example-row" key={score}>
+                  <span className="example-label" data-score={score}>
+                    {score === "na" ? "N/A" : score.charAt(0).toUpperCase() + score.slice(1)}
+                  </span>
+                  <EditableText
+                    className="example-desc"
+                    value={String(examples[score] ?? "")}
+                    onChange={(v) => onFieldChange(qKey, `examples.${score}`, v)}
+                    label={`${qKey} example ${score}`}
+                    placeholder={`Example ${score === "na" ? "N/A" : score} response`}
+                  />
+                </div>
+              ))}
+            </div>
+          </details>
         </>
       ) : (
         <>
-          {/* Score levels 0–3, named and colored to match the score semantics */}
-          <div className="grid grid-cols-2 gap-ut-2">
-            {SCORE_LEVELS.map(({ level, name }) => (
-              <LabeledField
-                key={level}
-                label={`${level} · ${name}`}
-                hint={`What a ${name.toLowerCase()} (${level}) response looks like.`}
-              >
-                <textarea
-                  className={`${editorInputClass} resize-y min-h-[3rem]`}
-                  rows={2}
-                  value={String(data[level] ?? "")}
-                  onChange={(e) => onFieldChange(qKey, level, e.target.value)}
-                  aria-label={`${qKey} score ${level} ${name}`}
-                />
-              </LabeledField>
-            ))}
-          </div>
-          <LabeledField label="Guidance" hint="Notes to help reviewers score this consistently.">
-            <textarea
-              className={`${editorInputClass} resize-y min-h-[3rem]`}
-              rows={2}
-              value={guidance}
-              onChange={(e) => onFieldChange(qKey, "background", e.target.value)}
-              aria-label={`${qKey} guidance`}
-            />
-          </LabeledField>
-          <div className="grid grid-cols-2 gap-ut-2">
-            {SCORE_LEVELS.map(({ level, name }) => (
-              <LabeledField
-                key={`ex-${level}`}
-                label={`Example · ${name}`}
-                hint={`Sample response for a ${name.toLowerCase()} (${level}).`}
-              >
-                <textarea
-                  className={`${editorInputClass} resize-y min-h-[3rem]`}
-                  rows={2}
-                  value={String(examples[level] ?? "")}
-                  onChange={(e) => onFieldChange(qKey, `examples.${level}`, e.target.value)}
-                  aria-label={`${qKey} example ${level} ${name}`}
-                />
-              </LabeledField>
-            ))}
-          </div>
+          {SCORE_LEVELS.map(({ level, name }) => (
+            <div className="example-row" key={level}>
+              <span className="example-badge" data-score={level}>
+                {`${level} · ${name}`}
+              </span>
+              <EditableText
+                className="example-desc"
+                value={String(data[level] ?? "")}
+                onChange={(v) => onFieldChange(qKey, level, v)}
+                label={`${qKey} score ${level} ${name}`}
+                placeholder={`Describe a ${name.toLowerCase()} (${level}) response`}
+              />
+            </div>
+          ))}
+          <details className="question-foldout" open>
+            <summary className="question-foldout-summary">Guidance</summary>
+            <div className="question-foldout-content">
+              <EditableText
+                value={guidance}
+                onChange={(v) => onFieldChange(qKey, "background", v)}
+                label={`${qKey} guidance`}
+                placeholder="Notes to help reviewers score this consistently"
+              />
+            </div>
+          </details>
+          <details className="question-foldout">
+            <summary className="question-foldout-summary">Examples</summary>
+            <div className="question-foldout-content">
+              {SCORE_LEVELS.map(({ level, name }) => (
+                <div className="example-row" key={`ex-${level}`}>
+                  <span className="example-badge" data-score={level}>
+                    {`${level} · ${name}`}
+                  </span>
+                  <EditableText
+                    className="example-desc"
+                    value={String(examples[level] ?? "")}
+                    onChange={(v) => onFieldChange(qKey, `examples.${level}`, v)}
+                    label={`${qKey} example ${level} ${name}`}
+                    placeholder={`Example ${name.toLowerCase()} (${level}) response`}
+                  />
+                </div>
+              ))}
+            </div>
+          </details>
         </>
       )}
     </CollapsibleRow>

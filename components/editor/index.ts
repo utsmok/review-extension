@@ -1,5 +1,6 @@
 export type { CollapsibleRowProps } from "./CollapsibleRow";
 export { default as CollapsibleRow } from "./CollapsibleRow";
+export { default as EditableText } from "./EditableText";
 export type { EditorShellProps } from "./EditorShell";
 export { default as EditorShell } from "./EditorShell";
 export type { LabeledFieldProps } from "./LabeledField";

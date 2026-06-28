@@ -78,6 +78,13 @@ describe("RubricEditor", () => {
     return qKey;
   }
 
+  function editEditableField(displayEl: HTMLElement, newText: string) {
+    fireEvent.click(displayEl);
+    const input = screen.getByTestId("editable-text-input");
+    fireEvent.change(input, { target: { value: newText } });
+    fireEvent.blur(input);
+  }
+
   it("groups are collapsed by default; expanding a required-check group reveals its questions", () => {
     render(<RubricEditor onBack={() => {}} />);
     const cat = Object.keys(activeRubric().quality_gate)[0];
@@ -91,18 +98,18 @@ describe("RubricEditor", () => {
     render(<RubricEditor onBack={() => {}} />);
     const cat = Object.keys(activeRubric().quality_gate)[0];
     const qKey = expandFirstQuestion("quality_gate", cat);
-    const rubric = activeRubric();
-    expect(screen.getByDisplayValue(String(rubric.quality_gate[cat][qKey].title))).toBeDefined();
+    const titleDisplay = screen.getByRole("button", { name: `${qKey} title` });
+    fireEvent.click(titleDisplay);
+    const titleInput = screen.getByTestId("editable-text-input");
+    expect(titleInput).toBeDefined();
   });
 
   it("edits a scoring question title after expanding", () => {
     render(<RubricEditor onBack={() => {}} />);
     const principle = Object.keys(activeRubric().scoring_rubric)[0];
     const qKey = expandFirstQuestion("scoring_rubric", principle);
-    const titleInput = screen.getByDisplayValue(
-      String(activeRubric().scoring_rubric[principle][qKey].title),
-    );
-    fireEvent.change(titleInput, { target: { value: "Source clarity" } });
+    const titleDisplay = screen.getByRole("button", { name: `${qKey} title` });
+    editEditableField(titleDisplay, "Source clarity");
     expect(
       useFrameworkCustomizationStore.getState().customization.rubric.valuePatches[
         `scoring_rubric.${principle}.${qKey}.title`
@@ -114,9 +121,8 @@ describe("RubricEditor", () => {
     render(<RubricEditor onBack={() => {}} />);
     const cat = Object.keys(activeRubric().quality_gate)[0];
     const qKey = expandFirstQuestion("quality_gate", cat);
-    const q = activeRubric().quality_gate[cat][qKey];
-    const reqTextarea = screen.getByDisplayValue(String(q.requirement));
-    fireEvent.change(reqTextarea, { target: { value: "Updated requirement" } });
+    const reqDisplay = screen.getByRole("button", { name: `${qKey} pass criteria` });
+    editEditableField(reqDisplay, "Updated requirement");
     expect(
       useFrameworkCustomizationStore.getState().customization.rubric.valuePatches[
         `quality_gate.${cat}.${qKey}.requirement`
@@ -148,6 +154,35 @@ describe("RubricEditor", () => {
         `scoring_rubric.${principle}.${qKey}.ai_only`
       ],
     ).toBe(!before);
+  });
+
+  it("Escape cancels an edit without committing", () => {
+    render(<RubricEditor onBack={() => {}} />);
+    const cat = Object.keys(activeRubric().quality_gate)[0];
+    const qKey = expandFirstQuestion("quality_gate", cat);
+    const titleDisplay = screen.getByRole("button", { name: `${qKey} title` });
+    fireEvent.click(titleDisplay);
+    const input = screen.getByTestId("editable-text-input");
+    fireEvent.change(input, { target: { value: "Cancelled title" } });
+    fireEvent.keyDown(input, { key: "Escape" });
+    expect(
+      useFrameworkCustomizationStore.getState().customization.rubric.valuePatches[
+        `quality_gate.${cat}.${qKey}.title`
+      ],
+    ).toBeUndefined();
+  });
+
+  it("editing a score-level definition commits on blur", () => {
+    render(<RubricEditor onBack={() => {}} />);
+    const principle = Object.keys(activeRubric().scoring_rubric)[0];
+    const qKey = expandFirstQuestion("scoring_rubric", principle);
+    const scoreDisplay = screen.getByRole("button", { name: `${qKey} score 0 Fail` });
+    editEditableField(scoreDisplay, "A completely failing response");
+    expect(
+      useFrameworkCustomizationStore.getState().customization.rubric.valuePatches[
+        `scoring_rubric.${principle}.${qKey}.0`
+      ],
+    ).toBe("A completely failing response");
   });
 
   it("shows a confirm dialog before removing a question", () => {
