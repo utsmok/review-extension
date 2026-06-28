@@ -5,10 +5,10 @@ import BrandingEditor from "./BrandingEditor";
 import FieldEditor from "./FieldEditor";
 import GradeIdEditor from "./GradeIdEditor";
 import PackManager from "./PackManager";
-import PrincipleEditor from "./PrincipleEditor";
+
 import RubricEditor from "./RubricEditor";
 
-type View = "main" | "fields" | "grades" | "rubric" | "principles" | "branding" | "pack";
+type View = "main" | "fields" | "grades" | "rubric" | "branding" | "pack";
 
 const EDITORS: {
   view: Exclude<View, "main">;
@@ -30,15 +30,9 @@ const EDITORS: {
   },
   {
     view: "rubric",
-    label: "Rubric questions",
-    hint: "Author quality-gate and scoring questions",
+    label: "Rubric",
+    hint: "Principles, their scored questions, and required checks",
     Component: RubricEditor,
-  },
-  {
-    view: "principles",
-    label: "Principles",
-    hint: "Rename principles and recolor them",
-    Component: PrincipleEditor,
   },
   {
     view: "branding",

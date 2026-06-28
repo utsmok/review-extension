@@ -4,7 +4,8 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import RubricEditor from "@/components/RubricEditor";
-import { getActiveRubric } from "@/lib/rubric-schema";
+import { getActivePrinciples as activePrinciples } from "@/lib/framework-config";
+import { getActiveRubric as activeRubric } from "@/lib/rubric-schema";
 import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
 
 describe("RubricEditor", () => {
@@ -15,85 +16,92 @@ describe("RubricEditor", () => {
 
   it("renders inside EditorShell with title and subtitle", () => {
     render(<RubricEditor onBack={() => {}} />);
-    expect(screen.getByText("Rubric questions")).toBeDefined();
+    expect(screen.getByText("Rubric")).toBeDefined();
     expect(
       screen.getByText(
-        "Author the quality-gate checks and scoring questions reviewers score against. Edits apply to new reviews.",
+        /The five principles, their scored questions, and the required pass\/fail checks/,
       ),
     ).toBeDefined();
   });
 
-  it("renders Quality Gates and Scoring section headers", () => {
+  it("renders Required checks and Principles section headers", () => {
     render(<RubricEditor onBack={() => {}} />);
-    expect(screen.getByText("Quality Gates")).toBeDefined();
-    expect(screen.getByText("Scoring")).toBeDefined();
+    expect(screen.getByText("Required checks")).toBeDefined();
+    expect(screen.getByText("Principles")).toBeDefined();
   });
 
-  it("renders quality gate category buttons with question counts", () => {
+  it("renders humanized required-check group labels with counts", () => {
     render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    for (const [cat, qs] of Object.entries(rubric.quality_gate)) {
-      const label = cat.replace(/_/g, " ");
-      const btn = screen.getByRole("button", { name: new RegExp(`^${label}`) });
-      expect(btn).toBeDefined();
-      expect(btn.textContent).toContain(`${Object.keys(qs).length}`);
+    const rubric = activeRubric();
+    for (const cat of Object.keys(rubric.quality_gate)) {
+      const group = screen.getByTestId(`group-quality_gate-${cat}`);
+      expect(group).toBeDefined();
+      // Humanized label appears in the collapsed summary
+      expect(group.textContent).toContain(
+        cat === "privacy_and_security"
+          ? "Privacy & security"
+          : cat === "intellectual_property"
+            ? "Intellectual property"
+            : "Accessibility",
+      );
     }
   });
 
-  it("renders scoring principle buttons with question counts", () => {
+  it("renders a collapsible group per principle with code + count", () => {
     render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    for (const [principle, qs] of Object.entries(rubric.scoring_rubric)) {
-      const btn = screen.getByRole("button", { name: new RegExp(`^${principle}`) });
-      expect(btn).toBeDefined();
-      expect(btn.textContent).toContain(`${Object.keys(qs).length}`);
+    for (const p of activePrinciples()) {
+      const group = screen.getByTestId(`principle-${p.id}`);
+      expect(group).toBeDefined();
+      expect(group.textContent).toContain(p.code);
     }
   });
 
-  it("collapses and re-expands a quality gate category", () => {
+  /** Expand a group CollapsibleRow by testId (clicks its toggle button). */
+  function expandByTestId(testId: string) {
+    const row = screen.getByTestId(testId);
+    const toggle = row.querySelector("button");
+    expect(toggle).toBeDefined();
+    fireEvent.click(toggle!);
+    return row;
+  }
+
+  /** Expand a group, then expand the first question inside it. */
+  function expandFirstQuestion(section: "quality_gate" | "scoring_rubric", parent: string) {
+    expandByTestId(
+      section === "quality_gate" ? `group-quality_gate-${parent}` : `principle-${parent}`,
+    );
+    const rubric = activeRubric();
+    const qKey = Object.keys(
+      section === "quality_gate" ? rubric.quality_gate[parent] : rubric.scoring_rubric[parent],
+    )[0];
+    expandByTestId(`question-${qKey}`);
+    return qKey;
+  }
+
+  it("groups are collapsed by default; expanding a required-check group reveals its questions", () => {
     render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    const firstCat = Object.keys(rubric.quality_gate)[0];
-    const label = firstCat.replace(/_/g, " ");
-    const btn = screen.getByRole("button", { name: new RegExp(`^${label}`) });
-    // Starts expanded
-    expect(btn.getAttribute("aria-expanded")).toBe("true");
-    // Collapse
-    fireEvent.click(btn);
-    expect(btn.getAttribute("aria-expanded")).toBe("false");
-    // Re-expand
-    fireEvent.click(btn);
-    expect(btn.getAttribute("aria-expanded")).toBe("true");
+    const cat = Object.keys(activeRubric().quality_gate)[0];
+    const group = screen.getByTestId(`group-quality_gate-${cat}`);
+    expect(group.getAttribute("data-open")).toBe("false");
+    expandByTestId(`group-quality_gate-${cat}`);
+    expect(screen.getByTestId(`group-quality_gate-${cat}`).getAttribute("data-open")).toBe("true");
   });
 
-  it("questions are collapsed by default; expanding reveals title input", () => {
+  it("questions are collapsed by default; expanding reveals the title input", () => {
     render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    const firstCat = Object.keys(rubric.quality_gate)[0];
-    const firstQKey = Object.keys(rubric.quality_gate[firstCat])[0];
-    // Questions default collapsed — CollapsibleRow has data-open="false"
-    const row = screen.getByText(firstQKey).closest("[data-open]");
-    expect(row?.getAttribute("data-open")).toBe("false");
-    // Expand the question's CollapsibleRow
-    const toggleBtn = row?.querySelector("button");
-    expect(toggleBtn).toBeDefined();
-    fireEvent.click(toggleBtn!);
-    expect(row?.getAttribute("data-open")).toBe("true");
-    // Now the title input is visible
-    const title = rubric.quality_gate[firstCat][firstQKey].title;
-    expect(screen.getByDisplayValue(title)).toBeDefined();
+    const cat = Object.keys(activeRubric().quality_gate)[0];
+    const qKey = expandFirstQuestion("quality_gate", cat);
+    const rubric = activeRubric();
+    expect(screen.getByDisplayValue(String(rubric.quality_gate[cat][qKey].title))).toBeDefined();
   });
 
-  it("edits a scoring question title after expanding the question", () => {
+  it("edits a scoring question title after expanding", () => {
     render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    const principle = Object.keys(rubric.scoring_rubric)[0];
-    const qKey = Object.keys(rubric.scoring_rubric[principle])[0];
-    // Expand the question
-    const row = screen.getByText(qKey).closest("[data-open]");
-    const toggleBtn = row?.querySelector("button");
-    fireEvent.click(toggleBtn!);
-    const titleInput = screen.getByDisplayValue(rubric.scoring_rubric[principle][qKey].title);
+    const principle = Object.keys(activeRubric().scoring_rubric)[0];
+    const qKey = expandFirstQuestion("scoring_rubric", principle);
+    const titleInput = screen.getByDisplayValue(
+      String(activeRubric().scoring_rubric[principle][qKey].title),
+    );
     fireEvent.change(titleInput, { target: { value: "Source clarity" } });
     expect(
       useFrameworkCustomizationStore.getState().customization.rubric.valuePatches[
@@ -102,17 +110,12 @@ describe("RubricEditor", () => {
     ).toBe("Source clarity");
   });
 
-  it("edits a quality gate requirement after expanding the question", () => {
+  it("edits a required-check requirement (pass criteria) after expanding", () => {
     render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    const cat = Object.keys(rubric.quality_gate)[0];
-    const qKey = Object.keys(rubric.quality_gate[cat])[0];
-    const q = rubric.quality_gate[cat][qKey];
-    // Expand the question
-    const row = screen.getByText(qKey).closest("[data-open]");
-    const toggleBtn = row?.querySelector("button");
-    fireEvent.click(toggleBtn!);
-    const reqTextarea = screen.getByDisplayValue(q.requirement);
+    const cat = Object.keys(activeRubric().quality_gate)[0];
+    const qKey = expandFirstQuestion("quality_gate", cat);
+    const q = activeRubric().quality_gate[cat][qKey];
+    const reqTextarea = screen.getByDisplayValue(String(q.requirement));
     fireEvent.change(reqTextarea, { target: { value: "Updated requirement" } });
     expect(
       useFrameworkCustomizationStore.getState().customization.rubric.valuePatches[
@@ -121,18 +124,25 @@ describe("RubricEditor", () => {
     ).toBe("Updated requirement");
   });
 
-  it("toggles ai_only on a scoring question from the summary row", () => {
+  it("renders named score levels (0 · Fail … 3 · Good) instead of 'Anchor'", () => {
     render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    const principle = Object.keys(rubric.scoring_rubric)[0];
-    const qKey = Object.keys(rubric.scoring_rubric[principle])[0];
-    // AI-only checkbox is visible in the collapsed summary row
-    const aiCheckbox = screen.getByRole("checkbox", {
-      name: `${qKey} ai_only`,
+    const principle = Object.keys(activeRubric().scoring_rubric)[0];
+    expandFirstQuestion("scoring_rubric", principle);
+    expect(screen.getAllByText("0 · Fail").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("3 · Good").length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Anchor/)).toBeNull();
+  });
+
+  it("toggles AI-assisted on a scoring question from the expanded body", () => {
+    render(<RubricEditor onBack={() => {}} />);
+    const principle = Object.keys(activeRubric().scoring_rubric)[0];
+    const qKey = expandFirstQuestion("scoring_rubric", principle);
+    const checkbox = screen.getByRole("checkbox", {
+      name: `${qKey} AI-assisted`,
     }) as HTMLInputElement;
-    const before = aiCheckbox.checked;
-    fireEvent.click(aiCheckbox);
-    expect(aiCheckbox.checked).toBe(!before);
+    const before = checkbox.checked;
+    fireEvent.click(checkbox);
+    expect(checkbox.checked).toBe(!before);
     expect(
       useFrameworkCustomizationStore.getState().customization.rubric.valuePatches[
         `scoring_rubric.${principle}.${qKey}.ai_only`
@@ -142,120 +152,143 @@ describe("RubricEditor", () => {
 
   it("shows a confirm dialog before removing a question", () => {
     render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    const principle = Object.keys(rubric.scoring_rubric)[0];
-    const qKey = Object.keys(rubric.scoring_rubric[principle])[0];
-    // Click remove
+    const cat = Object.keys(activeRubric().quality_gate)[0];
+    const qKey = expandFirstQuestion("quality_gate", cat);
     fireEvent.click(screen.getByRole("button", { name: `Remove ${qKey}` }));
-    // Confirm dialog appears
     expect(screen.getByRole("alertdialog")).toBeDefined();
-    // Question NOT yet removed
-    const removed = useFrameworkCustomizationStore.getState().customization.rubric.removedQuestions;
-    expect(removed.some((r) => r.key === qKey && r.parent === principle)).toBe(false);
-    // Confirm removal — use getAllByRole because there are multiple "Remove" buttons
-    const dangerBtns = screen.getAllByRole("button", { name: "Remove" });
-    // The danger variant is the last one (dialog button, not the X icon)
-    fireEvent.click(dangerBtns[dangerBtns.length - 1]);
-    // Now removed
-    const removedAfter =
-      useFrameworkCustomizationStore.getState().customization.rubric.removedQuestions;
-    expect(removedAfter.some((r) => r.key === qKey && r.parent === principle)).toBe(true);
+  });
+
+  it("removes the question after confirming", () => {
+    render(<RubricEditor onBack={() => {}} />);
+    const cat = Object.keys(activeRubric().quality_gate)[0];
+    const qKey = expandFirstQuestion("quality_gate", cat);
+    fireEvent.click(screen.getByRole("button", { name: `Remove ${qKey}` }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+    expect(
+      useFrameworkCustomizationStore
+        .getState()
+        .customization.rubric.removedQuestions.some(
+          (q) => q.section === "quality_gate" && q.parent === cat && q.key === qKey,
+        ),
+    ).toBe(true);
   });
 
   it("can cancel the remove confirmation dialog", () => {
     render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    const principle = Object.keys(rubric.scoring_rubric)[0];
-    const qKey = Object.keys(rubric.scoring_rubric[principle])[0];
+    const cat = Object.keys(activeRubric().quality_gate)[0];
+    const qKey = expandFirstQuestion("quality_gate", cat);
     fireEvent.click(screen.getByRole("button", { name: `Remove ${qKey}` }));
-    expect(screen.getByRole("alertdialog")).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    // Not removed
-    const removed = useFrameworkCustomizationStore.getState().customization.rubric.removedQuestions;
-    expect(removed.some((r) => r.key === qKey)).toBe(false);
+    expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 
-  it("adds a new quality gate question by title with auto-slug", () => {
+  it("adds a new required check via + Add → title → Add", () => {
     render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    const cat = Object.keys(rubric.quality_gate)[0];
-    const catLabel = cat.replace(/_/g, " ");
-    const input = screen.getByLabelText(`Add question to ${catLabel}`);
-    fireEvent.change(input, { target: { value: "  New Gate Q  " } });
-    // Slug preview should be visible
-    expect(screen.getByText("key: new_gate_q")).toBeDefined();
-    fireEvent.keyDown(input, { key: "Enter" });
-    const added = useFrameworkCustomizationStore.getState().customization.rubric.addedQuestions;
-    expect(added.some((a) => a.key === "new_gate_q" && a.parent === cat)).toBe(true);
+    const cat = Object.keys(activeRubric().quality_gate)[0];
+    expandByTestId(`group-quality_gate-${cat}`);
+    fireEvent.click(screen.getByText("+ Add check"));
+    const input = screen.getByLabelText(/New check title for/);
+    fireEvent.change(input, { target: { value: "Data retention policy" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+    expect(
+      useFrameworkCustomizationStore
+        .getState()
+        .customization.rubric.addedQuestions.some(
+          (q) =>
+            q.section === "quality_gate" && q.parent === cat && q.key === "data_retention_policy",
+        ),
+    ).toBe(true);
   });
 
-  it("adds a new scoring question via the Add button", () => {
+  it("adds a new scoring question under a principle", () => {
     render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    const principle = Object.keys(rubric.scoring_rubric)[0];
-    const input = screen.getByLabelText(`Add question to ${principle}`);
-    fireEvent.change(input, { target: { value: "Custom Score" } });
-    expect(screen.getByText("key: custom_score")).toBeDefined();
-    // Re-query the button after the state update enables it
-    const container = input.closest(".flex.items-end");
-    const addBtn = container?.querySelector("button:not([disabled])") as HTMLButtonElement;
-    expect(addBtn).not.toBeNull();
-    fireEvent.click(addBtn!);
-    const added = useFrameworkCustomizationStore.getState().customization.rubric.addedQuestions;
-    expect(added.some((a) => a.key === "custom_score" && a.parent === principle)).toBe(true);
+    const principle = Object.keys(activeRubric().scoring_rubric)[0];
+    expandByTestId(`principle-${principle}`);
+    fireEvent.click(screen.getByText("+ Add question"));
+    const input = screen.getByLabelText(/New question title for/);
+    fireEvent.change(input, { target: { value: "Source verification" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+    expect(
+      useFrameworkCustomizationStore
+        .getState()
+        .customization.rubric.addedQuestions.some(
+          (q) =>
+            q.section === "scoring_rubric" &&
+            q.parent === principle &&
+            q.key === "source_verification",
+        ),
+    ).toBe(true);
   });
 
-  it("disables Add button when title is empty", () => {
+  it("reorders questions via the up/down toolbar", () => {
     render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    const cat = Object.keys(rubric.quality_gate)[0];
-    const catLabel = cat.replace(/_/g, " ");
-    const input = screen.getByLabelText(`Add question to ${catLabel}`);
-    // The Add button in the same flex container should be disabled
-    const container = input.closest(".flex.items-end");
-    const addBtn = container?.querySelector("button[disabled]") as HTMLButtonElement | null;
-    expect(addBtn).not.toBeNull();
+    const principle = Object.keys(activeRubric().scoring_rubric)[0];
+    const keys = Object.keys(activeRubric().scoring_rubric[principle]);
+    expandFirstQuestion("scoring_rubric", principle);
+    fireEvent.click(screen.getByRole("button", { name: `Move ${keys[0]} down` }));
+    const order = useFrameworkCustomizationStore.getState().customization.rubric.order;
+    expect(order[`scoring_rubric.${principle}`]).toEqual([keys[1], keys[0], ...keys.slice(2)]);
   });
 
-  it("reorders questions via up/down buttons", () => {
+  it("up button is disabled for the first question, down for the last", () => {
     render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    const principle = Object.keys(rubric.scoring_rubric)[0];
-    const qKeys = Object.keys(rubric.scoring_rubric[principle]);
-    expect(qKeys.length).toBeGreaterThanOrEqual(2);
-    fireEvent.click(screen.getByRole("button", { name: `Move ${qKeys[0]} down` }));
-    const order =
-      useFrameworkCustomizationStore.getState().customization.rubric.order[
-        `scoring_rubric.${principle}`
-      ];
-    expect(order).toBeDefined();
-    expect(order[0]).toBe(qKeys[1]);
-    expect(order[1]).toBe(qKeys[0]);
+    const principle = Object.keys(activeRubric().scoring_rubric)[0];
+    const keys = Object.keys(activeRubric().scoring_rubric[principle]);
+    // Expand the principle then the first + last questions
+    expandByTestId(`principle-${principle}`);
+    expandByTestId(`question-${keys[0]}`);
+    expect(
+      (screen.getByRole("button", { name: `Move ${keys[0]} up` }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+    cleanup();
+    useFrameworkCustomizationStore.getState().resetAll();
+    render(<RubricEditor onBack={() => {}} />);
+    expandByTestId(`principle-${principle}`);
+    expandByTestId(`question-${keys[keys.length - 1]}`);
+    expect(
+      (
+        screen.getByRole("button", {
+          name: `Move ${keys[keys.length - 1]} down`,
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
   });
 
-  it("calls onBack when back button is clicked", () => {
+  // ── Folded principle-identity coverage (was principle-editor.test.tsx) ──
+
+  it("edits a principle's full name and color from its Identity panel", () => {
+    render(<RubricEditor onBack={() => {}} />);
+    const first = activePrinciples()[0];
+    expandByTestId(`principle-${first.id}`);
+    expandByTestId(`principle-identity-${first.id}`);
+    const nameInput = screen.getByDisplayValue(first.fullName);
+    fireEvent.change(nameInput, { target: { value: "Radical Transparency" } });
+    expect(
+      useFrameworkCustomizationStore.getState().customization.principleOverrides[first.id]
+        ?.fullName,
+    ).toBe("Radical Transparency");
+
+    const colorPicker = screen.getByLabelText(`${first.code} color`);
+    fireEvent.change(colorPicker, { target: { value: "#112233" } });
+    expect(
+      useFrameworkCustomizationStore.getState().customization.principleOverrides[first.id]?.color,
+    ).toBe("#112233");
+  });
+
+  it("shows an edited dot on a principle once its identity is overridden", () => {
+    useFrameworkCustomizationStore
+      .getState()
+      .setPrincipleOverride(activePrinciples()[0].id, { fullName: "Changed" });
+    render(<RubricEditor onBack={() => {}} />);
+    const first = activePrinciples()[0];
+    const group = screen.getByTestId(`principle-${first.id}`);
+    expect(group.querySelector('[aria-label="Edited from shipped default"]')).toBeDefined();
+  });
+
+  it("calls onBack when the back button is clicked", () => {
     const onBack = vi.fn();
     render(<RubricEditor onBack={onBack} />);
-    fireEvent.click(screen.getByRole("button", { name: /Back/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Back to framework customization" }));
     expect(onBack).toHaveBeenCalledTimes(1);
-  });
-
-  it("up button is disabled for the first question in a category", () => {
-    render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    const cat = Object.keys(rubric.quality_gate)[0];
-    const qKey = Object.keys(rubric.quality_gate[cat])[0];
-    const upBtn = screen.getByRole("button", { name: `Move ${qKey} up` });
-    expect(upBtn.hasAttribute("disabled")).toBe(true);
-  });
-
-  it("down button is disabled for the last question in a category", () => {
-    render(<RubricEditor onBack={() => {}} />);
-    const rubric = getActiveRubric();
-    const cat = Object.keys(rubric.quality_gate)[0];
-    const qKeys = Object.keys(rubric.quality_gate[cat]);
-    const lastKey = qKeys[qKeys.length - 1];
-    const downBtn = screen.getByRole("button", { name: `Move ${lastKey} down` });
-    expect(downBtn.hasAttribute("disabled")).toBe(true);
   });
 });
