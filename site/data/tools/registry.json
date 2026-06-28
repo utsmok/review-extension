@@ -7,8 +7,8 @@
     "defaults": {
       "company": "Allen Institute for AI",
       "usesAi": true,
-      "dataSources": ["Peer-reviewed papers", "Preprints"],
-      "searchMethods": ["Semantic search", "Keyword search"],
+      "dataSources": ["Semantic Scholar"],
+      "searchMethods": ["Semantic search", "Keywords"],
       "discipline": ["Multidisciplinary"],
       "pricing": "Free",
       "availability": "Open access",
@@ -16,7 +16,13 @@
     },
     "review": {
       "verdict": "recommended",
-      "scores": { "TR": 2.5, "RE": 3.0, "US": 2.5, "SE": 2.5, "TC": 3.0 },
+      "scores": {
+        "TR": 2.5,
+        "RE": 3.0,
+        "US": 2.5,
+        "SE": 2.5,
+        "TC": 3.0
+      },
       "total": 38,
       "totalMax": 42,
       "status": "done",
@@ -31,16 +37,22 @@
     "defaults": {
       "company": "Elicit",
       "usesAi": true,
-      "dataSources": ["Peer-reviewed papers"],
-      "searchMethods": ["Natural language queries", "Semantic search"],
+      "dataSources": ["Semantic Scholar"],
+      "searchMethods": ["Natural language", "Semantic search"],
       "discipline": ["Multidisciplinary"],
       "pricing": "Freemium",
       "availability": "Open access",
-      "authenticationMethod": "Email"
+      "authenticationMethod": "Email-only"
     },
     "review": {
       "verdict": "conditional",
-      "scores": { "TR": 2.0, "RE": 2.0, "US": 2.5, "SE": 2.0, "TC": 1.5 },
+      "scores": {
+        "TR": 2.0,
+        "RE": 2.0,
+        "US": 2.5,
+        "SE": 2.0,
+        "TC": 1.5
+      },
       "total": 30,
       "totalMax": 42,
       "status": "done",
@@ -55,14 +67,20 @@
     "defaults": {
       "company": "Consensus",
       "usesAi": true,
-      "dataSources": ["Peer-reviewed papers"],
-      "searchMethods": ["Natural language queries"],
+      "dataSources": ["Semantic Scholar"],
+      "searchMethods": ["Natural language"],
       "discipline": ["Multidisciplinary"],
       "pricing": "Freemium"
     },
     "review": {
       "verdict": "conditional",
-      "scores": { "TR": 2.0, "RE": 2.5, "US": 2.0, "SE": 2.0, "TC": 2.0 },
+      "scores": {
+        "TR": 2.0,
+        "RE": 2.5,
+        "US": 2.0,
+        "SE": 2.0,
+        "TC": 2.0
+      },
       "total": 31,
       "totalMax": 42,
       "status": "done",
@@ -77,7 +95,7 @@
     "defaults": {
       "company": "Allen Institute for AI",
       "usesAi": true,
-      "dataSources": ["Peer-reviewed papers"],
+      "dataSources": ["Semantic Scholar"],
       "searchMethods": ["Semantic search"],
       "discipline": ["Multidisciplinary"],
       "pricing": "Free",
@@ -85,7 +103,13 @@
     },
     "review": {
       "verdict": "recommended",
-      "scores": { "TR": 3.0, "RE": 3.0, "US": 2.0, "SE": 3.0, "TC": 3.0 },
+      "scores": {
+        "TR": 3.0,
+        "RE": 3.0,
+        "US": 2.0,
+        "SE": 3.0,
+        "TC": 3.0
+      },
       "total": 42,
       "totalMax": 42,
       "status": "done",
@@ -100,8 +124,8 @@
     "defaults": {
       "company": "Google",
       "usesAi": false,
-      "dataSources": ["Peer-reviewed papers", "Preprints", "Theses", "Books"],
-      "searchMethods": ["Keyword search", "Citation search"],
+      "dataSources": ["Google Scholar"],
+      "searchMethods": ["Keywords", "Citation chaining"],
       "discipline": ["Multidisciplinary"],
       "pricing": "Free",
       "availability": "Open access"
@@ -115,15 +139,21 @@
     "defaults": {
       "company": "Clarivate",
       "usesAi": false,
-      "dataSources": ["Peer-reviewed papers", "Conference proceedings"],
-      "searchMethods": ["Keyword search", "Citation search"],
+      "dataSources": ["Web of Science"],
+      "searchMethods": ["Keywords", "Citation chaining"],
       "discipline": ["Multidisciplinary"],
       "pricing": "Subscription",
       "availability": "Institutional access"
     },
     "review": {
       "verdict": "",
-      "scores": { "TR": 0, "RE": 0, "US": 0, "SE": 0, "TC": 0 },
+      "scores": {
+        "TR": 0,
+        "RE": 0,
+        "US": 0,
+        "SE": 0,
+        "TC": 0
+      },
       "total": 0,
       "totalMax": 0,
       "status": "nominated",
@@ -138,15 +168,21 @@
     "defaults": {
       "company": "Elsevier",
       "usesAi": false,
-      "dataSources": ["Peer-reviewed papers", "Conference proceedings"],
-      "searchMethods": ["Keyword search", "Citation search"],
+      "dataSources": ["Scopus"],
+      "searchMethods": ["Keywords", "Citation chaining"],
       "discipline": ["Multidisciplinary"],
       "pricing": "Subscription",
       "availability": "Institutional access"
     },
     "review": {
       "verdict": "",
-      "scores": { "TR": 0, "RE": 0, "US": 0, "SE": 0, "TC": 0 },
+      "scores": {
+        "TR": 0,
+        "RE": 0,
+        "US": 0,
+        "SE": 0,
+        "TC": 0
+      },
       "total": 0,
       "totalMax": 0,
       "status": "nominated",
@@ -161,9 +197,9 @@
     "defaults": {
       "company": "NIH/NLM",
       "usesAi": false,
-      "dataSources": ["Peer-reviewed papers", "Preprints"],
-      "searchMethods": ["Keyword search", "MeSH terms"],
-      "discipline": ["Biomedical", "Life sciences"],
+      "dataSources": ["PubMed"],
+      "searchMethods": ["Keywords", "Controlled vocabulary / MeSH"],
+      "discipline": ["Medicine", "Health Professions"],
       "pricing": "Free",
       "availability": "Open access"
     }
@@ -176,9 +212,13 @@
     "defaults": {
       "company": "ITHAKA",
       "usesAi": false,
-      "dataSources": ["Peer-reviewed papers", "Books"],
-      "searchMethods": ["Keyword search", "Full-text search"],
-      "discipline": ["Humanities", "Social sciences"],
+      "dataSources": ["JSTOR"],
+      "searchMethods": ["Keywords", "Faceted filtering"],
+      "discipline": [
+        "History and Archaeology",
+        "Languages and Literature",
+        "Sociology, Anthropology, and Social Work"
+      ],
       "pricing": "Subscription",
       "availability": "Institutional access"
     }
@@ -191,8 +231,8 @@
     "defaults": {
       "company": "Bielefeld University Library",
       "usesAi": false,
-      "dataSources": ["Peer-reviewed papers", "Preprints", "Theses"],
-      "searchMethods": ["Keyword search"],
+      "dataSources": ["BASE"],
+      "searchMethods": ["Keywords"],
       "discipline": ["Multidisciplinary"],
       "pricing": "Free",
       "availability": "Open access"
@@ -206,8 +246,8 @@
     "defaults": {
       "company": "Open University",
       "usesAi": false,
-      "dataSources": ["Peer-reviewed papers", "Preprints"],
-      "searchMethods": ["Keyword search"],
+      "dataSources": ["CORE"],
+      "searchMethods": ["Keywords"],
       "discipline": ["Multidisciplinary"],
       "pricing": "Free",
       "availability": "Open access"
@@ -221,8 +261,8 @@
     "defaults": {
       "company": "Digital Science",
       "usesAi": true,
-      "dataSources": ["Peer-reviewed papers", "Patents", "Clinical trials"],
-      "searchMethods": ["Keyword search", "Semantic search"],
+      "dataSources": ["Dimensions", "CrossRef"],
+      "searchMethods": ["Keywords", "Semantic search"],
       "discipline": ["Multidisciplinary"],
       "pricing": "Freemium",
       "availability": "Open access"
@@ -236,8 +276,8 @@
     "defaults": {
       "company": "Clarivate",
       "usesAi": false,
-      "dataSources": ["Peer-reviewed papers", "Dissertations", "Newspapers"],
-      "searchMethods": ["Keyword search", "Boolean search"],
+      "dataSources": ["ProQuest"],
+      "searchMethods": ["Keywords", "Boolean queries"],
       "discipline": ["Multidisciplinary"],
       "pricing": "Subscription",
       "availability": "Institutional access"
@@ -251,8 +291,8 @@
     "defaults": {
       "company": "EBSCO",
       "usesAi": false,
-      "dataSources": ["Peer-reviewed papers", "Magazines", "Books"],
-      "searchMethods": ["Keyword search", "Boolean search"],
+      "dataSources": [],
+      "searchMethods": ["Keywords", "Boolean queries"],
       "discipline": ["Multidisciplinary"],
       "pricing": "Subscription",
       "availability": "Institutional access"
@@ -266,14 +306,20 @@
     "defaults": {
       "company": "Perplexity AI",
       "usesAi": true,
-      "dataSources": ["Web search", "Peer-reviewed papers"],
-      "searchMethods": ["Natural language queries"],
+      "dataSources": [],
+      "searchMethods": ["Natural language"],
       "discipline": ["Multidisciplinary"],
       "pricing": "Freemium"
     },
     "review": {
       "verdict": "not_recommended",
-      "scores": { "TR": 1.5, "RE": 1.0, "US": 2.5, "SE": 1.0, "TC": 1.0 },
+      "scores": {
+        "TR": 1.5,
+        "RE": 1.0,
+        "US": 2.5,
+        "SE": 1.0,
+        "TC": 1.0
+      },
       "total": 21,
       "totalMax": 42,
       "status": "done",
@@ -288,7 +334,13 @@
     "defaults": {},
     "review": {
       "verdict": "not_recommended",
-      "scores": { "TR": 1.0, "RE": 1.0, "US": 2.5, "SE": 1.0, "TC": 0.5 },
+      "scores": {
+        "TR": 1.0,
+        "RE": 1.0,
+        "US": 2.5,
+        "SE": 1.0,
+        "TC": 0.5
+      },
       "total": 18,
       "totalMax": 42,
       "status": "done",
@@ -303,7 +355,13 @@
     "defaults": {},
     "review": {
       "verdict": "not_recommended",
-      "scores": { "TR": 1.5, "RE": 1.0, "US": 2.5, "SE": 1.0, "TC": 0.5 },
+      "scores": {
+        "TR": 1.5,
+        "RE": 1.0,
+        "US": 2.5,
+        "SE": 1.0,
+        "TC": 0.5
+      },
       "total": 19,
       "totalMax": 42,
       "status": "in-progress",
@@ -318,7 +376,13 @@
     "defaults": {},
     "review": {
       "verdict": "conditional",
-      "scores": { "TR": 2.0, "RE": 2.0, "US": 2.0, "SE": 1.5, "TC": 1.5 },
+      "scores": {
+        "TR": 2.0,
+        "RE": 2.0,
+        "US": 2.0,
+        "SE": 1.5,
+        "TC": 1.5
+      },
       "total": 28,
       "totalMax": 42,
       "status": "done",
@@ -333,7 +397,13 @@
     "defaults": {},
     "review": {
       "verdict": "conditional",
-      "scores": { "TR": 1.5, "RE": 2.0, "US": 2.0, "SE": 1.5, "TC": 1.5 },
+      "scores": {
+        "TR": 1.5,
+        "RE": 2.0,
+        "US": 2.0,
+        "SE": 1.5,
+        "TC": 1.5
+      },
       "total": 26,
       "totalMax": 42,
       "status": "done",
