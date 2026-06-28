@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRubric, useTabNavigation } from "@/components/contexts";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { captureForMetadataField } from "@/lib/capture";
@@ -10,11 +10,13 @@ import {
 import { ensureArray } from "@/lib/metadata-utils";
 import { getSuggestedQueries } from "@/lib/test-queries";
 import { detectToolProfile, type ToolProfile } from "@/lib/tool-profiles";
+import type { FieldDescriptor } from "@/lib/types";
 import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
 import ExportCompleteScreen from "./ExportCompleteScreen";
 import DisciplineField from "./metadata/DisciplineField";
 import PillField from "./PillField";
+import SchemaForm from "./SchemaForm";
 
 const MAX_TEXT_LENGTH = 500;
 const MAX_URL_LENGTH = 2048;
@@ -131,8 +133,19 @@ export default function Metadata() {
       patch.authenticationMethod = d.authenticationMethod;
     if (Object.keys(patch).length > 0) updateMetadata(patch);
   }, [profile, session, updateMetadata]);
+  const formDraft = useRef<Record<string, unknown>>({});
+
+  const handleSchemaFormChange = useCallback(
+    (desc: FieldDescriptor) => {
+      const value = formDraft.current[desc.storageKey];
+      updateMetadata({ [desc.storageKey]: value });
+    },
+    [updateMetadata],
+  );
 
   if (!session) return null;
+
+  formDraft.current = { ...session };
 
   const queries = profile ? getSuggestedQueries(profile.category) : [];
 
@@ -359,31 +372,12 @@ export default function Metadata() {
           })()}
         </div>
 
-        <label className="flex flex-col gap-1">
-          <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-            Pricing
-          </span>
-          <input
-            className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
-            maxLength={MAX_TEXT_LENGTH}
-            placeholder="e.g. Freemium, Subscription"
-            value={session.pricing ?? ""}
-            onChange={(e) => updateMetadata({ pricing: e.target.value })}
-          />
-        </label>
-
-        <label className="flex flex-col gap-1">
-          <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-            Availability
-          </span>
-          <input
-            className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
-            maxLength={MAX_TEXT_LENGTH}
-            placeholder="e.g. Institutional license required"
-            value={session.availability ?? ""}
-            onChange={(e) => updateMetadata({ availability: e.target.value })}
-          />
-        </label>
+        <SchemaForm
+          surface="metadata"
+          session={formDraft.current}
+          onChange={handleSchemaFormChange}
+          includeFields={["pricing", "availability"]}
+        />
 
         <div className="flex flex-col gap-1">
           <span

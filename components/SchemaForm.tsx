@@ -27,6 +27,10 @@ export interface SchemaFormProps {
   renderFieldExtra?: (desc: FieldDescriptor) => React.ReactNode;
   /** Optional: callback for image-capture actions. */
   onCapture?: (desc: FieldDescriptor) => void;
+  /** Optional: field IDs to exclude from rendering. */
+  excludeFields?: string[];
+  /** Optional: only render these field IDs (takes precedence over excludeFields). */
+  includeFields?: string[];
 }
 
 export default function SchemaForm({
@@ -35,8 +39,15 @@ export default function SchemaForm({
   onChange,
   renderFieldExtra,
   onCapture,
+  excludeFields,
+  includeFields,
 }: SchemaFormProps) {
-  const fields = useMemo(() => getActiveFields(surface), [surface]);
+  const fields = useMemo(() => {
+    const all = getActiveFields(surface);
+    if (includeFields) return all.filter((f) => includeFields.includes(f.id));
+    if (excludeFields) return all.filter((f) => !excludeFields.includes(f.id));
+    return all;
+  }, [surface, includeFields, excludeFields]);
 
   if (fields.length === 0) return null;
 

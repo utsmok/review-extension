@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRubric, useTabNavigation } from "@/components/contexts";
 import ExportActions from "@/components/finalization/ExportActions";
 import GradeSelector from "@/components/finalization/GradeSelector";
+import SchemaForm from "@/components/SchemaForm";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { PRINCIPLES } from "@/lib/principles";
 import { principleAverage } from "@/lib/rubric";
-import type { ReviewFinalization } from "@/lib/types";
+import type { FieldDescriptor, ReviewFinalization } from "@/lib/types";
 import { useSessionStore } from "@/stores/session";
 
 function buildFinalizationData(
@@ -58,6 +59,25 @@ export default function FinalizationScreen() {
   // Guard: skip sync effect when the change originated from our own autosave/save/clear
   const isLocalChange = useRef(false);
 
+  // Mutable draft for SchemaForm — shallow copy of local state on each render
+  const formDraft = useRef<Record<string, unknown>>({});
+  formDraft.current = { grade, conclusion, strengths, weaknesses, recommendations };
+
+  const handleSchemaFormChange = useCallback((desc: FieldDescriptor) => {
+    const d = formDraft.current;
+    switch (desc.storageKey) {
+      case "strengths":
+        setStrengths(d.strengths as string[]);
+        break;
+      case "weaknesses":
+        setWeaknesses(d.weaknesses as string[]);
+        break;
+      case "recommendations":
+        setRecommendations(d.recommendations as string);
+        break;
+    }
+    setSaved(false);
+  }, []);
   // ── Autosave: debounced 50ms, watches all fields ──────────────────────
   useEffect(() => {
     // Don't autosave when grade is empty (incomplete data)
@@ -162,18 +182,6 @@ export default function FinalizationScreen() {
   };
   const handleConclusionChange = (v: string) => {
     setConclusion(v);
-    setSaved(false);
-  };
-  const handleStrengthsChange = (items: string[]) => {
-    setStrengths(items);
-    setSaved(false);
-  };
-  const handleWeaknessesChange = (items: string[]) => {
-    setWeaknesses(items);
-    setSaved(false);
-  };
-  const handleRecommendationsChange = (v: string) => {
-    setRecommendations(v);
     setSaved(false);
   };
 
@@ -348,35 +356,13 @@ export default function FinalizationScreen() {
         />
       </label>
 
-      {/* Strengths */}
-      <BulletListEditor
-        label="Strengths"
-        items={strengths}
-        onChange={handleStrengthsChange}
-        placeholder="e.g., Clear source list with coverage dates"
+      {/* Strengths, Weaknesses, Recommendations — via SchemaForm */}
+      <SchemaForm
+        surface="finalization"
+        session={formDraft.current}
+        onChange={handleSchemaFormChange}
+        excludeFields={["grade", "conclusion"]}
       />
-
-      {/* Weaknesses */}
-      <BulletListEditor
-        label="Weaknesses"
-        items={weaknesses}
-        onChange={handleWeaknessesChange}
-        placeholder="e.g., No accessibility statement; keyboard navigation incomplete"
-      />
-
-      {/* Recommendations */}
-      <label className="flex flex-col gap-1">
-        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Recommendations
-        </span>
-        <textarea
-          className="border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text resize-y focus:outline-none focus:ring-2 focus:ring-ut-blue"
-          rows={3}
-          placeholder="Specific, actionable suggestions for the tool vendor or for UT's adoption decision (e.g., 'Request WCAG audit before institutional licensing')."
-          value={recommendations}
-          onChange={(e) => handleRecommendationsChange(e.target.value)}
-        />
-      </label>
 
       <ExportActions
         onFinalize={handleSave}
@@ -385,168 +371,6 @@ export default function FinalizationScreen() {
         saved={saved}
         showClear={!!finalization}
       />
-    </div>
-  );
-}
-
-function BulletListEditor({
-  label,
-  items,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  items: string[];
-  onChange: (items: string[]) => void;
-  placeholder: string;
-}) {
-  const [inputValue, setInputValue] = useState("");
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editValue, setEditValue] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const editRef = useRef<HTMLInputElement>(null);
-
-  // Focus edit input when editing starts
-  useEffect(() => {
-    if (editingIndex !== null) editRef.current?.focus();
-  }, [editingIndex]);
-
-  // Handle submit (Enter key or button click)
-  const handleSubmit = () => {
-    const trimmed = inputValue.trim();
-    if (!trimmed) return;
-    onChange([...items, trimmed]);
-    setInputValue("");
-    inputRef.current?.focus();
-  };
-
-  // Handle edit confirmation
-  const handleEditConfirm = (idx: number) => {
-    const trimmed = editValue.trim();
-    if (!trimmed) {
-      // Remove if emptied during edit
-      handleRemove(idx);
-    } else {
-      const next = [...items];
-      next[idx] = trimmed;
-      onChange(next);
-    }
-    setEditingIndex(null);
-  };
-
-  const handleRemove = (idx: number) => {
-    onChange(items.filter((_, i) => i !== idx));
-  };
-
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-        {label}
-      </span>
-      {/* Input row */}
-      <div className="flex gap-ut-1">
-        <input
-          ref={inputRef}
-          className="flex-1 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
-          placeholder={placeholder}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              handleSubmit();
-            }
-          }}
-        />
-        <button
-          type="button"
-          className="px-ut-3 text-ut-sm text-ut-blue hover:text-ut-navy font-heading font-bold"
-          onClick={handleSubmit}
-          disabled={!inputValue.trim()}
-        >
-          Add
-        </button>
-      </div>
-      {/* Items list */}
-      {items.length > 0 && (
-        <ul className="flex flex-col gap-ut-1 ml-ut-1">
-          {items.map((item, idx) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: simple string list, index is sufficient
-            <li key={idx} className="bullet-item-enter flex items-start gap-ut-1 text-ut-sm">
-              <span className="text-ut-slate shrink-0">•</span>
-              {editingIndex === idx ? (
-                <input
-                  ref={editRef}
-                  className="flex-1 border border-ut-border rounded-ut-sm bg-ut-grey px-ut-2 py-ut-1 text-ut-sm text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue"
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  onBlur={() => handleEditConfirm(idx)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleEditConfirm(idx);
-                    }
-                    if (e.key === "Escape") {
-                      setEditingIndex(null);
-                    }
-                  }}
-                />
-              ) : (
-                <span className="flex-1 text-ut-text break-words">{item}</span>
-              )}
-              {editingIndex !== idx && (
-                <>
-                  <button
-                    type="button"
-                    title="Edit"
-                    className="bullet-action-btn bullet-action-btn--edit shrink-0"
-                    onClick={() => {
-                      setEditingIndex(idx);
-                      setEditValue(item);
-                    }}
-                  >
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M12 20h9" />
-                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    title="Remove"
-                    className="bullet-action-btn bullet-action-btn--remove shrink-0"
-                    onClick={() => handleRemove(idx)}
-                  >
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    </svg>
-                  </button>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }
