@@ -1,9 +1,12 @@
 import { useCallback, useMemo } from "react";
 import { useEditMode } from "@/components/edit-mode/EditModeContext";
+import InlineAddButton from "@/components/edit-mode/InlineAddButton";
+import RemoveButton from "@/components/edit-mode/RemoveButton";
 import EditableText from "@/components/editor/EditableText";
 import { useLabs } from "@/hooks/useLabs";
 
 import { getActiveFrameworkConfig } from "@/lib/framework-config";
+import type { FrameworkGrade } from "@/lib/types";
 import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
 
 const CORE_GRADE_IDS = ["pass", "conditional", "fail"] as const;
@@ -43,11 +46,33 @@ export default function GradeSelector({ grade, onGradeChange }: GradeSelectorPro
   const labs = useLabs();
   const { editMode } = useEditMode();
   const setGradeOverride = useFrameworkCustomizationStore((s) => s.setGradeOverride);
+  const addGrade = useFrameworkCustomizationStore((s) => s.addGrade);
+  const removeGrade = useFrameworkCustomizationStore((s) => s.removeGrade);
   // Re-render when grade customization changes so edits appear live.
   useFrameworkCustomizationStore((s) => s.customization);
   const grades = useMemo(
     () => getGradeOptions(Boolean(labs.enhancedRecommendation)),
     [labs.enhancedRecommendation],
+  );
+
+  const handleAddGrade = useCallback(
+    (title: string) => {
+      const id = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_|_$/g, "");
+      const grade: FrameworkGrade = {
+        id,
+        label: title,
+        description: "",
+        color: "bg-gray-500",
+        tint: "bg-gray-100",
+        reportColor: "#4c5e74",
+        reportLabel: title.toUpperCase(),
+      };
+      addGrade(grade);
+    },
+    [addGrade],
   );
 
   const handleKeyDown = useCallback(
@@ -105,12 +130,18 @@ export default function GradeSelector({ grade, onGradeChange }: GradeSelectorPro
                     onGradeChange(g.value);
                   }
                 }}
-                className={`grade-btn px-ut-3 py-ut-3 rounded-ut-sm font-heading ${
+                className={`grade-btn relative px-ut-3 py-ut-3 rounded-ut-sm font-heading ${
                   selected
                     ? `${g.color} text-white is-selected`
                     : `border-2 border-ut-border ${g.tint} text-ut-text`
                 } cursor-pointer`}
               >
+                <RemoveButton
+                  onRemove={() => removeGrade(g.value)}
+                  confirmMessage="Remove this grade? Existing finalized reviews using it will show 'grade no longer available'."
+                  confirmLabel="Remove"
+                  ariaLabel={`Remove ${g.value} grade`}
+                />
                 <EditableText
                   disabled={false}
                   multiline={false}
@@ -155,6 +186,11 @@ export default function GradeSelector({ grade, onGradeChange }: GradeSelectorPro
           );
         })}
       </div>
+      {editMode && (
+        <div className="mt-ut-2">
+          <InlineAddButton noun="grade" onAdd={handleAddGrade} placeholder="New grade title" />
+        </div>
+      )}
     </div>
   );
 }

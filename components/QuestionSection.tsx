@@ -1,6 +1,9 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useRubric } from "@/components/contexts";
 import { useEditMode } from "@/components/edit-mode/EditModeContext";
+import InlineAddButton from "@/components/edit-mode/InlineAddButton";
+import RemoveButton from "@/components/edit-mode/RemoveButton";
+import ReorderHandle from "@/components/edit-mode/ReorderHandle";
 import EditableText from "@/components/editor/EditableText";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
@@ -83,6 +86,29 @@ export const QuestionRow = React.memo(function QuestionRow({
   const isAutoNa = isAiOnly && !usesAi;
   const { editMode } = useEditMode();
   const setRubricOverride = useFrameworkCustomizationStore((s) => s.setRubricOverride);
+  const removeRubricQuestion = useFrameworkCustomizationStore((s) => s.removeRubricQuestion);
+  const reorderRubricQuestions = useFrameworkCustomizationStore((s) => s.reorderRubricQuestions);
+
+  // Reorder: get current keys for this category to compute index and build new order
+  const { rubric } = useRubric();
+  const categoryKeys = Object.keys(rubric[section][category] ?? {});
+  const idx = categoryKeys.indexOf(qId);
+  const canUp = idx > 0;
+  const canDown = idx >= 0 && idx < categoryKeys.length - 1;
+  const handleReorder = useCallback(
+    (direction: -1 | 1) => {
+      const toIdx = idx + direction;
+      if (toIdx < 0 || toIdx >= categoryKeys.length) return;
+      const newKeys = [...categoryKeys];
+      [newKeys[idx], newKeys[toIdx]] = [newKeys[toIdx], newKeys[idx]];
+      reorderRubricQuestions(`${section}.${category}`, newKeys);
+    },
+    [idx, categoryKeys, section, category, reorderRubricQuestions],
+  );
+
+  const handleRemove = useCallback(() => {
+    removeRubricQuestion(section, category, qId);
+  }, [section, category, qId, removeRubricQuestion]);
   const patch = (field: string, v: string) => setRubricOverride([section, category, qId, field], v);
 
   // Compute progress based on section type
@@ -160,6 +186,22 @@ export const QuestionRow = React.memo(function QuestionRow({
           <span className="text-ut-xs text-ut-muted font-mono ml-1">
             N/A &mdash; tool does not use AI
           </span>
+        )}
+        {editMode && (
+          <RemoveButton
+            onRemove={handleRemove}
+            confirmMessage="Remove this question? This changes the framework for all reviews."
+            ariaLabel={`Remove ${qId}`}
+          />
+        )}
+        {editMode && (
+          <ReorderHandle
+            onUp={() => handleReorder(-1)}
+            onDown={() => handleReorder(1)}
+            canUp={canUp}
+            canDown={canDown}
+            ariaLabelPrefix={question.title}
+          />
         )}
       </summary>
       <div className="question-body">
@@ -376,6 +418,44 @@ export function QuestionSection({
   onViewEvidence,
 }: QuestionSectionProps) {
   const { rubric, usesAi } = useRubric();
+  const { editMode } = useEditMode();
+  const addRubricQuestion = useFrameworkCustomizationStore((s) => s.addRubricQuestion);
+
+  const handleAddQuestion = useCallback(
+    (parent: string, title: string) => {
+      const key = title
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "")
+        .slice(0, 48);
+      if (!key) return;
+      if (section === "quality_gate") {
+        addRubricQuestion(section, parent, {
+          key,
+          type: "pass_fail",
+          title,
+          requirement: "",
+          background: "",
+          examples: { pass: "", fail: "", na: "" },
+          ai_only: false,
+        });
+      } else {
+        addRubricQuestion(section, parent, {
+          key,
+          title,
+          background: "",
+          "0": "",
+          "1": "",
+          "2": "",
+          "3": "",
+          examples: { "0": "", "1": "", "2": "", "3": "" },
+          ai_only: false,
+        });
+      }
+    },
+    [section, addRubricQuestion],
+  );
   const [linkPopoverFor, setLinkPopoverFor] = useState<string | null>(null);
   const { evaluations, captures, setEvaluation, addCapture, linkCaptureToRubric } =
     useActiveSession();
@@ -491,6 +571,13 @@ export function QuestionSection({
               />
             );
           })}
+          {editMode && (
+            <InlineAddButton
+              noun={isQG ? "check" : "question"}
+              onAdd={(title) => handleAddQuestion(category, title)}
+              placeholder={isQG ? "New check title" : "New question title"}
+            />
+          )}
         </div>
       ))}
 
