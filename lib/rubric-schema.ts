@@ -23,6 +23,16 @@ export function getActiveRubric(): RubricData {
   return root as unknown as RubricData;
 }
 
+/**
+ * Reactive hook: re-renders when the rubric customization changes and returns the active rubric.
+ * Use this in React components (the plain getActiveRubric() is for non-React callers).
+ */
+export function useActiveRubric(): RubricData {
+  // Subscribe so consumers re-render on rubric customization changes.
+  useFrameworkCustomizationStore((s) => s.customization.rubric);
+  return getActiveRubric();
+}
+
 type Obj = Record<string, unknown>;
 
 /** Navigate a dot-joined path (e.g. "scoring_rubric.TR.data_source_clarity.title") and set the leaf. */

@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import {
   BooleanToggle,
   EmailInput,
@@ -10,6 +9,7 @@ import {
 } from "@/components/field-inputs";
 import { getActiveFields, getFieldValue, setFieldValue } from "@/lib/field-schema";
 import type { FieldDescriptor, FieldSurface, SessionMetadata } from "@/lib/types";
+import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
 
 // ---------------------------------------------------------------------------
 // SchemaForm — renders fields driven by FieldDescriptor[] from the schema.
@@ -42,12 +42,15 @@ export default function SchemaForm({
   excludeFields,
   includeFields,
 }: SchemaFormProps) {
-  const fields = useMemo(() => {
-    const all = getActiveFields(surface);
-    if (includeFields) return all.filter((f) => includeFields.includes(f.id));
-    if (excludeFields) return all.filter((f) => !excludeFields.includes(f.id));
-    return all;
-  }, [surface, includeFields, excludeFields]);
+  // Re-render when field customization changes so edits appear live; fields
+  // are recomputed each render from the eager accessor.
+  useFrameworkCustomizationStore((s) => s.customization);
+  const allFields = getActiveFields(surface);
+  const fields = includeFields
+    ? allFields.filter((f) => includeFields.includes(f.id))
+    : excludeFields
+      ? allFields.filter((f) => !excludeFields.includes(f.id))
+      : allFields;
 
   if (fields.length === 0) return null;
 

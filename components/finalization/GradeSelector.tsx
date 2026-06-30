@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useLabs } from "@/hooks/useLabs";
 
 import { getActiveFrameworkConfig } from "@/lib/framework-config";
+import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
 
 const CORE_GRADE_IDS = ["pass", "conditional", "fail"] as const;
 const ALL_GRADE_IDS = [
@@ -38,6 +39,8 @@ interface GradeSelectorProps {
 
 export default function GradeSelector({ grade, onGradeChange }: GradeSelectorProps) {
   const labs = useLabs();
+  // Re-render when grade customization changes so edits appear live.
+  useFrameworkCustomizationStore((s) => s.customization);
   const grades = useMemo(
     () => getGradeOptions(Boolean(labs.enhancedRecommendation)),
     [labs.enhancedRecommendation],

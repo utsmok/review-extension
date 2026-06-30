@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { RubricContext } from "@/components/contexts";
-import { RUBRIC_DATA } from "@/data/rubrics";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useSidepanelZoom } from "@/hooks/useSidepanelZoom";
+import { useActiveRubric } from "@/lib/rubric-schema";
 import { ActiveSession } from "./ActiveSession";
 import AppShell from "./AppShell";
 import SessionManager from "./SessionManager";
@@ -11,6 +10,7 @@ import SettingsScreen from "./SettingsScreen";
 export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   useSidepanelZoom();
+  const rubric = useActiveRubric();
 
   const { status, session } = useActiveSession();
 
@@ -35,7 +35,7 @@ export default function App() {
   if (status === "active" && session) {
     return (
       <AppShell showSettingsButton onSettingsClick={() => setShowSettings(true)}>
-        <RubricContext.Provider value={{ rubric: RUBRIC_DATA, usesAi: session.usesAi ?? true }}>
+        <RubricContext.Provider value={{ rubric, usesAi: session.usesAi ?? true }}>
           <ActiveSession />
         </RubricContext.Provider>
       </AppShell>

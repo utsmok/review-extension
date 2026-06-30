@@ -10,17 +10,8 @@ import {
   Section,
 } from "@/components/editor";
 import { applyPrincipleTokens, getActivePrinciples } from "@/lib/framework-config";
-import { getActiveRubric } from "@/lib/rubric-schema";
-import type { RubricData } from "@/lib/types";
+import { useActiveRubric } from "@/lib/rubric-schema";
 import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
-
-/** Hook that re-renders when the customization store changes. */
-function useActiveRubric(): RubricData {
-  // Subscribe to rubric overrides so the component re-renders on change;
-  // getActiveRubric() reads the current store state fresh.
-  useFrameworkCustomizationStore((s) => s.customization.rubric);
-  return getActiveRubric();
-}
 
 /** Slugify a human-readable title into a safe key. */
 function slugifyTitle(title: string): string {
