@@ -269,4 +269,17 @@ describe("Phase 3 — Rubric surface reorder + remove + add", () => {
     const addBtns = screen.queryAllByRole("button", { name: /\+ Add question/ });
     expect(addBtns.length).toBe(0);
   });
+  it("principle color popup recolors a principle", async () => {
+    renderWithEditMode("scoring_rubric", true);
+    await flush();
+    const gear = screen.getByRole("button", { name: "Style principle TR color" });
+    fireEvent.click(gear);
+    await flush();
+    const colorInput = screen.getByLabelText("Principle TR color") as HTMLInputElement;
+    fireEvent.change(colorInput, { target: { value: "#112233" } });
+    await flush();
+    expect(
+      useFrameworkCustomizationStore.getState().customization.principleOverrides.TR?.color,
+    ).toBe("#112233");
+  });
 });

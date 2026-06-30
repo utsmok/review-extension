@@ -2,12 +2,14 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useRubric } from "@/components/contexts";
 import { useEditMode } from "@/components/edit-mode/EditModeContext";
 import InlineAddButton from "@/components/edit-mode/InlineAddButton";
+import PopupEditor from "@/components/edit-mode/PopupEditor";
 import RemoveButton from "@/components/edit-mode/RemoveButton";
 import ReorderHandle from "@/components/edit-mode/ReorderHandle";
 import EditableText from "@/components/editor/EditableText";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
 import { captureActiveTab } from "@/lib/capture";
+import { getActivePrinciples } from "@/lib/framework-config";
 import {
   getAccentKey,
   getCategoryLabel,
@@ -419,6 +421,7 @@ export function QuestionSection({
 }: QuestionSectionProps) {
   const { rubric, usesAi } = useRubric();
   const { editMode } = useEditMode();
+  const setPrincipleOverride = useFrameworkCustomizationStore((s) => s.setPrincipleOverride);
   const addRubricQuestion = useFrameworkCustomizationStore((s) => s.addRubricQuestion);
 
   const handleAddQuestion = useCallback(
@@ -540,7 +543,23 @@ export function QuestionSection({
           className="mb-ut-3"
           data-accent-key={isQG ? "control" : getAccentKey(category)}
         >
-          <h3 className="section-kicker">{getCategoryLabel(category)}</h3>
+          <h3 className="section-kicker flex items-center gap-ut-1">
+            {getCategoryLabel(category)}
+            {editMode && !isQG && (
+              <PopupEditor ariaLabel={`Style principle ${category} color`}>
+                <label className="flex items-center gap-ut-1">
+                  <input
+                    type="color"
+                    value={getActivePrinciples().find((p) => p.id === category)?.color ?? "#7c3aed"}
+                    onChange={(e) => setPrincipleOverride(category, { color: e.target.value })}
+                    aria-label={`Principle ${category} color`}
+                    className="w-6 h-6 rounded-ut-sm border border-ut-border cursor-pointer"
+                  />
+                  <span className="font-heading uppercase text-ut-xs">Color</span>
+                </label>
+              </PopupEditor>
+            )}
+          </h3>
           {Object.entries(questions).map(([qId, questionRaw], qIdx) => {
             const question = questionRaw as PassFailQuestion | ScoringQuestion;
             const rubricId = `${category}.${qId}`;

@@ -98,3 +98,43 @@ subscriptions added in Phase 0 are the reactive prerequisite.
 
 ## Verification (every phase)
 `pnpm vitest run <touched test>` → then centrally `pnpm typecheck && pnpm exec biome check --write . && pnpm test && pnpm build`.
+
+---
+
+## Implementation Status (2026-06-30)
+
+**Shipped on `feat/inline-edit-mode`** (forked from `feat/framework-modularity`):
+
+- **Phase 0 ✅** — Reactivity fixes: `useActiveRubric()` reactive hook; `SchemaForm` +
+  `GradeSelector` subscribe to the customization store. Closed the long-standing
+  `RUBRIC_DATA` desync (review now reflects rubric edits live).
+- **Phase 1 ✅** — Edit Mode spine: `EditModeContext` (provider at app root, `initialEditMode`
+  for tests), `AppShell` toggle + guardrail banner, `EditableText.disabled`.
+- **Phase 2 ✅** — Click-to-edit text on all three surfaces (rubric title/requirement/guidance/
+  examples; field label + help; grade label + description).
+- **Phase 3 ✅** — Reorder + add + remove via `ReorderHandle`, `InlineAddButton`, `RemoveButton`
+  (rubric reorder/add/remove per group; fields reorder/add/remove; grades add/remove).
+- **Phase 4 ✅** — Styling popups: grade color/tint swatches, field required/enabled, and
+  principle color picker (scoring section headers).
+
+**1132 tests, typecheck + biome + build green.** Every affordance is gated behind `editMode`
+(off = byte-identical review).
+
+### Deliberately deferred (with rationale)
+
+- **True drag reorder (`@dnd-kit`)** — the npm registry was unreachable in the build environment
+  (DNS errors), so `ReorderHandle` ships as accessible up/down arrows. Swap to `@dnd-kit` drag is a
+  drop-in behind the same interface once the dependency is installable.
+- **Rubric score-level anchor texts inline** — the `<label>`/radio semantics in `ScoringScoreInputs`
+  conflict with inline `EditableText`; marked `TODO(phase4)` in the source. Editable via the
+  dedicated Rubric editor today.
+- **Hardcoded Metadata fields → schema migration** — `toolName`/`toolUrl`/`logo`/`usesAi`/
+  `discipline` have bespoke UI (logo capture, AI-confirm flow, discipline pills) that doesn't map
+  cleanly to `SchemaForm` field-inputs. Migration is a separate, higher-risk refactor; the dynamic
+  metadata fields already have full inline edit. Left as-is and functional.
+- **C3 per-session snapshots** — every eager accessor reads the global store directly and several
+  are used in non-React report generation, so source-injection is a separate refactor. Edits target
+  the global framework (same semantics as the existing Settings editors) with a prominent guardrail
+  banner. The Phase-0 reactivity fixes are the prerequisite for any future snapshot work.
+- **Field TYPE in the styling popup** — `FieldOverride` deliberately excludes `type` (changing a
+  shipped field's type would invalidate stored values); type is fixed at creation via `addField`.
