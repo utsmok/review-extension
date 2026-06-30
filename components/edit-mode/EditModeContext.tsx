@@ -19,8 +19,15 @@ const EditModeContext = createContext<EditModeContextValue>({
   toggleEditMode: () => {},
 });
 
-export function EditModeProvider({ children }: { children: ReactNode }) {
-  const [editMode, setEditMode] = useState(false);
+export function EditModeProvider({
+  children,
+  initialEditMode = false,
+}: {
+  children: ReactNode;
+  /** Start in edit mode (useful for tests and embeds). */
+  initialEditMode?: boolean;
+}) {
+  const [editMode, setEditMode] = useState(initialEditMode);
   const value = useMemo<EditModeContextValue>(
     () => ({
       editMode,

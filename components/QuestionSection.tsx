@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useRubric } from "@/components/contexts";
+import { useEditMode } from "@/components/edit-mode/EditModeContext";
+import EditableText from "@/components/editor/EditableText";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
 import { captureActiveTab } from "@/lib/capture";
@@ -11,6 +13,7 @@ import {
   getQuestionCode,
 } from "@/lib/rubric";
 import type { Capture, Evaluation, PassFailQuestion, ScoringQuestion } from "@/lib/types";
+import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
 import { toastError } from "@/stores/toast";
 import EvidenceThumbnails from "./EvidenceThumbnails";
 import { getProgressState, ProgressCircle } from "./ProgressCircle";
@@ -78,6 +81,9 @@ export const QuestionRow = React.memo(function QuestionRow({
   const ev = evaluation;
   const isAiOnly = question.ai_only ?? false;
   const isAutoNa = isAiOnly && !usesAi;
+  const { editMode } = useEditMode();
+  const setRubricOverride = useFrameworkCustomizationStore((s) => s.setRubricOverride);
+  const patch = (field: string, v: string) => setRubricOverride([section, category, qId, field], v);
 
   // Compute progress based on section type
   let hasScore: boolean;
@@ -140,7 +146,16 @@ export const QuestionRow = React.memo(function QuestionRow({
                     : ""}
           </span>
         )}
-        <span>{question.title}</span>
+        <span onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+          <EditableText
+            disabled={!editMode}
+            multiline={false}
+            value={question.title}
+            onChange={(v) => patch("title", v)}
+            label={`${qId} title`}
+            className="font-bold"
+          />
+        </span>
         {isAutoNa && (
           <span className="text-ut-xs text-ut-muted font-mono ml-1">
             N/A &mdash; tool does not use AI
@@ -150,9 +165,13 @@ export const QuestionRow = React.memo(function QuestionRow({
       <div className="question-body">
         {/* QG: requirement text. Scoring: nothing extra. */}
         {isQG && (
-          <p className="text-ut-sm text-ut-muted leading-relaxed mb-ut-2">
-            {(question as PassFailQuestion).requirement}
-          </p>
+          <EditableText
+            disabled={!editMode}
+            value={String((question as PassFailQuestion).requirement ?? "")}
+            onChange={(v) => patch("requirement", v)}
+            label={`${qId} requirement`}
+            className="text-ut-sm text-ut-muted leading-relaxed mb-ut-2"
+          />
         )}
 
         {/* Score UI */}
@@ -192,7 +211,14 @@ export const QuestionRow = React.memo(function QuestionRow({
         {question.background && (
           <details className="question-foldout">
             <summary className="question-foldout-summary">Background</summary>
-            <p className="question-foldout-content">{question.background}</p>
+            <EditableText
+              disabled={!editMode}
+              multiline
+              value={question.background}
+              onChange={(v) => patch("background", v)}
+              label={`${qId} background`}
+              className="question-foldout-content"
+            />
           </details>
         )}
 
@@ -211,7 +237,14 @@ export const QuestionRow = React.memo(function QuestionRow({
                         >
                           {key === "pass" ? "Pass" : key === "fail" ? "Fail" : "N/A"}
                         </span>
-                        <span className="example-desc">{desc}</span>
+                        <EditableText
+                          disabled={!editMode}
+                          multiline
+                          value={String(desc)}
+                          onChange={(v) => patch(`examples.${key}`, v)}
+                          label={`${qId} example ${key}`}
+                          className="example-desc"
+                        />
                       </div>
                     ),
                   )
@@ -222,7 +255,14 @@ export const QuestionRow = React.memo(function QuestionRow({
                         <span className="example-badge" data-score={level}>
                           {level}
                         </span>
-                        <span className="example-desc">{ex}</span>
+                        <EditableText
+                          disabled={!editMode}
+                          multiline
+                          value={ex}
+                          onChange={(v) => patch(`examples.${level}`, v)}
+                          label={`${qId} example ${level}`}
+                          className="example-desc"
+                        />
                       </div>
                     ) : null;
                   })}

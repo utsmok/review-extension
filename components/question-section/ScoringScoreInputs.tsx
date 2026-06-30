@@ -51,6 +51,7 @@ export function ScoringScoreInputs({
             onClick={handleClick}
           >
             <span className="score-badge select-none">{val}</span>
+            {/* TODO(phase4): inline score-level anchor editing */}
             <span className="score-desc">{desc}</span>
           </ScoreOption>
         );

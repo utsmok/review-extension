@@ -1,3 +1,4 @@
+import { useEditMode } from "@/components/edit-mode/EditModeContext";
 import {
   BooleanToggle,
   EmailInput,
@@ -42,6 +43,9 @@ export default function SchemaForm({
   excludeFields,
   includeFields,
 }: SchemaFormProps) {
+  const { editMode } = useEditMode();
+  const setFieldOverride = useFrameworkCustomizationStore((s) => s.setFieldOverride);
+
   // Re-render when field customization changes so edits appear live; fields
   // are recomputed each render from the eager accessor.
   useFrameworkCustomizationStore((s) => s.customization);
@@ -70,6 +74,8 @@ export default function SchemaForm({
             onChange={() => onChange(desc)}
             onCapture={onCapture}
             renderFieldExtra={renderFieldExtra}
+            editable={editMode}
+            onOverride={(patch) => setFieldOverride(desc.id, patch)}
           />
         </div>
       ))}
@@ -86,12 +92,16 @@ function FieldRenderer({
   onChange,
   onCapture,
   renderFieldExtra,
+  editable,
+  onOverride,
 }: {
   desc: FieldDescriptor;
   session: SessionMetadata | Record<string, unknown>;
   onChange: () => void;
   onCapture?: (desc: FieldDescriptor) => void;
   renderFieldExtra?: (desc: FieldDescriptor) => React.ReactNode;
+  editable?: boolean;
+  onOverride?: (patch: Partial<FieldDescriptor>) => void;
 }) {
   const value = getFieldValue(session as SessionMetadata, desc);
 
@@ -104,42 +114,79 @@ function FieldRenderer({
     case "text":
       return (
         <>
-          <TextInput desc={desc} value={value} onChange={handleChange} />
+          <TextInput
+            desc={desc}
+            value={value}
+            onChange={handleChange}
+            editable={editable}
+            onOverride={onOverride}
+          />
           {renderFieldExtra?.(desc)}
         </>
       );
     case "textarea":
       return (
         <>
-          <TextAreaInput desc={desc} value={value} onChange={handleChange} />
+          <TextAreaInput
+            desc={desc}
+            value={value}
+            onChange={handleChange}
+            editable={editable}
+            onOverride={onOverride}
+          />
           {renderFieldExtra?.(desc)}
         </>
       );
     case "url":
       return (
         <>
-          <UrlInput desc={desc} value={value} onChange={handleChange} />
+          <UrlInput
+            desc={desc}
+            value={value}
+            onChange={handleChange}
+            editable={editable}
+            onOverride={onOverride}
+          />
           {renderFieldExtra?.(desc)}
         </>
       );
     case "email":
       return (
         <>
-          <EmailInput desc={desc} value={value} onChange={handleChange} />
+          <EmailInput
+            desc={desc}
+            value={value}
+            onChange={handleChange}
+            editable={editable}
+            onOverride={onOverride}
+          />
           {renderFieldExtra?.(desc)}
         </>
       );
     case "boolean":
       return (
         <>
-          <BooleanToggle desc={desc} value={value} onChange={handleChange} />
+          <BooleanToggle
+            desc={desc}
+            value={value}
+            onChange={handleChange}
+            editable={editable}
+            onOverride={onOverride}
+          />
           {renderFieldExtra?.(desc)}
         </>
       );
     case "image":
       return (
         <>
-          <ImageInput desc={desc} value={value} onChange={handleChange} onCapture={onCapture} />
+          <ImageInput
+            desc={desc}
+            value={value}
+            onChange={handleChange}
+            onCapture={onCapture}
+            editable={editable}
+            onOverride={onOverride}
+          />
           {renderFieldExtra?.(desc)}
         </>
       );
@@ -147,7 +194,13 @@ function FieldRenderer({
     case "multi-select":
       return (
         <>
-          <SelectInput desc={desc} value={value} onChange={handleChange} />
+          <SelectInput
+            desc={desc}
+            value={value}
+            onChange={handleChange}
+            editable={editable}
+            onOverride={onOverride}
+          />
           {renderFieldExtra?.(desc)}
         </>
       );

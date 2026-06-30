@@ -10,6 +10,8 @@ interface PillFieldProps {
   /** In single-select mode, clicking the selected option deselects it */
   single?: boolean;
   maxHeight?: string;
+  /** When true, hide the <legend> label (caller renders its own). */
+  hideLabel?: boolean;
 }
 
 /** Derive custom entries: those in the value array that aren't predefined */
@@ -29,6 +31,7 @@ export default function PillField({
   allowCustom = true,
   single = false,
   maxHeight,
+  hideLabel = false,
 }: PillFieldProps) {
   const [customInput, setCustomInput] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -68,9 +71,11 @@ export default function PillField({
 
   return (
     <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
-      <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-        {label}
-      </legend>
+      {!hideLabel && (
+        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          {label}
+        </legend>
+      )}
       <div className={`flex flex-wrap gap-ut-1 mb-ut-1${maxHeight ? ` ${maxHeight}` : ""}`}>
         {options.map((opt) => (
           <button

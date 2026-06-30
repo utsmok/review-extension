@@ -1,4 +1,6 @@
 import { useCallback, useMemo } from "react";
+import { useEditMode } from "@/components/edit-mode/EditModeContext";
+import EditableText from "@/components/editor/EditableText";
 import { useLabs } from "@/hooks/useLabs";
 
 import { getActiveFrameworkConfig } from "@/lib/framework-config";
@@ -39,6 +41,8 @@ interface GradeSelectorProps {
 
 export default function GradeSelector({ grade, onGradeChange }: GradeSelectorProps) {
   const labs = useLabs();
+  const { editMode } = useEditMode();
+  const setGradeOverride = useFrameworkCustomizationStore((s) => s.setGradeOverride);
   // Re-render when grade customization changes so edits appear live.
   useFrameworkCustomizationStore((s) => s.customization);
   const grades = useMemo(
@@ -84,30 +88,72 @@ export default function GradeSelector({ grade, onGradeChange }: GradeSelectorPro
         className="grid grid-cols-3 gap-ut-2"
         onKeyDown={handleKeyDown}
       >
-        {grades.map((g, i) => (
-          <button
-            key={g.value}
-            type="button"
-            role="radio"
-            aria-checked={grade === g.value}
-            tabIndex={grade === g.value || (!grade && i === 0) ? 0 : -1}
-            onClick={() => onGradeChange(g.value)}
-            className={`grade-btn px-ut-3 py-ut-3 rounded-ut-sm font-heading font-semibold uppercase tracking-ut-label ${
-              grade === g.value
-                ? `${g.color} text-white is-selected`
-                : `border-2 border-ut-border ${g.tint} text-ut-text hover:brightness-95`
-            }`}
-          >
-            <span
-              className={`text-ut-sm leading-snug ${grade === g.value ? "font-bold" : "font-semibold"}`}
+        {grades.map((g, i) => {
+          const selected = grade === g.value;
+          if (editMode) {
+            return (
+              <div
+                key={g.value}
+                role="radio"
+                aria-checked={selected}
+                tabIndex={selected || (!grade && i === 0) ? 0 : -1}
+                data-testid={`grade-card-${g.value}`}
+                onClick={() => onGradeChange(g.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onGradeChange(g.value);
+                  }
+                }}
+                className={`grade-btn px-ut-3 py-ut-3 rounded-ut-sm font-heading ${
+                  selected
+                    ? `${g.color} text-white is-selected`
+                    : `border-2 border-ut-border ${g.tint} text-ut-text`
+                } cursor-pointer`}
+              >
+                <EditableText
+                  disabled={false}
+                  multiline={false}
+                  value={g.label}
+                  onChange={(v) => setGradeOverride(g.value, { label: v })}
+                  label={`${g.value} grade label`}
+                  className={`text-ut-sm leading-snug ${selected ? "font-bold" : "font-semibold"}`}
+                />
+                <EditableText
+                  disabled={false}
+                  value={g.description}
+                  onChange={(v) => setGradeOverride(g.value, { description: v })}
+                  label={`${g.value} grade description`}
+                  className="grade-btn__desc block text-ut-xs font-normal normal-case tracking-normal mt-0.5 leading-relaxed"
+                />
+              </div>
+            );
+          }
+          return (
+            <button
+              key={g.value}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              tabIndex={selected || (!grade && i === 0) ? 0 : -1}
+              onClick={() => onGradeChange(g.value)}
+              className={`grade-btn px-ut-3 py-ut-3 rounded-ut-sm font-heading font-semibold uppercase tracking-ut-label ${
+                selected
+                  ? `${g.color} text-white is-selected`
+                  : `border-2 border-ut-border ${g.tint} text-ut-text hover:brightness-95`
+              }`}
             >
-              {g.label}
-            </span>
-            <span className="grade-btn__desc block text-ut-xs font-normal normal-case tracking-normal mt-0.5 leading-relaxed">
-              {g.description}
-            </span>
-          </button>
-        ))}
+              <span
+                className={`text-ut-sm leading-snug ${selected ? "font-bold" : "font-semibold"}`}
+              >
+                {g.label}
+              </span>
+              <span className="grade-btn__desc block text-ut-xs font-normal normal-case tracking-normal mt-0.5 leading-relaxed">
+                {g.description}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
