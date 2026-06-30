@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useEditMode } from "@/components/edit-mode/EditModeContext";
 import InlineAddButton from "@/components/edit-mode/InlineAddButton";
+import PopupEditor from "@/components/edit-mode/PopupEditor";
 import RemoveButton from "@/components/edit-mode/RemoveButton";
 import ReorderHandle from "@/components/edit-mode/ReorderHandle";
 import {
@@ -113,13 +114,35 @@ export default function SchemaForm({
                 }}
                 ariaLabelPrefix={desc.label}
               />
-              {desc.custom && (
-                <RemoveButton
-                  onRemove={() => removeCustomField(desc.id)}
-                  confirmMessage="Remove this field? This changes the form for all reviews."
-                  ariaLabel={`Remove ${desc.id}`}
-                />
-              )}
+              <div className="flex items-center gap-ut-1">
+                <PopupEditor ariaLabel={`Style ${desc.id} field`}>
+                  <div className="flex flex-col gap-ut-2">
+                    <label className="flex items-center gap-ut-1">
+                      <input
+                        type="checkbox"
+                        checked={desc.required ?? false}
+                        onChange={(e) => setFieldOverride(desc.id, { required: e.target.checked })}
+                      />
+                      <span className="font-heading uppercase text-ut-xs">Required</span>
+                    </label>
+                    <label className="flex items-center gap-ut-1">
+                      <input
+                        type="checkbox"
+                        checked={desc.enabled}
+                        onChange={(e) => setFieldOverride(desc.id, { enabled: e.target.checked })}
+                      />
+                      <span className="font-heading uppercase text-ut-xs">Enabled</span>
+                    </label>
+                  </div>
+                </PopupEditor>
+                {desc.custom && (
+                  <RemoveButton
+                    onRemove={() => removeCustomField(desc.id)}
+                    confirmMessage="Remove this field? This changes the form for all reviews."
+                    ariaLabel={`Remove ${desc.id}`}
+                  />
+                )}
+              </div>
             </div>
           )}
           <FieldRenderer

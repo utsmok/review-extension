@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useEditMode } from "@/components/edit-mode/EditModeContext";
 import InlineAddButton from "@/components/edit-mode/InlineAddButton";
+import PopupEditor from "@/components/edit-mode/PopupEditor";
 import RemoveButton from "@/components/edit-mode/RemoveButton";
 import EditableText from "@/components/editor/EditableText";
 import { useLabs } from "@/hooks/useLabs";
@@ -8,6 +9,25 @@ import { useLabs } from "@/hooks/useLabs";
 import { getActiveFrameworkConfig } from "@/lib/framework-config";
 import type { FrameworkGrade } from "@/lib/types";
 import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
+
+/** Tailwind color classes shipped by the framework grades — safe to emit. */
+const COLOR_PALETTE = [
+  "bg-ut-green",
+  "bg-score-1-strong",
+  "bg-ut-red",
+  "bg-ut-muted",
+  "bg-amber-600",
+  "bg-gray-500",
+] as const;
+
+/** Tailwind tint classes shipped by the framework grades — safe to emit. */
+const TINT_PALETTE = [
+  "bg-grade-pass-tint",
+  "bg-grade-conditional-tint",
+  "bg-grade-fail-tint",
+  "bg-gray-100",
+  "bg-amber-50",
+] as const;
 
 const CORE_GRADE_IDS = ["pass", "conditional", "fail"] as const;
 const ALL_GRADE_IDS = [
@@ -142,6 +162,50 @@ export default function GradeSelector({ grade, onGradeChange }: GradeSelectorPro
                   confirmLabel="Remove"
                   ariaLabel={`Remove ${g.value} grade`}
                 />
+                <PopupEditor ariaLabel={`Style ${g.value} grade`}>
+                  <div className="space-y-ut-1">
+                    <span className="text-ut-2xs font-bold uppercase text-ut-muted">Color</span>
+                    <div
+                      className="flex gap-ut-1 flex-wrap"
+                      data-testid={`grade-card-color-palette-${g.value}`}
+                    >
+                      {COLOR_PALETTE.map((cls) => (
+                        <button
+                          key={cls}
+                          type="button"
+                          onClick={() => setGradeOverride(g.value, { color: cls })}
+                          className={`w-6 h-6 rounded-ut-sm border ${cls} ${
+                            g.color === cls
+                              ? "border-trust-magenta ring-2 ring-trust-magenta/30"
+                              : "border-ut-border"
+                          }`}
+                          title={cls}
+                          aria-label={`Color ${cls}`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-ut-2xs font-bold uppercase text-ut-muted">Tint</span>
+                    <div
+                      className="flex gap-ut-1 flex-wrap"
+                      data-testid={`grade-card-tint-palette-${g.value}`}
+                    >
+                      {TINT_PALETTE.map((cls) => (
+                        <button
+                          key={cls}
+                          type="button"
+                          onClick={() => setGradeOverride(g.value, { tint: cls })}
+                          className={`w-6 h-6 rounded-ut-sm border ${cls} ${
+                            g.tint === cls
+                              ? "border-trust-magenta ring-2 ring-trust-magenta/30"
+                              : "border-ut-border"
+                          }`}
+                          title={cls}
+                          aria-label={`Tint ${cls}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </PopupEditor>
                 <EditableText
                   disabled={false}
                   multiline={false}
