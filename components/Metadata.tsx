@@ -16,6 +16,7 @@ import { toastError } from "@/stores/toast";
 import ConfirmDialog from "./ConfirmDialog";
 import ExportCompleteScreen from "./ExportCompleteScreen";
 import DisciplineField from "./metadata/DisciplineField";
+import HardcodedField from "./metadata/HardcodedField";
 import PillField from "./PillField";
 import SchemaForm from "./SchemaForm";
 
@@ -216,11 +217,7 @@ export default function Metadata() {
         Tool Details
       </h2>
 
-      {/* Primary fields — always visible */}
-      <label className="flex flex-col gap-1">
-        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Tool Description
-        </span>
+      <HardcodedField fieldId="meta.description" defaultLabel="Tool Description">
         <input
           className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
           maxLength={MAX_TEXT_LENGTH}
@@ -228,12 +225,9 @@ export default function Metadata() {
           value={session.description ?? ""}
           onChange={(e) => updateMetadata({ description: e.target.value })}
         />
-      </label>
+      </HardcodedField>
 
-      <label className="flex flex-col gap-1">
-        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Company
-        </span>
+      <HardcodedField fieldId="meta.company" defaultLabel="Company">
         <input
           className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
           maxLength={MAX_TEXT_LENGTH}
@@ -241,49 +235,48 @@ export default function Metadata() {
           value={session.company ?? ""}
           onChange={(e) => updateMetadata({ company: e.target.value })}
         />
-      </label>
+      </HardcodedField>
 
-      <label className="meta-toggle-label flex items-center gap-ut-2 min-h-[44px] cursor-pointer">
-        <input
-          {...(!(session.usesAi ?? true) ? { "aria-describedby": "desc-usesai" } : {})}
-          type="checkbox"
-          checked={session.usesAi ?? true}
-          onChange={(e) => {
-            const next = e.target.checked;
-            if (!next && hasScoredAiOnlyQuestions()) {
-              setShowUsesAiConfirm(true);
-            } else {
-              updateMetadata({ usesAi: next });
-            }
-          }}
-          className="meta-checkbox w-4 h-4 rounded-ut-sm border-ut-border text-ut-blue focus:ring-ut-blue"
-        />
-        <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-          Tool uses AI / LLM
-        </span>
+      <HardcodedField fieldId="meta.usesAi" defaultLabel="Tool uses AI / LLM" as="div">
+        <div className="meta-toggle-label flex items-center gap-ut-2 min-h-[44px]">
+          <label className="flex items-center gap-ut-2 cursor-pointer">
+            <input
+              aria-label="Tool uses AI / LLM"
+              {...(!(session.usesAi ?? true) ? { "aria-describedby": "desc-usesai" } : {})}
+              type="checkbox"
+              checked={session.usesAi ?? true}
+              onChange={(e) => {
+                const next = e.target.checked;
+                if (!next && hasScoredAiOnlyQuestions()) {
+                  setShowUsesAiConfirm(true);
+                } else {
+                  updateMetadata({ usesAi: next });
+                }
+              }}
+              className="meta-checkbox w-4 h-4 rounded-ut-sm border-ut-border text-ut-blue focus:ring-ut-blue"
+            />
+          </label>
+          {!(session.usesAi ?? true) && (
+            <span className="meta-ai-badge text-ut-xs font-mono bg-ut-offwhite text-ut-muted border border-ut-border rounded-ut-sm px-ut-1 ml-auto">
+              OFF
+            </span>
+          )}
+          {(session.usesAi ?? true) && (
+            <span className="meta-ai-badge text-ut-xs font-mono bg-state-success-tint text-ut-green border border-ut-green/30 rounded-ut-sm px-ut-1 ml-auto">
+              ON
+            </span>
+          )}
+        </div>
         {!(session.usesAi ?? true) && (
-          <span className="meta-ai-badge text-ut-xs font-mono bg-ut-offwhite text-ut-muted border border-ut-border rounded-ut-sm px-ut-1 ml-auto">
-            OFF
-          </span>
+          <p id="desc-usesai" className="text-ut-xs text-ut-muted">
+            AI-specific questions are marked as not applicable.
+          </p>
         )}
-        {(session.usesAi ?? true) && (
-          <span className="meta-ai-badge text-ut-xs font-mono bg-state-success-tint text-ut-green border border-ut-green/30 rounded-ut-sm px-ut-1 ml-auto">
-            ON
-          </span>
-        )}
-      </label>
-      {!(session.usesAi ?? true) && (
-        <p id="desc-usesai" className="text-ut-xs text-ut-muted">
-          AI-specific questions are marked as not applicable.
-        </p>
-      )}
+      </HardcodedField>
 
       {/* Secondary fields — progressive disclosure */}
       <div className="flex flex-col gap-ut-3 mt-ut-2">
-        <label className="flex flex-col gap-1">
-          <span className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-            Review Notes
-          </span>
+        <HardcodedField fieldId="meta.notes" defaultLabel="Review Notes">
           <textarea
             className="meta-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text resize-y focus:outline-none focus:ring-2 focus:ring-ut-blue"
             rows={3}
@@ -292,20 +285,13 @@ export default function Metadata() {
             value={session.notes ?? ""}
             onChange={(e) => updateMetadata({ notes: e.target.value })}
           />
-        </label>
+        </HardcodedField>
 
-        <div className="flex flex-col gap-1">
-          <span
-            id="meta-logo-label"
-            className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy"
-          >
-            Logo
-          </span>
+        <HardcodedField fieldId="meta.toolLogoUrl" defaultLabel="Logo" as="div">
           <div className="flex items-center gap-ut-2">
             <input
               type="url"
               className="meta-input meta-url-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue flex-1 min-w-0 overflow-hidden text-ellipsis"
-              aria-labelledby="meta-logo-label"
               maxLength={MAX_URL_LENGTH}
               placeholder="e.g. https://example.com/logo.png"
               value={session.toolLogoUrl ?? ""}
@@ -371,7 +357,7 @@ export default function Metadata() {
               </div>
             );
           })()}
-        </div>
+        </HardcodedField>
 
         <SchemaForm
           surface="metadata"
@@ -380,16 +366,13 @@ export default function Metadata() {
           includeFields={["pricing", "availability"]}
         />
 
-        <div className="flex flex-col gap-1">
-          <span
-            id="meta-tc-label"
-            className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy"
-          >
-            Terms &amp; Conditions
-          </span>
+        <HardcodedField
+          fieldId="meta.termsConditionsUrl"
+          defaultLabel="Terms & Conditions"
+          as="div"
+        >
           <input
             type="url"
-            aria-labelledby="meta-tc-label"
             className="meta-input meta-url-input border border-ut-border rounded-ut-sm bg-ut-grey px-ut-3 py-ut-2 text-ut-md text-ut-text focus:outline-none focus:ring-2 focus:ring-ut-blue overflow-hidden text-ellipsis"
             maxLength={MAX_URL_LENGTH}
             placeholder="e.g. https://example.com/terms"
@@ -444,37 +427,53 @@ export default function Metadata() {
               </div>
             );
           })()}
-        </div>
+        </HardcodedField>
 
-        <PillField
-          label="Data Sources"
-          options={DATA_SOURCE_OPTIONS}
-          selected={ensureArray(session.dataSources)}
-          onChange={(next) => updateMetadata({ dataSources: next })}
-          placeholder="Add custom source..."
-        />
+        <HardcodedField fieldId="meta.dataSources" defaultLabel="Data Sources" as="div">
+          <PillField
+            label="Data Sources"
+            options={DATA_SOURCE_OPTIONS}
+            selected={ensureArray(session.dataSources)}
+            onChange={(next) => updateMetadata({ dataSources: next })}
+            placeholder="Add custom source..."
+            hideLabel
+          />
+        </HardcodedField>
 
-        <PillField
-          label="Search Methods"
-          options={SEARCH_METHOD_OPTIONS}
-          selected={ensureArray(session.searchMethods)}
-          onChange={(next) => updateMetadata({ searchMethods: next })}
-          placeholder="Add custom method..."
-        />
+        <HardcodedField fieldId="meta.searchMethods" defaultLabel="Search Methods" as="div">
+          <PillField
+            label="Search Methods"
+            options={SEARCH_METHOD_OPTIONS}
+            selected={ensureArray(session.searchMethods)}
+            onChange={(next) => updateMetadata({ searchMethods: next })}
+            placeholder="Add custom method..."
+            hideLabel
+          />
+        </HardcodedField>
 
-        <DisciplineField
-          selected={ensureArray(session.discipline)}
-          onChange={(next) => updateMetadata({ discipline: next })}
-        />
+        <HardcodedField fieldId="meta.discipline" defaultLabel="Discipline" as="div">
+          <DisciplineField
+            selected={ensureArray(session.discipline)}
+            onChange={(next) => updateMetadata({ discipline: next })}
+            hideLabel
+          />
+        </HardcodedField>
 
-        <PillField
-          label="Authentication Method"
-          options={AUTH_METHOD_OPTIONS}
-          selected={session.authenticationMethod ? [session.authenticationMethod] : []}
-          onChange={(next) => updateMetadata({ authenticationMethod: next[0] ?? undefined })}
-          allowCustom={false}
-          single
-        />
+        <HardcodedField
+          fieldId="meta.authenticationMethod"
+          defaultLabel="Authentication Method"
+          as="div"
+        >
+          <PillField
+            label="Authentication Method"
+            options={AUTH_METHOD_OPTIONS}
+            selected={session.authenticationMethod ? [session.authenticationMethod] : []}
+            onChange={(next) => updateMetadata({ authenticationMethod: next[0] ?? undefined })}
+            allowCustom={false}
+            single
+            hideLabel
+          />
+        </HardcodedField>
       </div>
 
       {/* Review summary */}

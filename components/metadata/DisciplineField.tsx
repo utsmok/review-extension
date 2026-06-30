@@ -9,9 +9,11 @@ import {
 function DisciplineField({
   selected,
   onChange,
+  hideLabel = false,
 }: {
   selected: string[];
   onChange: (next: string[]) => void;
+  hideLabel?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [customInput, setCustomInput] = useState("");
@@ -51,9 +53,11 @@ function DisciplineField({
 
   return (
     <fieldset className="flex flex-col gap-1 border-0 p-0 m-0">
-      <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
-        Discipline
-      </legend>
+      {!hideLabel && (
+        <legend className="text-ut-sm font-heading font-bold uppercase tracking-ut-label text-ut-navy">
+          Discipline
+        </legend>
+      )}
       <div className="flex flex-wrap gap-ut-1 mb-ut-1">
         <button
           type="button"
