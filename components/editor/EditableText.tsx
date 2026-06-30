@@ -9,6 +9,8 @@ interface EditableTextProps {
   rows?: number;
   className?: string;
   multiline?: boolean;
+  /** When true, render as plain non-interactive text (read-only display). */
+  disabled?: boolean;
 }
 
 const PLACEHOLDER = "Click to add\u2026";
@@ -26,6 +28,7 @@ export default function EditableText({
   rows = 1,
   className,
   multiline = true,
+  disabled = false,
 }: EditableTextProps) {
   const [editing, setEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
@@ -104,6 +107,15 @@ export default function EditableText({
 
   const isEmpty = value === "";
   const Tag = multiline ? "div" : "span";
+
+  if (disabled) {
+    // Read-only: render the value as plain text (no placeholder, no handlers).
+    return isEmpty ? null : (
+      <Tag className={className} aria-label={label}>
+        {value}
+      </Tag>
+    );
+  }
 
   return (
     <Tag

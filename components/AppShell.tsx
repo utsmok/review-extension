@@ -1,11 +1,15 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useRegistryStore } from "@/stores/registry";
+import EditModeBanner from "./edit-mode/EditModeBanner";
+import EditModeToggle from "./edit-mode/EditModeToggle";
 import ToastContainer from "./Toast";
 
 interface AppShellProps {
   children: ReactNode;
   onSettingsClick?: () => void;
   showSettingsButton?: boolean;
+  /** Show the inline Edit Mode toggle (only on an active review). */
+  showEditModeToggle?: boolean;
 }
 
 type SaveStatus = "idle" | "saved" | "failed";
@@ -46,7 +50,12 @@ function SetupBanner({ onOpenSettings }: { onOpenSettings: () => void }) {
   );
 }
 
-export default function AppShell({ children, onSettingsClick, showSettingsButton }: AppShellProps) {
+export default function AppShell({
+  children,
+  onSettingsClick,
+  showSettingsButton,
+  showEditModeToggle,
+}: AppShellProps) {
   const [trustImgError, setTrustImgError] = useState(false);
   const [lisaImgError, setLisaImgError] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -126,7 +135,10 @@ export default function AppShell({ children, onSettingsClick, showSettingsButton
             </svg>
           </button>
         )}
+        {showEditModeToggle && <EditModeToggle />}
       </header>
+
+      <EditModeBanner />
 
       {showSetupBanner && <SetupBanner onOpenSettings={onSettingsClick ?? (() => {})} />}
 

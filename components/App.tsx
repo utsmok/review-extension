@@ -4,10 +4,19 @@ import { useSidepanelZoom } from "@/hooks/useSidepanelZoom";
 import { useActiveRubric } from "@/lib/rubric-schema";
 import { ActiveSession } from "./ActiveSession";
 import AppShell from "./AppShell";
+import { EditModeProvider } from "./edit-mode/EditModeContext";
 import SessionManager from "./SessionManager";
 import SettingsScreen from "./SettingsScreen";
 
 export default function App() {
+  return (
+    <EditModeProvider>
+      <AppInner />
+    </EditModeProvider>
+  );
+}
+
+function AppInner() {
   const [showSettings, setShowSettings] = useState(false);
   useSidepanelZoom();
   const rubric = useActiveRubric();
@@ -34,7 +43,7 @@ export default function App() {
 
   if (status === "active" && session) {
     return (
-      <AppShell showSettingsButton onSettingsClick={() => setShowSettings(true)}>
+      <AppShell showSettingsButton showEditModeToggle onSettingsClick={() => setShowSettings(true)}>
         <RubricContext.Provider value={{ rubric, usesAi: session.usesAi ?? true }}>
           <ActiveSession />
         </RubricContext.Provider>
