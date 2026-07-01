@@ -1,3 +1,4 @@
+import EditableText from "@/components/editor/EditableText";
 import type { Evaluation, RubricScore, ScoringQuestion } from "@/lib/types";
 import { ScoreOption } from "../ScoreOption";
 
@@ -9,10 +10,11 @@ interface ScoringScoreInputsProps {
   isUnsure: boolean;
   isAutoNa: boolean;
   levels: ScoringQuestion;
+  editMode: boolean;
+  onEditLevel: (level: string, value: string) => void;
   setEvaluation: (rubricId: string, patch: Partial<Evaluation>) => void;
   ev: Evaluation | undefined;
 }
-
 export function ScoringScoreInputs({
   rubricId,
   questionTitle,
@@ -21,6 +23,8 @@ export function ScoringScoreInputs({
   isUnsure,
   isAutoNa,
   levels,
+  editMode,
+  onEditLevel,
   setEvaluation,
   ev,
 }: ScoringScoreInputsProps) {
@@ -30,6 +34,25 @@ export function ScoringScoreInputs({
         if (val === "") return null;
         const desc = levels[String(val) as "0" | "1" | "2" | "3"];
         const selected = scoreNum === val;
+
+        if (editMode) {
+          return (
+            <div
+              key={val}
+              className={`score-row ${selected ? "is-selected" : ""}`}
+              data-score={val}
+            >
+              <span className="score-badge select-none">{val}</span>
+              <EditableText
+                className="score-desc"
+                multiline={false}
+                value={desc}
+                onChange={(v) => onEditLevel(String(val), v)}
+                label={`${questionTitle} score ${val} description`}
+              />
+            </div>
+          );
+        }
 
         const handleClick = () => {
           if (isAutoNa) return;
@@ -51,51 +74,63 @@ export function ScoringScoreInputs({
             onClick={handleClick}
           >
             <span className="score-badge select-none">{val}</span>
-            {/* TODO(phase4): inline score-level anchor editing */}
             <span className="score-desc">{desc}</span>
           </ScoreOption>
         );
       })}
 
       {/* N/A row */}
-      <ScoreOption
-        name={rubricId}
-        isActive={isNa}
-        isDisabled={isAutoNa}
-        className={`score-row score-row--meta-separator ${isNa ? "is-selected" : ""}`}
-        dataScore="na"
-        onClick={() => {
-          if (isAutoNa) return;
-          if (isNa) {
-            setEvaluation(rubricId, { score: "" });
-          } else {
-            setEvaluation(rubricId, { score: "na", customScore: undefined });
-          }
-        }}
-      >
-        <span className="score-badge select-none">—</span>
-        <span className="score-desc">Not applicable</span>
-      </ScoreOption>
-
+      {editMode ? (
+        <div className="score-row score-row--meta-separator" data-score="na">
+          <span className="score-badge select-none">—</span>
+          <span className="score-desc">Not applicable</span>
+        </div>
+      ) : (
+        <ScoreOption
+          name={rubricId}
+          isActive={isNa}
+          isDisabled={isAutoNa}
+          className={`score-row score-row--meta-separator ${isNa ? "is-selected" : ""}`}
+          dataScore="na"
+          onClick={() => {
+            if (isAutoNa) return;
+            if (isNa) {
+              setEvaluation(rubricId, { score: "" });
+            } else {
+              setEvaluation(rubricId, { score: "na", customScore: undefined });
+            }
+          }}
+        >
+          <span className="score-badge select-none">—</span>
+          <span className="score-desc">Not applicable</span>
+        </ScoreOption>
+      )}
       {/* Unsure row */}
-      <ScoreOption
-        name={rubricId}
-        isActive={isUnsure}
-        isDisabled={isAutoNa}
-        className={`score-row ${isUnsure ? "is-selected" : ""}`}
-        dataScore="unsure"
-        onClick={() => {
-          if (isAutoNa) return;
-          if (isUnsure) {
-            setEvaluation(rubricId, { score: "" });
-          } else {
-            setEvaluation(rubricId, { score: "unsure", customScore: undefined });
-          }
-        }}
-      >
-        <span className="score-badge select-none">?</span>
-        <span className="score-desc">Insufficient information to score</span>
-      </ScoreOption>
+      {editMode ? (
+        <div className="score-row" data-score="unsure">
+          <span className="score-badge select-none">?</span>
+          <span className="score-desc">Insufficient information to score</span>
+        </div>
+      ) : (
+        <ScoreOption
+          name={rubricId}
+          isActive={isUnsure}
+          isDisabled={isAutoNa}
+          className={`score-row ${isUnsure ? "is-selected" : ""}`}
+          dataScore="unsure"
+          onClick={() => {
+            if (isAutoNa) return;
+            if (isUnsure) {
+              setEvaluation(rubricId, { score: "" });
+            } else {
+              setEvaluation(rubricId, { score: "unsure", customScore: undefined });
+            }
+          }}
+        >
+          <span className="score-badge select-none">?</span>
+          <span className="score-desc">Insufficient information to score</span>
+        </ScoreOption>
+      )}
       {/* Custom/Wildcard score */}
       <div className="mt-ut-2">
         <details className="question-foldout">

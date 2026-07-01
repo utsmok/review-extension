@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EditModeProvider } from "@/components/edit-mode/EditModeContext";
 import { QuestionRow, QuestionSection } from "@/components/QuestionSection";
 import type { Evaluation } from "@/lib/types";
+import { useFrameworkCustomizationStore } from "@/stores/framework-customization";
 import { useRegistryStore } from "@/stores/registry";
 import { useSessionStore } from "@/stores/session";
 import { makeEvaluation } from "@/tests/fixtures";
@@ -123,18 +124,27 @@ function resetStores() {
     sessionIndex: {},
     settings: { reviewerName: "", reviewerEmail: "", labs: {} },
   });
+  useFrameworkCustomizationStore.getState().resetAll();
 }
 
 /**
  * Find the <details class="question-details"> for a question by its rubricId.
- * Each question details element contains a radio input whose `name` attr is the rubricId.
+ * Falls back to id-based lookup when radios aren't rendered (edit mode).
  */
 function getQuestionDetailsByRubricId(rubricId: string): HTMLDetailsElement {
-  const radio = document.querySelector(`input[type="radio"][name="${escAttr(rubricId)}"]`);
-  if (!radio) throw new Error(`No radio found for rubricId "${rubricId}"`);
-  const details = radio.closest("details.question-details") as HTMLDetailsElement | null;
-  if (!details) throw new Error(`No <details.question-details> ancestor for "${rubricId}"`);
-  return details;
+  // Try radio-based lookup first (works in review mode).
+  const escaped = rubricId.replace(/\./g, "\\.");
+  const radio = document.querySelector(`input[type="radio"][name="${escaped}"]`);
+  if (radio) {
+    const details = radio.closest("details.question-details") as HTMLDetailsElement | null;
+    if (details) return details;
+  }
+
+  // Fallback: the details element has id="question-{rubricId}".
+  const byId = document.getElementById(`question-${rubricId}`);
+  if (byId instanceof HTMLDetailsElement) return byId;
+
+  throw new Error(`No <details.question-details> found for rubricId "${rubricId}"`);
 }
 
 /** Programmatically open a <details> element. */
@@ -746,5 +756,144 @@ describe("drag-reorder in rubric questions", () => {
 
     const handles = document.querySelectorAll('button[aria-label^="Reorder"]');
     expect(handles.length).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Edit-mode score controls (Phase 4)
+//
+// Verify that score-selection controls become inert in edit mode, level
+// anchor descriptions become editable, and the onEditLevel/patch path fires.
+// ---------------------------------------------------------------------------
+
+describe("edit-mode score controls", () => {
+  beforeEach(() => {
+    resetStores();
+    vi.clearAllMocks();
+    seedAllEvaluations();
+  });
+  afterEach(() => {
+    cleanup();
+    resetStores();
+  });
+
+  function renderWithEditMode(section: "quality_gate" | "scoring_rubric", initialEditMode = true) {
+    const props = stubProps();
+    return render(
+      <EditModeProvider initialEditMode={initialEditMode}>
+        <AllProviders usesAi>
+          <QuestionSection section={section} {...props} />
+        </AllProviders>
+      </EditModeProvider>,
+    );
+  }
+
+  it("scoring score rows show editable anchor in edit mode and clicking does NOT select", async () => {
+    renderWithEditMode("scoring_rubric", true);
+
+    const details = getQuestionDetailsByRubricId("TR.data_source_clarity");
+    openDetails(details);
+    await flush();
+
+    // Level 2 row should render as a div (not label), with an editable text
+    const row = details.querySelector('div[data-score="2"]');
+    expect(row).toBeTruthy();
+
+    // Should contain an EditableText display (button role)
+    const display = within(row as HTMLElement).getByRole("button", {
+      name: /score 2 description$/,
+    });
+    expect(display).toBeTruthy();
+
+    // No radio input should exist in edit mode for this row
+    const radio = row?.querySelector("input[type=radio]");
+    expect(radio).toBeNull();
+
+    // Clicking the row should NOT change the evaluation
+    const evalBefore = useSessionStore
+      .getState()
+      .evaluations.find((e) => e.rubricId === "TR.data_source_clarity");
+    fireEvent.click(row!);
+    await flush();
+
+    const evalAfter = useSessionStore
+      .getState()
+      .evaluations.find((e) => e.rubricId === "TR.data_source_clarity");
+    expect(evalAfter?.score).toBe(evalBefore?.score);
+  });
+
+  it("scoring score rows still select in review mode (editMode=false)", async () => {
+    renderWithEditMode("scoring_rubric", false);
+
+    const details = getQuestionDetailsByRubricId("TR.data_source_clarity");
+    openDetails(details);
+    await flush();
+
+    // Should have the label-based ScoreOption
+    const score2Label = details.querySelector('label[data-score="2"]');
+    expect(score2Label).toBeTruthy();
+    const score2Radio = score2Label?.querySelector("input[type=radio]") as HTMLInputElement;
+    expect(score2Radio).toBeTruthy();
+
+    fireEvent.click(score2Radio);
+    await flush();
+
+    const evals = useSessionStore.getState().evaluations;
+    const ev = evals.find((e) => e.rubricId === "TR.data_source_clarity");
+    expect(ev?.score).toBe(2);
+  });
+
+  it("quality gate labels are inert in edit mode", async () => {
+    renderWithEditMode("quality_gate", true);
+
+    const details = getQuestionDetailsByRubricId("accessibility.compliance");
+    openDetails(details);
+    await flush();
+
+    // Should render as divs, not labels with radios
+    const passDiv = details.querySelector('div[data-judgment="pass"]');
+    expect(passDiv).toBeTruthy();
+    expect(passDiv?.textContent).toBe("✓ Pass");
+
+    const radio = details.querySelector('input[type="radio"]');
+    expect(radio).toBeNull();
+
+    // Clicking pass should NOT change the score
+    const evalBefore = useSessionStore
+      .getState()
+      .evaluations.find((e) => e.rubricId === "accessibility.compliance");
+    fireEvent.click(passDiv!);
+    await flush();
+
+    const evalAfter = useSessionStore
+      .getState()
+      .evaluations.find((e) => e.rubricId === "accessibility.compliance");
+    expect(evalAfter?.score).toBe(evalBefore?.score);
+  });
+
+  it("editing a level anchor in edit mode calls setRubricOverride via patch", async () => {
+    renderWithEditMode("scoring_rubric", true);
+
+    const details = getQuestionDetailsByRubricId("TR.data_source_clarity");
+    openDetails(details);
+    await flush();
+
+    // Find the level-2 EditableText display and click to enter edit
+    const display = within(details).getByRole("button", {
+      name: /score 2 description$/,
+    });
+    fireEvent.click(display);
+
+    const input = screen.getByTestId("editable-text-input") as HTMLInputElement;
+    expect(input.value).toBeTruthy();
+
+    // Change and blur
+    fireEvent.change(input, { target: { value: "Updated score 2 desc" } });
+    fireEvent.blur(input);
+    await flush();
+
+    // Assert patch written to the customization store
+    const patches = useFrameworkCustomizationStore.getState().customization.rubric.valuePatches;
+    expect(patches["scoring_rubric.TR.data_source_clarity.2"]).toBe("Updated score 2 desc");
   });
 });

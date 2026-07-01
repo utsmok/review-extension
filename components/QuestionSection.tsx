@@ -231,6 +231,7 @@ export const QuestionRow = React.memo(function QuestionRow({
             questionTitle={question.title}
             score={ev}
             isAutoNa={isAutoNa}
+            editMode={editMode}
             onScoreChange={setEvaluation}
           />
         ) : (
@@ -242,6 +243,8 @@ export const QuestionRow = React.memo(function QuestionRow({
             isUnsure={ev?.score === "unsure"}
             isAutoNa={isAutoNa}
             levels={question as ScoringQuestion}
+            editMode={editMode}
+            onEditLevel={(level, v) => patch(level, v)}
             setEvaluation={setEvaluation}
             ev={ev}
           />

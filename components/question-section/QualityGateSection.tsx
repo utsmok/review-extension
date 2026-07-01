@@ -6,14 +6,15 @@ interface QualityGateSectionProps {
   questionTitle: string;
   score: Evaluation | undefined;
   isAutoNa: boolean;
+  editMode: boolean;
   onScoreChange: (rubricId: string, patch: Partial<Evaluation>) => void;
 }
-
 export function QualityGateSection({
   rubricId,
   questionTitle,
   score,
   isAutoNa,
+  editMode,
   onScoreChange,
 }: QualityGateSectionProps) {
   return (
@@ -31,6 +32,22 @@ export function QualityGateSection({
             score?.score !== "fail" &&
             score?.score !== "unsure");
         const isDisabled = isAutoNa && val !== "na";
+        const label =
+          val === "pass"
+            ? "✓ Pass"
+            : val === "fail"
+              ? "✗ Fail"
+              : val === "na"
+                ? "— N/A"
+                : "? Unsure";
+
+        if (editMode) {
+          return (
+            <div key={val} className="judgment-label" data-judgment={val}>
+              {label}
+            </div>
+          );
+        }
 
         const handleClick = () => {
           if (isDisabled) return;

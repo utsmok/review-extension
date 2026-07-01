@@ -108,13 +108,24 @@ function resetStores() {
   useFrameworkCustomizationStore.getState().resetAll();
 }
 
+/**
+ * Find the <details class="question-details"> for a question by its rubricId.
+ * Falls back to id-based lookup when radios aren't rendered (edit mode).
+ */
 function getQuestionDetailsByRubricId(rubricId: string): HTMLDetailsElement {
+  // Try radio-based lookup first (works in review mode).
   const escaped = rubricId.replace(/\./g, "\\.");
   const radio = document.querySelector(`input[type="radio"][name="${escaped}"]`);
-  if (!radio) throw new Error(`No radio found for rubricId "${rubricId}"`);
-  const details = radio.closest("details.question-details") as HTMLDetailsElement | null;
-  if (!details) throw new Error(`No <details.question-details> ancestor for "${rubricId}"`);
-  return details;
+  if (radio) {
+    const details = radio.closest("details.question-details") as HTMLDetailsElement | null;
+    if (details) return details;
+  }
+
+  // Fallback: the details element has id="question-{rubricId}".
+  const byId = document.getElementById(`question-${rubricId}`);
+  if (byId instanceof HTMLDetailsElement) return byId;
+
+  throw new Error(`No <details.question-details> found for rubricId "${rubricId}"`);
 }
 
 function openDetails(details: HTMLDetailsElement) {
