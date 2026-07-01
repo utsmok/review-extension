@@ -3,6 +3,7 @@
 import { cleanup, fireEvent, render, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { EditModeProvider } from "@/components/edit-mode/EditModeContext";
 import { QuestionRow, QuestionSection } from "@/components/QuestionSection";
 import type { Evaluation } from "@/lib/types";
 import { useRegistryStore } from "@/stores/registry";
@@ -699,5 +700,51 @@ describe("merged gate badges (§2e)", () => {
 
     const tcDetails = getMergedGateDetails("TC.source_attribution_depth");
     expect(tcDetails).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Drag-reorder tests
+// ---------------------------------------------------------------------------
+
+describe("drag-reorder in rubric questions", () => {
+  beforeEach(() => {
+    resetStores();
+    vi.clearAllMocks();
+  });
+
+  afterEach(cleanup);
+
+  it("renders a DragHandle per question with aria-label 'Reorder <title>' in edit mode", () => {
+    seedAllEvaluations();
+    const props = stubProps();
+    render(
+      <EditModeProvider initialEditMode>
+        <AllProviders usesAi>
+          <QuestionSection section="quality_gate" {...props} />
+        </AllProviders>
+      </EditModeProvider>,
+    );
+
+    // Every question should have a DragHandle — pick a known title
+    const handles = document.querySelectorAll('button[aria-label^="Reorder"]');
+    expect(handles.length).toBeGreaterThan(0);
+
+    // Verify one specific title matches
+    const labels = Array.from(handles).map((b) => b.getAttribute("aria-label"));
+    expect(labels).toContain("Reorder Data privacy policy");
+  });
+
+  it("renders no DragHandle in review mode", () => {
+    seedAllEvaluations();
+    const props = stubProps();
+    render(
+      <AllProviders usesAi>
+        <QuestionSection section="quality_gate" {...props} />
+      </AllProviders>,
+    );
+
+    const handles = document.querySelectorAll('button[aria-label^="Reorder"]');
+    expect(handles.length).toBe(0);
   });
 });

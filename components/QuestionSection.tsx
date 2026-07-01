@@ -1,10 +1,13 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useRubric } from "@/components/contexts";
+import { DragHandle } from "@/components/edit-mode/DragHandle";
 import { useEditMode } from "@/components/edit-mode/EditModeContext";
 import InlineAddButton from "@/components/edit-mode/InlineAddButton";
 import PopupEditor from "@/components/edit-mode/PopupEditor";
 import RemoveButton from "@/components/edit-mode/RemoveButton";
 import ReorderHandle from "@/components/edit-mode/ReorderHandle";
+import { SortableItem } from "@/components/edit-mode/SortableItem";
+import { SortableList } from "@/components/edit-mode/SortableList";
 import EditableText from "@/components/editor/EditableText";
 import { useActiveSession } from "@/hooks/useActiveSession";
 import { useScreenshotUrl } from "@/hooks/useScreenshotUrl";
@@ -197,13 +200,16 @@ export const QuestionRow = React.memo(function QuestionRow({
           />
         )}
         {editMode && (
-          <ReorderHandle
-            onUp={() => handleReorder(-1)}
-            onDown={() => handleReorder(1)}
-            canUp={canUp}
-            canDown={canDown}
-            ariaLabelPrefix={question.title}
-          />
+          <>
+            <DragHandle ariaLabel={`Reorder ${question.title}`} />
+            <ReorderHandle
+              onUp={() => handleReorder(-1)}
+              onDown={() => handleReorder(1)}
+              canUp={canUp}
+              canDown={canDown}
+              ariaLabelPrefix={question.title}
+            />
+          </>
         )}
       </summary>
       <div className="question-body">
@@ -423,6 +429,7 @@ export function QuestionSection({
   const { editMode } = useEditMode();
   const setPrincipleOverride = useFrameworkCustomizationStore((s) => s.setPrincipleOverride);
   const addRubricQuestion = useFrameworkCustomizationStore((s) => s.addRubricQuestion);
+  const reorderRubricQuestions = useFrameworkCustomizationStore((s) => s.reorderRubricQuestions);
 
   const handleAddQuestion = useCallback(
     (parent: string, title: string) => {
@@ -560,36 +567,86 @@ export function QuestionSection({
               </PopupEditor>
             )}
           </h3>
-          {Object.entries(questions).map(([qId, questionRaw], qIdx) => {
-            const question = questionRaw as PassFailQuestion | ScoringQuestion;
-            const rubricId = `${category}.${qId}`;
-            const code = isQG ? getQGQuestionCode(category, qIdx) : getQuestionCode(category, qIdx);
+          {editMode
+            ? (() => {
+                const questionKeys = Object.keys(questions);
+                return (
+                  <SortableList
+                    ids={questionKeys}
+                    onReorder={(newKeys: (string | number)[]) =>
+                      reorderRubricQuestions(`${section}.${category}`, newKeys as string[])
+                    }
+                  >
+                    {questionKeys.map((qId, qIdx) => {
+                      const question = (
+                        questions as Record<string, PassFailQuestion | ScoringQuestion>
+                      )[qId];
+                      const rubricId = `${category}.${qId}`;
+                      const code = isQG
+                        ? getQGQuestionCode(category, qIdx)
+                        : getQuestionCode(category, qIdx);
 
-            return (
-              <QuestionRow
-                key={qId}
-                rubricId={rubricId}
-                qId={qId}
-                code={code}
-                question={question}
-                section={section}
-                category={category}
-                evaluation={evaluationMap.get(rubricId)}
-                evidence={captureMap.get(rubricId) ?? NO_CAPTURES}
-                allCaptures={captures}
-                usesAi={usesAi}
-                capturingFor={capturingFor}
-                isCapturing={captureQueue.isCapturing}
-                linkPopoverFor={linkPopoverFor}
-                setLinkPopoverFor={setLinkPopoverFor}
-                setEvaluation={setEvaluation}
-                linkCaptureToRubric={linkCaptureToRubric}
-                handleCaptureEvidence={handleCaptureEvidence}
-                onConfirmRemove={onConfirmRemove}
-                onViewEvidence={onViewEvidence}
-              />
-            );
-          })}
+                      return (
+                        <SortableItem key={qId} id={qId} index={qIdx}>
+                          <QuestionRow
+                            rubricId={rubricId}
+                            qId={qId}
+                            code={code}
+                            question={question}
+                            section={section}
+                            category={category}
+                            evaluation={evaluationMap.get(rubricId)}
+                            evidence={captureMap.get(rubricId) ?? NO_CAPTURES}
+                            allCaptures={captures}
+                            usesAi={usesAi}
+                            capturingFor={capturingFor}
+                            isCapturing={captureQueue.isCapturing}
+                            linkPopoverFor={linkPopoverFor}
+                            setLinkPopoverFor={setLinkPopoverFor}
+                            setEvaluation={setEvaluation}
+                            linkCaptureToRubric={linkCaptureToRubric}
+                            handleCaptureEvidence={handleCaptureEvidence}
+                            onConfirmRemove={onConfirmRemove}
+                            onViewEvidence={onViewEvidence}
+                          />
+                        </SortableItem>
+                      );
+                    })}
+                  </SortableList>
+                );
+              })()
+            : Object.entries(questions).map(([qId, questionRaw], qIdx) => {
+                const question = questionRaw as PassFailQuestion | ScoringQuestion;
+                const rubricId = `${category}.${qId}`;
+                const code = isQG
+                  ? getQGQuestionCode(category, qIdx)
+                  : getQuestionCode(category, qIdx);
+
+                return (
+                  <QuestionRow
+                    key={qId}
+                    rubricId={rubricId}
+                    qId={qId}
+                    code={code}
+                    question={question}
+                    section={section}
+                    category={category}
+                    evaluation={evaluationMap.get(rubricId)}
+                    evidence={captureMap.get(rubricId) ?? NO_CAPTURES}
+                    allCaptures={captures}
+                    usesAi={usesAi}
+                    capturingFor={capturingFor}
+                    isCapturing={captureQueue.isCapturing}
+                    linkPopoverFor={linkPopoverFor}
+                    setLinkPopoverFor={setLinkPopoverFor}
+                    setEvaluation={setEvaluation}
+                    linkCaptureToRubric={linkCaptureToRubric}
+                    handleCaptureEvidence={handleCaptureEvidence}
+                    onConfirmRemove={onConfirmRemove}
+                    onViewEvidence={onViewEvidence}
+                  />
+                );
+              })}
           {editMode && (
             <InlineAddButton
               noun={isQG ? "check" : "question"}

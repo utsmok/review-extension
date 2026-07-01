@@ -2,7 +2,7 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import SchemaForm from "@/components/SchemaForm";
+import { EditModeProvider } from "@/components/edit-mode/EditModeContext";
 import type { FieldDescriptor, FieldSurface, SessionMetadata } from "@/lib/types";
 import { makeMetadata } from "@/tests/fixtures";
 
@@ -413,5 +413,37 @@ describe("SchemaForm", () => {
     render(<SchemaForm surface="metadata" session={session} onChange={onChange} />);
 
     expect(screen.getByPlaceholderText("Type here...")).toBeDefined();
+  });
+
+  it("renders DragHandle button per field in edit mode", () => {
+    mockGetActiveFields.mockReturnValue([
+      textDesc({ id: "f-alpha", label: "Alpha" }),
+      textDesc({ id: "f-beta", label: "Beta" }),
+    ]);
+    const session = makeMetadata();
+    render(
+      <EditModeProvider initialEditMode>
+        <SchemaForm surface="metadata" session={session} onChange={onChange} />
+      </EditModeProvider>,
+    );
+
+    expect(screen.getByRole("button", { name: "Reorder Alpha" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "Reorder Beta" })).toBeDefined();
+  });
+
+  it("renders no DragHandle in review mode", () => {
+    mockGetActiveFields.mockReturnValue([
+      textDesc({ id: "f-alpha", label: "Alpha" }),
+      textDesc({ id: "f-beta", label: "Beta" }),
+    ]);
+    const session = makeMetadata();
+    render(
+      <EditModeProvider initialEditMode={false}>
+        <SchemaForm surface="metadata" session={session} onChange={onChange} />
+      </EditModeProvider>,
+    );
+
+    expect(screen.queryByRole("button", { name: "Reorder Alpha" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Reorder Beta" })).toBeNull();
   });
 });

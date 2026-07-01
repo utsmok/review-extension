@@ -27,6 +27,13 @@ vi.hoisted(() => {
     key: (i: number) => Object.keys(store)[i] ?? null,
   };
   globalThis.localStorage = shim as Storage;
+  // dnd-kit (used by SortableItem) accesses ResizeObserver at import time.
+  // jsdom doesn't provide it — stub before any dnd-kit module resolves.
+  globalThis.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
 });
 
 export { store as localStorageStore };

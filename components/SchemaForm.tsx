@@ -1,9 +1,12 @@
 import { useCallback } from "react";
+import { DragHandle } from "@/components/edit-mode/DragHandle";
 import { useEditMode } from "@/components/edit-mode/EditModeContext";
 import InlineAddButton from "@/components/edit-mode/InlineAddButton";
 import PopupEditor from "@/components/edit-mode/PopupEditor";
 import RemoveButton from "@/components/edit-mode/RemoveButton";
 import ReorderHandle from "@/components/edit-mode/ReorderHandle";
+import { SortableItem } from "@/components/edit-mode/SortableItem";
+import { SortableList } from "@/components/edit-mode/SortableList";
 import {
   BooleanToggle,
   EmailInput,
@@ -90,30 +93,42 @@ export default function SchemaForm({
     },
     [addField, sorted, surface],
   );
+  const handleReorderFields = useCallback(
+    (nextIds: (string | number)[]) => {
+      nextIds.forEach((id, i) => {
+        setFieldOverride(String(id), { order: i });
+      });
+    },
+    [setFieldOverride],
+  );
+  const fieldIds = sorted.map((d) => d.id);
 
   if (fields.length === 0) return null;
 
-  return (
-    <div className="flex flex-col gap-ut-4">
+  return editMode ? (
+    <SortableList ids={fieldIds} onReorder={handleReorderFields} className="flex flex-col gap-ut-4">
       {sorted.map((desc, idx) => (
-        <div key={desc.id} className="meta-field" data-testid={`field-${desc.id}`}>
-          {editMode && (
+        <SortableItem key={desc.id} id={desc.id} index={idx}>
+          <div className="meta-field" data-testid={`field-${desc.id}`}>
             <div className="flex items-center justify-between mb-ut-1">
-              <ReorderHandle
-                canUp={idx > 0}
-                canDown={idx < sorted.length - 1}
-                onUp={() => {
-                  const prev = sorted[idx - 1];
-                  setFieldOverride(desc.id, { order: prev.order });
-                  setFieldOverride(prev.id, { order: desc.order });
-                }}
-                onDown={() => {
-                  const next = sorted[idx + 1];
-                  setFieldOverride(desc.id, { order: next.order });
-                  setFieldOverride(next.id, { order: desc.order });
-                }}
-                ariaLabelPrefix={desc.label}
-              />
+              <div className="flex items-center gap-ut-1">
+                <DragHandle ariaLabel={`Reorder ${desc.label}`} />
+                <ReorderHandle
+                  canUp={idx > 0}
+                  canDown={idx < sorted.length - 1}
+                  onUp={() => {
+                    const prev = sorted[idx - 1];
+                    setFieldOverride(desc.id, { order: prev.order });
+                    setFieldOverride(prev.id, { order: desc.order });
+                  }}
+                  onDown={() => {
+                    const next = sorted[idx + 1];
+                    setFieldOverride(desc.id, { order: next.order });
+                    setFieldOverride(next.id, { order: desc.order });
+                  }}
+                  ariaLabelPrefix={desc.label}
+                />
+              </div>
               <div className="flex items-center gap-ut-1">
                 <PopupEditor ariaLabel={`Style ${desc.id} field`}>
                   <div className="flex flex-col gap-ut-2">
@@ -144,7 +159,24 @@ export default function SchemaForm({
                 )}
               </div>
             </div>
-          )}
+            <FieldRenderer
+              desc={desc}
+              session={session}
+              onChange={() => onChange(desc)}
+              onCapture={onCapture}
+              renderFieldExtra={renderFieldExtra}
+              editable={editMode}
+              onOverride={(patch) => setFieldOverride(desc.id, patch)}
+            />
+          </div>
+        </SortableItem>
+      ))}
+      <InlineAddButton noun="field" onAdd={handleAddField} placeholder="New field title" />
+    </SortableList>
+  ) : (
+    <div className="flex flex-col gap-ut-4">
+      {sorted.map((desc, _idx) => (
+        <div key={desc.id} className="meta-field" data-testid={`field-${desc.id}`}>
           <FieldRenderer
             desc={desc}
             session={session}
@@ -156,9 +188,6 @@ export default function SchemaForm({
           />
         </div>
       ))}
-      {editMode && (
-        <InlineAddButton noun="field" onAdd={handleAddField} placeholder="New field title" />
-      )}
     </div>
   );
 }

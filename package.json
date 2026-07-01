@@ -29,6 +29,7 @@
     "prebuild": "node scripts/sync-registry.mjs"
   },
   "dependencies": {
+    "@dnd-kit/react": "^0.5.0",
     "jszip": "^3.10.1",
     "papaparse": "^5.4.1",
     "react": "^19.0.0",
